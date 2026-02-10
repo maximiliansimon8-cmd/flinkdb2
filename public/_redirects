@@ -1,0 +1,2 @@
+/api/airtable/*  /.netlify/functions/airtable-proxy/:splat  200
+/*  /index.html  200
