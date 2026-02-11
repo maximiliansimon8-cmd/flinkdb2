@@ -119,7 +119,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         value={`${kpis.healthRate}%`}
         icon={Activity}
         color={healthColor}
-        subtitle={kpis.snapshotCount > 0 ? `Ø ${kpis.snapshotCount} Snapshots` : undefined}
+        subtitle={kpis.snapshotCount > 0 ? `Ø ${kpis.snapshotCount} Tage · 06–22 Uhr` : undefined}
         avgLabel={rangeLabel || undefined}
         large
         trend={

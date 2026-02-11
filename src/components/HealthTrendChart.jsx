@@ -17,10 +17,15 @@ function CustomTooltip({ active, payload, comparisonHealthRate }) {
     <div className="bg-white/90 backdrop-blur-xl border border-slate-300/40 rounded-lg px-3 py-2 text-xs font-mono shadow-sm shadow-black/[0.03]">
       <div className="text-slate-600 mb-1">{data.date}</div>
       <div className="text-[#22c55e] font-bold">
-        {data.healthRate}% online
+        {data.healthRate}% Betriebszeit
       </div>
       <div className="text-slate-400">
-        {data.online}/{data.total} Displays
+        {data.totalOnlineHours != null
+          ? `${data.totalOnlineHours}h / ${data.totalExpectedHours}h (06–22 Uhr)`
+          : `${data.online}/${data.total} Displays`}
+      </div>
+      <div className="text-slate-400">
+        {data.total} Displays
       </div>
       {comparisonHealthRate != null && (
         <div className="text-violet-600 mt-1 border-t border-slate-200/60 pt-1">

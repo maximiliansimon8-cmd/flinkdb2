@@ -382,10 +382,12 @@ function App() {
     const compStart = new Date(compEnd.getTime() - rangeDuration);
 
     if (dataEarliest && compEnd >= dataEarliest) {
-      // Prior period data exists – use it
+      // Prior period data exists – use uptime-based weighted average
       const compData = aggregateData(parsedRows, compStart, compEnd, globalFirstSeen);
       if (compData && compData.trendData && compData.trendData.length > 0) {
-        const avgHealth = compData.trendData.reduce((sum, s) => sum + s.healthRate, 0) / compData.trendData.length;
+        const totalOnline = compData.trendData.reduce((sum, s) => sum + (s.totalOnlineHours || 0), 0);
+        const totalExpected = compData.trendData.reduce((sum, s) => sum + (s.totalExpectedHours || 0), 0);
+        const avgHealth = totalExpected > 0 ? (totalOnline / totalExpected) * 100 : 0;
         return Math.round(avgHealth * 10) / 10;
       }
     }
@@ -394,7 +396,9 @@ function App() {
     if (rawData.trendData.length >= 4) {
       const midIndex = Math.floor(rawData.trendData.length / 2);
       const firstHalf = rawData.trendData.slice(0, midIndex);
-      const avgHealth = firstHalf.reduce((sum, s) => sum + s.healthRate, 0) / firstHalf.length;
+      const totalOnline = firstHalf.reduce((sum, s) => sum + (s.totalOnlineHours || 0), 0);
+      const totalExpected = firstHalf.reduce((sum, s) => sum + (s.totalExpectedHours || 0), 0);
+      const avgHealth = totalExpected > 0 ? (totalOnline / totalExpected) * 100 : 0;
       return Math.round(avgHealth * 10) / 10;
     }
 
