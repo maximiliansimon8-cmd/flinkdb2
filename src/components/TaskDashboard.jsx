@@ -24,6 +24,7 @@ import {
   Plus,
   Edit3,
   Trash2,
+  X,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -94,6 +95,9 @@ export default function TaskDashboard() {
   const [editingTask, setEditingTask] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
 
+  // Success toast
+  const [successMsg, setSuccessMsg] = useState(null);
+
   const loadTasks = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -120,9 +124,39 @@ export default function TaskDashboard() {
     try {
       const result = await createTask(taskData);
       if (result) {
+        // Optimistic insert: add the new task to the local list immediately
+        // so it appears without waiting for Supabase sync
+        const newTask = {
+          id: result.id,
+          title: taskData.title || '',
+          partner: taskData.partner || '',
+          status: taskData.status || 'New',
+          priority: taskData.priority || 'Medium',
+          dueDate: taskData.dueDate || null,
+          description: taskData.description || '',
+          createdTime: new Date().toISOString(),
+          responsibleUser: taskData.assignedUserName || '',
+          assigned: taskData.assignedUserName ? [taskData.assignedUserName] : [],
+          createdBy: '',
+          displayIds: [],
+          locationNames: [],
+          overdue: '',
+          completedDate: null,
+        };
+        setTasks(prev => [newTask, ...prev]);
+
         setShowCreateModal(false);
         setCreateError(null);
-        await loadTasks();
+
+        // Show success toast
+        setSuccessMsg(`Task "${taskData.title}" erfolgreich erstellt`);
+        setTimeout(() => setSuccessMsg(null), 4000);
+
+        // Background: reload from Supabase after a short delay
+        // so the full data (display IDs, location names etc.) gets populated
+        setTimeout(() => {
+          loadTasks().catch(() => {});
+        }, 3000);
       } else {
         setCreateError('Task konnte nicht erstellt werden. Bitte versuche es erneut.');
       }
@@ -511,6 +545,20 @@ export default function TaskDashboard() {
           </button>
         </div>
       </div>
+
+      {/* ═══════ SUCCESS TOAST ═══════ */}
+      {successMsg && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-[#22c55e]/10 border border-[#22c55e]/30 rounded-xl animate-fade-in">
+          <CheckCircle2 size={16} className="text-[#22c55e] shrink-0" />
+          <span className="text-xs font-medium text-[#22c55e]">{successMsg}</span>
+          <button
+            onClick={() => setSuccessMsg(null)}
+            className="ml-auto text-[#22c55e]/60 hover:text-[#22c55e] transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* ═══════ HERO SUMMARY ═══════ */}
       <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-5">
