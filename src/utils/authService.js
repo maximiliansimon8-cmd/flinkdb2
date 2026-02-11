@@ -433,29 +433,21 @@ export async function addUser({ name, email, groupId, password }) {
   const currentUser = safeGetSession();
 
   try {
-    // 1. Create Supabase Auth user via service role would be needed here
-    // Since we're in the client, we'll create the app_users entry
-    // and note that the user needs to be created in Supabase Auth separately.
-    // For now, we use the Supabase Admin API via a minimal edge function or directly:
-    const { data: profile, error: dbError } = await supabase
-      .from('app_users')
-      .insert({
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        group_id: groupId || 'grp_operations',
-        active: true,
-      })
-      .select()
-      .single();
+    // Use Netlify Function with service_role key (bypasses RLS)
+    const res = await fetch('/api/users/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, groupId, password }),
+    });
 
-    if (dbError) {
-      if (dbError.code === '23505') return { success: false, error: 'E-Mail existiert bereits' };
-      return { success: false, error: dbError.message };
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, error: data.error || 'Fehler beim Erstellen' };
     }
 
     writeAuditEntry('user_created', `Benutzer erstellt: ${name} (${email})`, currentUser?.id, currentUser?.name);
     await fetchAllUsers();
-    return { success: true, user: profile };
+    return { success: true, user: data.user };
   } catch (err) {
     return { success: false, error: 'Verbindungsfehler' };
   }
@@ -465,12 +457,16 @@ export async function updateUserGroup(userId, newGroupId) {
   const currentUser = safeGetSession();
 
   try {
-    const { error } = await supabase
-      .from('app_users')
-      .update({ group_id: newGroupId })
-      .eq('id', userId);
+    const res = await fetch('/api/users/update', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, groupId: newGroupId }),
+    });
 
-    if (error) return { success: false, error: error.message };
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, error: data.error || 'Fehler beim Aktualisieren' };
+    }
 
     writeAuditEntry('user_updated', `Gruppe geändert → ${newGroupId}`, currentUser?.id, currentUser?.name);
     await fetchAllUsers();
@@ -498,15 +494,22 @@ export function updateUserRole(userId, newRole) {
 export async function resetUserPassword(userId) {
   const currentUser = safeGetSession();
   try {
-    // Get the user's email
     const user = (_cachedUsers || []).find(u => u.id === userId);
     if (!user) return { success: false, error: 'Benutzer nicht gefunden' };
 
-    // Note: Resetting password via Supabase Auth Admin API requires service_role
-    // For now, we log the intent and the admin can use the Supabase dashboard
-    writeAuditEntry('password_reset', `Passwort-Reset angefordert: ${user.name} (${user.email})`, currentUser?.id, currentUser?.name);
+    const res = await fetch('/api/users/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
 
-    return { success: true, message: 'Passwort-Reset wurde protokolliert. Nutze das Supabase Dashboard für den Reset.' };
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, error: data.error || 'Fehler beim Zurücksetzen' };
+    }
+
+    writeAuditEntry('password_reset', `Passwort zurückgesetzt: ${user.name} (${user.email})`, currentUser?.id, currentUser?.name);
+    return { success: true, message: data.message || 'Passwort zurückgesetzt' };
   } catch {
     return { success: false, error: 'Verbindungsfehler' };
   }
@@ -518,8 +521,17 @@ export async function deleteUser(userId) {
 
   try {
     const user = (_cachedUsers || []).find(u => u.id === userId);
-    const { error } = await supabase.from('app_users').delete().eq('id', userId);
-    if (error) return { success: false, error: error.message };
+
+    const res = await fetch('/api/users/delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, error: data.error || 'Fehler beim Löschen' };
+    }
 
     writeAuditEntry('user_deleted', `Benutzer gelöscht: ${user?.name} (${user?.email})`, currentUser?.id, currentUser?.name);
     await fetchAllUsers();

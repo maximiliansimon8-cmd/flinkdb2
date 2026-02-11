@@ -193,9 +193,9 @@ function App() {
       let cutoffISO = null;
       if (!maxError && maxRow && maxRow.length > 0 && maxRow[0].timestamp_parsed) {
         const latestDate = new Date(maxRow[0].timestamp_parsed);
-        const cutoff = new Date(latestDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const cutoff = new Date(latestDate.getTime() - 60 * 24 * 60 * 60 * 1000);
         cutoffISO = cutoff.toISOString();
-        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (30 days before ${maxRow[0].timestamp_parsed})`);
+        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (60 days before ${maxRow[0].timestamp_parsed})`);
       }
 
       // Step 3: Fetch only recent heartbeat data (paginated, 1000 per page)
@@ -367,23 +367,38 @@ function App() {
     return aggregateData(parsedRows, rangeStart, rangeEnd, globalFirstSeen);
   }, [parsedRows, rangeStart, rangeEnd, globalFirstSeen]);
 
-  // Compute comparison health rate: same duration but shifted 3 months earlier
+  // Compute comparison health rate: previous period of same duration.
+  // If no prior data available, use first half of current range as comparison.
   const comparisonHealthRate = useMemo(() => {
     if (!parsedRows || !rawData || !rawData.trendData || rawData.trendData.length === 0) return null;
     const currentEnd = rangeEnd || rawData.latestTimestamp;
     const currentStart = rangeStart || (rawData.trendData.length > 0 ? rawData.trendData[0].timestamp : null);
     if (!currentEnd || !currentStart) return null;
 
+    const rangeDuration = currentEnd.getTime() - currentStart.getTime();
+
+    // Try real prior period first
     const compEnd = new Date(currentStart.getTime() - 1);
-    const compStart = new Date(compEnd.getTime() - (currentEnd.getTime() - currentStart.getTime()));
+    const compStart = new Date(compEnd.getTime() - rangeDuration);
 
-    if (!dataEarliest || compEnd < dataEarliest) return null;
+    if (dataEarliest && compEnd >= dataEarliest) {
+      // Prior period data exists – use it
+      const compData = aggregateData(parsedRows, compStart, compEnd, globalFirstSeen);
+      if (compData && compData.trendData && compData.trendData.length > 0) {
+        const avgHealth = compData.trendData.reduce((sum, s) => sum + s.healthRate, 0) / compData.trendData.length;
+        return Math.round(avgHealth * 10) / 10;
+      }
+    }
 
-    const compData = aggregateData(parsedRows, compStart, compEnd, globalFirstSeen);
-    if (!compData || !compData.trendData || compData.trendData.length === 0) return null;
+    // Fallback: split current range in half → first half = comparison
+    if (rawData.trendData.length >= 4) {
+      const midIndex = Math.floor(rawData.trendData.length / 2);
+      const firstHalf = rawData.trendData.slice(0, midIndex);
+      const avgHealth = firstHalf.reduce((sum, s) => sum + s.healthRate, 0) / firstHalf.length;
+      return Math.round(avgHealth * 10) / 10;
+    }
 
-    const avgHealth = compData.trendData.reduce((sum, s) => sum + s.healthRate, 0) / compData.trendData.length;
-    return Math.round(avgHealth * 10) / 10;
+    return null;
   }, [parsedRows, rawData, rangeStart, rangeEnd, dataEarliest, globalFirstSeen]);
 
   const kpis = useMemo(() => {
