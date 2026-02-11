@@ -353,7 +353,14 @@ export async function createTask(taskData) {
     if (taskData.type && taskData.type.length > 0) fields['Task Type'] = taskData.type;
     if (taskData.status) fields['Status'] = taskData.status;
     if (taskData.priority) fields['Priority'] = taskData.priority;
-    if (taskData.dueDate) fields['Due Date'] = taskData.dueDate;
+    // Validate date before sending to Airtable (must be YYYY-MM-DD or empty)
+    if (taskData.dueDate) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (dateRegex.test(taskData.dueDate)) {
+        fields['Due Date'] = taskData.dueDate;
+      }
+      // Skip invalid dates silently rather than breaking the API call
+    }
     if (taskData.description) fields['Description'] = taskData.description;
     if (taskData.displays && taskData.displays.length > 0) fields['Displays'] = taskData.displays;
     if (taskData.locations && taskData.locations.length > 0) fields['Locations'] = taskData.locations;
@@ -365,7 +372,13 @@ export async function createTask(taskData) {
     if (!response.ok) {
       const errText = await response.text();
       console.error('Airtable createTask error:', response.status, errText);
-      return null;
+      // Parse Airtable error message for user-friendly display
+      let errorMsg = 'Fehler beim Erstellen des Tasks';
+      try {
+        const errData = JSON.parse(errText);
+        if (errData?.error?.message) errorMsg = errData.error.message;
+      } catch {}
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();
@@ -379,7 +392,7 @@ export async function createTask(taskData) {
     return data;
   } catch (err) {
     console.error('createTask error:', err);
-    return null;
+    throw err; // Re-throw so caller can display the error
   }
 }
 

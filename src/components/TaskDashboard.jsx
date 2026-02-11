@@ -121,16 +121,21 @@ export default function TaskDashboard() {
 
   /* ──── Task CRUD handlers ──── */
 
+  const [createError, setCreateError] = useState(null);
+
   const handleCreateTask = useCallback(async (taskData) => {
     setModalLoading(true);
+    setCreateError(null);
     try {
       const result = await createTask(taskData);
       if (result) {
         setShowCreateModal(false);
+        setCreateError(null);
         await loadTasks();
       }
     } catch (err) {
       console.error('Create task error:', err);
+      setCreateError(err.message || 'Fehler beim Erstellen des Tasks');
     } finally {
       setModalLoading(false);
     }
@@ -1135,9 +1140,10 @@ export default function TaskDashboard() {
       {/* ═══════ MODALS ═══════ */}
       <TaskCreateModal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => { setShowCreateModal(false); setCreateError(null); }}
         onSave={handleCreateTask}
         loading={modalLoading}
+        error={createError}
       />
       <TaskEditModal
         isOpen={!!editingTask}

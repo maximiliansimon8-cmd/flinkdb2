@@ -35,7 +35,7 @@ const PRIORITY_COLORS = {
 
 /* ──────────────────────── component ──────────────────────── */
 
-export default function TaskCreateModal({ isOpen, onClose, onSave, loading = false }) {
+export default function TaskCreateModal({ isOpen, onClose, onSave, loading = false, error: externalError = null }) {
   const [title, setTitle] = useState('');
   const [type, setType] = useState([]);
   const [status, setStatus] = useState('New');
@@ -488,7 +488,14 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200/60">
+        <div className="px-6 py-4 border-t border-slate-200/60 space-y-3">
+          {externalError && (
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-lg">
+              <AlertCircle size={13} className="text-[#ef4444] shrink-0" />
+              <span className="text-[11px] text-[#ef4444] font-medium">{externalError}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
@@ -515,6 +522,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
               </>
             )}
           </button>
+          </div>
         </div>
       </div>
     </div>
