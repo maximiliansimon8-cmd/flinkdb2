@@ -1,194 +1,91 @@
 /**
  * Auth Service for JET Germany DOOH Dashboard
- * Multi-user authentication with GROUP-BASED permissions.
+ * Powered by Supabase (Auth + PostgreSQL).
  *
  * Architecture:
- * - Users belong to Groups (departments)
- * - Groups define which Tabs and Actions are visible
- * - No data-level filtering – everyone sees the same data
- * - Groups: Operations, Sales, Management, Tech, Admin
+ * - Supabase Auth handles login/logout/password (bcrypt, JWT)
+ * - app_users table stores profile + group assignment
+ * - groups table stores permission config
+ * - audit_log table stores DSGVO-compliant activity log
+ * - Session = Supabase JWT (auto-refresh) + local activity timeout
  *
- * Storage: sessionStorage (JSON user object + group info)
- * Migration path: Replace USERS/GROUPS arrays with Airtable fetch.
+ * Zero Netlify Function invocations for auth!
  */
+
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://hvgjdosdejnwkuyivnrq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ';
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ═══════════════════════════════════════════
+   CONSTANTS
+   ═══════════════════════════════════════════ */
 
 const SESSION_KEY = 'dooh_user';
-const LEGACY_KEY = 'dooh_auth';
-const LEGACY_PASSWORD = 'jetdooh_2026';
+const SESSION_TS_KEY = 'dooh_session_ts';
+
+/** Session timeout: 8 hours (DSGVO-konform) */
+const SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000;
 
 /* ═══════════════════════════════════════════
-   TAB & ACTION DEFINITIONS
+   TAB & ACTION DEFINITIONS (for admin UI)
    ═══════════════════════════════════════════ */
 
-/**
- * All available tabs in the dashboard.
- * Each tab has an id, label, and optional parent for sub-tabs.
- */
 export const ALL_TABS = [
-  { id: 'displays',         label: 'Display Management',  parent: null },
-  { id: 'displays.overview', label: 'Overview',           parent: 'displays' },
-  { id: 'displays.list',    label: 'Displays',            parent: 'displays' },
-  { id: 'displays.cities',  label: 'Städte',              parent: 'displays' },
-  { id: 'tasks',            label: 'Tasks',                parent: null },
-  { id: 'communication',    label: 'Kommunikation',       parent: null },
-  { id: 'admin',            label: 'Admin',                parent: null },
+  { id: 'displays',          label: 'Display Management',  parent: null },
+  { id: 'displays.overview', label: 'Overview',            parent: 'displays' },
+  { id: 'displays.list',     label: 'Displays',            parent: 'displays' },
+  { id: 'displays.cities',   label: 'Städte',              parent: 'displays' },
+  { id: 'tasks',             label: 'Tasks',               parent: null },
+  { id: 'communication',     label: 'Kommunikation',       parent: null },
+  { id: 'admin',             label: 'Admin',               parent: null },
 ];
 
-/**
- * All available actions (fine-grained permissions).
- * Organized by category for the admin UI.
- */
 export const ALL_ACTIONS = [
-  // General
-  { id: 'view',            label: 'Dashboard anzeigen',          category: 'Allgemein' },
-  { id: 'export',          label: 'Daten exportieren',           category: 'Allgemein' },
-
-  // Tasks
-  { id: 'create_task',     label: 'Task erstellen',              category: 'Tasks' },
-  { id: 'edit_task',       label: 'Task bearbeiten',             category: 'Tasks' },
-  { id: 'delete_task',     label: 'Task löschen',                category: 'Tasks' },
-
-  // Communication
-  { id: 'send_message',    label: 'Nachrichten senden',          category: 'Kommunikation' },
-  { id: 'view_messages',   label: 'Nachrichten lesen',           category: 'Kommunikation' },
-
-  // Admin
-  { id: 'manage_users',    label: 'Benutzer verwalten',          category: 'Admin' },
-  { id: 'manage_groups',   label: 'Gruppen verwalten',           category: 'Admin' },
-  { id: 'settings',        label: 'Einstellungen ändern',        category: 'Admin' },
+  { id: 'view',           label: 'Dashboard anzeigen',     category: 'Allgemein' },
+  { id: 'export',         label: 'Daten exportieren',      category: 'Allgemein' },
+  { id: 'view_contacts',  label: 'Kontaktdaten einsehen',  category: 'Allgemein' },
+  { id: 'create_task',    label: 'Task erstellen',         category: 'Tasks' },
+  { id: 'edit_task',      label: 'Task bearbeiten',        category: 'Tasks' },
+  { id: 'delete_task',    label: 'Task löschen',           category: 'Tasks' },
+  { id: 'send_message',   label: 'Nachrichten senden',     category: 'Kommunikation' },
+  { id: 'view_messages',  label: 'Nachrichten lesen',      category: 'Kommunikation' },
+  { id: 'manage_users',   label: 'Benutzer verwalten',     category: 'Admin' },
+  { id: 'manage_groups',  label: 'Gruppen verwalten',      category: 'Admin' },
+  { id: 'settings',       label: 'Einstellungen ändern',   category: 'Admin' },
 ];
 
 /* ═══════════════════════════════════════════
-   GROUP DEFINITIONS
+   IN-MEMORY CACHE  (avoid re-fetching)
    ═══════════════════════════════════════════ */
 
-/**
- * Department-based groups.
- * Each group defines:
- * - tabs: which main tabs (and sub-tabs) are visible
- * - actions: which actions the user can perform
- * - color/icon: for UI display
- */
-let GROUPS = [
-  {
-    id: 'grp_admin',
-    name: 'Administration',
-    description: 'Vollzugriff auf alle Bereiche und Einstellungen',
-    color: '#3b82f6',
-    icon: 'Shield',
-    tabs: [
-      'displays', 'displays.overview', 'displays.list', 'displays.cities',
-      'tasks', 'communication', 'admin',
-    ],
-    actions: [
-      'view', 'export',
-      'create_task', 'edit_task', 'delete_task',
-      'send_message', 'view_messages',
-      'manage_users', 'manage_groups', 'settings',
-    ],
-  },
-  {
-    id: 'grp_operations',
-    name: 'Operations',
-    description: 'Display-Management, Tasks und Kommunikation',
-    color: '#22c55e',
-    icon: 'Wrench',
-    tabs: [
-      'displays', 'displays.overview', 'displays.list', 'displays.cities',
-      'tasks', 'communication',
-    ],
-    actions: [
-      'view', 'export',
-      'create_task', 'edit_task',
-      'send_message', 'view_messages',
-    ],
-  },
-  {
-    id: 'grp_sales',
-    name: 'Sales',
-    description: 'Display-Übersicht und Kommunikation',
-    color: '#f59e0b',
-    icon: 'TrendingUp',
-    tabs: [
-      'displays', 'displays.overview', 'displays.list', 'displays.cities',
-      'communication',
-    ],
-    actions: [
-      'view', 'export',
-      'send_message', 'view_messages',
-    ],
-  },
-  {
-    id: 'grp_management',
-    name: 'Management',
-    description: 'Übersicht und Berichte – keine operativen Aktionen',
-    color: '#a855f7',
-    icon: 'BarChart3',
-    tabs: [
-      'displays', 'displays.overview', 'displays.list', 'displays.cities',
-      'tasks',
-    ],
-    actions: [
-      'view', 'export',
-    ],
-  },
-  {
-    id: 'grp_tech',
-    name: 'Tech',
-    description: 'Display-Management und technische Tasks',
-    color: '#06b6d4',
-    icon: 'Code',
-    tabs: [
-      'displays', 'displays.overview', 'displays.list', 'displays.cities',
-      'tasks',
-    ],
-    actions: [
-      'view', 'export',
-      'create_task', 'edit_task',
-    ],
-  },
-];
+let _cachedGroups = null;
+let _cachedUsers = null;
+let _groupsPromise = null; // dedup parallel fetches
 
 /* ═══════════════════════════════════════════
-   USER STORE
-   ═══════════════════════════════════════════ */
-
-let USERS = [
-  { id: 'us_0', email: 'max_test', name: 'Max Test', groupId: 'grp_admin', password: '123' },
-  { id: 'us_1', email: 'max@dimension-outdoor.com', name: 'Maximilian Simon', groupId: 'grp_admin', password: '***REMOVED_DEFAULT_PW***' },
-  { id: 'us_2', email: 'luca@dimension-outdoor.com', name: 'Luca Caspari', groupId: 'grp_admin', password: '***REMOVED_DEFAULT_PW***' },
-  { id: 'us_3', email: 'xenia@dimension-outdoor.com', name: 'Xenia Glassen', groupId: 'grp_operations', password: '***REMOVED_DEFAULT_PW***' },
-  { id: 'us_4', email: 'zellarit@gmail.com', name: 'Ruslan Idrysov', groupId: 'grp_tech', password: '***REMOVED_DEFAULT_PW***' },
-  { id: 'us_5', email: 'sophie@dimension-outdoor.com', name: 'Sophie Schickling', groupId: 'grp_sales', password: '***REMOVED_DEFAULT_PW***' },
-];
-
-/* ═══════════════════════════════════════════
-   LEGACY COMPAT – ROLE MAPPING
-   ═══════════════════════════════════════════ */
-
-/**
- * Map group IDs to legacy role names for backward compatibility.
- * Components that still use `user.role` will get a sensible value.
- */
-function groupToRole(groupId) {
-  const map = {
-    grp_admin: 'admin',
-    grp_operations: 'manager',
-    grp_sales: 'manager',
-    grp_management: 'viewer',
-    grp_tech: 'manager',
-  };
-  return map[groupId] || 'viewer';
-}
-
-/* ═══════════════════════════════════════════
-   HELPERS
+   SESSION MANAGEMENT
    ═══════════════════════════════════════════ */
 
 function safeGetSession() {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
+
+    // Activity-based timeout check
+    const ts = sessionStorage.getItem(SESSION_TS_KEY);
+    if (ts) {
+      const elapsed = Date.now() - parseInt(ts, 10);
+      if (elapsed > SESSION_TIMEOUT_MS) {
+        const expired = JSON.parse(raw);
+        writeAuditEntry('session_expired', `Automatischer Logout nach ${Math.round(elapsed / 60000)} Min.`, expired?.id, expired?.name);
+        clearSession();
+        return null;
+      }
+    }
+
     return JSON.parse(raw);
   } catch {
     return null;
@@ -196,351 +93,440 @@ function safeGetSession() {
 }
 
 function saveSession(user) {
-  const safe = {
+  const data = {
     id: user.id,
     name: user.name,
     email: user.email,
-    role: groupToRole(user.groupId),
+    role: user.role,
     groupId: user.groupId,
+    groupName: user.groupName,
+    group: user.group,
   };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(safe));
-  sessionStorage.setItem(LEGACY_KEY, 'true');
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+  sessionStorage.setItem(SESSION_TS_KEY, Date.now().toString());
+}
+
+export function touchSession() {
+  if (sessionStorage.getItem(SESSION_KEY)) {
+    sessionStorage.setItem(SESSION_TS_KEY, Date.now().toString());
+  }
+}
+
+export function getSessionRemainingMs() {
+  const ts = sessionStorage.getItem(SESSION_TS_KEY);
+  if (!ts) return 0;
+  return Math.max(0, SESSION_TIMEOUT_MS - (Date.now() - parseInt(ts, 10)));
+}
+
+export function getSessionTimeoutMinutes() {
+  return SESSION_TIMEOUT_MS / 60000;
 }
 
 function clearSession() {
   sessionStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(LEGACY_KEY);
+  sessionStorage.removeItem(SESSION_TS_KEY);
 }
 
 /* ═══════════════════════════════════════════
-   AUTO-LOGIN
+   AUDIT LOG (direct Supabase insert – fast)
    ═══════════════════════════════════════════ */
 
-const AUTO_LOGIN = true;
-const AUTO_LOGIN_USER_ID = 'us_0';
+function writeAuditEntry(action, detail, userId, userName) {
+  // Fire-and-forget – no await
+  supabase.from('audit_log').insert({
+    action,
+    detail,
+    user_id: userId || null,
+    user_name: userName || '',
+  }).then(() => {}).catch(() => {});
+}
 
-function ensureSession() {
-  if (!AUTO_LOGIN) return;
-  const existing = safeGetSession();
-  if (existing) return;
-  const user = USERS.find((u) => u.id === AUTO_LOGIN_USER_ID) || USERS[0];
-  if (user) {
-    user.lastLogin = new Date().toISOString();
-    saveSession(user);
+export async function getAuditLog(limit = 100) {
+  try {
+    const { data, error } = await supabase
+      .from('audit_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data || []).map(e => ({
+      ts: e.created_at,
+      action: e.action || '',
+      detail: e.detail || '',
+      userName: e.user_name || '',
+      userId: e.user_id || '',
+    }));
+  } catch {
+    return [];
   }
 }
 
-ensureSession();
-
-/* ═══════════════════════════════════════════
-   PUBLIC API – AUTH
-   ═══════════════════════════════════════════ */
-
-export function login(email, password) {
-  if ((!email || email.trim() === '') && password === LEGACY_PASSWORD) {
-    const legacyUser = {
-      id: 'us_legacy',
-      name: 'Gast-Benutzer',
-      email: 'guest@jet-dooh.de',
-      role: 'viewer',
-      groupId: 'grp_management',
-    };
-    saveSession(legacyUser);
-    return { success: true, user: legacyUser };
-  }
-
-  const normalEmail = (email || '').trim().toLowerCase();
-  const found = USERS.find(
-    (u) => u.email.toLowerCase() === normalEmail && u.password === password,
-  );
-
-  if (!found) {
-    return { success: false, error: 'Ungültige E-Mail oder Passwort' };
-  }
-
-  found.lastLogin = new Date().toISOString();
-  saveSession(found);
-
-  return {
-    success: true,
-    user: {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      role: groupToRole(found.groupId),
-      groupId: found.groupId,
-    },
-  };
-}
-
-export function logout() {
-  clearSession();
-}
-
-export function getCurrentUser() {
-  return safeGetSession();
-}
-
-export function isAuthenticated() {
-  return safeGetSession() !== null;
-}
-
-export function isAdmin() {
-  const user = safeGetSession();
-  return user?.groupId === 'grp_admin';
+export function clearAuditLog() {
+  // DSGVO: Audit log is permanent – intentional no-op
 }
 
 /* ═══════════════════════════════════════════
-   PUBLIC API – GROUP-BASED PERMISSIONS
+   AUTH – LOGIN / LOGOUT / PASSWORD
    ═══════════════════════════════════════════ */
 
 /**
- * Get the group object for the current user.
+ * Login via Supabase Auth.
+ * On success, fetches app_users profile + group config.
  */
+export async function login(email, password) {
+  if (!email || !password) {
+    return { success: false, error: 'E-Mail und Passwort erforderlich' };
+  }
+
+  try {
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (authError) {
+      writeAuditEntry('login_failed', `Fehlgeschlagener Login: ${email}`, null, email);
+      return { success: false, error: 'Ungültige E-Mail oder Passwort' };
+    }
+
+    // Fetch user profile from app_users + group config
+    const { data: profile } = await supabase
+      .from('app_users')
+      .select('*, groups(*)')
+      .eq('auth_id', authData.user.id)
+      .single();
+
+    if (!profile) {
+      // Auth succeeded but no app_users entry – rare edge case
+      writeAuditEntry('login_failed', `Kein Profil gefunden: ${email}`, null, email);
+      await supabase.auth.signOut();
+      return { success: false, error: 'Kein Benutzerprofil gefunden. Kontaktiere den Administrator.' };
+    }
+
+    // Check if active
+    if (profile.active === false) {
+      writeAuditEntry('login_blocked', `Deaktivierter Account: ${email}`, profile.id, profile.name);
+      await supabase.auth.signOut();
+      return { success: false, error: 'Account deaktiviert. Kontaktiere den Administrator.' };
+    }
+
+    // Update last login
+    supabase.from('app_users').update({ last_login: new Date().toISOString() }).eq('id', profile.id).then(() => {});
+
+    // Build user session object
+    const group = profile.groups;
+    const user = {
+      id: profile.id,
+      name: profile.name,
+      email: profile.email,
+      role: profile.group_id === 'grp_admin' ? 'admin' : 'manager',
+      groupId: profile.group_id,
+      groupName: group?.name || 'Operations',
+      group: group ? {
+        id: group.id,
+        name: group.name,
+        tabs: group.tabs || [],
+        actions: group.actions || [],
+        color: group.color || '#64748b',
+        icon: group.icon || 'Users',
+      } : null,
+    };
+
+    saveSession(user);
+    writeAuditEntry('login', `Login erfolgreich: ${user.name} (${email})`, profile.id, user.name);
+
+    return { success: true, user };
+  } catch (err) {
+    return { success: false, error: 'Verbindungsfehler. Bitte versuche es erneut.' };
+  }
+}
+
+export async function logout() {
+  const user = safeGetSession();
+  if (user) {
+    writeAuditEntry('logout', `Logout: ${user.name}`, user.id, user.name);
+  }
+  clearSession();
+  await supabase.auth.signOut().catch(() => {});
+}
+
+export async function changePassword(oldPassword, newPassword) {
+  const session = safeGetSession();
+  if (!session) return { success: false, error: 'Nicht angemeldet' };
+  if (!oldPassword || !newPassword) return { success: false, error: 'Altes und neues Passwort erforderlich' };
+  if (newPassword.length < 6) return { success: false, error: 'Neues Passwort muss mindestens 6 Zeichen haben' };
+
+  try {
+    // Verify old password by re-authenticating
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: session.email,
+      password: oldPassword,
+    });
+    if (verifyError) return { success: false, error: 'Altes Passwort ist falsch' };
+
+    // Update password
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    if (updateError) return { success: false, error: updateError.message };
+
+    writeAuditEntry('password_changed', `Passwort geändert: ${session.name}`, session.id, session.name);
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Verbindungsfehler' };
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PASSWORD RESET (via Supabase magic link)
+   ═══════════════════════════════════════════ */
+
+/**
+ * Send a password-reset email via Supabase Auth.
+ * The user receives a link to set a new password.
+ */
+export async function requestPasswordReset(email) {
+  if (!email) return { success: false, error: 'E-Mail-Adresse erforderlich' };
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      { redirectTo: `${window.location.origin}/#reset` }
+    );
+    if (error) {
+      // Don't reveal whether the email exists
+      console.error('Password reset error:', error.message);
+    }
+    // Always show success to prevent email enumeration
+    writeAuditEntry('password_reset_requested', `Reset angefordert: ${email}`, null, email);
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Verbindungsfehler. Bitte versuche es erneut.' };
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PUBLIC API – SESSION QUERIES
+   ═══════════════════════════════════════════ */
+
+export function getCurrentUser() { return safeGetSession(); }
+export function isAuthenticated() { return safeGetSession() !== null; }
+export function isAdmin() { return safeGetSession()?.groupId === 'grp_admin'; }
+
+/* ═══════════════════════════════════════════
+   GROUP-BASED PERMISSIONS
+   ═══════════════════════════════════════════ */
+
 export function getCurrentGroup() {
   const user = safeGetSession();
-  if (!user) return null;
-  return GROUPS.find((g) => g.id === user.groupId) || null;
+  if (!user?.group) return null;
+  return { ...user.group, id: user.groupId, name: user.groupName };
 }
 
-/**
- * Check whether the current user has a specific permission/action.
- */
 export function hasPermission(action) {
-  const group = getCurrentGroup();
-  if (!group) return false;
-  return group.actions.includes(action);
+  return (getCurrentGroup()?.actions || []).includes(action);
 }
 
-/**
- * Check whether the current user can see a specific tab.
- */
 export function canAccessTab(tabId) {
-  const group = getCurrentGroup();
-  if (!group) return false;
-  return group.tabs.includes(tabId);
+  return (getCurrentGroup()?.tabs || []).includes(tabId);
 }
 
-/**
- * Get all visible tab IDs for the current user.
- */
-export function getVisibleTabs() {
-  const group = getCurrentGroup();
-  if (!group) return [];
-  return group.tabs;
-}
+export function getVisibleTabs() { return getCurrentGroup()?.tabs || []; }
+export function getAllowedActions() { return getCurrentGroup()?.actions || []; }
 
-/**
- * Get all allowed actions for the current user.
- */
-export function getAllowedActions() {
+export function getPermissionsForRole(role) {
   const group = getCurrentGroup();
   if (!group) return [];
   return group.actions;
 }
 
-/**
- * Get permissions for a specific role (legacy compat).
- * Now maps to group permissions.
- */
-export function getPermissionsForRole(role) {
-  // Find a group that maps to this role and return its actions
-  const roleGroupMap = {
-    admin: 'grp_admin',
-    manager: 'grp_operations',
-    viewer: 'grp_management',
-  };
-  const groupId = roleGroupMap[role];
-  const group = GROUPS.find((g) => g.id === groupId);
-  return group ? group.actions : [];
-}
-
 /* ═══════════════════════════════════════════
-   PUBLIC API – GROUP MANAGEMENT (admin only)
+   GROUP MANAGEMENT (via Supabase)
    ═══════════════════════════════════════════ */
 
-/**
- * Get all groups.
- */
-export function getAllGroups() {
-  return GROUPS.map((g) => ({
-    ...g,
-    memberCount: USERS.filter((u) => u.groupId === g.id).length,
-  }));
+export async function fetchGroups() {
+  if (_groupsPromise) return _groupsPromise;
+  _groupsPromise = (async () => {
+    try {
+      const { data, error } = await supabase.from('groups').select('*').order('name');
+      if (error) throw error;
+      _cachedGroups = (data || []).map(g => ({
+        id: g.id,
+        name: g.name,
+        description: g.description || '',
+        color: g.color || '#64748b',
+        icon: g.icon || 'Users',
+        tabs: g.tabs || [],
+        actions: g.actions || [],
+        memberCount: 0,
+      }));
+      return _cachedGroups;
+    } catch {
+      return _cachedGroups || getDefaultGroups();
+    } finally {
+      _groupsPromise = null;
+    }
+  })();
+  return _groupsPromise;
 }
 
-/**
- * Get a single group by ID with its members.
- */
+function getDefaultGroups() {
+  return [
+    { id: 'grp_admin', name: 'Admin', description: 'Vollzugriff', color: '#3b82f6', icon: 'Shield', tabs: [], actions: [], memberCount: 0 },
+    { id: 'grp_operations', name: 'Operations', description: 'Display-Management & Tasks', color: '#22c55e', icon: 'Wrench', tabs: [], actions: [], memberCount: 0 },
+    { id: 'grp_sales', name: 'Sales', description: 'Übersicht & Kommunikation', color: '#f59e0b', icon: 'TrendingUp', tabs: [], actions: [], memberCount: 0 },
+    { id: 'grp_management', name: 'Management', description: 'Berichte', color: '#a855f7', icon: 'BarChart3', tabs: [], actions: [], memberCount: 0 },
+    { id: 'grp_tech', name: 'Tech', description: 'Technische Tasks', color: '#06b6d4', icon: 'Code', tabs: [], actions: [], memberCount: 0 },
+  ];
+}
+
+export function getAllGroups() {
+  return _cachedGroups || getDefaultGroups();
+}
+
 export function getGroupWithMembers(groupId) {
-  const group = GROUPS.find((g) => g.id === groupId);
+  const group = (_cachedGroups || []).find(g => g.id === groupId);
   if (!group) return null;
-  const members = USERS.filter((u) => u.groupId === groupId).map(({ password, ...rest }) => rest);
+  const members = (_cachedUsers || []).filter(u => u.groupId === groupId);
   return { ...group, members };
 }
 
-/**
- * Create a new group.
- */
-export function createGroup({ name, description, color, tabs, actions }) {
-  if (GROUPS.find((g) => g.name.toLowerCase() === name.trim().toLowerCase())) {
-    return { success: false, error: 'Gruppenname existiert bereits' };
-  }
-  const newGroup = {
-    id: 'grp_' + Date.now().toString(36),
-    name: name.trim(),
-    description: (description || '').trim(),
-    color: color || '#64748b',
-    icon: 'Users',
-    tabs: tabs || ['displays', 'displays.overview'],
-    actions: actions || ['view'],
-  };
-  GROUPS.push(newGroup);
-  return { success: true, group: newGroup };
-}
-
-/**
- * Update a group's configuration.
- */
-export function updateGroup(groupId, updates) {
-  const group = GROUPS.find((g) => g.id === groupId);
-  if (!group) return { success: false, error: 'Gruppe nicht gefunden' };
-
-  // Don't allow renaming to an existing group name
-  if (updates.name && updates.name.trim().toLowerCase() !== group.name.toLowerCase()) {
-    if (GROUPS.find((g) => g.name.toLowerCase() === updates.name.trim().toLowerCase())) {
-      return { success: false, error: 'Gruppenname existiert bereits' };
-    }
-  }
-
-  if (updates.name !== undefined) group.name = updates.name.trim();
-  if (updates.description !== undefined) group.description = updates.description.trim();
-  if (updates.color !== undefined) group.color = updates.color;
-  if (updates.tabs !== undefined) group.tabs = updates.tabs;
-  if (updates.actions !== undefined) group.actions = updates.actions;
-
-  // Update session if current user is in this group
-  const current = safeGetSession();
-  if (current && current.groupId === groupId) {
-    const user = USERS.find((u) => u.id === current.id);
-    if (user) saveSession(user);
-  }
-
-  return { success: true };
-}
-
-/**
- * Delete a group. Cannot delete if it has members or is the admin group.
- */
-export function deleteGroup(groupId) {
-  if (groupId === 'grp_admin') {
-    return { success: false, error: 'Admin-Gruppe kann nicht gelöscht werden' };
-  }
-  const members = USERS.filter((u) => u.groupId === groupId);
-  if (members.length > 0) {
-    return { success: false, error: `Gruppe hat noch ${members.length} Mitglieder` };
-  }
-  const idx = GROUPS.findIndex((g) => g.id === groupId);
-  if (idx === -1) return { success: false, error: 'Gruppe nicht gefunden' };
-  GROUPS.splice(idx, 1);
-  return { success: true };
-}
+// Groups are managed in DB – these show info messages
+export function createGroup() { return { success: false, error: 'Gruppen werden in der Datenbank verwaltet' }; }
+export function updateGroup() { return { success: false, error: 'Gruppen werden in der Datenbank verwaltet' }; }
+export function deleteGroup() { return { success: false, error: 'Gruppen werden in der Datenbank verwaltet' }; }
 
 /* ═══════════════════════════════════════════
-   PUBLIC API – USER MANAGEMENT (admin only)
+   USER MANAGEMENT (via Supabase)
    ═══════════════════════════════════════════ */
 
+export async function fetchAllUsers() {
+  try {
+    const { data, error } = await supabase
+      .from('app_users')
+      .select('*, groups(name, color, icon)')
+      .order('name');
+    if (error) throw error;
+
+    _cachedUsers = (data || []).map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone || '',
+      groupId: u.group_id,
+      groupName: u.groups?.name || 'Operations',
+      groupColor: u.groups?.color || '#64748b',
+      groupIcon: u.groups?.icon || 'Users',
+      active: u.active,
+      lastLogin: u.last_login,
+      authId: u.auth_id,
+    }));
+    return _cachedUsers;
+  } catch {
+    return _cachedUsers || [];
+  }
+}
+
 export function getAllUsers() {
-  return USERS.map(({ password, ...rest }) => ({
-    ...rest,
-    role: groupToRole(rest.groupId),
-    groupName: GROUPS.find((g) => g.id === rest.groupId)?.name || 'Unbekannt',
-  }));
+  return _cachedUsers || [];
 }
 
-export function addUser({ name, email, groupId, password: pw }) {
-  const normalEmail = email.trim().toLowerCase();
-  if (USERS.find((u) => u.email.toLowerCase() === normalEmail)) {
-    return { success: false, error: 'E-Mail existiert bereits' };
+export async function addUser({ name, email, groupId, password }) {
+  const currentUser = safeGetSession();
+
+  try {
+    // 1. Create Supabase Auth user via service role would be needed here
+    // Since we're in the client, we'll create the app_users entry
+    // and note that the user needs to be created in Supabase Auth separately.
+    // For now, we use the Supabase Admin API via a minimal edge function or directly:
+    const { data: profile, error: dbError } = await supabase
+      .from('app_users')
+      .insert({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        group_id: groupId || 'grp_operations',
+        active: true,
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      if (dbError.code === '23505') return { success: false, error: 'E-Mail existiert bereits' };
+      return { success: false, error: dbError.message };
+    }
+
+    writeAuditEntry('user_created', `Benutzer erstellt: ${name} (${email})`, currentUser?.id, currentUser?.name);
+    await fetchAllUsers();
+    return { success: true, user: profile };
+  } catch (err) {
+    return { success: false, error: 'Verbindungsfehler' };
   }
-
-  const validGroup = GROUPS.find((g) => g.id === groupId);
-  if (!validGroup) {
-    return { success: false, error: 'Ungültige Gruppe' };
-  }
-
-  const nextId = 'us_' + (USERS.length + 1) + '_' + Date.now().toString(36);
-  const newUser = {
-    id: nextId,
-    email: normalEmail,
-    name: name.trim(),
-    groupId: groupId,
-    password: pw || '***REMOVED_DEFAULT_PW***',
-  };
-  USERS.push(newUser);
-
-  const { password: _, ...safe } = newUser;
-  return {
-    success: true,
-    user: {
-      ...safe,
-      role: groupToRole(groupId),
-      groupName: validGroup.name,
-    },
-  };
 }
 
-/**
- * Update a user's group assignment.
- */
-export function updateUserGroup(userId, newGroupId) {
-  const user = USERS.find((u) => u.id === userId);
-  if (!user) return { success: false, error: 'Benutzer nicht gefunden' };
+export async function updateUserGroup(userId, newGroupId) {
+  const currentUser = safeGetSession();
 
-  const group = GROUPS.find((g) => g.id === newGroupId);
-  if (!group) return { success: false, error: 'Ungültige Gruppe' };
+  try {
+    const { error } = await supabase
+      .from('app_users')
+      .update({ group_id: newGroupId })
+      .eq('id', userId);
 
-  user.groupId = newGroupId;
+    if (error) return { success: false, error: error.message };
 
-  // If the currently logged-in user updates their own group, refresh the session
-  const current = safeGetSession();
-  if (current && current.id === userId) {
-    saveSession(user);
+    writeAuditEntry('user_updated', `Gruppe geändert → ${newGroupId}`, currentUser?.id, currentUser?.name);
+    await fetchAllUsers();
+
+    // If updating own group, refresh session
+    if (currentUser?.id === userId) {
+      const groups = getAllGroups();
+      const newGroup = groups.find(g => g.id === newGroupId);
+      if (newGroup) {
+        saveSession({ ...currentUser, groupId: newGroupId, groupName: newGroup.name, group: newGroup });
+      }
+    }
+
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Verbindungsfehler' };
   }
-
-  return { success: true };
 }
 
-/**
- * Legacy compat: Update a user's role by mapping to a group.
- */
 export function updateUserRole(userId, newRole) {
-  const roleGroupMap = {
-    admin: 'grp_admin',
-    manager: 'grp_operations',
-    viewer: 'grp_management',
-  };
-  const groupId = roleGroupMap[newRole];
-  if (!groupId) return { success: false, error: 'Unbekannte Rolle' };
-  return updateUserGroup(userId, groupId);
+  const roleGroupMap = { admin: 'grp_admin', manager: 'grp_operations', viewer: 'grp_management' };
+  return updateUserGroup(userId, roleGroupMap[newRole] || 'grp_operations');
 }
 
-export function resetUserPassword(userId) {
-  const user = USERS.find((u) => u.id === userId);
-  if (!user) return { success: false, error: 'Benutzer nicht gefunden' };
-  user.password = '***REMOVED_DEFAULT_PW***';
-  return { success: true };
-}
+export async function resetUserPassword(userId) {
+  const currentUser = safeGetSession();
+  try {
+    // Get the user's email
+    const user = (_cachedUsers || []).find(u => u.id === userId);
+    if (!user) return { success: false, error: 'Benutzer nicht gefunden' };
 
-export function deleteUser(userId) {
-  const current = safeGetSession();
-  if (current && current.id === userId) {
-    return { success: false, error: 'Eigenen Account kann man nicht löschen' };
+    // Note: Resetting password via Supabase Auth Admin API requires service_role
+    // For now, we log the intent and the admin can use the Supabase dashboard
+    writeAuditEntry('password_reset', `Passwort-Reset angefordert: ${user.name} (${user.email})`, currentUser?.id, currentUser?.name);
+
+    return { success: true, message: 'Passwort-Reset wurde protokolliert. Nutze das Supabase Dashboard für den Reset.' };
+  } catch {
+    return { success: false, error: 'Verbindungsfehler' };
   }
-  const idx = USERS.findIndex((u) => u.id === userId);
-  if (idx === -1) return { success: false, error: 'Benutzer nicht gefunden' };
-  USERS.splice(idx, 1);
-  return { success: true };
+}
+
+export async function deleteUser(userId) {
+  const currentUser = safeGetSession();
+  if (currentUser?.id === userId) return { success: false, error: 'Eigenen Account kann man nicht löschen' };
+
+  try {
+    const user = (_cachedUsers || []).find(u => u.id === userId);
+    const { error } = await supabase.from('app_users').delete().eq('id', userId);
+    if (error) return { success: false, error: error.message };
+
+    writeAuditEntry('user_deleted', `Benutzer gelöscht: ${user?.name} (${user?.email})`, currentUser?.id, currentUser?.name);
+    await fetchAllUsers();
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Verbindungsfehler' };
+  }
 }
 
 /* ═══════════════════════════════════════════

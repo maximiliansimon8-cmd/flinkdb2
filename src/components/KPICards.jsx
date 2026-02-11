@@ -7,9 +7,40 @@ import {
   PlusCircle,
   Clock,
   Skull,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from 'lucide-react';
 
-function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, active }) {
+function TrendIndicator({ current, previous, inverted }) {
+  if (previous == null || current == null) return null;
+  const diff = current - previous;
+  if (Math.abs(diff) < 0.1) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-[10px] font-mono text-slate-400">
+        <Minus size={10} />
+        <span>±0</span>
+      </span>
+    );
+  }
+  const isPositive = inverted ? diff < 0 : diff > 0;
+  const color = isPositive ? '#22c55e' : '#ef4444';
+  const Icon = diff > 0 ? TrendingUp : TrendingDown;
+  const sign = diff > 0 ? '+' : '';
+  const displayDiff = Number.isInteger(diff) ? diff : diff.toFixed(1);
+
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 text-[10px] font-mono"
+      style={{ color }}
+    >
+      <Icon size={10} />
+      <span>{sign}{displayDiff}</span>
+    </span>
+  );
+}
+
+function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, active, trend, avgLabel }) {
   return (
     <div
       onClick={onClick}
@@ -29,14 +60,26 @@ function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, ac
         </span>
         <Icon size={16} style={{ color }} className="opacity-70" />
       </div>
-      <div
-        className={`font-mono font-bold ${large ? 'text-4xl' : 'text-2xl'}`}
-        style={{ color }}
-      >
-        {value}
+      <div className="flex items-end gap-2">
+        <div
+          className={`font-mono font-bold ${large ? 'text-4xl' : 'text-2xl'}`}
+          style={{ color }}
+        >
+          {value}
+        </div>
+        {trend}
       </div>
-      {subtitle && (
-        <div className="text-slate-400 text-xs mt-1">{subtitle}</div>
+      {(subtitle || avgLabel) && (
+        <div className="flex items-center gap-2 mt-1">
+          {subtitle && (
+            <span className="text-slate-400 text-xs">{subtitle}</span>
+          )}
+          {avgLabel && (
+            <span className="text-slate-400 text-[10px] font-mono bg-slate-50/80 px-1.5 py-0.5 rounded">
+              {avgLabel}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
@@ -54,7 +97,7 @@ export const KPI_FILTERS = {
   DEINSTALLED: 'deinstalled',
 };
 
-export default function KPICards({ kpis, activeFilter, onFilterClick }) {
+export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel }) {
   const healthColor =
     kpis.healthRate >= 90
       ? '#22c55e'
@@ -66,6 +109,9 @@ export default function KPICards({ kpis, activeFilter, onFilterClick }) {
     onFilterClick(activeFilter === filter ? null : filter);
   };
 
+  const hasRange = kpis.snapshotCount >= 2;
+  const showAvg = hasRange;
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
       <KPICard
@@ -74,60 +120,122 @@ export default function KPICards({ kpis, activeFilter, onFilterClick }) {
         icon={Activity}
         color={healthColor}
         subtitle={kpis.snapshotCount > 0 ? `Ø ${kpis.snapshotCount} Snapshots` : undefined}
+        avgLabel={rangeLabel || undefined}
         large
+        trend={
+          hasRange ? (
+            <TrendIndicator
+              current={kpis.healthRate}
+              previous={kpis.firstHealthRate}
+            />
+          ) : null
+        }
       />
       <KPICard
         label="Aktive Displays"
         value={kpis.totalActive}
         icon={Monitor}
         color="#3b82f6"
+        subtitle={showAvg && kpis.avgTotal !== kpis.totalActive ? `Ø ${kpis.avgTotal}` : undefined}
         onClick={() => toggle(KPI_FILTERS.ACTIVE)}
         active={activeFilter === KPI_FILTERS.ACTIVE}
+        trend={
+          hasRange ? (
+            <TrendIndicator
+              current={kpis.totalActive}
+              previous={kpis.firstTotal}
+            />
+          ) : null
+        }
       />
       <KPICard
         label="Online"
         value={kpis.onlineCount}
         icon={Activity}
         color="#22c55e"
-        subtitle="< 24h"
+        subtitle={showAvg && kpis.avgOnline !== kpis.onlineCount ? `Ø ${kpis.avgOnline}` : '< 24h'}
         onClick={() => toggle(KPI_FILTERS.ONLINE)}
         active={activeFilter === KPI_FILTERS.ONLINE}
+        trend={
+          hasRange ? (
+            <TrendIndicator
+              current={kpis.onlineCount}
+              previous={kpis.firstOnline}
+            />
+          ) : null
+        }
       />
       <KPICard
         label="Warnung"
         value={kpis.warningCount}
         icon={Clock}
         color="#f59e0b"
-        subtitle="24–72h"
+        subtitle={showAvg && kpis.avgWarning !== kpis.warningCount ? `Ø ${kpis.avgWarning}` : '24–72h'}
         onClick={() => toggle(KPI_FILTERS.WARNING)}
         active={activeFilter === KPI_FILTERS.WARNING}
+        trend={
+          hasRange ? (
+            <TrendIndicator
+              current={kpis.warningCount}
+              previous={kpis.firstWarning}
+              inverted
+            />
+          ) : null
+        }
       />
       <KPICard
         label="Kritisch"
         value={kpis.criticalCount}
         icon={AlertTriangle}
         color="#ef4444"
-        subtitle="> 72h"
+        subtitle={showAvg && kpis.avgCritical !== kpis.criticalCount ? `Ø ${kpis.avgCritical}` : '> 72h'}
         onClick={() => toggle(KPI_FILTERS.CRITICAL)}
         active={activeFilter === KPI_FILTERS.CRITICAL}
+        trend={
+          hasRange ? (
+            <TrendIndicator
+              current={kpis.criticalCount}
+              previous={kpis.firstCritical}
+              inverted
+            />
+          ) : null
+        }
       />
       <KPICard
         label="Dauerhaft Offline"
         value={kpis.permanentOfflineCount}
         icon={Skull}
         color="#dc2626"
-        subtitle="> 7 Tage"
+        subtitle={showAvg && kpis.avgPermanentOffline !== kpis.permanentOfflineCount ? `Ø ${kpis.avgPermanentOffline}` : '> 7 Tage'}
         onClick={() => toggle(KPI_FILTERS.PERMANENT_OFFLINE)}
         active={activeFilter === KPI_FILTERS.PERMANENT_OFFLINE}
+        trend={
+          hasRange ? (
+            <TrendIndicator
+              current={kpis.permanentOfflineCount}
+              previous={kpis.firstPermanentOffline}
+              inverted
+            />
+          ) : null
+        }
       />
       <KPICard
         label="Nie Online"
         value={kpis.neverOnlineCount}
         icon={WifiOff}
         color="#64748b"
-        subtitle="Kein Heartbeat"
+        subtitle={showAvg && kpis.avgNeverOnline !== kpis.neverOnlineCount ? `Ø ${kpis.avgNeverOnline}` : 'Kein Heartbeat'}
         onClick={() => toggle(KPI_FILTERS.NEVER_ONLINE)}
         active={activeFilter === KPI_FILTERS.NEVER_ONLINE}
+        trend={
+          hasRange ? (
+            <TrendIndicator
+              current={kpis.neverOnlineCount}
+              previous={kpis.firstNeverOnline}
+              inverted
+            />
+          ) : null
+        }
       />
       <KPICard
         label="Neu / Deinstalliert"

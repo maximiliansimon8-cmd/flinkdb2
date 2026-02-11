@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import Papa from 'papaparse';
+import { supabase } from './utils/authService';
 import {
   Monitor,
   RefreshCw,
@@ -15,6 +15,9 @@ import {
   Shield,
   LogOut,
   Mail,
+  Key,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 
 import {
@@ -35,7 +38,12 @@ import {
   canAccessTab,
   getInitials,
   getCurrentGroup,
+  touchSession,
+  getSessionRemainingMs,
+  getSessionTimeoutMinutes,
+  requestPasswordReset,
 } from './utils/authService';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import KPICards, { KPI_FILTERS } from './components/KPICards';
 import HealthTrendChart from './components/HealthTrendChart';
 import OfflineDistributionChart from './components/OfflineDistributionChart';
@@ -49,9 +57,9 @@ import TaskDashboard from './components/TaskDashboard';
 import CommunicationDashboard from './components/CommunicationDashboard';
 import AdminPanel from './components/AdminPanel';
 
-const SHEET_URL_DIRECT =
-  'https://docs.google.com/spreadsheets/d/1MGqJAGgROYohc_SwR3NhW-BEyJXixLKQZhS9yUOH8_s/export?format=csv&gid=0';
-const SHEET_URL = import.meta.env.DEV ? '/api/sheets' : SHEET_URL_DIRECT;
+// Heartbeat data now loaded from Supabase (fast, zero Netlify Function calls)
+// Fallback to Google Sheets proxy if Supabase has no data
+const SHEET_URL = '/api/sheets';
 
 const KPI_FILTER_LABELS = {
   [KPI_FILTERS.ACTIVE]: 'Aktive Displays',
@@ -71,6 +79,11 @@ function App() {
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetStatus, setResetStatus] = useState(''); // '', 'sending', 'sent', 'error'
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [sessionWarning, setSessionWarning] = useState(false);
 
   /* ─── Data State ─── */
   const [parsedRows, setParsedRows] = useState(null);
@@ -106,12 +119,14 @@ function App() {
   // Avoids localStorage size limits (CSV can be several MB).
   const csvCacheRef = useRef(null);
 
-  function processRawRows(rawRows) {
+  function processRawRows(rawRows, preloadedFirstSeen) {
     const { parsed, earliest, latest, globalFirstSeen: gfs, totalRows } = parseRows(rawRows);
     setParsedRows(parsed);
     setDataEarliest(earliest);
     setDataLatest(latest);
-    setGlobalFirstSeen(gfs);
+    // Merge preloaded first-seen (covers ALL data) with parsed first-seen (may be partial)
+    const mergedFirstSeen = preloadedFirstSeen ? { ...gfs, ...preloadedFirstSeen } : gfs;
+    setGlobalFirstSeen(mergedFirstSeen);
     setTotalRowsGlobal(totalRows);
     if (latest) {
       const start = new Date(latest.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -123,7 +138,14 @@ function App() {
     setLoadProgress('');
   }
 
-  const loadData = useCallback((forceRefresh = false) => {
+  /**
+   * Load heartbeat data from Supabase (OPTIMIZED: only last 30 days + globalFirstSeen).
+   * Instead of loading ALL 170K rows, we:
+   * 1. Fetch globalFirstSeen from the display_first_seen view (~350 rows)
+   * 2. Fetch only last 30 days of heartbeats (~10-15K rows)
+   * Falls back to Google Sheets CSV proxy if Supabase has no data.
+   */
+  const loadData = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
 
@@ -132,9 +154,8 @@ function App() {
       setLoadProgress('Verarbeite gecachte Daten...');
       setTimeout(() => {
         try {
-          processRawRows(csvCacheRef.current);
+          processRawRows(csvCacheRef.current, csvCacheRef._firstSeen);
         } catch (e) {
-          // Cache corrupted – clear and retry fresh
           csvCacheRef.current = null;
           setError(`Fehler bei Datenverarbeitung: ${e.message}`);
           setLoading(false);
@@ -143,40 +164,201 @@ function App() {
       return;
     }
 
-    setLoadProgress('Daten werden geladen...');
+    try {
+      setLoadProgress('Lade Display-Daten...');
 
-    Papa.parse(SHEET_URL, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        try {
-          setLoadProgress(`${results.data.length} Zeilen geladen. Verarbeite...`);
-          // Keep in memory for fast re-renders (no localStorage size issues)
-          csvCacheRef.current = results.data;
-          setTimeout(() => {
-            try {
-              processRawRows(results.data);
-            } catch (e) {
-              setError(`Fehler bei Datenverarbeitung: ${e.message}`);
-              setLoading(false);
-            }
-          }, 50);
-        } catch (e) {
-          setError(`Fehler beim Parsen: ${e.message}`);
-          setLoading(false);
+      // Step 1: Fetch globalFirstSeen from the precomputed view (fast, ~350 rows)
+      const { data: firstSeenData, error: fsError } = await supabase
+        .from('display_first_seen')
+        .select('display_id, first_seen');
+
+      const preloadedFirstSeen = {};
+      if (!fsError && firstSeenData) {
+        for (const row of firstSeenData) {
+          if (row.first_seen) {
+            preloadedFirstSeen[row.display_id] = new Date(row.first_seen);
+          }
         }
-      },
-      error: (err) => {
-        setError(`Fehler beim Laden der CSV: ${err.message}`);
-        setLoading(false);
-      },
-    });
+        console.log(`[loadData] Loaded first-seen for ${Object.keys(preloadedFirstSeen).length} displays`);
+      }
+
+      // Step 2: Determine cutoff date (30 days before the latest heartbeat)
+      // First get the max timestamp_parsed to calculate the cutoff
+      const { data: maxRow, error: maxError } = await supabase
+        .from('display_heartbeats')
+        .select('timestamp_parsed')
+        .order('timestamp_parsed', { ascending: false })
+        .limit(1);
+
+      let cutoffISO = null;
+      if (!maxError && maxRow && maxRow.length > 0 && maxRow[0].timestamp_parsed) {
+        const latestDate = new Date(maxRow[0].timestamp_parsed);
+        const cutoff = new Date(latestDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+        cutoffISO = cutoff.toISOString();
+        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (30 days before ${maxRow[0].timestamp_parsed})`);
+      }
+
+      // Step 3: Fetch only recent heartbeat data (paginated, 1000 per page)
+      setLoadProgress('Lade aktuelle Heartbeat-Daten...');
+      let allRows = [];
+      let from = 0;
+      const pageSize = 1000;
+
+      while (true) {
+        let query = supabase
+          .from('display_heartbeats')
+          .select('timestamp, display_id, raw_display_id, location_name, serial_number, registration_date, heartbeat, is_alive, display_status, last_online_date, days_offline')
+          .order('timestamp_parsed', { ascending: false })
+          .range(from, from + pageSize - 1);
+
+        // Apply 30-day filter if we have a cutoff
+        if (cutoffISO) {
+          query = query.gte('timestamp_parsed', cutoffISO);
+        }
+
+        const { data, error: sbError } = await query;
+
+        if (sbError) throw sbError;
+        if (!data || data.length === 0) break;
+        allRows = allRows.concat(data);
+        setLoadProgress(`${allRows.length} Zeilen geladen...`);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+
+      if (allRows.length > 0) {
+        // Map Supabase rows → parseRows()-compatible format (same as CSV headers)
+        const mappedRows = allRows.map(row => ({
+          'Timestamp': row.timestamp || '',
+          'Display ID': row.raw_display_id || row.display_id || '',
+          'Location Name': row.location_name || '',
+          'Serial Number': row.serial_number || '',
+          'Date': row.registration_date || '',
+          'Status': row.heartbeat || '',
+          'Is Alive': row.is_alive || '',
+          'Display Status': row.display_status || '',
+          'Last Online Date': row.last_online_date || '',
+          'Days Offline': row.days_offline != null ? String(row.days_offline) : '',
+        }));
+
+        setLoadProgress(`${mappedRows.length} Zeilen geladen. Verarbeite...`);
+        csvCacheRef.current = mappedRows;
+        csvCacheRef._firstSeen = preloadedFirstSeen;
+        setTimeout(() => {
+          try {
+            processRawRows(mappedRows, preloadedFirstSeen);
+          } catch (e) {
+            setError(`Fehler bei Datenverarbeitung: ${e.message}`);
+            setLoading(false);
+          }
+        }, 50);
+        return;
+      }
+
+      // Fallback: No data in Supabase yet → use Google Sheets CSV
+      console.warn('[loadData] No Supabase heartbeat data, falling back to CSV');
+      setLoadProgress('Fallback: Lade von Google Sheets...');
+      const Papa = (await import('papaparse')).default;
+      Papa.parse(SHEET_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          try {
+            setLoadProgress(`${results.data.length} Zeilen geladen. Verarbeite...`);
+            csvCacheRef.current = results.data;
+            csvCacheRef._firstSeen = null;
+            setTimeout(() => {
+              try {
+                processRawRows(results.data, null);
+              } catch (e) {
+                setError(`Fehler bei Datenverarbeitung: ${e.message}`);
+                setLoading(false);
+              }
+            }, 50);
+          } catch (e) {
+            setError(`Fehler beim Parsen: ${e.message}`);
+            setLoading(false);
+          }
+        },
+        error: (err) => {
+          setError(`Fehler beim Laden der CSV: ${err.message}`);
+          setLoading(false);
+        },
+      });
+    } catch (err) {
+      console.error('[loadData] Supabase error, falling back to CSV:', err);
+      setLoadProgress('Fallback: Lade von Google Sheets...');
+      const Papa = (await import('papaparse')).default;
+      Papa.parse(SHEET_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          csvCacheRef.current = results.data;
+          csvCacheRef._firstSeen = null;
+          setTimeout(() => processRawRows(results.data, null), 50);
+        },
+        error: (csvErr) => {
+          setError(`Fehler beim Laden: ${csvErr.message}`);
+          setLoading(false);
+        },
+      });
+    }
   }, []);
 
   useEffect(() => {
     loadData(false);
   }, [loadData]);
+
+  /* ─── Session Timeout Monitoring ─── */
+
+  useEffect(() => {
+    if (!authenticated) return;
+
+    // Check session validity every 60 seconds
+    const interval = setInterval(() => {
+      const remaining = getSessionRemainingMs();
+
+      if (remaining <= 0) {
+        // Session expired
+        setAuthenticated(false);
+        setCurrentUser(null);
+        setActiveMainTab('displays');
+        setSessionWarning(false);
+        return;
+      }
+
+      // Show warning when less than 10 minutes remain
+      if (remaining < 10 * 60 * 1000) {
+        setSessionWarning(true);
+      } else {
+        setSessionWarning(false);
+      }
+    }, 60 * 1000); // check every minute
+
+    return () => clearInterval(interval);
+  }, [authenticated]);
+
+  /* ─── Session Activity Tracking (touch on interaction) ─── */
+
+  useEffect(() => {
+    if (!authenticated) return;
+
+    const onActivity = () => {
+      touchSession();
+      setSessionWarning(false);
+    };
+
+    // Refresh session timestamp on user interaction
+    window.addEventListener('click', onActivity);
+    window.addEventListener('keydown', onActivity);
+
+    return () => {
+      window.removeEventListener('click', onActivity);
+      window.removeEventListener('keydown', onActivity);
+    };
+  }, [authenticated]);
 
   /* ─── Derived Data ─── */
 
@@ -184,6 +366,25 @@ function App() {
     if (!parsedRows) return null;
     return aggregateData(parsedRows, rangeStart, rangeEnd, globalFirstSeen);
   }, [parsedRows, rangeStart, rangeEnd, globalFirstSeen]);
+
+  // Compute comparison health rate: same duration but shifted 3 months earlier
+  const comparisonHealthRate = useMemo(() => {
+    if (!parsedRows || !rawData || !rawData.trendData || rawData.trendData.length === 0) return null;
+    const currentEnd = rangeEnd || rawData.latestTimestamp;
+    const currentStart = rangeStart || (rawData.trendData.length > 0 ? rawData.trendData[0].timestamp : null);
+    if (!currentEnd || !currentStart) return null;
+
+    const compEnd = new Date(currentStart.getTime() - 1);
+    const compStart = new Date(compEnd.getTime() - (currentEnd.getTime() - currentStart.getTime()));
+
+    if (!dataEarliest || compEnd < dataEarliest) return null;
+
+    const compData = aggregateData(parsedRows, compStart, compEnd, globalFirstSeen);
+    if (!compData || !compData.trendData || compData.trendData.length === 0) return null;
+
+    const avgHealth = compData.trendData.reduce((sum, s) => sum + s.healthRate, 0) / compData.trendData.length;
+    return Math.round(avgHealth * 10) / 10;
+  }, [parsedRows, rawData, rangeStart, rangeEnd, dataEarliest, globalFirstSeen]);
 
   const kpis = useMemo(() => {
     if (!rawData || !rawData.latestTimestamp) return null;
@@ -241,10 +442,10 @@ function App() {
 
   /* ─── Auth Handlers ─── */
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    const result = login(emailInput, passwordInput);
+    const result = await login(emailInput, passwordInput);
 
     if (result.success) {
       setAuthenticated(true);
@@ -257,8 +458,15 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setResetStatus('sending');
+    const result = await requestPasswordReset(resetEmail);
+    setResetStatus(result.success ? 'sent' : 'error');
+  };
+
+  const handleLogout = async () => {
+    await logout();
     setAuthenticated(false);
     setCurrentUser(null);
     setActiveMainTab('displays');
@@ -337,11 +545,89 @@ function App() {
                 Anmelden
               </button>
 
-              <p className="text-[10px] text-slate-300 font-mono text-center mt-2">
-                Kontakt: admin@dimension-outdoor.com
-              </p>
+              <button
+                type="button"
+                onClick={() => { setShowResetForm(true); setResetEmail(emailInput); setResetStatus(''); }}
+                className="w-full text-[11px] text-slate-400 hover:text-[#3b82f6] transition-colors mt-2 font-mono"
+              >
+                Passwort vergessen?
+              </button>
             </div>
           </form>
+
+          {/* Password Reset Modal */}
+          {showResetForm && (
+            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center px-4">
+              <div className="bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-6 shadow-lg shadow-black/5 w-full max-w-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-bold text-slate-900">Passwort zurücksetzen</h2>
+                  <button
+                    onClick={() => setShowResetForm(false)}
+                    className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {resetStatus === 'sent' ? (
+                  <div className="text-center py-4">
+                    <div className="w-10 h-10 rounded-full bg-[#22c55e]/10 flex items-center justify-center mx-auto mb-3">
+                      <Mail size={18} className="text-[#22c55e]" />
+                    </div>
+                    <p className="text-sm text-slate-700 font-medium mb-1">E-Mail gesendet!</p>
+                    <p className="text-xs text-slate-400 font-mono leading-relaxed">
+                      Falls ein Account mit dieser E-Mail existiert, erhältst du einen Link zum Zurücksetzen deines Passworts.
+                    </p>
+                    <button
+                      onClick={() => setShowResetForm(false)}
+                      className="mt-4 px-4 py-2 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                    >
+                      Schließen
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handlePasswordReset}>
+                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                      Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen deines Passworts.
+                    </p>
+                    <div className="relative mb-4">
+                      <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="email"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        placeholder="name@dimension-outdoor.com"
+                        autoFocus
+                        required
+                        className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg pl-9 pr-3 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
+                      />
+                    </div>
+                    {resetStatus === 'error' && (
+                      <p className="text-[#ef4444] text-xs mb-3 font-mono">
+                        Fehler beim Senden. Bitte versuche es erneut.
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowResetForm(false)}
+                        className="flex-1 py-2.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                      >
+                        Abbrechen
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={resetStatus === 'sending'}
+                        className="flex-1 py-2.5 rounded-lg text-xs font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors disabled:opacity-50"
+                      >
+                        {resetStatus === 'sending' ? 'Sende...' : 'Link senden'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -559,6 +845,13 @@ function App() {
                       </div>
                     </div>
                     <button
+                      onClick={() => setShowPasswordModal(true)}
+                      className="p-1.5 rounded-md hover:bg-amber-50/60 text-slate-400 hover:text-amber-600 transition-colors"
+                      title="Passwort ändern"
+                    >
+                      <Key size={14} />
+                    </button>
+                    <button
                       onClick={handleLogout}
                       className="p-1.5 rounded-md hover:bg-red-50/60 text-slate-400 hover:text-red-500 transition-colors"
                       title="Abmelden"
@@ -648,6 +941,7 @@ function App() {
               kpis={kpis}
               activeFilter={kpiFilter}
               onFilterClick={handleKpiFilterClick}
+              rangeLabel={rangeLabel}
             />
 
             {/* KPI Drill-Down Panel */}
@@ -681,7 +975,7 @@ function App() {
             {!kpiFilter && (
               <>
                 {/* Visualizations first */}
-                <HealthTrendChart trendData={rawData.trendData} rangeLabel={rangeLabel} />
+                <HealthTrendChart trendData={rawData.trendData} rangeLabel={rangeLabel} comparisonHealthRate={comparisonHealthRate} />
 
                 <OverviewHealthPatterns trendData={rawData.trendData} rangeLabel={rangeLabel} />
 
@@ -797,12 +1091,34 @@ function App() {
         </div>
       </main>
 
+      {/* Session Timeout Warning Banner */}
+      {sessionWarning && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-xl bg-amber-50/95 backdrop-blur-xl border border-amber-200/60 shadow-lg animate-fade-in">
+          <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">Session läuft bald ab</p>
+            <p className="text-xs text-amber-600">Klicke irgendwo um die Session zu verlängern</p>
+          </div>
+          <button
+            onClick={() => { touchSession(); setSessionWarning(false); }}
+            className="ml-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+          >
+            Verlängern
+          </button>
+        </div>
+      )}
+
       {/* Display Detail Modal */}
       {selectedDisplay && (
         <DisplayDetail
           display={selectedDisplay}
           onClose={() => setSelectedDisplay(null)}
         />
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
       )}
     </div>
   );

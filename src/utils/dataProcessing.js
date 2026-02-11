@@ -42,10 +42,15 @@ export function getCityCodeFromDisplayId(displayId) {
   return parts.length >= 3 ? parts[2] : '???';
 }
 
-// Parse DD.MM.YYYY HH:MM → Date
+// Parse DD.MM.YYYY HH:MM → Date (also accepts ISO 8601 from Supabase)
 export function parseGermanDate(str) {
   if (!str || typeof str !== 'string') return null;
   const trimmed = str.trim();
+  // ISO 8601: 2025-01-15T10:30:00+00:00 or 2025-01-15T10:30:00.000Z
+  if (trimmed.match(/^\d{4}-\d{2}-\d{2}T/)) {
+    const d = new Date(trimmed);
+    return isNaN(d.getTime()) ? null : d;
+  }
   // DD.MM.YYYY HH:MM
   const match = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})$/);
   if (match) {
@@ -305,25 +310,48 @@ export function aggregateData(parsed, rangeStart, rangeEnd, globalFirstSeen) {
   });
 
   // Trend data – use all snapshot timestamps in the range
+  // Includes per-snapshot category breakdown for KPI time-range averages
   const trendData = snapshotTimestamps.map((snapshotTime) => {
     const snapshotRows = rows.filter(
       (r) => r.timestamp.getTime() === snapshotTime.getTime()
     );
     const total = snapshotRows.length;
-    const online = snapshotRows.filter((r) => {
-      if (!r.heartbeat) return false;
-      const diff = (snapshotTime.getTime() - r.heartbeat.getTime()) / (1000 * 60 * 60);
-      return diff < 24;
-    }).length;
-    const healthRate = total > 0 ? (online / total) * 100 : 0;
+
+    // Categorize each display in this snapshot
+    let onlineCount = 0;
+    let warningCount = 0;
+    let criticalCount = 0;
+    let permanentOfflineCount = 0;
+    let neverOnlineCount = 0;
+
+    snapshotRows.forEach((r) => {
+      let offlineHours = null;
+      if (r.heartbeat) {
+        offlineHours = (snapshotTime.getTime() - r.heartbeat.getTime()) / (1000 * 60 * 60);
+        if (offlineHours < 0) offlineHours = 0;
+      }
+      const neverOnline = !r.heartbeat;
+      const cat = getStatusCategory(offlineHours, neverOnline);
+      if (cat === 'online') onlineCount++;
+      else if (cat === 'warning') warningCount++;
+      else if (cat === 'critical') criticalCount++;
+      else if (cat === 'permanent_offline') permanentOfflineCount++;
+      else if (cat === 'never_online') neverOnlineCount++;
+    });
+
+    const healthRate = total > 0 ? (onlineCount / total) * 100 : 0;
 
     return {
       timestamp: snapshotTime,
       date: formatDateTime(snapshotTime),
       total,
-      online,
-      offline: total - online,
+      online: onlineCount,
+      offline: total - onlineCount,
       healthRate: Math.round(healthRate * 10) / 10,
+      warningCount,
+      criticalCount,
+      permanentOfflineCount,
+      neverOnlineCount,
     };
   });
 
@@ -429,9 +457,14 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
     return effectiveFirstSeen >= sevenDaysAgo;
   });
 
-  // Compute avg online / avg total over the selected range using trendData
+  // Compute avg online / avg total / avg offline categories over the selected range
   let avgOnline = onlineDisplays.length;
   let avgTotal = totalActive;
+  let avgWarning = warningDisplays.length;
+  let avgCritical = criticalDisplays.length;
+  let avgPermanentOffline = permanentOfflineDisplays.length;
+  let avgNeverOnline = neverOnlineDisplays.length;
+
   if (trendData && trendData.length > 0) {
     avgOnline = Math.round(
       trendData.reduce((sum, s) => sum + s.online, 0) / trendData.length
@@ -439,6 +472,39 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
     avgTotal = Math.round(
       trendData.reduce((sum, s) => sum + s.total, 0) / trendData.length
     );
+    if (trendData[0].warningCount !== undefined) {
+      avgWarning = Math.round(
+        trendData.reduce((sum, s) => sum + (s.warningCount || 0), 0) / trendData.length
+      );
+      avgCritical = Math.round(
+        trendData.reduce((sum, s) => sum + (s.criticalCount || 0), 0) / trendData.length
+      );
+      avgPermanentOffline = Math.round(
+        trendData.reduce((sum, s) => sum + (s.permanentOfflineCount || 0), 0) / trendData.length
+      );
+      avgNeverOnline = Math.round(
+        trendData.reduce((sum, s) => sum + (s.neverOnlineCount || 0), 0) / trendData.length
+      );
+    }
+  }
+
+  // First-snapshot values for trend comparison (beginning vs end of range)
+  let firstHealthRate = null;
+  let firstOnline = null;
+  let firstTotal = null;
+  let firstWarning = null;
+  let firstCritical = null;
+  let firstPermanentOffline = null;
+  let firstNeverOnline = null;
+  if (trendData && trendData.length >= 2) {
+    const first = trendData[0];
+    firstHealthRate = first.healthRate;
+    firstOnline = first.online;
+    firstTotal = first.total;
+    firstWarning = first.warningCount ?? null;
+    firstCritical = (first.criticalCount ?? 0) + (first.permanentOfflineCount ?? 0);
+    firstPermanentOffline = first.permanentOfflineCount ?? null;
+    firstNeverOnline = first.neverOnlineCount ?? null;
   }
 
   return {
@@ -453,7 +519,18 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
     deinstalled: deinstalledRecent.length,
     avgOnline,
     avgTotal,
+    avgWarning,
+    avgCritical,
+    avgPermanentOffline,
+    avgNeverOnline,
     snapshotCount: trendData ? trendData.length : 0,
+    firstHealthRate,
+    firstOnline,
+    firstTotal,
+    firstWarning,
+    firstCritical,
+    firstPermanentOffline,
+    firstNeverOnline,
     // Lists for drill-down
     _lists: {
       active,

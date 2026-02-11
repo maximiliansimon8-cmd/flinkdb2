@@ -26,7 +26,22 @@ import {
   Users,
   Cpu,
   Wifi,
+  ExternalLink,
+  Lock,
+  UtensilsCrossed,
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+  Area,
+  AreaChart,
+} from 'recharts';
 import {
   computeDisplayTimeline,
   getStatusColor,
@@ -39,7 +54,9 @@ import {
   fetchStammdatenByDisplayId,
   fetchTasksByDisplayId,
   fetchInstallationByDisplayId,
+  fetchAllCommunications,
 } from '../utils/airtableService';
+import { hasPermission } from '../utils/authService';
 
 function InfoRow({ icon: Icon, label, value, mono }) {
   return (
@@ -335,36 +352,139 @@ function WeekdayChart({ segments }) {
   );
 }
 
+function HourChartTooltip({ active, payload }) {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0].payload;
+  return (
+    <div className="bg-white/90 backdrop-blur-xl border border-slate-300/40 rounded-lg px-3 py-2 text-xs font-mono shadow-sm shadow-black/[0.03]">
+      <div className="text-slate-600 mb-1">{data.label}:00 Uhr</div>
+      <div className="font-bold" style={{ color: data.rate != null ? statusRateColor(data.rate) : '#64748b' }}>
+        {data.rate != null ? `${data.rate}%` : '–'} online
+      </div>
+      <div className="text-slate-400">
+        {data.online}/{data.total} Checks
+      </div>
+    </div>
+  );
+}
+
 function HourChart({ segments }) {
-  const stats = useMemo(() => computeHourStats(segments), [segments]);
+  const allStats = useMemo(() => computeHourStats(segments), [segments]);
+
+  // Filter to 6–24h (indices 6..23)
+  const stats = useMemo(() => allStats.filter((_, i) => i >= 6), [allStats]);
+
   const problemHours = stats.filter((s) => s.rate != null && s.rate < 70);
+  const hasData = stats.some((s) => s.rate != null);
+
+  // Compute average for the business hours
+  const avgRate = useMemo(() => {
+    const withData = stats.filter((s) => s.rate != null);
+    if (withData.length === 0) return null;
+    return Math.round(withData.reduce((sum, s) => sum + s.rate, 0) / withData.length * 10) / 10;
+  }, [stats]);
+
+  // Custom dot: color based on rate
+  const renderDot = (props) => {
+    const { cx, cy, payload } = props;
+    if (payload.rate == null || !cx || !cy) return null;
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={4}
+        fill={statusRateColor(payload.rate)}
+        stroke="#fff"
+        strokeWidth={2}
+      />
+    );
+  };
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-3">
-        <Sun size={14} className="text-slate-400" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
-          Online-Rate nach Tageszeit
-        </h3>
-      </div>
-      <div className="grid grid-cols-12 gap-1">
-        {stats.map((hour) => (
-          <div
-            key={hour.label}
-            className="flex flex-col items-center rounded p-1"
-            style={{ backgroundColor: rateBg(hour.rate) }}
-            title={`${hour.label}:00 – ${hour.rate != null ? hour.rate + '%' : 'keine Daten'} (${hour.total} Checks)`}
-          >
-            <div
-              className="text-[10px] font-mono font-bold"
-              style={{ color: hour.rate != null ? statusRateColor(hour.rate) : '#64748b' }}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Sun size={14} className="text-slate-400" />
+          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+            Online-Rate nach Tageszeit
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+            06:00 – 23:00
+          </span>
+          {avgRate != null && (
+            <span
+              className="text-[10px] font-mono font-bold px-2 py-0.5 rounded"
+              style={{
+                backgroundColor: statusRateColor(avgRate) + '18',
+                color: statusRateColor(avgRate),
+              }}
             >
-              {hour.rate != null ? `${Math.round(hour.rate)}` : '–'}
-            </div>
-            <div className="text-[9px] font-mono text-slate-400">{hour.label}h</div>
-          </div>
-        ))}
+              Ø {avgRate}%
+            </span>
+          )}
+        </div>
       </div>
+
+      {!hasData ? (
+        <div className="h-[180px] flex items-center justify-center text-slate-400 text-xs font-mono">
+          Keine Stundendaten verfügbar
+        </div>
+      ) : (
+        <div className="h-[180px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={stats} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="hourRateGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f033" />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                tickFormatter={(v) => `${v}h`}
+                axisLine={{ stroke: '#e2e8f060' }}
+                tickLine={false}
+              />
+              <YAxis
+                domain={[0, 100]}
+                ticks={[0, 25, 50, 75, 100]}
+                tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                tickFormatter={(v) => `${v}%`}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip content={<HourChartTooltip />} />
+              <ReferenceLine
+                y={90}
+                stroke="#22c55e"
+                strokeDasharray="4 4"
+                strokeOpacity={0.5}
+                label={{
+                  value: '90%',
+                  position: 'right',
+                  style: { fontSize: 9, fill: '#22c55e', fontFamily: 'monospace' },
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="rate"
+                stroke="#3b82f6"
+                strokeWidth={2.5}
+                fill="url(#hourRateGradient)"
+                dot={renderDot}
+                activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2, fill: '#fff' }}
+                connectNulls
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Legend */}
       <div className="flex items-center gap-3 mt-2">
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#22c55e]" />
@@ -383,6 +503,8 @@ function HourChart({ segments }) {
           <span className="text-[9px] text-slate-400">&lt;50%</span>
         </div>
       </div>
+
+      {/* Problem hours callout */}
       {problemHours.length > 0 && (
         <div className="mt-3 px-3 py-2 rounded bg-slate-50/80 border border-slate-200/60">
           <span className="text-[10px] text-slate-400">
@@ -404,7 +526,25 @@ function HourChart({ segments }) {
 
 // ─── Airtable: Contact Info Panel ──────────────────────────────────────────────
 
+/**
+ * Build a Lieferando search URL for a given location.
+ * Lieferando URLs are slug-based (no direct JET-ID lookup),
+ * so we link to a Google "I'm feeling lucky" search which
+ * reliably lands on the correct Lieferando page.
+ */
+function buildLieferandoSearchUrl(stammdaten) {
+  const name = stammdaten['Location Name'] || '';
+  const city = stammdaten['City'] || '';
+  const jetId = stammdaten['JET ID'] || '';
+  if (!name && !jetId) return null;
+  // Build a search query that should uniquely identify the restaurant on Lieferando
+  const query = [name, city, 'lieferando.de'].filter(Boolean).join(' ');
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}&btnI=1`;
+}
+
 function ContactInfoPanel({ stammdaten, loading }) {
+  const canViewContacts = hasPermission('view_contacts');
+
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
@@ -429,41 +569,72 @@ function ContactInfoPanel({ stammdaten, loading }) {
   const leadStatus = stammdaten['Lead Status  (from Akquise)'];
   const leadStatusLabel = Array.isArray(leadStatus) ? leadStatus.join(', ') : leadStatus;
 
+  const lieferandoUrl = buildLieferandoSearchUrl(stammdaten);
+
   return (
     <div>
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <Building2 size={14} className="text-[#3b82f6]" />
         <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
-          Standort-Informationen (Airtable)
+          Standort-Informationen
         </h3>
         {stammdaten['JET ID'] && (
           <span className="text-[10px] font-mono bg-[#3b82f6]/15 text-[#3b82f6] px-2 py-0.5 rounded-full border border-[#3b82f6]/25">
             JET ID: {stammdaten['JET ID']}
           </span>
         )}
+        {lieferandoUrl && (
+          <a
+            href={lieferandoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-[10px] font-mono bg-[#ff8000]/10 text-[#ff8000] px-2 py-0.5 rounded-full border border-[#ff8000]/25 hover:bg-[#ff8000]/20 transition-colors"
+          >
+            <UtensilsCrossed size={10} />
+            Lieferando
+            <ExternalLink size={9} />
+          </a>
+        )}
+        {!canViewContacts && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+            <Lock size={9} />
+            Kontaktdaten eingeschränkt
+          </span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0">
-        {/* Left column – Contact */}
+        {/* Left column – Contact (permission-gated) */}
         <div>
-          {stammdaten['Contact Person'] && (
-            <InfoRow icon={User} label="Kontaktperson" value={stammdaten['Contact Person']} />
-          )}
-          {stammdaten['Contact Email'] && (
-            <InfoRow icon={Mail} label="Kontakt E-Mail" value={stammdaten['Contact Email']} />
-          )}
-          {stammdaten['Contact Phone'] && (
-            <InfoRow icon={Phone} label="Kontakt Telefon" value={stammdaten['Contact Phone']} />
-          )}
-          {stammdaten['Location Email'] && (
-            <InfoRow icon={Mail} label="Standort E-Mail" value={stammdaten['Location Email']} />
-          )}
-          {stammdaten['Location Phone'] && (
-            <InfoRow icon={Phone} label="Standort Telefon" value={stammdaten['Location Phone']} />
+          {canViewContacts ? (
+            <>
+              {stammdaten['Contact Person'] && (
+                <InfoRow icon={User} label="Kontaktperson" value={stammdaten['Contact Person']} />
+              )}
+              {stammdaten['Contact Email'] && (
+                <InfoRow icon={Mail} label="Kontakt E-Mail" value={stammdaten['Contact Email']} />
+              )}
+              {stammdaten['Contact Phone'] && (
+                <InfoRow icon={Phone} label="Kontakt Telefon" value={stammdaten['Contact Phone']} />
+              )}
+              {stammdaten['Location Email'] && (
+                <InfoRow icon={Mail} label="Standort E-Mail" value={stammdaten['Location Email']} />
+              )}
+              {stammdaten['Location Phone'] && (
+                <InfoRow icon={Phone} label="Standort Telefon" value={stammdaten['Location Phone']} />
+              )}
+            </>
+          ) : (
+            <div className="flex items-center gap-2 py-3">
+              <Lock size={12} className="text-slate-300" />
+              <span className="text-xs text-slate-400 italic">
+                Kontaktdaten nur für berechtigte Benutzer sichtbar
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Right column – Address */}
+        {/* Right column – Address (always visible) */}
         <div>
           {stammdaten['Legal Entity'] && (
             <InfoRow icon={Building2} label="Rechtseinheit" value={stammdaten['Legal Entity']} />
@@ -843,6 +1014,105 @@ function InstallationPanel({ installation, loading }) {
   );
 }
 
+// ─── Communications Panel ────────────────────────────────────────────────────
+
+function CommunicationsPanel({ communications, loading }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-4 justify-center">
+        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
+        <span className="text-xs text-slate-400 font-mono">Lade Kommunikation...</span>
+      </div>
+    );
+  }
+
+  if (!communications || communications.length === 0) return null;
+
+  const formatTs = (ts) => {
+    if (!ts) return '–';
+    try {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return ts;
+      return d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return ts; }
+  };
+
+  const channelIcon = (ch) => {
+    if (ch === 'WhatsApp' || ch === 'whatsapp') return '💬';
+    if (ch === 'Email' || ch === 'email') return '📧';
+    if (ch === 'SMS' || ch === 'sms') return '📱';
+    if (ch === 'Phone' || ch === 'phone') return '📞';
+    return '💬';
+  };
+
+  const sorted = [...communications].sort((a, b) => {
+    const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return tb - ta;
+  });
+
+  const shown = expanded ? sorted : sorted.slice(0, 3);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Mail size={14} className="text-[#3b82f6]" />
+          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+            Kommunikation
+          </h3>
+          <span className="text-[10px] font-mono text-slate-400 bg-slate-50/80 px-1.5 py-0.5 rounded">
+            {communications.length}
+          </span>
+        </div>
+        {sorted.length > 3 && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-[10px] text-[#3b82f6] hover:text-[#2563eb] font-medium"
+          >
+            {expanded ? 'Weniger' : `Alle ${sorted.length} anzeigen`}
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {shown.map((comm) => (
+          <div key={comm.id} className="flex items-start gap-3 p-2.5 rounded-lg bg-slate-50/60 border border-slate-200/40">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/80 border border-slate-200/40 shrink-0 text-sm">
+              {channelIcon(comm.channel)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-slate-900 truncate">
+                    {comm.recipientName || comm.sender || 'Unbekannt'}
+                  </span>
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                    comm.direction === 'Outbound' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'
+                  }`}>
+                    {comm.direction === 'Outbound' ? '→ Ausgehend' : '← Eingehend'}
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                  {formatTs(comm.timestamp)}
+                </span>
+              </div>
+              {comm.subject && (
+                <p className="text-[11px] text-slate-600 truncate mt-0.5">{comm.subject}</p>
+              )}
+              {comm.message && (
+                <p className="text-[10px] text-slate-500 truncate mt-0.5">{comm.message}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Detail component ────────────────────────────────────────────────────
 
 export default function DisplayDetail({ display, onClose }) {
@@ -858,6 +1128,8 @@ export default function DisplayDetail({ display, onClose }) {
   const [tasksLoading, setTasksLoading] = useState(true);
   const [installation, setInstallation] = useState(null);
   const [installationLoading, setInstallationLoading] = useState(true);
+  const [communications, setCommunications] = useState([]);
+  const [communicationsLoading, setCommunicationsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -866,6 +1138,7 @@ export default function DisplayDetail({ display, onClose }) {
     setStammdatenLoading(true);
     setTasksLoading(true);
     setInstallationLoading(true);
+    setCommunicationsLoading(true);
 
     fetchStammdatenByDisplayId(displayId).then((data) => {
       if (!cancelled) {
@@ -888,8 +1161,28 @@ export default function DisplayDetail({ display, onClose }) {
       }
     });
 
+    // Fetch communications and filter by display/location
+    fetchAllCommunications().then((allComms) => {
+      if (!cancelled) {
+        const relevant = allComms.filter((c) => {
+          // Match by displayId in the comm's displayIds
+          if (c.displayIds?.some((d) => d.includes(displayId) || displayId.includes(d))) return true;
+          // Match by location name
+          if (display.locationName && c.locationNames?.some((n) =>
+            n.toLowerCase().includes(display.locationName.toLowerCase()) ||
+            display.locationName.toLowerCase().includes(n.toLowerCase())
+          )) return true;
+          return false;
+        });
+        setCommunications(relevant);
+        setCommunicationsLoading(false);
+      }
+    }).catch(() => {
+      if (!cancelled) setCommunicationsLoading(false);
+    });
+
     return () => { cancelled = true; };
-  }, [display.displayId]);
+  }, [display.displayId, display.locationName]);
 
   const statusColor = getStatusColor(display.status);
   const statusLabel = getStatusLabel(display.status);
@@ -1010,6 +1303,13 @@ export default function DisplayDetail({ display, onClose }) {
         {(tasksLoading || tasks.length > 0) && (
           <div className="p-5 border-b border-slate-200/60">
             <TasksPanel tasks={tasks} loading={tasksLoading} />
+          </div>
+        )}
+
+        {/* Communications History */}
+        {(communicationsLoading || communications.length > 0) && (
+          <div className="p-5 border-b border-slate-200/60">
+            <CommunicationsPanel communications={communications} loading={communicationsLoading} />
           </div>
         )}
 

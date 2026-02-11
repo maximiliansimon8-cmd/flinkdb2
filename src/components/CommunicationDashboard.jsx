@@ -4,38 +4,29 @@ import {
   Mail,
   Phone,
   Clock,
-  Send,
   Search,
-  Plus,
   RefreshCw,
   Loader2,
-  ChevronRight,
   AlertCircle,
-  Users,
   Inbox,
-  CheckCircle2,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Plus,
+  X,
+  Send,
+  MapPin,
+  Building2,
+  Save,
 } from 'lucide-react';
 import {
+  fetchAllCommunications,
+  createCommunicationRecord,
   fetchAllStammdaten,
 } from '../utils/airtableService';
-import {
-  fetchConversationsPage,
-  fetchContactsPage,
-  fetchAllTemplates,
-  fetchChannels,
-  fetchAllMessages,
-  sendMessage,
-  getContactDisplayName,
-  getContactPhone,
-  getContactEmail,
-  getContactAttribute,
-} from '../utils/superchatService';
-import ConversationView from './ConversationView';
-import ComposeMessage from './ComposeMessage';
 
 /* ──────────────────────── KPI Card ──────────────────────── */
 
-function KPICard({ label, value, icon: Icon, color, loading }) {
+function KPICard({ label, value, icon: Icon, color }) {
   return (
     <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
       <div className="flex items-center justify-between mb-2">
@@ -49,11 +40,8 @@ function KPICard({ label, value, icon: Icon, color, loading }) {
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="font-mono font-bold text-2xl flex items-baseline gap-2" style={{ color }}>
+      <div className="font-mono font-bold text-2xl" style={{ color }}>
         {value}
-        {loading && (
-          <Loader2 size={14} className="animate-spin text-slate-300" />
-        )}
       </div>
     </div>
   );
@@ -63,17 +51,16 @@ function KPICard({ label, value, icon: Icon, color, loading }) {
 
 function ChannelBadge({ channel }) {
   const config = {
-    whats_app: { bg: 'bg-green-100 text-green-700', icon: MessageSquare, label: 'WhatsApp' },
     WhatsApp: { bg: 'bg-green-100 text-green-700', icon: MessageSquare, label: 'WhatsApp' },
-    mail: { bg: 'bg-blue-100 text-blue-700', icon: Mail, label: 'Email' },
+    whatsapp: { bg: 'bg-green-100 text-green-700', icon: MessageSquare, label: 'WhatsApp' },
     Email: { bg: 'bg-blue-100 text-blue-700', icon: Mail, label: 'Email' },
-    sms: { bg: 'bg-orange-100 text-orange-700', icon: Phone, label: 'SMS' },
+    email: { bg: 'bg-blue-100 text-blue-700', icon: Mail, label: 'Email' },
     SMS: { bg: 'bg-orange-100 text-orange-700', icon: Phone, label: 'SMS' },
-    telegram: { bg: 'bg-sky-100 text-sky-700', icon: MessageSquare, label: 'Telegram' },
-    instagram: { bg: 'bg-pink-100 text-pink-700', icon: MessageSquare, label: 'Instagram' },
-    facebook: { bg: 'bg-indigo-100 text-indigo-700', icon: MessageSquare, label: 'Facebook' },
+    sms: { bg: 'bg-orange-100 text-orange-700', icon: Phone, label: 'SMS' },
+    Phone: { bg: 'bg-purple-100 text-purple-700', icon: Phone, label: 'Telefon' },
+    phone: { bg: 'bg-purple-100 text-purple-700', icon: Phone, label: 'Telefon' },
   };
-  const c = config[channel] || { bg: 'bg-slate-100 text-slate-600', icon: MessageSquare, label: channel || '?' };
+  const c = config[channel] || { bg: 'bg-slate-100 text-slate-600', icon: MessageSquare, label: channel || '–' };
   const Icon = c.icon;
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${c.bg}`}>
@@ -83,15 +70,39 @@ function ChannelBadge({ channel }) {
   );
 }
 
+/* ──────────────────────── Direction Badge ──────────────────────── */
+
+function DirectionBadge({ direction }) {
+  if (direction === 'Outbound') {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600">
+        <ArrowUpRight size={10} />
+        Ausgehend
+      </span>
+    );
+  }
+  if (direction === 'Inbound') {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-600">
+        <ArrowDownLeft size={10} />
+        Eingehend
+      </span>
+    );
+  }
+  return null;
+}
+
 /* ──────────────────────── Status Badge ──────────────────────── */
 
 function StatusBadge({ status }) {
   const config = {
-    open: { bg: 'bg-amber-100 text-amber-700', label: 'Offen' },
-    snoozed: { bg: 'bg-purple-100 text-purple-700', label: 'Zurückgestellt' },
-    done: { bg: 'bg-green-100 text-green-700', label: 'Erledigt' },
+    Sent: { bg: 'bg-blue-100 text-blue-700', label: 'Gesendet' },
+    Delivered: { bg: 'bg-green-100 text-green-700', label: 'Zugestellt' },
+    Read: { bg: 'bg-emerald-100 text-emerald-700', label: 'Gelesen' },
+    Failed: { bg: 'bg-red-100 text-red-700', label: 'Fehlgeschlagen' },
+    Pending: { bg: 'bg-amber-100 text-amber-700', label: 'Wartend' },
   };
-  const c = config[status] || { bg: 'bg-slate-100 text-slate-600', label: status || '?' };
+  const c = config[status] || { bg: 'bg-slate-100 text-slate-600', label: status || '–' };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${c.bg}`}>
       {c.label}
@@ -99,366 +110,508 @@ function StatusBadge({ status }) {
   );
 }
 
-/* ──────────────────────── Time Window Badge ──────────────────────── */
+/* ──────────────────────── Format date ──────────────────────── */
 
-function TimeWindowBadge({ timeWindow }) {
-  if (!timeWindow) return null;
-  const isOpen = timeWindow.state === 'open';
+function formatCommDate(ts) {
+  if (!ts) return '–';
+  try {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return ts;
+    return d.toLocaleString('de-DE', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  } catch {
+    return ts;
+  }
+}
+
+/* ──────────────────────── Communication Row ──────────────────────── */
+
+function CommRow({ comm }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
-        isOpen ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-      }`}
-      title={isOpen ? `Offen bis ${new Date(timeWindow.open_until).toLocaleString('de-DE')}` : '24h-Fenster geschlossen – nur Templates'}
-    >
-      <Clock size={10} />
-      {isOpen ? '24h offen' : '24h geschlossen'}
-    </span>
+    <div className="border-b border-slate-100/80 last:border-0">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-white/40 transition-colors text-left group"
+      >
+        {/* Icon */}
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+          comm.direction === 'Outbound'
+            ? 'bg-gradient-to-br from-blue-100 to-blue-50'
+            : 'bg-gradient-to-br from-green-100 to-green-50'
+        }`}>
+          {comm.direction === 'Outbound' ? (
+            <ArrowUpRight size={18} className="text-blue-500" />
+          ) : (
+            <ArrowDownLeft size={18} className="text-green-500" />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-0.5">
+            <h4 className="text-sm font-semibold text-slate-900 truncate">
+              {comm.recipientName || comm.sender || 'Unbekannt'}
+            </h4>
+            <span className="text-[10px] font-mono text-slate-400 flex-shrink-0 ml-2">
+              {formatCommDate(comm.timestamp)}
+            </span>
+          </div>
+          {comm.subject && (
+            <p className="text-xs text-slate-600 truncate mb-1">{comm.subject}</p>
+          )}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <ChannelBadge channel={comm.channel} />
+            <DirectionBadge direction={comm.direction} />
+            {comm.status && <StatusBadge status={comm.status} />}
+            {comm.locationNames?.length > 0 && (
+              <span className="text-[10px] text-slate-500 truncate max-w-[200px]">
+                📍 {comm.locationNames.join(', ')}
+              </span>
+            )}
+          </div>
+        </div>
+      </button>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="px-4 pb-4 pt-1 bg-slate-50/40 animate-fade-in">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {comm.recipientContact && (
+              <div>
+                <span className="text-slate-400 font-medium">Kontakt:</span>{' '}
+                <span className="text-slate-700 font-mono">{comm.recipientContact}</span>
+              </div>
+            )}
+            {comm.sender && (
+              <div>
+                <span className="text-slate-400 font-medium">Absender:</span>{' '}
+                <span className="text-slate-700">{comm.sender}</span>
+              </div>
+            )}
+            {comm.displayIds?.length > 0 && (
+              <div>
+                <span className="text-slate-400 font-medium">Display IDs:</span>{' '}
+                <span className="text-slate-700 font-mono">{comm.displayIds.join(', ')}</span>
+              </div>
+            )}
+            {comm.externalId && (
+              <div>
+                <span className="text-slate-400 font-medium">External ID:</span>{' '}
+                <span className="text-slate-700 font-mono">{comm.externalId}</span>
+              </div>
+            )}
+          </div>
+          {comm.message && (
+            <div className="mt-3 p-3 bg-white/60 rounded-xl border border-slate-200/40">
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider block mb-1">Nachricht</span>
+              <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">{comm.message}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
-/* ──────────────────────── Inbox Row ──────────────────────── */
+/* ──────────────────────── Create Communication Modal ──────────────────────── */
 
-function InboxRow({ conversation, contactName, locationName, onClick }) {
-  const channelType = conversation.channel?.type || '';
-  const status = conversation.status || '';
-  const timeWindow = conversation.time_window;
+function CreateCommModal({ isOpen, onClose, onSaved }) {
+  const [channel, setChannel] = useState('WhatsApp');
+  const [direction, setDirection] = useState('Outbound');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientContact, setRecipientContact] = useState('');
+  const [sender, setSender] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Location search
+  const [locations, setLocations] = useState([]);
+  const [locationsLoading, setLocationsLoading] = useState(false);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const locationDropdownRef = useRef(null);
+  const backdropRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setChannel('WhatsApp');
+      setDirection('Outbound');
+      setSubject('');
+      setMessage('');
+      setRecipientName('');
+      setRecipientContact('');
+      setSender('');
+      setError(null);
+      setSelectedLocation(null);
+      setLocationSearch('');
+      setShowLocationDropdown(false);
+
+      setLocationsLoading(true);
+      fetchAllStammdaten()
+        .then((data) => setLocations(data))
+        .catch(() => setLocations([]))
+        .finally(() => setLocationsLoading(false));
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!showLocationDropdown) return;
+    const handleClick = (e) => {
+      if (locationDropdownRef.current && !locationDropdownRef.current.contains(e.target)) {
+        setShowLocationDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showLocationDropdown]);
+
+  const filteredLocations = useMemo(() => {
+    if (!locationSearch.trim()) return locations.slice(0, 30);
+    const q = locationSearch.toLowerCase();
+    return locations.filter((loc) =>
+      loc.name?.toLowerCase().includes(q) ||
+      loc.city?.toLowerCase().includes(q) ||
+      loc.jetIds?.some((j) => j.toLowerCase().includes(q))
+    ).slice(0, 30);
+  }, [locations, locationSearch]);
+
+  const handleSave = async () => {
+    if (!subject.trim() && !message.trim()) {
+      setError('Betreff oder Nachricht ist erforderlich');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const commData = {
+        channel,
+        direction,
+        subject: subject.trim(),
+        message: message.trim(),
+        recipientName: recipientName.trim(),
+        recipientContact: recipientContact.trim(),
+        sender: sender || undefined,
+        status: direction === 'Outbound' ? 'Sent' : undefined,
+      };
+      if (selectedLocation) {
+        commData.locationIds = [selectedLocation.id];
+      }
+      const result = await createCommunicationRecord(commData);
+      if (result) {
+        onSaved();
+        onClose();
+      } else {
+        setError('Fehler beim Speichern. Bitte erneut versuchen.');
+      }
+    } catch (err) {
+      setError(err.message || 'Unbekannter Fehler');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-white/40 transition-colors text-left group"
+    <div
+      ref={backdropRef}
+      onClick={(e) => e.target === backdropRef.current && onClose()}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(15, 23, 42, 0.25)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
     >
-      {/* Avatar */}
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-        channelType === 'whats_app'
-          ? 'bg-gradient-to-br from-green-100 to-green-50'
-          : status === 'open'
-          ? 'bg-gradient-to-br from-amber-100 to-amber-50'
-          : 'bg-gradient-to-br from-blue-100 to-blue-50'
-      }`}>
-        {channelType === 'whats_app' ? (
-          <MessageSquare size={18} className="text-green-500" />
-        ) : channelType === 'mail' ? (
-          <Mail size={18} className="text-blue-500" />
-        ) : (
-          <MessageSquare size={18} className={status === 'open' ? 'text-amber-500' : 'text-blue-500'} />
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-0.5">
-          <h4 className="text-sm font-semibold text-slate-900 truncate">
-            {contactName || 'Unbekannt'}
-          </h4>
-          <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-            <StatusBadge status={status} />
+      <div className="w-full max-w-lg bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08] animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">Neue Kommunikation</h2>
+            <p className="text-[11px] text-slate-400 mt-0.5">Nachricht an Standort protokollieren</p>
           </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100/80 text-slate-400 hover:text-slate-600">
+            <X size={16} />
+          </button>
         </div>
-        <div className="flex items-center gap-1.5 mb-1">
-          {locationName && (
-            <span className="text-xs text-slate-500 truncate max-w-[200px]">
-              📍 {locationName}
-            </span>
+
+        {/* Form */}
+        <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* Channel & Direction */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Kanal</label>
+              <div className="flex flex-wrap gap-1.5">
+                {['WhatsApp', 'Email', 'SMS', 'Phone'].map((ch) => (
+                  <button
+                    key={ch}
+                    type="button"
+                    onClick={() => setChannel(ch)}
+                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all border ${
+                      channel === ch
+                        ? 'bg-[#3b82f6]/10 border-[#3b82f6]/40 text-[#3b82f6]'
+                        : 'bg-slate-50/80 border-slate-200/60 text-slate-500 hover:border-slate-300'
+                    }`}
+                  >
+                    {ch}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Richtung</label>
+              <div className="flex gap-1.5">
+                {[
+                  { id: 'Outbound', label: 'Ausgehend', icon: ArrowUpRight },
+                  { id: 'Inbound', label: 'Eingehend', icon: ArrowDownLeft },
+                ].map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setDirection(d.id)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all border ${
+                      direction === d.id
+                        ? 'bg-[#3b82f6]/10 border-[#3b82f6]/40 text-[#3b82f6]'
+                        : 'bg-slate-50/80 border-slate-200/60 text-slate-500 hover:border-slate-300'
+                    }`}
+                  >
+                    <d.icon size={12} />
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Standort */}
+          <div ref={locationDropdownRef} className="relative">
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+              <MapPin size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+              Standort
+            </label>
+            {selectedLocation ? (
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-[#3b82f6]/5 border border-[#3b82f6]/30 rounded-lg">
+                <Building2 size={13} className="text-[#3b82f6] shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium text-slate-900 truncate">{selectedLocation.name}</div>
+                  <div className="text-[10px] text-slate-400 font-mono truncate">{selectedLocation.city}</div>
+                </div>
+                <button type="button" onClick={() => setSelectedLocation(null)} className="p-1 rounded hover:bg-slate-100/60 text-slate-400 hover:text-slate-600">
+                  <X size={12} />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={locationSearch}
+                  onChange={(e) => { setLocationSearch(e.target.value); setShowLocationDropdown(true); }}
+                  onFocus={() => setShowLocationDropdown(true)}
+                  placeholder={locationsLoading ? 'Standorte laden...' : 'Standort suchen...'}
+                  disabled={locationsLoading}
+                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] disabled:opacity-50"
+                />
+              </div>
+            )}
+            {showLocationDropdown && !selectedLocation && (
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
+                {filteredLocations.length === 0 ? (
+                  <div className="px-3 py-4 text-xs text-slate-400 text-center">{locationsLoading ? 'Laden...' : 'Nicht gefunden'}</div>
+                ) : (
+                  filteredLocations.map((loc) => (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      onClick={() => { setSelectedLocation(loc); setLocationSearch(''); setShowLocationDropdown(false); }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-50/80 border-b border-slate-200/30 last:border-0"
+                    >
+                      <div className="text-xs font-medium text-slate-900 truncate">{loc.name}</div>
+                      <div className="text-[10px] text-slate-400 font-mono">{loc.city}</div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Empfänger & Kontakt */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Empfänger Name</label>
+              <input
+                type="text"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                placeholder="Name..."
+                className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6]"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Kontakt (Tel/Email)</label>
+              <input
+                type="text"
+                value={recipientContact}
+                onChange={(e) => setRecipientContact(e.target.value)}
+                placeholder="+49... oder email@..."
+                className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6]"
+              />
+            </div>
+          </div>
+
+          {/* Sender */}
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Absender</label>
+            <select
+              value={sender}
+              onChange={(e) => setSender(e.target.value)}
+              className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] appearance-none"
+            >
+              <option value="">– Absender wählen –</option>
+              <option value="Anna Schmidt">Anna Schmidt</option>
+              <option value="Thomas Weber">Thomas Weber</option>
+            </select>
+          </div>
+
+          {/* Subject */}
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Betreff</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Betreff der Nachricht..."
+              className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6]"
+            />
+          </div>
+
+          {/* Message */}
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Nachricht</label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+              placeholder="Inhalt der Nachricht..."
+              className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] resize-none"
+            />
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle size={14} className="text-red-500" />
+              <span className="text-xs text-red-600">{error}</span>
+            </div>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
-          <ChannelBadge channel={channelType} />
-          <TimeWindowBadge timeWindow={timeWindow} />
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200/60">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="px-4 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100/80 disabled:opacity-50"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-5 py-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg text-xs font-medium shadow-sm disabled:opacity-60"
+          >
+            {saving ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+            {saving ? 'Wird gespeichert...' : 'Protokollieren'}
+          </button>
         </div>
       </div>
-
-      {/* Arrow */}
-      <ChevronRight
-        size={16}
-        className="text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0"
-      />
-    </button>
+    </div>
   );
 }
 
 /* ──────────────────────── Main Component ──────────────────────── */
 
 export default function CommunicationDashboard() {
-  // Data
-  const [conversations, setConversations] = useState([]);
-  const [contacts, setContacts] = useState([]);
-  const [templates, setTemplates] = useState([]);
-  const [channels, setChannels] = useState([]);
-  const [locations, setLocations] = useState([]);
-
-  // Loading states – progressive
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [backgroundLoading, setBackgroundLoading] = useState(false);
+  const [communications, setCommunications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
+  const [directionFilter, setDirectionFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // Conversation detail state
-  const [selectedConversation, setSelectedConversation] = useState(null);
-  const [conversationMessages, setConversationMessages] = useState([]);
-  const [messagesLoading, setMessagesLoading] = useState(false);
-  const [messagesError, setMessagesError] = useState(null);
-
-  // Compose state
-  const [showCompose, setShowCompose] = useState(false);
-  const [sendLoading, setSendLoading] = useState(false);
-
-  // Abort ref for background loading
-  const abortRef = useRef(false);
-
-  /* ─── Build contact lookup map ─── */
-  const contactMap = useMemo(() => {
-    const map = new Map();
-    for (const c of contacts) {
-      map.set(c.id, c);
-    }
-    return map;
-  }, [contacts]);
-
-  /* ─── Load data progressively ─── */
+  /* ─── Load data from Supabase ─── */
   const loadData = useCallback(async (isRefresh = false) => {
     try {
       setError(null);
-      abortRef.current = false;
-
       if (isRefresh) setRefreshing(true);
+      else setLoading(true);
 
-      console.log('[CommunicationDashboard] Starting progressive load...');
-
-      // Step 1: Load first page of conversations + contacts + channels/templates/locations in parallel
-      // This is FAST – only 5 API calls
-      const [convPage1, contactPage1, templateList, channelList, locationList] = await Promise.all([
-        fetchConversationsPage({ limit: 100 }),
-        fetchContactsPage({ limit: 100 }),
-        fetchAllTemplates(),
-        fetchChannels(),
-        fetchAllStammdaten(),
-      ]);
-
-      // Show first page immediately
-      setConversations(convPage1.results);
-      setContacts(contactPage1.results);
-      setTemplates(templateList);
-      setChannels(channelList);
-      setLocations(locationList);
-      setInitialLoading(false);
-      setRefreshing(false);
-
-      console.log(`[CommunicationDashboard] First page: ${convPage1.results.length} conversations, ${contactPage1.results.length} contacts`);
-
-      // Step 2: Load remaining pages in background
-      if (convPage1.nextCursor || contactPage1.nextCursor) {
-        setBackgroundLoading(true);
-
-        // Load remaining conversations
-        let allConvos = [...convPage1.results];
-        let convCursor = convPage1.nextCursor;
-        while (convCursor && !abortRef.current) {
-          const page = await fetchConversationsPage({ limit: 100, after: convCursor });
-          allConvos = allConvos.concat(page.results);
-          convCursor = page.nextCursor;
-          // Update state progressively
-          setConversations([...allConvos]);
-        }
-
-        // Load remaining contacts
-        let allContacts = [...contactPage1.results];
-        let contactCursor = contactPage1.nextCursor;
-        while (contactCursor && !abortRef.current) {
-          const page = await fetchContactsPage({ limit: 100, after: contactCursor });
-          allContacts = allContacts.concat(page.results);
-          contactCursor = page.nextCursor;
-          setContacts([...allContacts]);
-        }
-
-        setBackgroundLoading(false);
-        console.log(`[CommunicationDashboard] Full load: ${allConvos.length} conversations, ${allContacts.length} contacts`);
-      }
+      const comms = await fetchAllCommunications();
+      setCommunications(comms);
     } catch (err) {
       console.error('CommunicationDashboard load error:', err);
-      setError('Fehler beim Laden der Superchat-Daten');
-      setInitialLoading(false);
+      setError('Fehler beim Laden der Kommunikationsdaten');
+    } finally {
+      setLoading(false);
       setRefreshing(false);
-      setBackgroundLoading(false);
     }
   }, []);
 
   useEffect(() => {
     loadData();
-    return () => { abortRef.current = true; };
   }, [loadData]);
 
-  const handleRefresh = () => {
-    abortRef.current = true;
-    loadData(true);
-  };
-
-  /* ─── Get contact name for a conversation ─── */
-  const getContactName = useCallback(
-    (conversation) => {
-      const contactRef = conversation.contacts?.[0];
-      if (!contactRef) return 'Unbekannt';
-      const contact = contactMap.get(contactRef.id);
-      if (!contact) return contactRef.id?.substring(0, 8) || 'Unbekannt';
-      return getContactDisplayName(contact);
-    },
-    [contactMap]
-  );
-
-  /* ─── Try to match a conversation to a location ─── */
-  const getLocationForConversation = useCallback(
-    (conversation) => {
-      const contactRef = conversation.contacts?.[0];
-      if (!contactRef) return null;
-      const contact = contactMap.get(contactRef.id);
-      if (!contact) return null;
-
-      // Extract phone/email from handles
-      const phone = getContactPhone(contact);
-      const email = getContactEmail(contact);
-      // Also check custom attribute JET ID / Display ID for matching
-      const jetId = getContactAttribute(contact, 'JET ID');
-      const displayId = getContactAttribute(contact, 'Display ID');
-
-      for (const loc of locations) {
-        // Match by phone
-        if (phone && (loc.contactPhone === phone || loc.locationPhone === phone)) return loc;
-        // Match by email
-        if (email && (loc.contactEmail === email || loc.locationEmail === email)) return loc;
-        // Match by JET ID
-        if (jetId && loc.jetIds?.includes(jetId)) return loc;
-        // Match by Display ID (partial match – Superchat might have "DO-GER-... | Name")
-        if (displayId && loc.displayIds?.some(did => displayId.includes(did))) return loc;
-      }
-      return null;
-    },
-    [contactMap, locations]
-  );
-
-  /* ─── Filter conversations ─── */
-  const filteredConversations = useMemo(() => {
-    let result = conversations;
-
-    if (statusFilter !== 'all') {
-      result = result.filter((c) => c.status === statusFilter);
-    }
+  /* ─── Filter communications ─── */
+  const filteredComms = useMemo(() => {
+    let result = communications;
 
     if (channelFilter !== 'all') {
-      result = result.filter((c) => c.channel?.type === channelFilter);
+      result = result.filter((c) => c.channel?.toLowerCase() === channelFilter.toLowerCase());
+    }
+
+    if (directionFilter !== 'all') {
+      result = result.filter((c) => c.direction === directionFilter);
     }
 
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter((c) => {
-        const name = getContactName(c).toLowerCase();
-        const loc = getLocationForConversation(c);
-        const locName = loc?.name?.toLowerCase() || '';
-        return name.includes(q) || locName.includes(q);
+        return (
+          (c.recipientName || '').toLowerCase().includes(q) ||
+          (c.sender || '').toLowerCase().includes(q) ||
+          (c.subject || '').toLowerCase().includes(q) ||
+          (c.locationNames || []).some(n => n.toLowerCase().includes(q)) ||
+          (c.recipientContact || '').toLowerCase().includes(q) ||
+          (c.displayIds || []).some(d => d.toLowerCase().includes(q))
+        );
       });
     }
 
     return result;
-  }, [conversations, statusFilter, channelFilter, search, getContactName, getLocationForConversation]);
+  }, [communications, channelFilter, directionFilter, search]);
 
   /* ─── KPIs ─── */
   const kpis = useMemo(() => {
-    const total = conversations.length;
-    const open = conversations.filter((c) => c.status === 'open').length;
-    const whatsapp = conversations.filter((c) => c.channel?.type === 'whats_app').length;
-    const email = conversations.filter((c) => c.channel?.type === 'mail').length;
-    return { total, open, whatsapp, email };
-  }, [conversations]);
+    const total = communications.length;
+    const outbound = communications.filter((c) => c.direction === 'Outbound').length;
+    const inbound = communications.filter((c) => c.direction === 'Inbound').length;
+    // Unique channels
+    const channels = new Set(communications.map(c => c.channel).filter(Boolean));
+    return { total, outbound, inbound, channels: channels.size };
+  }, [communications]);
 
-  /* ─── Open conversation detail ─── */
-  const handleOpenConversation = async (conversation) => {
-    setSelectedConversation(conversation);
-    setMessagesLoading(true);
-    setMessagesError(null);
-    try {
-      const result = await fetchAllMessages(conversation.id);
-      setConversationMessages(result.messages || []);
-      if (result.error === 'forbidden') {
-        setMessagesError('forbidden');
-      } else if (result.error) {
-        setMessagesError(result.error);
-      }
-    } catch (err) {
-      console.error('Failed to load messages:', err);
-      setConversationMessages([]);
-      setMessagesError(err.message);
-    } finally {
-      setMessagesLoading(false);
-    }
-  };
-
-  /* ─── Send message handler ─── */
-  const handleSendMessage = async (msgData) => {
-    setSendLoading(true);
-    try {
-      const result = await sendMessage({
-        channelId: msgData.channelId,
-        channelType: msgData.channelType,
-        contactId: msgData.contactId,
-        body: msgData.body,
-        subject: msgData.subject,
-        templateId: msgData.templateId,
-        senderName: 'Team',
-        recipientName: msgData.recipientName,
-        locationIds: msgData.locationIds || [],
-        logToAirtable: true,
-      });
-
-      if (result.success) {
-        setShowCompose(false);
-        if (selectedConversation) {
-          const msgResult = await fetchAllMessages(selectedConversation.id);
-          setConversationMessages(msgResult.messages || []);
-        }
-      } else {
-        alert(`Nachricht konnte nicht gesendet werden: ${result.error}`);
-      }
-    } catch (err) {
-      alert(`Fehler: ${err.message}`);
-    } finally {
-      setSendLoading(false);
-    }
-  };
-
-  /* ─── Conversation detail view ─── */
-  if (selectedConversation) {
-    const contactRef = selectedConversation.contacts?.[0];
-    const contact = contactRef ? contactMap.get(contactRef.id) : null;
-    const location = getLocationForConversation(selectedConversation);
-    const contactName = getContactName(selectedConversation);
-
-    return (
-      <div className="animate-fade-in" style={{ height: 'calc(100vh - 160px)' }}>
-        <ConversationView
-          conversation={selectedConversation}
-          messages={conversationMessages}
-          contact={contact}
-          location={location}
-          contactName={contactName}
-          channels={channels}
-          templates={templates}
-          onSendMessage={handleSendMessage}
-          onBack={() => {
-            setSelectedConversation(null);
-            setConversationMessages([]);
-            setMessagesError(null);
-          }}
-          loading={messagesLoading}
-          messagesError={messagesError}
-        />
-      </div>
-    );
-  }
-
-  /* ─── Main inbox view ─── */
+  /* ─── Main view ─── */
   return (
     <div className="space-y-5 animate-fade-in">
       {/* ═══════ Header ═══════ */}
@@ -469,24 +622,24 @@ export default function CommunicationDashboard() {
             Kommunikation
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Superchat Inbox – WhatsApp, Email &amp; mehr
+            Kommunikationsprotokoll – Alle Nachrichten an Standorte
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleRefresh}
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#3b82f6] text-white rounded-xl text-xs font-medium hover:bg-[#2563eb] transition-all shadow-sm"
+          >
+            <Plus size={14} />
+            Neue Kommunikation
+          </button>
+          <button
+            onClick={() => loadData(true)}
             disabled={refreshing}
             className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl text-xs font-medium text-slate-600 hover:bg-white/80 transition-all disabled:opacity-50"
           >
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
             Aktualisieren
-          </button>
-          <button
-            onClick={() => setShowCompose(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-medium shadow-sm transition-all"
-          >
-            <Plus size={14} />
-            Neue Nachricht
           </button>
         </div>
       </div>
@@ -494,44 +647,30 @@ export default function CommunicationDashboard() {
       {/* ═══════ KPI Cards ═══════ */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KPICard
-          label="Konversationen"
+          label="Gesamt"
           value={kpis.total}
           icon={Inbox}
           color="#3b82f6"
-          loading={backgroundLoading}
         />
         <KPICard
-          label="Offen"
-          value={kpis.open}
-          icon={Clock}
-          color="#f59e0b"
-          loading={backgroundLoading}
-        />
-        <KPICard
-          label="WhatsApp"
-          value={kpis.whatsapp}
-          icon={MessageSquare}
-          color="#22c55e"
-          loading={backgroundLoading}
-        />
-        <KPICard
-          label="Email"
-          value={kpis.email}
-          icon={Mail}
+          label="Ausgehend"
+          value={kpis.outbound}
+          icon={ArrowUpRight}
           color="#8b5cf6"
-          loading={backgroundLoading}
+        />
+        <KPICard
+          label="Eingehend"
+          value={kpis.inbound}
+          icon={ArrowDownLeft}
+          color="#22c55e"
+        />
+        <KPICard
+          label="Kanäle"
+          value={kpis.channels}
+          icon={MessageSquare}
+          color="#f59e0b"
         />
       </div>
-
-      {/* ═══════ Background loading indicator ═══════ */}
-      {backgroundLoading && (
-        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50/60 backdrop-blur-xl border border-blue-200/40 rounded-xl">
-          <Loader2 size={14} className="animate-spin text-blue-500" />
-          <span className="text-xs text-blue-600">
-            Weitere Konversationen werden im Hintergrund geladen... ({conversations.length} bisher)
-          </span>
-        </div>
-      )}
 
       {/* ═══════ Filters ═══════ */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -545,23 +684,23 @@ export default function CommunicationDashboard() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Kontakt oder Standort suchen..."
+            placeholder="Kontakt, Standort oder Display suchen..."
             className="w-full pl-9 pr-3 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
           />
         </div>
 
-        {/* Status filter */}
+        {/* Direction filter */}
         <div className="flex items-center gap-1.5">
           {[
             { id: 'all', label: 'Alle' },
-            { id: 'open', label: 'Offen' },
-            { id: 'done', label: 'Erledigt' },
+            { id: 'Outbound', label: 'Ausgehend' },
+            { id: 'Inbound', label: 'Eingehend' },
           ].map((f) => (
             <button
               key={f.id}
-              onClick={() => setStatusFilter(f.id)}
+              onClick={() => setDirectionFilter(f.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                statusFilter === f.id
+                directionFilter === f.id
                   ? 'bg-blue-500 text-white shadow-sm'
                   : 'bg-white/60 backdrop-blur-xl border border-slate-200/60 text-slate-500 hover:bg-white/80'
               }`}
@@ -575,8 +714,8 @@ export default function CommunicationDashboard() {
         <div className="flex items-center gap-1.5">
           {[
             { id: 'all', label: 'Alle Kanäle' },
-            { id: 'whats_app', label: 'WhatsApp' },
-            { id: 'mail', label: 'Email' },
+            { id: 'WhatsApp', label: 'WhatsApp' },
+            { id: 'Email', label: 'Email' },
           ].map((f) => (
             <button
               key={f.id}
@@ -593,13 +732,13 @@ export default function CommunicationDashboard() {
         </div>
       </div>
 
-      {/* ═══════ Inbox List ═══════ */}
+      {/* ═══════ Communication List ═══════ */}
       <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] overflow-hidden">
-        {initialLoading ? (
+        {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 size={24} className="text-blue-500 animate-spin" />
             <span className="ml-3 text-sm text-slate-400">
-              Superchat-Daten werden geladen...
+              Kommunikationsdaten werden geladen...
             </span>
           </div>
         ) : error ? (
@@ -607,64 +746,51 @@ export default function CommunicationDashboard() {
             <AlertCircle size={20} className="text-red-400 mb-2" />
             <span className="text-sm text-red-500 mb-3">{error}</span>
             <button
-              onClick={handleRefresh}
+              onClick={() => loadData(true)}
               className="text-xs text-blue-500 hover:text-blue-600 underline"
             >
               Erneut versuchen
             </button>
           </div>
-        ) : filteredConversations.length === 0 ? (
+        ) : filteredComms.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-14 h-14 rounded-2xl bg-slate-100/80 flex items-center justify-center mb-4">
               <MessageSquare size={28} className="text-slate-300" />
             </div>
             <p className="text-sm font-medium text-slate-500 mb-1">
-              {search || statusFilter !== 'all' || channelFilter !== 'all'
+              {search || channelFilter !== 'all' || directionFilter !== 'all'
                 ? 'Keine Ergebnisse gefunden'
-                : 'Keine Konversationen'}
+                : 'Noch keine Kommunikation vorhanden'}
             </p>
             <p className="text-xs text-slate-400">
-              {search || statusFilter !== 'all' || channelFilter !== 'all'
+              {search || channelFilter !== 'all' || directionFilter !== 'all'
                 ? 'Versuchen Sie andere Filter'
-                : 'Starten Sie die erste Konversation über Superchat'}
+                : 'Kommunikationsprotokolle werden in Airtable erfasst und automatisch synchronisiert'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100/80">
-            {filteredConversations.map((conv) => {
-              const location = getLocationForConversation(conv);
-              return (
-                <InboxRow
-                  key={conv.id}
-                  conversation={conv}
-                  contactName={getContactName(conv)}
-                  locationName={location?.name}
-                  onClick={() => handleOpenConversation(conv)}
-                />
-              );
-            })}
+          <div>
+            {filteredComms.map((comm) => (
+              <CommRow key={comm.id} comm={comm} />
+            ))}
           </div>
         )}
       </div>
 
       {/* ═══════ Total count ═══════ */}
-      {!initialLoading && !error && (
-        <div className="text-center text-xs text-slate-400">
-          {filteredConversations.length} von {conversations.length} Konversationen angezeigt
-          {backgroundLoading && ' (wird noch geladen...)'}
+      {!loading && !error && (
+        <div className="text-center">
+          <p className="text-xs text-slate-400">
+            {filteredComms.length} von {communications.length} Einträgen angezeigt
+          </p>
         </div>
       )}
 
-      {/* ═══════ Compose Modal ═══════ */}
-      <ComposeMessage
-        isOpen={showCompose}
-        onClose={() => setShowCompose(false)}
-        onSend={handleSendMessage}
-        loading={sendLoading}
-        locations={locations}
-        contacts={contacts}
-        channels={channels}
-        templates={templates}
+      {/* ═══════ Create Modal ═══════ */}
+      <CreateCommModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSaved={() => loadData(true)}
       />
     </div>
   );

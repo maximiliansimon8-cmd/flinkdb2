@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Shield,
   Users,
@@ -29,9 +29,20 @@ import {
   ToggleLeft,
   ToggleRight,
   Palette,
+  FileText,
+  Clock,
+  Download,
+  Trash,
+  LogIn,
+  LogOut as LogOutIcon,
+  UserMinus,
+  KeyRound,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   getAllUsers,
+  fetchAllUsers,
+  fetchGroups,
   addUser,
   updateUserGroup,
   resetUserPassword,
@@ -45,6 +56,9 @@ import {
   deleteGroup,
   ALL_TABS,
   ALL_ACTIONS,
+  getAuditLog,
+  clearAuditLog,
+  getSessionTimeoutMinutes,
 } from '../utils/authService';
 
 /* ─── Group Icon Map ─── */
@@ -101,13 +115,13 @@ function AddUserModal({ onClose, onSave, groups }) {
   const [form, setForm] = useState({ name: '', email: '', groupId: groups[0]?.id || '', password: '***REMOVED_DEFAULT_PW***' });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim()) {
       setError('Name und E-Mail sind Pflichtfelder');
       return;
     }
-    const result = addUser(form);
+    const result = await addUser(form);
     if (!result.success) {
       setError(result.error);
       return;
@@ -480,22 +494,44 @@ function GroupEditModal({ group, onClose, onSave }) {
 /* ─── Main Admin Panel ─── */
 
 export default function AdminPanel() {
-  const [users, setUsers] = useState(() => getAllUsers());
+  const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState(() => getAllGroups());
-  const [activeSection, setActiveSection] = useState('users'); // 'users' | 'groups'
+  const [activeSection, setActiveSection] = useState('users'); // 'users' | 'groups' | 'audit'
   const [showAddModal, setShowAddModal] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
-  const [editingGroup, setEditingGroup] = useState(null); // group object or null for new
-  const [editingGroupId, setEditingGroupId] = useState(null); // userId being group-edited
+  const [editingGroup, setEditingGroup] = useState(null);
+  const [editingGroupId, setEditingGroupId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmGroupDelete, setConfirmGroupDelete] = useState(null);
   const [toast, setToast] = useState(null);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   const currentUser = getCurrentUser();
 
-  const refresh = useCallback(() => {
-    setUsers(getAllUsers());
+  // Initial data load from server
+  useEffect(() => {
+    async function loadData() {
+      setLoadingUsers(true);
+      try {
+        const [fetchedUsers, fetchedGroups] = await Promise.all([
+          fetchAllUsers(),
+          fetchGroups(),
+        ]);
+        setUsers(fetchedUsers || []);
+        if (fetchedGroups?.length) setGroups(fetchedGroups);
+      } catch (err) {
+        console.error('Admin data load error:', err);
+      } finally {
+        setLoadingUsers(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const fetchedUsers = await fetchAllUsers();
+    setUsers(fetchedUsers || []);
     setGroups(getAllGroups());
   }, []);
 
@@ -530,10 +566,10 @@ export default function AdminPanel() {
 
   /* ─── Handlers ─── */
 
-  const handleGroupChange = useCallback((userId, newGroupId) => {
-    const result = updateUserGroup(userId, newGroupId);
+  const handleGroupChange = useCallback(async (userId, newGroupId) => {
+    const result = await updateUserGroup(userId, newGroupId);
     if (result.success) {
-      refresh();
+      await refresh();
       setEditingGroupId(null);
       showToast('Gruppe aktualisiert');
     } else {
@@ -541,8 +577,8 @@ export default function AdminPanel() {
     }
   }, [refresh, showToast]);
 
-  const handleResetPassword = useCallback((userId, userName) => {
-    const result = resetUserPassword(userId);
+  const handleResetPassword = useCallback(async (userId, userName) => {
+    const result = await resetUserPassword(userId);
     if (result.success) {
       showToast(`Passwort für ${userName} zurückgesetzt`);
     } else {
@@ -550,10 +586,10 @@ export default function AdminPanel() {
     }
   }, [showToast]);
 
-  const handleDeleteUser = useCallback((userId) => {
-    const result = deleteUser(userId);
+  const handleDeleteUser = useCallback(async (userId) => {
+    const result = await deleteUser(userId);
     if (result.success) {
-      refresh();
+      await refresh();
       setConfirmDelete(null);
       showToast('Benutzer gelöscht');
     } else {
@@ -562,8 +598,8 @@ export default function AdminPanel() {
     }
   }, [refresh, showToast]);
 
-  const handleAddUser = useCallback(() => {
-    refresh();
+  const handleAddUser = useCallback(async () => {
+    await refresh();
     showToast('Benutzer erstellt');
   }, [refresh, showToast]);
 
@@ -579,16 +615,97 @@ export default function AdminPanel() {
     }
   }, [refresh, showToast]);
 
-  const handleGroupSave = useCallback(() => {
-    refresh();
+  const handleGroupSave = useCallback(async () => {
+    await refresh();
     showToast(editingGroup ? 'Gruppe aktualisiert' : 'Gruppe erstellt');
   }, [refresh, showToast, editingGroup]);
 
   /* ─── Section Tabs ─── */
 
+  /* ─── Audit Log ─── */
+
+  const [auditLog, setAuditLog] = useState([]);
+  const [auditFilter, setAuditFilter] = useState('');
+  const [loadingAudit, setLoadingAudit] = useState(false);
+
+  const refreshAuditLog = useCallback(async () => {
+    setLoadingAudit(true);
+    try {
+      const entries = await getAuditLog();
+      setAuditLog(entries || []);
+    } catch {
+      setAuditLog([]);
+    } finally {
+      setLoadingAudit(false);
+    }
+  }, []);
+
+  // Auto-refresh audit log when switching to audit tab
+  useEffect(() => {
+    if (activeSection === 'audit') {
+      refreshAuditLog().catch(() => {});
+    }
+  }, [activeSection, refreshAuditLog]);
+
+  const filteredAuditLog = useMemo(() => {
+    if (!auditFilter.trim()) return auditLog;
+    const q = auditFilter.toLowerCase();
+    return auditLog.filter(
+      (e) =>
+        e.action.toLowerCase().includes(q) ||
+        e.detail.toLowerCase().includes(q) ||
+        e.userName.toLowerCase().includes(q),
+    );
+  }, [auditLog, auditFilter]);
+
+  const handleClearAuditLog = useCallback(async () => {
+    clearAuditLog();
+    await refreshAuditLog();
+    showToast('Audit-Log: Permanentes Protokoll (DSGVO)');
+  }, [refreshAuditLog, showToast]);
+
+  const handleExportAuditLog = useCallback(() => {
+    const csv = [
+      'Zeitstempel,Benutzer,Aktion,Detail',
+      ...auditLog.map((e) =>
+        `"${e.ts}","${e.userName || ''}","${e.action || ''}","${(e.detail || '').replace(/"/g, '""')}"`,
+      ),
+    ].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Audit-Log exportiert als CSV');
+  }, [auditLog, showToast]);
+
+  // Audit action icon mapping
+  const auditActionIcon = (action) => {
+    if (action.includes('login') && !action.includes('failed')) return LogIn;
+    if (action.includes('login_failed')) return ShieldAlert;
+    if (action.includes('logout') || action.includes('expired')) return LogOutIcon;
+    if (action.includes('password')) return KeyRound;
+    if (action.includes('user_created')) return UserPlus;
+    if (action.includes('user_deleted')) return UserMinus;
+    if (action.includes('group')) return Layers;
+    return Activity;
+  };
+
+  const auditActionColor = (action) => {
+    if (action.includes('login_failed') || action.includes('deleted')) return '#ef4444';
+    if (action.includes('login') || action.includes('created')) return '#22c55e';
+    if (action.includes('logout') || action.includes('expired')) return '#f59e0b';
+    if (action.includes('password')) return '#3b82f6';
+    if (action.includes('group') || action.includes('updated')) return '#a855f7';
+    return '#64748b';
+  };
+
   const sections = [
     { id: 'users', label: 'Benutzer', icon: Users, count: stats.totalUsers },
     { id: 'groups', label: 'Gruppen', icon: Layers, count: stats.totalGroups },
+    { id: 'audit', label: 'Audit-Log', icon: FileText, count: auditLog.length },
   ];
 
   return (
@@ -854,7 +971,17 @@ export default function AdminPanel() {
                     );
                   })}
 
-                  {filteredUsers.length === 0 && (
+                  {loadingUsers && (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-12 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
+                          <span className="text-xs text-slate-400">Lade Benutzer...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {!loadingUsers && filteredUsers.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-5 py-12 text-center">
                         <div className="text-slate-400 text-sm">Keine Benutzer gefunden</div>
@@ -1022,23 +1149,142 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* Activity Placeholder */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03]">
-        <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-200/60">
-          <div className="w-1 h-4 rounded-full bg-emerald-500" />
-          <h3 className="text-sm font-semibold text-slate-900">Aktivitätsprotokoll</h3>
-          <span className="text-[10px] font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">Bald verfügbar</span>
+      {/* ═══════ AUDIT LOG SECTION ═══════ */}
+      {activeSection === 'audit' && (
+        <div className="space-y-4">
+          {/* Audit Header with actions */}
+          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-4 rounded-full bg-emerald-500" />
+                <h3 className="text-sm font-semibold text-slate-900">Aktivitätsprotokoll</h3>
+                <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+                  {filteredAuditLog.length} Einträge
+                </span>
+                <span className="text-[10px] font-mono text-blue-400 bg-blue-50/80 px-2 py-0.5 rounded flex items-center gap-1">
+                  <Clock size={10} />
+                  Timeout: {getSessionTimeoutMinutes() / 60}h
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={auditFilter}
+                    onChange={(e) => setAuditFilter(e.target.value)}
+                    placeholder="Log durchsuchen..."
+                    className="bg-slate-50/80 border border-slate-200/60 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors w-48"
+                  />
+                </div>
+                <button
+                  onClick={handleExportAuditLog}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-white/60 border border-slate-200/60 text-slate-600 hover:border-[#3b82f6] hover:text-[#3b82f6] transition-colors"
+                  title="Als CSV exportieren"
+                >
+                  <Download size={13} />
+                  CSV Export
+                </button>
+                <button
+                  onClick={async () => { await refreshAuditLog(); showToast('Audit-Log aktualisiert'); }}
+                  className="p-2 rounded-lg hover:bg-slate-100/60 text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Aktualisieren"
+                >
+                  <Activity size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* DSGVO Info */}
+            <div className="px-5 py-3 bg-blue-50/40 border-b border-blue-200/30">
+              <p className="text-[11px] text-blue-600 flex items-center gap-1.5">
+                <FileText size={12} />
+                <strong>DSGVO §47 Nachweispflicht:</strong> Alle sicherheitsrelevanten Aktionen werden serverseitig in der Airtable-Datenbank protokolliert. Logs sind persistent und revisionssicher.
+              </p>
+            </div>
+
+            {/* Log Entries */}
+            <div className="max-h-[600px] overflow-y-auto">
+              {loadingAudit ? (
+                <div className="p-12 text-center">
+                  <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-xs text-slate-400">Lade Audit-Log...</p>
+                </div>
+              ) : filteredAuditLog.length === 0 ? (
+                <div className="p-12 text-center">
+                  <Activity size={32} className="text-slate-200 mx-auto mb-3" />
+                  <p className="text-sm text-slate-400">Keine Log-Einträge vorhanden</p>
+                  <p className="text-xs text-slate-300 font-mono mt-1">
+                    Aktionen werden ab jetzt protokolliert
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100/60">
+                  {filteredAuditLog.slice(0, 100).map((entry, idx) => {
+                    const Icon = auditActionIcon(entry.action);
+                    const color = auditActionColor(entry.action);
+                    const date = new Date(entry.ts);
+                    const timeStr = date.toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    });
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-3 px-5 py-3 hover:bg-slate-50/30 transition-colors"
+                      >
+                        <div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                          style={{ backgroundColor: color + '15' }}
+                        >
+                          <Icon size={14} style={{ color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-medium text-slate-900 truncate">
+                              {entry.detail}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 mt-0.5">
+                            <span className="text-[10px] font-mono text-slate-400">
+                              {timeStr}
+                            </span>
+                            <span
+                              className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                              style={{
+                                backgroundColor: color + '15',
+                                color: color,
+                              }}
+                            >
+                              {entry.action}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {entry.userName}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {filteredAuditLog.length > 100 && (
+              <div className="px-5 py-3 border-t border-slate-200/40 text-center">
+                <p className="text-xs text-slate-400 font-mono">
+                  Zeige 100 von {filteredAuditLog.length} Einträgen. Exportiere CSV für vollständige Daten.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="p-8 text-center">
-          <Activity size={32} className="text-slate-200 mx-auto mb-3" />
-          <p className="text-sm text-slate-400">
-            Das Aktivitätsprotokoll wird in einer zukünftigen Version verfügbar sein.
-          </p>
-          <p className="text-xs text-slate-300 font-mono mt-1">
-            Login-Verlauf, Änderungen, API-Zugriffe
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Modals */}
       {showAddModal && (

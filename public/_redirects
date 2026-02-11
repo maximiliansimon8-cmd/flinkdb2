@@ -1,2 +1,8 @@
-/api/airtable/*  /.netlify/functions/airtable-proxy/:splat  200
+# API proxies (MUST come before SPA fallback)
+/api/sheets      /.netlify/functions/sheets-proxy     200!
+/api/airtable/*  /.netlify/functions/airtable-proxy/:splat  200!
+/api/superchat/* /.netlify/functions/superchat-proxy/:splat 200!
+/api/sync        /.netlify/functions/sync-airtable    200!
+
+# SPA fallback
 /*  /index.html  200

@@ -30,3 +30,6 @@ docs-screenshots/
 .claude/
 create-docs.mjs
 crop-sections.mjs
+
+# Local Netlify folder
+.netlify

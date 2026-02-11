@@ -1,52 +1,54 @@
 /**
- * Airtable Service – fetches JET Stammdaten, Tasks, and Installation data
- * for a given Display ID.
+ * Data Service – JET Germany DOOH Dashboard
  *
- * In development: uses Vite dev proxy at /api/airtable (no token needed client-side)
- * In production: calls Airtable API directly with embedded token (internal dashboard)
+ * Architecture (hybrid):
+ *   READ  → Supabase (fast, zero Netlify Function calls)
+ *   WRITE → Airtable API via proxy (Airtable = source of truth)
+ *   SYNC  → Netlify Function syncs Airtable → Supabase periodically
+ *
+ * This replaces the old Airtable-only reads which were slow (200+ pages)
+ * and consumed Netlify Function credits on every load.
  */
+
+import { supabase } from './authService';
+
+/* ═══════════════════════════════════════════════════════════
+ *  AIRTABLE CONFIG (for write operations only)
+ * ═══════════════════════════════════════════════════════════ */
 
 const BASE_ID = 'apppFUWK829K6B3R2';
-const STAMMDATEN_TABLE = 'tblLJ1S7OUhc2w5Jw';
 const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
-const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
 const ACTIVITY_LOG_TABLE = 'tblDk1dl4J3Ow3Qde';
 
-const AIRTABLE_TOKEN = '***REMOVED_AIRTABLE_PAT***';
+// Proxy endpoint – both dev (Vite) and prod (Netlify Function)
+const AIRTABLE_BASE = '/api/airtable';
 
-// In development use the Vite proxy, in production call Airtable directly
-const isDev = import.meta.env.DEV;
-const AIRTABLE_BASE = isDev ? '/api/airtable' : `https://api.airtable.com/v0`;
+/* ═══════════════════════════════════════════════════════════
+ *  IN-MEMORY CACHE
+ * ═══════════════════════════════════════════════════════════ */
 
-/**
- * Helper to build fetch options – adds Authorization header in production
- */
-function airtableFetchOptions() {
-  if (isDev) return {};
-  return {
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-    },
-  };
-}
-
-// Simple in-memory cache to avoid repeated fetches for the same display
 const cache = {
-  stammdaten: new Map(),
-  tasks: new Map(),
-  installation: new Map(),
+  stammdaten: new Map(),        // displayId → record
+  tasks: new Map(),             // displayId → tasks[]
+  installation: new Map(),      // displayId → installation
   allTasks: null,
   allTasksTimestamp: null,
-  allCommunications: null,
-  allCommunicationsTimestamp: null,
   allStammdaten: null,
   allStammdatenTimestamp: null,
+  allCommunications: null,
+  allCommunicationsTimestamp: null,
 };
 
+const CACHE_TTL = 1 * 60 * 1000; // 1 minute – other teams work on Airtable, keep data fresh
+
+/* ═══════════════════════════════════════════════════════════
+ *  READ: STAMMDATEN (from Supabase)
+ * ═══════════════════════════════════════════════════════════ */
+
 /**
- * Fetch JET Stammdaten record matching a given Display ID.
- * The Airtable "Display ID" field is a lookup that stores arrays like ["DO-GER-BER-WD-55-618-26"].
- * We use FIND() to match within the lookup values.
+ * Fetch Stammdaten for a given Display ID.
+ * Searches Supabase array column using @> (contains) operator.
+ * Returns Airtable-compatible field names for backwards compat.
  */
 export async function fetchStammdatenByDisplayId(displayId) {
   if (cache.stammdaten.has(displayId)) {
@@ -54,128 +56,132 @@ export async function fetchStammdatenByDisplayId(displayId) {
   }
 
   try {
-    // Use FIND to search within the lookup array values
-    const formula = encodeURIComponent(`FIND("${displayId}", ARRAYJOIN({Display ID}, ","))`);
-    const fields = [
-      'JET ID',
-      'Display ID',
-      'Location Name',
-      'Contact Person',
-      'Contact Email',
-      'Contact Phone',
-      'Location Email',
-      'Location Phone',
-      'Legal Entity',
-      'Street',
-      'Street Number',
-      'Postal Code',
-      'City',
-      'Lead Status  (from Akquise)',
-    ].map((f) => `fields[]=${encodeURIComponent(f)}`).join('&');
+    const { data, error } = await supabase
+      .from('stammdaten')
+      .select('*')
+      .contains('display_ids', [displayId])
+      .limit(1)
+      .single();
 
-    const url = `${AIRTABLE_BASE}/${BASE_ID}/${STAMMDATEN_TABLE}?filterByFormula=${formula}&${fields}&maxRecords=1`;
-    const response = await fetch(url, airtableFetchOptions());
+    if (error || !data) {
+      // Fallback: try text search if contains doesn't match
+      const { data: data2 } = await supabase
+        .from('stammdaten')
+        .select('*')
+        .filter('display_ids', 'cs', `{${displayId}}`)
+        .limit(1)
+        .maybeSingle();
 
-    if (!response.ok) {
-      console.error('Airtable Stammdaten error:', response.status);
-      return null;
+      if (!data2) {
+        cache.stammdaten.set(displayId, null);
+        return null;
+      }
+      const record = mapStammdatenToAirtable(data2);
+      cache.stammdaten.set(displayId, record);
+      return record;
     }
 
-    const data = await response.json();
-    const record = data.records?.[0]?.fields || null;
+    const record = mapStammdatenToAirtable(data);
     cache.stammdaten.set(displayId, record);
     return record;
   } catch (err) {
-    console.error('Airtable Stammdaten fetch error:', err);
+    console.error('Supabase Stammdaten fetch error:', err);
     return null;
   }
 }
 
 /**
- * Fetch ALL Stammdaten (locations) from Airtable.
+ * Map Supabase row → Airtable-compatible field names.
+ * This ensures all existing components keep working without changes.
+ */
+function mapStammdatenToAirtable(row) {
+  if (!row) return null;
+  return {
+    'JET ID': row.jet_id ? [row.jet_id] : [],
+    'Display ID': row.display_ids || [],
+    'Location Name': row.location_name || '',
+    'Contact Person': row.contact_person || '',
+    'Contact Email': row.contact_email || '',
+    'Contact Phone': row.contact_phone || '',
+    'Location Email': row.location_email || '',
+    'Location Phone': row.location_phone || '',
+    'Legal Entity': row.legal_entity || '',
+    'Street': row.street || '',
+    'Street Number': row.street_number || '',
+    'Postal Code': row.postal_code || '',
+    'City': row.city || '',
+    'Lead Status  (from Akquise)': row.lead_status || [],
+  };
+}
+
+/**
+ * Fetch ALL Stammdaten (locations) from Supabase.
  * Cached for 5 minutes. Used for location selectors, communication dashboard etc.
- * Returns minimal fields for listing: id, name, contact info, JET IDs, Display IDs.
  */
 export async function fetchAllStammdaten() {
   if (
     cache.allStammdaten &&
     cache.allStammdatenTimestamp &&
-    Date.now() - cache.allStammdatenTimestamp < 5 * 60 * 1000
+    Date.now() - cache.allStammdatenTimestamp < CACHE_TTL
   ) {
     return cache.allStammdaten;
   }
 
   try {
-    const fields = [
-      'JET ID',
-      'Display ID',
-      'Location Name',
-      'Contact Person',
-      'Contact Email',
-      'Contact Phone',
-      'Location Email',
-      'Location Phone',
-      'Legal Entity',
-      'Street',
-      'Street Number',
-      'Postal Code',
-      'City',
-      'Lead Status  (from Akquise)',
-    ].map((f) => `fields[]=${encodeURIComponent(f)}`).join('&');
+    // Supabase returns max 1000 rows by default, we need pagination
+    let allRows = [];
+    let from = 0;
+    const pageSize = 1000;
 
-    const sort = 'sort[0][field]=Location+Name&sort[0][direction]=asc';
-    let allRecords = [];
-    let offset = null;
-    let pageCount = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from('stammdaten')
+        .select('*')
+        .order('location_name', { ascending: true })
+        .range(from, from + pageSize - 1);
 
-    do {
-      pageCount++;
-      const offsetParam = offset ? `&offset=${encodeURIComponent(offset)}` : '';
-      const url = `${AIRTABLE_BASE}/${BASE_ID}/${STAMMDATEN_TABLE}?${fields}&${sort}&pageSize=100${offsetParam}`;
-      console.log(`[fetchAllStammdaten] Page ${pageCount}`);
-      const response = await fetch(url, airtableFetchOptions());
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+    }
 
-      if (!response.ok) {
-        console.error('Airtable AllStammdaten error:', response.status);
-        break;
-      }
-
-      const data = await response.json();
-      allRecords = allRecords.concat(data.records || []);
-      offset = data.offset || null;
-    } while (offset);
-
-    const locations = allRecords.map((r) => ({
-      id: r.id,
-      name: r.fields['Location Name'] || '',
-      jetIds: r.fields['JET ID'] || [],
-      displayIds: r.fields['Display ID'] || [],
-      contactPerson: r.fields['Contact Person'] || '',
-      contactEmail: r.fields['Contact Email'] || '',
-      contactPhone: r.fields['Contact Phone'] || '',
-      locationEmail: r.fields['Location Email'] || '',
-      locationPhone: r.fields['Location Phone'] || '',
-      legalEntity: r.fields['Legal Entity'] || '',
-      street: r.fields['Street'] || '',
-      streetNumber: r.fields['Street Number'] || '',
-      postalCode: r.fields['Postal Code'] || '',
-      city: r.fields['City'] || '',
-      leadStatus: r.fields['Lead Status  (from Akquise)'] || [],
+    const locations = allRows.map((r) => ({
+      id: r.airtable_id || r.id,
+      name: r.location_name || '',
+      jetIds: r.jet_id ? [r.jet_id] : [],
+      displayIds: r.display_ids || [],
+      contactPerson: r.contact_person || '',
+      contactEmail: r.contact_email || '',
+      contactPhone: r.contact_phone || '',
+      locationEmail: r.location_email || '',
+      locationPhone: r.location_phone || '',
+      legalEntity: r.legal_entity || '',
+      street: r.street || '',
+      streetNumber: r.street_number || '',
+      postalCode: r.postal_code || '',
+      city: r.city || '',
+      leadStatus: r.lead_status || [],
     }));
 
     cache.allStammdaten = locations;
     cache.allStammdatenTimestamp = Date.now();
+    console.log(`[fetchAllStammdaten] Loaded ${locations.length} locations from Supabase`);
     return locations;
   } catch (err) {
-    console.error('Airtable fetchAllStammdaten error:', err);
-    return [];
+    console.error('Supabase fetchAllStammdaten error:', err);
+    return cache.allStammdaten || [];
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+ *  READ: TASKS (from Supabase)
+ * ═══════════════════════════════════════════════════════════ */
+
 /**
  * Fetch Tasks linked to a given Display ID.
- * The Airtable "Display ID (from Displays )" field is a lookup returning arrays.
- * Returns tasks sorted by Created time descending (newest first).
+ * Returns tasks sorted by created_time descending (newest first).
  */
 export async function fetchTasksByDisplayId(displayId) {
   if (cache.tasks.has(displayId)) {
@@ -183,64 +189,98 @@ export async function fetchTasksByDisplayId(displayId) {
   }
 
   try {
-    const formula = encodeURIComponent(`FIND("${displayId}", ARRAYJOIN({Display ID (from Displays )}, ","))`);
-    const fields = [
-      'Task Title',
-      'Task Type',
-      'Status',
-      'Priority',
-      'Due Date',
-      'Description',
-      'Created time',
-      'Responsible User',
-      'Assigned',
-      'Created by',
-    ].map((f) => `fields[]=${encodeURIComponent(f)}`).join('&');
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .contains('display_ids', [displayId])
+      .order('created_time', { ascending: false })
+      .limit(50);
 
-    const sort = 'sort[0][field]=Created+time&sort[0][direction]=desc';
+    if (error) throw error;
 
-    const url = `${AIRTABLE_BASE}/${BASE_ID}/${TASKS_TABLE}?filterByFormula=${formula}&${fields}&${sort}&maxRecords=50`;
-    const response = await fetch(url, airtableFetchOptions());
-
-    if (!response.ok) {
-      console.error('Airtable Tasks error:', response.status);
-      return [];
-    }
-
-    const data = await response.json();
-    const tasks = (data.records || []).map((r) => {
-      const assigned = r.fields['Assigned'];
-      const assignedNames = Array.isArray(assigned)
-        ? assigned.map((a) => a.name).filter(Boolean)
-        : [];
-
-      return {
-        id: r.id,
-        title: r.fields['Task Title'] || '',
-        type: r.fields['Task Type'] || [],
-        status: r.fields['Status'] || '',
-        priority: r.fields['Priority'] || '',
-        dueDate: r.fields['Due Date'] || null,
-        description: r.fields['Description'] || '',
-        createdTime: r.fields['Created time'] || '',
-        responsibleUser: r.fields['Responsible User']?.name || '',
-        assigned: assignedNames,
-        createdBy: r.fields['Created by']?.name || '',
-      };
-    });
-
+    const tasks = (data || []).map(mapTaskFromSupabase);
     cache.tasks.set(displayId, tasks);
     return tasks;
   } catch (err) {
-    console.error('Airtable Tasks fetch error:', err);
+    console.error('Supabase Tasks fetch error:', err);
     return [];
   }
 }
 
 /**
+ * Fetch ALL tasks from Supabase (for the Task Dashboard).
+ * Cached for 5 minutes.
+ */
+export async function fetchAllTasks() {
+  if (
+    cache.allTasks &&
+    cache.allTasksTimestamp &&
+    Date.now() - cache.allTasksTimestamp < CACHE_TTL
+  ) {
+    return cache.allTasks;
+  }
+
+  try {
+    let allRows = [];
+    let from = 0;
+    const pageSize = 1000;
+
+    while (true) {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_time', { ascending: false })
+        .range(from, from + pageSize - 1);
+
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+    }
+
+    const tasks = allRows.map(mapTaskFromSupabase);
+
+    cache.allTasks = tasks;
+    cache.allTasksTimestamp = Date.now();
+    console.log(`[fetchAllTasks] Loaded ${tasks.length} tasks from Supabase`);
+    return tasks;
+  } catch (err) {
+    console.error('Supabase fetchAllTasks error:', err);
+    return cache.allTasks || [];
+  }
+}
+
+/**
+ * Map a Supabase task row → component-compatible format.
+ */
+function mapTaskFromSupabase(row) {
+  return {
+    id: row.airtable_id || row.id,
+    title: row.title || '',
+    type: row.task_type || [],
+    status: row.status || '',
+    priority: row.priority || '',
+    dueDate: row.due_date || null,
+    description: row.description || '',
+    createdTime: row.created_time || '',
+    responsibleUser: row.responsible_user || '',
+    assigned: row.assigned || [],
+    createdBy: row.created_by || '',
+    displayIds: row.display_ids || [],
+    locationNames: row.location_names || [],
+    overdue: row.overdue || '',
+    completedDate: row.completed_date || null,
+    completedBy: row.completed_by || '',
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+ *  READ: INSTALLATIONEN (from Supabase)
+ * ═══════════════════════════════════════════════════════════ */
+
+/**
  * Fetch Installation record for a given Display ID.
- * Uses "Display Table ID (from Link to Display ID )" lookup field.
- * Returns install date, integrator, technician, PDF protocol, etc.
  */
 export async function fetchInstallationByDisplayId(displayId) {
   if (cache.installation.has(displayId)) {
@@ -248,183 +288,63 @@ export async function fetchInstallationByDisplayId(displayId) {
   }
 
   try {
-    const formula = encodeURIComponent(
-      `FIND("${displayId}", ARRAYJOIN({Display Table ID (from Link to Display ID )}, ","))`
-    );
-    const fields = [
-      'Aufbau Datum',
-      'Status Installation',
-      'Installationsart',
-      'Company (from Integrator)',
-      'Name (from Technikers)',
-      'Installationsprotokoll',
-      'Screen Art',
-      'Screen Size',
-      'OPS Nr',
-      'SIM-ID',
-      'Installationsstart',
-      'Installationsabschluss',
-      'Allgemeine Bemerkungen',
-      'Abnahme Partner (Name)',
-      'DO-ID',
-    ].map((f) => `fields[]=${encodeURIComponent(f)}`).join('&');
+    const { data, error } = await supabase
+      .from('installationen')
+      .select('*')
+      .contains('display_ids', [displayId])
+      .limit(1)
+      .maybeSingle();
 
-    const url = `${AIRTABLE_BASE}/${BASE_ID}/${INSTALLATIONEN_TABLE}?filterByFormula=${formula}&${fields}&maxRecords=1`;
-    const response = await fetch(url, airtableFetchOptions());
-
-    if (!response.ok) {
-      console.error('Airtable Installation error:', response.status);
+    if (error || !data) {
+      cache.installation.set(displayId, null);
       return null;
     }
 
-    const data = await response.json();
-    const record = data.records?.[0]?.fields || null;
+    const result = {
+      installDate: data.install_date || null,
+      status: data.status || '',
+      installationType: data.installation_type || '',
+      integrator: data.integrator || '',
+      technicians: data.technicians || [],
+      protocol: data.protocol_url ? [{
+        url: data.protocol_url,
+        filename: data.protocol_filename || 'Protokoll.pdf',
+      }] : [],
+      screenType: data.screen_type || '',
+      screenSize: data.screen_size || '',
+      opsNr: data.ops_nr || '',
+      simId: data.sim_id || '',
+      installStart: data.install_start || null,
+      installEnd: data.install_end || null,
+      remarks: data.remarks || '',
+      partnerName: data.partner_name || '',
+    };
 
-    if (record) {
-      // Normalize the data
-      const result = {
-        installDate: record['Aufbau Datum'] || null,
-        status: record['Status Installation'] || '',
-        installationType: record['Installationsart'] || '',
-        integrator: Array.isArray(record['Company (from Integrator)'])
-          ? record['Company (from Integrator)'].join(', ')
-          : record['Company (from Integrator)'] || '',
-        technicians: Array.isArray(record['Name (from Technikers)'])
-          ? record['Name (from Technikers)']
-          : [],
-        protocol: Array.isArray(record['Installationsprotokoll'])
-          ? record['Installationsprotokoll']
-          : [],
-        screenType: record['Screen Art'] || '',
-        screenSize: record['Screen Size'] || '',
-        opsNr: record['OPS Nr'] || '',
-        simId: record['SIM-ID'] || '',
-        installStart: record['Installationsstart'] || null,
-        installEnd: record['Installationsabschluss'] || null,
-        remarks: record['Allgemeine Bemerkungen'] || '',
-        partnerName: record['Abnahme Partner (Name)'] || '',
-      };
-      cache.installation.set(displayId, result);
-      return result;
-    }
-
-    cache.installation.set(displayId, null);
-    return null;
+    cache.installation.set(displayId, result);
+    return result;
   } catch (err) {
-    console.error('Airtable Installation fetch error:', err);
+    console.error('Supabase Installation fetch error:', err);
     return null;
   }
 }
 
-/**
- * Fetch ALL tasks from Airtable (for the Task Dashboard).
- * Paginates through all records using Airtable's offset mechanism.
- * Returns an array of normalized task objects.
- */
-export async function fetchAllTasks() {
-  if (cache.allTasks && cache.allTasksTimestamp && Date.now() - cache.allTasksTimestamp < 5 * 60 * 1000) {
-    return cache.allTasks;
-  }
+/* ═══════════════════════════════════════════════════════════
+ *  WRITE: TASKS (to Airtable via proxy)
+ *  Airtable remains the source of truth for writes.
+ *  After write, we also update the local Supabase cache.
+ * ═══════════════════════════════════════════════════════════ */
 
-  try {
-    const fields = [
-      'Task Title',
-      'Task Type',
-      'Status',
-      'Priority',
-      'Due Date',
-      'Description',
-      'Created time',
-      'Assigned',
-      'Created by',
-      'Display ID (from Displays )',
-      'Location Name (from Locations)',
-      'Overdue',
-      'completed_task_date',
-      'completed_task_by',
-    ].map((f) => `fields[]=${encodeURIComponent(f)}`).join('&');
-
-    const sort = 'sort[0][field]=Created+time&sort[0][direction]=desc';
-    let allRecords = [];
-    let offset = null;
-    let pageCount = 0;
-
-    do {
-      pageCount++;
-      const offsetParam = offset ? `&offset=${encodeURIComponent(offset)}` : '';
-      const url = `${AIRTABLE_BASE}/${BASE_ID}/${TASKS_TABLE}?${fields}&${sort}&pageSize=100${offsetParam}`;
-      console.log(`[fetchAllTasks] Page ${pageCount}, fetching:`, url.substring(0, 120) + '...');
-      const response = await fetch(url, airtableFetchOptions());
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error('Airtable All Tasks error:', response.status, errText);
-        break;
-      }
-
-      const data = await response.json();
-      console.log(`[fetchAllTasks] Page ${pageCount}: got ${data.records?.length || 0} records, offset: ${data.offset ? 'yes' : 'no'}`);
-      allRecords = allRecords.concat(data.records || []);
-      offset = data.offset || null;
-    } while (offset);
-
-    const tasks = allRecords.map((r) => {
-      const assigned = r.fields['Assigned'];
-      const assignedNames = Array.isArray(assigned)
-        ? assigned.map((a) => (typeof a === 'object' ? a.name : a)).filter(Boolean)
-        : [];
-
-      return {
-        id: r.id,
-        title: r.fields['Task Title'] || '',
-        type: r.fields['Task Type'] || [],
-        status: r.fields['Status'] || '',
-        priority: r.fields['Priority'] || '',
-        dueDate: r.fields['Due Date'] || null,
-        description: r.fields['Description'] || '',
-        createdTime: r.fields['Created time'] || '',
-        assigned: assignedNames,
-        createdBy: r.fields['Created by']?.name || r.fields['Created by'] || '',
-        displayIds: r.fields['Display ID (from Displays )'] || [],
-        locationNames: r.fields['Location Name (from Locations)'] || [],
-        overdue: r.fields['Overdue'] || '',
-        completedDate: r.fields['completed_task_date'] || null,
-        completedBy: r.fields['completed_task_by'] || '',
-      };
-    });
-
-    cache.allTasks = tasks;
-    cache.allTasksTimestamp = Date.now();
-    return tasks;
-  } catch (err) {
-    console.error('Airtable All Tasks fetch error:', err);
-    return [];
-  }
-}
-
-/**
- * Helper to build fetch options for write operations (POST/PATCH/DELETE)
- */
 function airtableWriteOptions(method, body) {
   const opts = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
   };
-  if (!isDev) {
-    opts.headers.Authorization = `Bearer ${AIRTABLE_TOKEN}`;
-  }
-  if (body) {
-    opts.body = JSON.stringify(body);
-  }
+  if (body) opts.body = JSON.stringify(body);
   return opts;
 }
 
 /**
- * Create a new Task in Airtable.
- * @param {Object} taskData – { title, type, status, priority, dueDate, description, displays, locations, assignedUserName }
- * @returns {Object|null} – The created record or null on error
+ * Create a new Task in Airtable (then sync to Supabase).
  */
 export async function createTask(taskData) {
   try {
@@ -435,11 +355,8 @@ export async function createTask(taskData) {
     if (taskData.priority) fields['Priority'] = taskData.priority;
     if (taskData.dueDate) fields['Due Date'] = taskData.dueDate;
     if (taskData.description) fields['Description'] = taskData.description;
-    // Displays is a linked record field – pass an array of record IDs
     if (taskData.displays && taskData.displays.length > 0) fields['Displays'] = taskData.displays;
-    // Locations is a linked record field (to Stammdaten) – pass an array of record IDs
     if (taskData.locations && taskData.locations.length > 0) fields['Locations'] = taskData.locations;
-    // Assigned user name – stored as text for reference
     if (taskData.assignedUserName) fields['Responsible User'] = taskData.assignedUserName;
 
     const url = `${AIRTABLE_BASE}/${BASE_ID}/${TASKS_TABLE}`;
@@ -452,21 +369,22 @@ export async function createTask(taskData) {
     }
 
     const data = await response.json();
+
+    // Sync to Supabase (fire-and-forget)
+    syncTaskToSupabase(data);
+
     // Invalidate cache
     cache.allTasks = null;
     cache.allTasksTimestamp = null;
     return data;
   } catch (err) {
-    console.error('Airtable createTask error:', err);
+    console.error('createTask error:', err);
     return null;
   }
 }
 
 /**
  * Update an existing Task in Airtable.
- * @param {string} recordId – Airtable record ID (e.g. "recXXXXXXXX")
- * @param {Object} fields – Object with field names/values to update
- * @returns {Object|null} – The updated record or null on error
  */
 export async function updateTask(recordId, fields) {
   try {
@@ -480,21 +398,23 @@ export async function updateTask(recordId, fields) {
     }
 
     const data = await response.json();
+
+    // Sync to Supabase (fire-and-forget)
+    syncTaskToSupabase(data);
+
     // Invalidate cache
     cache.allTasks = null;
     cache.allTasksTimestamp = null;
     cache.tasks.clear();
     return data;
   } catch (err) {
-    console.error('Airtable updateTask error:', err);
+    console.error('updateTask error:', err);
     return null;
   }
 }
 
 /**
- * Delete a Task from Airtable.
- * @param {string} recordId – Airtable record ID
- * @returns {boolean} – true if successfully deleted
+ * Delete a Task from Airtable + Supabase.
  */
 export async function deleteTask(recordId) {
   try {
@@ -507,166 +427,152 @@ export async function deleteTask(recordId) {
       return false;
     }
 
+    // Also delete from Supabase
+    supabase.from('tasks').delete().eq('airtable_id', recordId)
+      .then(() => {})
+      .catch(() => {});
+
     // Invalidate cache
     cache.allTasks = null;
     cache.allTasksTimestamp = null;
     cache.tasks.clear();
     return true;
   } catch (err) {
-    console.error('Airtable deleteTask error:', err);
+    console.error('deleteTask error:', err);
     return false;
   }
 }
 
+/**
+ * Sync a single Airtable task record to Supabase (fire-and-forget).
+ * Called after create/update to keep Supabase in sync.
+ */
+function syncTaskToSupabase(airtableRecord) {
+  if (!airtableRecord?.id) return;
+  const f = airtableRecord.fields || {};
+  const assigned = Array.isArray(f['Assigned'])
+    ? f['Assigned'].map(a => typeof a === 'object' ? a.name : a).filter(Boolean)
+    : [];
+
+  supabase.from('tasks').upsert({
+    id: airtableRecord.id,
+    airtable_id: airtableRecord.id,
+    title: f['Task Title'] || null,
+    task_type: f['Task Type'] || [],
+    status: f['Status'] || null,
+    priority: f['Priority'] || null,
+    due_date: f['Due Date'] || null,
+    description: f['Description'] || null,
+    created_time: f['Created time'] || null,
+    responsible_user: f['Responsible User']?.name || f['Responsible User'] || null,
+    assigned,
+    created_by: f['Created by']?.name || f['Created by'] || null,
+    display_ids: f['Display ID (from Displays )'] || [],
+    location_names: f['Location Name (from Locations)'] || [],
+    overdue: f['Overdue'] || null,
+    completed_date: f['completed_task_date'] || null,
+    completed_by: f['completed_task_by'] || null,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'airtable_id' })
+    .then(() => console.log('[sync] Task synced to Supabase:', airtableRecord.id))
+    .catch(err => console.error('[sync] Task sync error:', err));
+}
+
 /* ═══════════════════════════════════════════════════════════
- *  Communication Log (Activity Log) – CRUD
+ *  COMMUNICATION LOG – READ from Supabase, WRITE to Airtable
  * ═══════════════════════════════════════════════════════════ */
 
 /**
- * Fetch ALL communication records from the Activity Log table.
- * Paginates through all records. Cached for 5 minutes.
+ * Fetch ALL communication records from Supabase.
+ * Cached for 5 minutes.
  */
 export async function fetchAllCommunications() {
   if (
     cache.allCommunications &&
     cache.allCommunicationsTimestamp &&
-    Date.now() - cache.allCommunicationsTimestamp < 5 * 60 * 1000
+    Date.now() - cache.allCommunicationsTimestamp < CACHE_TTL
   ) {
     return cache.allCommunications;
   }
 
   try {
-    const fields = [
-      'Channel',
-      'Direction',
-      'Subject',
-      'Message',
-      'Timestamp',
-      'Status',
-      'Recipient Name',
-      'Recipient Contact',
-      'Sender',
-      'External ID',
-      'Location',
-      'Location Name (from Location)',
-      'Display ID (from Location)',
-      'JET ID (from Location)',
-      'Related Task',
-      'Attachments',
-    ].map((f) => `fields[]=${encodeURIComponent(f)}`).join('&');
+    let allRows = [];
+    let from = 0;
+    const pageSize = 1000;
 
-    const sort = 'sort[0][field]=Timestamp&sort[0][direction]=desc';
-    let allRecords = [];
-    let offset = null;
-    let pageCount = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from('communications')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .range(from, from + pageSize - 1);
 
-    do {
-      pageCount++;
-      const offsetParam = offset ? `&offset=${encodeURIComponent(offset)}` : '';
-      const url = `${AIRTABLE_BASE}/${BASE_ID}/${ACTIVITY_LOG_TABLE}?${fields}&${sort}&pageSize=100${offsetParam}`;
-      console.log(`[fetchAllCommunications] Page ${pageCount}`);
-      const response = await fetch(url, airtableFetchOptions());
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+    }
 
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error('Airtable Communications error:', response.status, errText);
-        break;
-      }
-
-      const data = await response.json();
-      allRecords = allRecords.concat(data.records || []);
-      offset = data.offset || null;
-    } while (offset);
-
-    const communications = allRecords.map((r) => ({
-      id: r.id,
-      channel: r.fields['Channel'] || '',
-      direction: r.fields['Direction'] || '',
-      subject: r.fields['Subject'] || '',
-      message: r.fields['Message'] || '',
-      timestamp: r.fields['Timestamp'] || '',
-      status: r.fields['Status'] || '',
-      recipientName: r.fields['Recipient Name'] || '',
-      recipientContact: r.fields['Recipient Contact'] || '',
-      sender: r.fields['Sender'] || '',
-      externalId: r.fields['External ID'] || '',
-      locationIds: r.fields['Location'] || [],
-      locationNames: r.fields['Location Name (from Location)'] || [],
-      displayIds: r.fields['Display ID (from Location)'] || [],
-      jetIds: r.fields['JET ID (from Location)'] || [],
-      relatedTask: r.fields['Related Task'] || [],
-      attachments: r.fields['Attachments'] || [],
-    }));
+    const communications = allRows.map(mapCommFromSupabase);
 
     cache.allCommunications = communications;
     cache.allCommunicationsTimestamp = Date.now();
+    console.log(`[fetchAllCommunications] Loaded ${communications.length} from Supabase`);
     return communications;
   } catch (err) {
-    console.error('Airtable fetchAllCommunications error:', err);
+    console.error('Supabase fetchAllCommunications error:', err);
+    return cache.allCommunications || [];
+  }
+}
+
+/**
+ * Fetch communication records for a specific Location.
+ */
+export async function fetchCommunicationsByLocation(locationRecordId) {
+  try {
+    const { data, error } = await supabase
+      .from('communications')
+      .select('*')
+      .contains('location_ids', [locationRecordId])
+      .order('timestamp', { ascending: false })
+      .limit(100);
+
+    if (error) throw error;
+    return (data || []).map(mapCommFromSupabase);
+  } catch (err) {
+    console.error('Supabase fetchCommunicationsByLocation error:', err);
     return [];
   }
 }
 
 /**
- * Fetch communication records for a specific Location (by Airtable record ID).
- * @param {string} locationRecordId – Airtable record ID of the Location
+ * Map Supabase communication row → component-compatible format.
  */
-export async function fetchCommunicationsByLocation(locationRecordId) {
-  try {
-    const formula = encodeURIComponent(`FIND("${locationRecordId}", ARRAYJOIN(RECORD_ID(Location), ","))`);
-    const fields = [
-      'Channel',
-      'Direction',
-      'Subject',
-      'Message',
-      'Timestamp',
-      'Status',
-      'Recipient Name',
-      'Recipient Contact',
-      'Sender',
-      'External ID',
-      'Location Name (from Location)',
-      'Related Task',
-      'Attachments',
-    ].map((f) => `fields[]=${encodeURIComponent(f)}`).join('&');
-
-    const sort = 'sort[0][field]=Timestamp&sort[0][direction]=desc';
-    const url = `${AIRTABLE_BASE}/${BASE_ID}/${ACTIVITY_LOG_TABLE}?filterByFormula=${formula}&${fields}&${sort}&maxRecords=100`;
-    const response = await fetch(url, airtableFetchOptions());
-
-    if (!response.ok) {
-      console.error('Airtable Communications by Location error:', response.status);
-      return [];
-    }
-
-    const data = await response.json();
-    return (data.records || []).map((r) => ({
-      id: r.id,
-      channel: r.fields['Channel'] || '',
-      direction: r.fields['Direction'] || '',
-      subject: r.fields['Subject'] || '',
-      message: r.fields['Message'] || '',
-      timestamp: r.fields['Timestamp'] || '',
-      status: r.fields['Status'] || '',
-      recipientName: r.fields['Recipient Name'] || '',
-      recipientContact: r.fields['Recipient Contact'] || '',
-      sender: r.fields['Sender'] || '',
-      externalId: r.fields['External ID'] || '',
-      locationNames: r.fields['Location Name (from Location)'] || [],
-      relatedTask: r.fields['Related Task'] || [],
-      attachments: r.fields['Attachments'] || [],
-    }));
-  } catch (err) {
-    console.error('Airtable fetchCommunicationsByLocation error:', err);
-    return [];
-  }
+function mapCommFromSupabase(row) {
+  return {
+    id: row.airtable_id || row.id,
+    channel: row.channel || '',
+    direction: row.direction || '',
+    subject: row.subject || '',
+    message: row.message || '',
+    timestamp: row.timestamp || '',
+    status: row.status || '',
+    recipientName: row.recipient_name || '',
+    recipientContact: row.recipient_contact || '',
+    sender: row.sender || '',
+    externalId: row.external_id || '',
+    locationIds: row.location_ids || [],
+    locationNames: row.location_names || [],
+    displayIds: row.display_ids || [],
+    jetIds: row.jet_ids || [],
+    relatedTask: row.related_task || [],
+    attachments: [],  // Attachments stay in Airtable (binary data)
+  };
 }
 
 /**
  * Create a new Communication Log entry in Airtable.
- * @param {Object} commData – { channel, direction, subject, message, recipientName,
- *                              recipientContact, sender, status, locationIds, externalId }
- * @returns {Object|null} – The created record or null on error
  */
 export async function createCommunicationRecord(commData) {
   try {
@@ -680,13 +586,10 @@ export async function createCommunicationRecord(commData) {
     if (commData.sender) fields['Sender'] = commData.sender;
     if (commData.status) fields['Status'] = commData.status;
     if (commData.externalId) fields['External ID'] = commData.externalId;
-    // Timestamp – use current time if not provided
     fields['Timestamp'] = commData.timestamp || new Date().toISOString();
-    // Location is a linked record field – pass array of record IDs
     if (commData.locationIds && commData.locationIds.length > 0) {
       fields['Location'] = commData.locationIds;
     }
-    // Related Task is a linked record field
     if (commData.relatedTask && commData.relatedTask.length > 0) {
       fields['Related Task'] = commData.relatedTask;
     }
@@ -696,20 +599,58 @@ export async function createCommunicationRecord(commData) {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('Airtable createCommunicationRecord error:', response.status, errText);
+      console.error('createCommunicationRecord error:', response.status, errText);
       return null;
     }
 
     const data = await response.json();
-    // Invalidate cache
+
+    // Sync to Supabase immediately (fire-and-forget) so it appears instantly
+    syncCommunicationToSupabase(data);
+
     cache.allCommunications = null;
     cache.allCommunicationsTimestamp = null;
     return data;
   } catch (err) {
-    console.error('Airtable createCommunicationRecord error:', err);
+    console.error('createCommunicationRecord error:', err);
     return null;
   }
 }
+
+/**
+ * Sync a single Airtable communication record to Supabase (fire-and-forget).
+ * Mirrors the mapping in sync-airtable.js → mapCommunication().
+ */
+function syncCommunicationToSupabase(airtableRecord) {
+  if (!airtableRecord?.id) return;
+  const f = airtableRecord.fields || {};
+
+  supabase.from('communications').upsert({
+    airtable_id: airtableRecord.id,
+    channel: f['Channel'] || null,
+    direction: f['Direction'] || null,
+    subject: f['Subject'] || null,
+    message: f['Message'] || null,
+    timestamp: f['Timestamp'] || new Date().toISOString(),
+    status: f['Status'] || null,
+    recipient_name: f['Recipient Name'] || null,
+    recipient_contact: f['Recipient Contact'] || null,
+    sender: f['Sender'] || null,
+    external_id: f['External ID'] || null,
+    location_ids: f['Location'] || [],
+    location_names: f['Location Name (from Location)'] || [],
+    display_ids: f['Display ID (from Location)'] || [],
+    jet_ids: f['JET ID (from Location)'] || [],
+    related_task: f['Related Task'] || [],
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'airtable_id' })
+    .then(() => console.log('[sync] Communication synced to Supabase:', airtableRecord.id))
+    .catch(err => console.error('[sync] Communication sync error:', err));
+}
+
+/* ═══════════════════════════════════════════════════════════
+ *  CACHE MANAGEMENT
+ * ═══════════════════════════════════════════════════════════ */
 
 /**
  * Clear cache for a display (useful when refreshing)
@@ -725,6 +666,8 @@ export function clearCache(displayId) {
     cache.installation.clear();
     cache.allTasks = null;
     cache.allTasksTimestamp = null;
+    cache.allStammdaten = null;
+    cache.allStammdatenTimestamp = null;
     cache.allCommunications = null;
     cache.allCommunicationsTimestamp = null;
   }

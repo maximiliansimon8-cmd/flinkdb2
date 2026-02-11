@@ -6,15 +6,5 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# SPA fallback – all routes serve index.html
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# Proxy Airtable API calls through Netlify Function
-[[redirects]]
-  from = "/api/airtable/*"
-  to = "/.netlify/functions/airtable-proxy/:splat"
-  status = 200
-  force = true
+# All redirects are in public/_redirects (copied to dist/ at build time)
+# _redirects takes priority over netlify.toml redirects
