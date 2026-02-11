@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Save, Trash2, AlertCircle, Loader2, Search, MapPin, User, Building2, Briefcase } from 'lucide-react';
 import { fetchAllStammdaten } from '../utils/airtableService';
-import { getAllUsers } from '../utils/authService';
+import { fetchAllUsers, getAllUsers } from '../utils/authService';
 
 const STATUS_OPTIONS = ['New', 'In Progress', 'Follow Up', 'On Hold', 'In Review', 'Completed'];
 const PRIORITY_OPTIONS = ['High', 'Medium', 'Low'];
@@ -51,8 +51,19 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
       setLocationSearch('');
       setShowLocationDropdown(false);
 
-      // Load data sources
-      setDashboardUsers(getAllUsers());
+      // Load data sources (fetchAllUsers is async - loads from Supabase)
+      fetchAllUsers()
+        .then((users) => {
+          setDashboardUsers(users || []);
+          // Pre-select assigned user after users are loaded
+          if (task.responsibleUser) {
+            const match = (users || []).find((u) => u.name === task.responsibleUser);
+            setAssignedUserId(match?.id || '');
+          } else {
+            setAssignedUserId('');
+          }
+        })
+        .catch(() => setDashboardUsers([]));
 
       setLocationsLoading(true);
       fetchAllStammdaten()
@@ -75,11 +86,13 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
         .catch(() => setLocations([]))
         .finally(() => setLocationsLoading(false));
 
-      // Try to pre-select assigned user
+      // Fallback: if responsible user was already loaded via getAllUsers sync cache
       if (task.responsibleUser) {
-        const users = getAllUsers();
-        const match = users.find((u) => u.name === task.responsibleUser);
-        setAssignedUserId(match?.id || '');
+        const cachedUsers = getAllUsers();
+        if (cachedUsers.length > 0) {
+          const match = cachedUsers.find((u) => u.name === task.responsibleUser);
+          setAssignedUserId(match?.id || '');
+        }
       } else {
         setAssignedUserId('');
       }

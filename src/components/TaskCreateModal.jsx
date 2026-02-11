@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Save, AlertCircle, Loader2, Search, MapPin, User, Building2, Briefcase } from 'lucide-react';
 import { fetchAllStammdaten } from '../utils/airtableService';
-import { getAllUsers } from '../utils/authService';
+import { fetchAllUsers } from '../utils/authService';
 
 /* ──────────────────────── constants ──────────────────────── */
 
@@ -84,8 +84,10 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
       setShowLocationDropdown(false);
       setAssignedUserId('');
 
-      // Load data
-      setDashboardUsers(getAllUsers());
+      // Load data (fetchAllUsers is async - loads from Supabase)
+      fetchAllUsers()
+        .then((users) => setDashboardUsers(users || []))
+        .catch(() => setDashboardUsers([]));
 
       setLocationsLoading(true);
       fetchAllStammdaten()
