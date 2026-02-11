@@ -1,11 +1,20 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Save, AlertCircle, Loader2, Search, MapPin, User, Building2 } from 'lucide-react';
+import { X, Save, AlertCircle, Loader2, Search, MapPin, User, Building2, Briefcase } from 'lucide-react';
 import { fetchAllStammdaten } from '../utils/airtableService';
 import { getAllUsers } from '../utils/authService';
 
 /* ──────────────────────── constants ──────────────────────── */
 
-const TASK_TYPES = ['Internal', 'External', 'Lieferando'];
+const PARTNERS = [
+  'Dimension Outdoor GmbH',
+  'Inbound Lead',
+  'Public Arte GmbH',
+  'Lieferando AM',
+  'e-Systems',
+  'MediaAV',
+  'DAYNMEDIA GmbH',
+  'T-Ads / emetriq',
+];
 
 const STATUS_OPTIONS = [
   'New',
@@ -37,15 +46,15 @@ const PRIORITY_COLORS = {
 
 export default function TaskCreateModal({ isOpen, onClose, onSave, loading = false, error: externalError = null }) {
   const [title, setTitle] = useState('');
-  const [type, setType] = useState([]);
+  const [partner, setPartner] = useState('');
   const [status, setStatus] = useState('New');
   const [priority, setPriority] = useState('Medium');
   const [dueDate, setDueDate] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState({});
 
-  // New fields
-  const [selectedLocation, setSelectedLocation] = useState(null); // { id, name, city, ... }
+  // Location & user fields
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [assignedUserId, setAssignedUserId] = useState('');
@@ -64,7 +73,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
     if (isOpen) {
       // Reset form
       setTitle('');
-      setType([]);
+      setPartner('');
       setStatus('New');
       setPriority('Medium');
       setDueDate('');
@@ -117,13 +126,6 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
     }
   };
 
-  /* Type toggle */
-  const toggleType = (t) => {
-    setType((prev) =>
-      prev.includes(t) ? prev.filter((v) => v !== t) : [...prev, t]
-    );
-  };
-
   /* Filtered locations for search */
   const filteredLocations = useMemo(() => {
     if (!locationSearch.trim()) return locations.slice(0, 50);
@@ -160,7 +162,10 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
       newErrors.title = 'Titel ist erforderlich';
     }
     if (!selectedLocation) {
-      newErrors.location = 'Standort / Partner ist erforderlich';
+      newErrors.location = 'Standort ist erforderlich';
+    }
+    if (!partner) {
+      newErrors.partner = 'Partner ist erforderlich';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -170,7 +175,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
     const taskData = {
       title: title.trim(),
-      type,
+      partner,
       status,
       priority,
       description: description.trim(),
@@ -260,49 +265,35 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
             )}
           </div>
 
-          {/* Task Type (checkboxes) */}
+          {/* ── Partner (required) ── */}
           <div>
             <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              Typ
+              <Briefcase size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+              Partner <span className="text-[#ef4444]">*</span>
             </label>
-            <div className="flex flex-wrap gap-2">
-              {TASK_TYPES.map((t) => {
-                const selected = type.includes(t);
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => toggleType(t)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                      selected
-                        ? 'bg-[#3b82f6]/10 border border-[#3b82f6]/40 text-[#3b82f6]'
-                        : 'bg-slate-50/80 border border-slate-200/60 text-slate-500 hover:border-slate-300 hover:text-slate-600'
-                    }`}
-                  >
-                    <div
-                      className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-colors ${
-                        selected
-                          ? 'bg-[#3b82f6] border-[#3b82f6]'
-                          : 'border-slate-300 bg-white'
-                      }`}
-                    >
-                      {selected && (
-                        <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                          <path
-                            d="M1.5 4L3.2 5.7L6.5 2.3"
-                            stroke="white"
-                            strokeWidth="1.3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </div>
-                    {t}
-                  </button>
-                );
-              })}
-            </div>
+            <select
+              value={partner}
+              onChange={(e) => {
+                setPartner(e.target.value);
+                if (errors.partner) setErrors((prev) => ({ ...prev, partner: null }));
+              }}
+              className={`w-full appearance-none px-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 focus:outline-none transition-colors pr-8 ${
+                errors.partner
+                  ? 'border-[#ef4444] focus:border-[#ef4444]'
+                  : 'border-slate-200/60 focus:border-[#3b82f6]'
+              }`}
+            >
+              <option value="">– Partner auswählen –</option>
+              {PARTNERS.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+            {errors.partner && (
+              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
+                <AlertCircle size={11} />
+                <span className="text-[10px]">{errors.partner}</span>
+              </div>
+            )}
           </div>
 
           {/* Status & Priority row */}
@@ -360,7 +351,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
           <div ref={locationDropdownRef} className="relative">
             <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
               <MapPin size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
-              Standort / Partner <span className="text-[#ef4444]">*</span>
+              Standort <span className="text-[#ef4444]">*</span>
             </label>
 
             {selectedLocation ? (
@@ -399,7 +390,11 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                   onFocus={() => setShowLocationDropdown(true)}
                   placeholder={locationsLoading ? 'Standorte laden...' : 'Standort suchen (Name, Stadt, JET ID)...'}
                   disabled={locationsLoading}
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors disabled:opacity-50"
+                  className={`w-full pl-9 pr-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-colors disabled:opacity-50 ${
+                    errors.location
+                      ? 'border-[#ef4444] focus:border-[#ef4444]'
+                      : 'border-slate-200/60 focus:border-[#3b82f6]'
+                  }`}
                 />
                 {locationsLoading && (
                   <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 animate-spin" />

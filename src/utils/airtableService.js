@@ -255,10 +255,15 @@ export async function fetchAllTasks() {
  * Map a Supabase task row → component-compatible format.
  */
 function mapTaskFromSupabase(row) {
+  // partner is stored in the task_type column (repurposed from task type)
+  const rawPartner = row.task_type;
+  const partner = Array.isArray(rawPartner)
+    ? (rawPartner[0] || '')
+    : (typeof rawPartner === 'string' ? rawPartner : '');
   return {
     id: row.airtable_id || row.id,
     title: row.title || '',
-    type: row.task_type || [],
+    partner,
     status: row.status || '',
     priority: row.priority || '',
     dueDate: row.due_date || null,
@@ -350,9 +355,8 @@ export async function createTask(taskData) {
   try {
     const fields = {};
     if (taskData.title) fields['Task Title'] = taskData.title;
-    // Note: Task Type is NOT sent to Airtable – the API token lacks permission
-    // to create new select options. The type is kept in the UI for future use
-    // once the Airtable base has the options pre-configured.
+    // Partner is stored locally; we also try to send it to Airtable if the field exists
+    if (taskData.partner) fields['Partner'] = taskData.partner;
     if (taskData.status) fields['Status'] = taskData.status;
     if (taskData.priority) fields['Priority'] = taskData.priority;
     // Validate date before sending to Airtable (must be YYYY-MM-DD or empty)
@@ -477,7 +481,7 @@ function syncTaskToSupabase(airtableRecord) {
     id: airtableRecord.id,
     airtable_id: airtableRecord.id,
     title: f['Task Title'] || null,
-    task_type: f['Task Type'] || [],
+    task_type: f['Partner'] || f['Task Type'] || [],
     status: f['Status'] || null,
     priority: f['Priority'] || null,
     due_date: f['Due Date'] || null,

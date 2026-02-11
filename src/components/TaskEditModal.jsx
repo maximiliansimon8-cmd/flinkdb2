@@ -1,15 +1,24 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Save, Trash2, AlertCircle, Loader2, Search, MapPin, User, Building2 } from 'lucide-react';
+import { X, Save, Trash2, AlertCircle, Loader2, Search, MapPin, User, Building2, Briefcase } from 'lucide-react';
 import { fetchAllStammdaten } from '../utils/airtableService';
 import { getAllUsers } from '../utils/authService';
 
 const STATUS_OPTIONS = ['New', 'In Progress', 'Follow Up', 'On Hold', 'In Review', 'Completed'];
 const PRIORITY_OPTIONS = ['High', 'Medium', 'Low'];
-const TYPE_OPTIONS = ['Internal', 'External', 'Lieferando'];
+const PARTNERS = [
+  'Dimension Outdoor GmbH',
+  'Inbound Lead',
+  'Public Arte GmbH',
+  'Lieferando AM',
+  'e-Systems',
+  'MediaAV',
+  'DAYNMEDIA GmbH',
+  'T-Ads / emetriq',
+];
 
 export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task, loading }) {
   const [title, setTitle] = useState('');
-  const [type, setType] = useState([]);
+  const [partner, setPartner] = useState('');
   const [status, setStatus] = useState('New');
   const [priority, setPriority] = useState('Medium');
   const [dueDate, setDueDate] = useState('');
@@ -33,7 +42,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
   useEffect(() => {
     if (task && isOpen) {
       setTitle(task.title || '');
-      setType(Array.isArray(task.type) ? [...task.type] : task.type ? [task.type] : []);
+      setPartner(task.partner || '');
       setStatus(task.status || 'New');
       setPriority(task.priority || 'Medium');
       setDueDate(task.dueDate || '');
@@ -91,12 +100,6 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
   if (!isOpen || !task) return null;
 
-  const handleTypeToggle = (val) => {
-    setType((prev) =>
-      prev.includes(val) ? prev.filter((t) => t !== val) : [...prev, val]
-    );
-  };
-
   /* Filtered locations for search */
   const filteredLocations = (() => {
     if (!locationSearch.trim()) return locations.slice(0, 50);
@@ -125,7 +128,6 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
     if (!title.trim()) return;
     const updatedFields = {
       'Task Title': title.trim(),
-      'Task Type': type,
       'Status': status,
       'Priority': priority,
       'Due Date': dueDate || null,
@@ -205,44 +207,27 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
             )}
           </div>
 
-          {/* Task Type (multi-select checkboxes) */}
+          {/* ── Partner ── */}
           <div>
             <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
-              Aufgabentyp
+              <Briefcase size={10} className="inline -mt-0.5 mr-1" />
+              Partner
             </label>
-            <div className="flex flex-wrap gap-2">
-              {TYPE_OPTIONS.map((opt) => (
-                <label
-                  key={opt}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-all border ${
-                    type.includes(opt)
-                      ? 'bg-[#3b82f6]/10 border-[#3b82f6]/40 text-[#3b82f6]'
-                      : 'bg-slate-50/80 border-slate-200/60 text-slate-600 hover:border-slate-300'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={type.includes(opt)}
-                    onChange={() => handleTypeToggle(opt)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
-                      type.includes(opt)
-                        ? 'bg-[#3b82f6] border-[#3b82f6]'
-                        : 'border-slate-300 bg-white'
-                    }`}
-                  >
-                    {type.includes(opt) && (
-                      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                        <path d="M1.5 4L3 5.5L6.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </div>
-                  {opt}
-                </label>
+            <select
+              value={partner}
+              onChange={(e) => setPartner(e.target.value)}
+              className="w-full appearance-none px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 10px center',
+              }}
+            >
+              <option value="">– Partner auswählen –</option>
+              {PARTNERS.map((p) => (
+                <option key={p} value={p}>{p}</option>
               ))}
-            </div>
+            </select>
           </div>
 
           {/* Status & Priority row */}

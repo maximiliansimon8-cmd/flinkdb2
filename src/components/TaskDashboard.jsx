@@ -11,7 +11,6 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   Calendar,
   User,
   Filter,
@@ -53,12 +52,6 @@ const PRIORITY_COLORS = {
   'Low': '#22c55e',
 };
 
-const TYPE_LABELS = {
-  'Internal': 'Internal (Dimension Outdoor)',
-  'External': 'External (Partner & Dienstleister)',
-  'Lieferando': 'Lieferando',
-};
-
 const PIE_COLORS = ['#3b82f6', '#f59e0b', '#a855f7', '#64748b', '#06b6d4', '#22c55e'];
 
 /* ──────────────────────── helper ──────────────────────── */
@@ -85,7 +78,7 @@ export default function TaskDashboard() {
 
   // Filters
   const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [partnerFilter, setPartnerFilter] = useState('all');
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -194,23 +187,19 @@ export default function TaskDashboard() {
     return [...names].sort();
   }, [tasks]);
 
-  const allTypes = useMemo(() => {
-    const types = new Set();
+  const allPartners = useMemo(() => {
+    const partners = new Set();
     tasks.forEach(t => {
-      if (Array.isArray(t.type)) t.type.forEach(ty => types.add(ty));
-      else if (t.type) types.add(t.type);
+      if (t.partner) partners.add(t.partner);
     });
-    return [...types].sort();
+    return [...partners].sort();
   }, [tasks]);
 
   // Filtered tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter(t => {
       if (statusFilter !== 'all' && t.status !== statusFilter) return false;
-      if (typeFilter !== 'all') {
-        const taskTypes = Array.isArray(t.type) ? t.type : [t.type];
-        if (!taskTypes.includes(typeFilter)) return false;
-      }
+      if (partnerFilter !== 'all' && t.partner !== partnerFilter) return false;
       if (assigneeFilter !== 'all') {
         const all = [...t.assigned, t.createdBy];
         if (!all.includes(assigneeFilter)) return false;
@@ -226,7 +215,7 @@ export default function TaskDashboard() {
       }
       return true;
     });
-  }, [tasks, statusFilter, typeFilter, assigneeFilter, searchQuery]);
+  }, [tasks, statusFilter, partnerFilter, assigneeFilter, searchQuery]);
 
   // Sorted tasks
   const sortedTasks = useMemo(() => {
@@ -430,28 +419,6 @@ export default function TaskDashboard() {
     return Object.values(weeks)
       .sort((a, b) => a.week.localeCompare(b.week))
       .map(w => ({ ...w, net: w.created - w.completed }));
-  }, [tasks]);
-
-  // Internal vs External breakdown
-  const typeBreakdown = useMemo(() => {
-    const internal = tasks.filter(t => {
-      const types = Array.isArray(t.type) ? t.type : [t.type];
-      return types.some(ty => ty && ty.toLowerCase().includes('internal'));
-    });
-    const external = tasks.filter(t => {
-      const types = Array.isArray(t.type) ? t.type : [t.type];
-      return types.some(ty => ty && (ty.toLowerCase().includes('external') || ty.toLowerCase().includes('partner')));
-    });
-    const lieferando = tasks.filter(t => {
-      const types = Array.isArray(t.type) ? t.type : [t.type];
-      return types.some(ty => ty && ty.toLowerCase().includes('lieferando'));
-    });
-    const other = tasks.filter(t => {
-      const types = Array.isArray(t.type) ? t.type : [t.type];
-      return types.length === 0 || types.every(ty => !ty);
-    });
-
-    return { internal, external, lieferando, other };
   }, [tasks]);
 
   /* ──── Sort handler ──── */
@@ -752,28 +719,6 @@ export default function TaskDashboard() {
         </div>
       </div>
 
-      {/* ───── Internal / External / Lieferando Breakdown ───── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <TypeBreakdownCard
-          title="Internal Tasks"
-          subtitle="Dimension Outdoor"
-          tasks={typeBreakdown.internal}
-          icon={Building2}
-        />
-        <TypeBreakdownCard
-          title="External Tasks"
-          subtitle="Partner & Dienstleister"
-          tasks={typeBreakdown.external}
-          icon={ExternalLink}
-        />
-        <TypeBreakdownCard
-          title="Lieferando Tasks"
-          subtitle="Lieferando spezifisch"
-          tasks={typeBreakdown.lieferando}
-          icon={ClipboardList}
-        />
-      </div>
-
       {/* ───── Weekly Velocity Chart ───── */}
       {weeklyVelocity.length > 0 && (
         <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
@@ -900,15 +845,15 @@ export default function TaskDashboard() {
             ))}
           </select>
 
-          {/* Type filter */}
+          {/* Partner filter */}
           <select
-            value={typeFilter}
-            onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
+            value={partnerFilter}
+            onChange={(e) => { setPartnerFilter(e.target.value); setPage(0); }}
             className="px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6]"
           >
-            <option value="all">Alle Typen</option>
-            {allTypes.map(t => (
-              <option key={t} value={t}>{t}</option>
+            <option value="all">Alle Partner</option>
+            {allPartners.map(p => (
+              <option key={p} value={p}>{p}</option>
             ))}
           </select>
 
@@ -924,9 +869,9 @@ export default function TaskDashboard() {
             ))}
           </select>
 
-          {(statusFilter !== 'all' || typeFilter !== 'all' || assigneeFilter !== 'all' || searchQuery) && (
+          {(statusFilter !== 'all' || partnerFilter !== 'all' || assigneeFilter !== 'all' || searchQuery) && (
             <button
-              onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setAssigneeFilter('all'); setSearchQuery(''); setPage(0); }}
+              onClick={() => { setStatusFilter('all'); setPartnerFilter('all'); setAssigneeFilter('all'); setSearchQuery(''); setPage(0); }}
               className="px-3 py-2 text-xs text-[#ef4444] hover:text-[#f87171] transition-colors"
             >
               Filter zurücksetzen
@@ -980,13 +925,11 @@ export default function TaskDashboard() {
                       </td>
                       <td className="py-2.5 px-3">
                         <div className="text-slate-900 font-medium max-w-[300px] truncate">{task.title}</div>
-                        {task.type?.length > 0 && (
-                          <div className="flex gap-1 mt-0.5">
-                            {(Array.isArray(task.type) ? task.type : [task.type]).map((ty, i) => (
-                              <span key={i} className="text-[9px] text-slate-400 bg-slate-50/80 px-1.5 py-0.5 rounded">
-                                {ty}
-                              </span>
-                            ))}
+                        {task.partner && (
+                          <div className="mt-0.5">
+                            <span className="text-[9px] text-[#3b82f6] bg-[#3b82f6]/5 px-1.5 py-0.5 rounded">
+                              {task.partner}
+                            </span>
                           </div>
                         )}
                       </td>
@@ -1174,87 +1117,3 @@ function MetricCard({ icon: Icon, iconColor, label, value, valueColor, sub }) {
   );
 }
 
-function TypeBreakdownCard({ title, subtitle, tasks, icon: Icon }) {
-  const open = tasks.filter(t => t.status === 'New').length;
-  const inProgress = tasks.filter(t => t.status === 'In Progress').length;
-  const completed = tasks.filter(t => t.status === 'Completed').length;
-
-  // Avg per week (30 days)
-  const now = new Date();
-  const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const weeksIn30 = 30 / 7;
-  const created30 = tasks.filter(t => t.createdTime && new Date(t.createdTime) >= d30).length;
-  const completed30 = tasks.filter(t => {
-    const cd = t.completedDate || (t.status === 'Completed' ? t.createdTime : null);
-    return cd && new Date(cd) >= d30;
-  }).length;
-  const avgCreatedWk = (created30 / weeksIn30).toFixed(1);
-  const avgCompletedWk = (completed30 / weeksIn30).toFixed(1);
-
-  const statusCounts = {};
-  tasks.forEach(t => {
-    statusCounts[t.status] = (statusCounts[t.status] || 0) + 1;
-  });
-
-  const barData = STATUS_ORDER
-    .filter(s => statusCounts[s])
-    .map(s => ({ name: s, value: statusCounts[s], fill: STATUS_CONFIG[s]?.color || '#64748b' }));
-
-  return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Icon size={14} className="text-[#3b82f6]" />
-          <div>
-            <h3 className="text-sm font-medium text-slate-900">{title}</h3>
-            <p className="text-[10px] text-slate-400">{subtitle}</p>
-          </div>
-        </div>
-        <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">{tasks.length}</span>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 mb-3">
-        <div className="bg-slate-50/80 rounded-lg p-2 text-center">
-          <div className="text-[10px] text-slate-400">Open</div>
-          <div className="text-lg font-bold font-mono text-[#3b82f6]">{open}</div>
-        </div>
-        <div className="bg-slate-50/80 rounded-lg p-2 text-center">
-          <div className="text-[10px] text-slate-400">In Progress</div>
-          <div className="text-lg font-bold font-mono text-[#f59e0b]">{inProgress}</div>
-        </div>
-        <div className="bg-slate-50/80 rounded-lg p-2 text-center">
-          <div className="text-[10px] text-slate-400">Completed</div>
-          <div className="text-lg font-bold font-mono text-[#22c55e]">{completed}</div>
-        </div>
-      </div>
-
-      {/* Avg per week */}
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="bg-slate-50/80 rounded-lg px-2.5 py-1.5 flex items-center justify-between">
-          <span className="text-[9px] text-slate-400">⌀ Erstellt/Wo</span>
-          <span className="text-xs font-bold font-mono text-[#3b82f6]">{avgCreatedWk}</span>
-        </div>
-        <div className="bg-slate-50/80 rounded-lg px-2.5 py-1.5 flex items-center justify-between">
-          <span className="text-[9px] text-slate-400">⌀ Erledigt/Wo</span>
-          <span className="text-xs font-bold font-mono text-[#22c55e]">{avgCompletedWk}</span>
-        </div>
-      </div>
-
-      {barData.length > 0 && (
-        <div className="h-[100px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={barData} margin={{ left: 0, right: 0, top: 5, bottom: 0 }}>
-              <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 9 }} />
-              <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} width={25} />
-              <Bar dataKey="value" radius={[3, 3, 0, 0]}>
-                {barData.map((entry, index) => (
-                  <Cell key={index} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </div>
-  );
-}

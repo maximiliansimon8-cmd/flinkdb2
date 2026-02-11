@@ -209,7 +209,7 @@ function mapTask(rec) {
   return {
     id: rec.id, airtable_id: rec.id,
     title: f['Task Title'] || null,
-    task_type: f['Task Type'] || [],
+    task_type: f['Partner'] || f['Task Type'] || [],
     status: f['Status'] || null,
     priority: f['Priority'] || null,
     due_date: f['Due Date'] || null,
@@ -441,7 +441,7 @@ export default async (request) => {
     // ═══ 3. AIRTABLE: Tasks ═══
     console.log('[sync] Fetching Tasks...');
     const taskRecords = await fetchAllAirtable(AIRTABLE_TOKEN, TASKS_TABLE, [
-      'Task Title', 'Task Type', 'Status', 'Priority', 'Due Date',
+      'Task Title', 'Task Type', 'Partner', 'Status', 'Priority', 'Due Date',
       'Description', 'Created time', 'Responsible User', 'Assigned',
       'Created by', 'Display ID (from Displays )', 'Location Name (from Locations)',
       'Overdue', 'completed_task_date', 'completed_task_by'
