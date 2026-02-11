@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Save, AlertCircle, Loader2, Search, MapPin, User, Building2, Briefcase } from 'lucide-react';
-import { fetchAllStammdaten } from '../utils/airtableService';
+import {
+  X, Save, AlertCircle, Loader2, Search, MapPin, User, Building2, Briefcase,
+  FileText, Paperclip, Calendar, Phone, Mail, Info, ExternalLink, Trash2,
+  ClipboardList,
+} from 'lucide-react';
+import { fetchAllStammdaten, fetchInstallationByDisplayId } from '../utils/airtableService';
 import { fetchAllUsers } from '../utils/authService';
 
 /* ──────────────────────── constants ──────────────────────── */
@@ -14,6 +18,139 @@ const PARTNERS = [
   'MediaAV',
   'DAYNMEDIA GmbH',
   'T-Ads / emetriq',
+];
+
+/* ── Task-Vorlagen / Templates ── */
+const TASK_TEMPLATES = [
+  {
+    id: 'display_stoerung',
+    label: 'Display-Störung',
+    title: 'Display-Störung – {standort}',
+    description: `Display zeigt kein Signal bzw. ist nicht erreichbar.
+
+Erforderliche Maßnahmen:
+- Stromversorgung überprüfen
+- Netzwerkverbindung testen (SIM / LAN)
+- Remote-Zugriff auf OPS prüfen
+- Bei Bedarf Techniker vor Ort beauftragen
+
+{details}`,
+    priority: 'High',
+  },
+  {
+    id: 'wartung',
+    label: 'Planmäßige Wartung',
+    title: 'Planmäßige Wartung – {standort}',
+    description: `Geplante Wartung am Standort.
+
+Wartungsumfang:
+- Hardware-Überprüfung (Screen, OPS, Verkabelung)
+- Kühlsystem / Lüftung kontrollieren
+- Software-/Firmware-Updates einspielen
+- Reinigung des Display-Gehäuses
+- Allgemeinen Zustand dokumentieren
+
+{details}`,
+    priority: 'Medium',
+  },
+  {
+    id: 'techniker_einsatz',
+    label: 'Techniker-Einsatz',
+    title: 'Techniker-Einsatz erforderlich – {standort}',
+    description: `Vor-Ort-Einsatz durch Techniker notwendig.
+
+Grund: [bitte ergänzen]
+
+Vorbereitung:
+- Termin mit Standort-Kontakt abstimmen
+- Zugangsinformationen prüfen
+- Benötigtes Material / Werkzeug klären
+
+{details}`,
+    priority: 'High',
+  },
+  {
+    id: 'display_austausch',
+    label: 'Display-Austausch',
+    title: 'Display-Austausch – {standort}',
+    description: `Austausch des Displays erforderlich.
+
+Grund: [bitte ergänzen]
+
+Vorbereitung:
+- Neues Display bestellen / bereitstellen
+- Techniker-Termin koordinieren
+- Rückgabe des defekten Displays organisieren
+
+{details}`,
+    priority: 'High',
+  },
+  {
+    id: 'netzwerk_problem',
+    label: 'Netzwerk / Konnektivität',
+    title: 'Netzwerkproblem – {standort}',
+    description: `Konnektivitätsproblem am Standort.
+
+Symptome:
+- Display meldet sich nicht / offline
+- Heartbeat ausgeblieben seit: [Datum]
+
+Zu prüfen:
+- SIM-Karte Status
+- Router / Switch vor Ort
+- Firewall-Regeln beim Standort-Betreiber
+- Ggf. alternative Verbindung (LAN ↔ SIM)
+
+{details}`,
+    priority: 'High',
+  },
+  {
+    id: 'content_update',
+    label: 'Content-Update',
+    title: 'Content-Update – {standort}',
+    description: `Neuer Content soll ausgespielt werden.
+
+Details:
+- Kampagne / Inhalt: [bitte ergänzen]
+- Gewünschter Starttermin: [Datum]
+- Laufzeit: [Zeitraum]
+
+{details}`,
+    priority: 'Medium',
+  },
+  {
+    id: 'installation_neu',
+    label: 'Neuinstallation',
+    title: 'Neuinstallation Display – {standort}',
+    description: `Neue Display-Installation am Standort.
+
+Checkliste:
+- Standort-Begehung durchgeführt
+- Stromanschluss vorhanden
+- Internetanschluss vorhanden (SIM / LAN)
+- Montageart festgelegt
+- Integrator beauftragt
+- Installationstermin: [Datum]
+
+{details}`,
+    priority: 'Medium',
+  },
+  {
+    id: 'reklamation',
+    label: 'Reklamation / Beschwerde',
+    title: 'Reklamation – {standort}',
+    description: `Reklamation / Beschwerde vom Standort-Betreiber.
+
+Anliegen: [bitte ergänzen]
+
+Sofortmaßnahmen:
+- Kontakt mit Standort aufnehmen
+- Problem dokumentieren
+- Lösungsvorschlag erarbeiten
+
+{details}`,
+    priority: 'High',
+  },
 ];
 
 const STATUS_OPTIONS = [
@@ -64,9 +201,17 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
   const [locationsLoading, setLocationsLoading] = useState(false);
   const [dashboardUsers, setDashboardUsers] = useState([]);
 
+  // Installation details (auto-loaded when location is selected)
+  const [installationData, setInstallationData] = useState(null);
+  const [installationLoading, setInstallationLoading] = useState(false);
+
+  // File attachments
+  const [pendingFiles, setPendingFiles] = useState([]);
+
   const backdropRef = useRef(null);
   const titleInputRef = useRef(null);
   const locationDropdownRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   /* Load locations & users when modal opens */
   useEffect(() => {
@@ -83,6 +228,9 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
       setLocationSearch('');
       setShowLocationDropdown(false);
       setAssignedUserId('');
+      setInstallationData(null);
+      setInstallationLoading(false);
+      setPendingFiles([]);
 
       // Load data (fetchAllUsers is async - loads from Supabase)
       fetchAllUsers()
@@ -153,6 +301,115 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
   const handleClearLocation = () => {
     setSelectedLocation(null);
     setLocationSearch('');
+    setInstallationData(null);
+  };
+
+  /* Fetch installation data when location is selected */
+  useEffect(() => {
+    if (!selectedLocation?.displayIds?.length) {
+      setInstallationData(null);
+      return;
+    }
+    setInstallationLoading(true);
+    fetchInstallationByDisplayId(selectedLocation.displayIds[0])
+      .then((data) => setInstallationData(data))
+      .catch(() => setInstallationData(null))
+      .finally(() => setInstallationLoading(false));
+  }, [selectedLocation]);
+
+  /* Format date as DD.MM.YYYY */
+  const formatDateDE = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+  };
+
+  /* Insert auto-details into description */
+  const handleInsertDetails = () => {
+    if (!selectedLocation) return;
+    const loc = selectedLocation;
+    const inst = installationData;
+
+    const lines = [];
+    lines.push(`📍 Standort: ${loc.name}`);
+    if (loc.city) {
+      const addr = [loc.street, loc.streetNumber].filter(Boolean).join(' ');
+      lines.push(`Adresse: ${addr ? addr + ', ' : ''}${loc.postalCode || ''} ${loc.city}`.trim());
+    }
+    if (loc.jetIds?.[0]) lines.push(`JET ID: ${loc.jetIds[0]}`);
+    if (loc.displayIds?.length) lines.push(`Display IDs: ${loc.displayIds.join(', ')}`);
+    if (loc.contactPerson) lines.push(`Kontakt: ${loc.contactPerson}`);
+    if (loc.contactPhone) lines.push(`Telefon: ${loc.contactPhone}`);
+    if (loc.contactEmail) lines.push(`E-Mail: ${loc.contactEmail}`);
+    if (inst?.installDate) lines.push(`Aufbaudatum: ${formatDateDE(inst.installDate)}`);
+    if (inst?.status) lines.push(`Installations-Status: ${inst.status}`);
+    if (inst?.integrator) lines.push(`Integrator: ${inst.integrator}`);
+    if (inst?.protocol?.[0]?.url) lines.push(`Protokoll: ${inst.protocol[0].url}`);
+    if (loc.leadStatus?.length) lines.push(`Akquise-Status: ${loc.leadStatus.join(', ')}`);
+
+    const block = lines.join('\n');
+    setDescription((prev) => (prev ? prev + '\n\n---\n' + block : block));
+  };
+
+  /* File handling */
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    const valid = files.filter((f) => f.size <= 10 * 1024 * 1024); // Max 10MB
+    if (valid.length < files.length) {
+      alert('Dateien über 10 MB werden übersprungen.');
+    }
+    setPendingFiles((prev) => [...prev, ...valid]);
+    e.target.value = ''; // Reset input
+  };
+
+  const removePendingFile = (index) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  /* Apply a task template */
+  const handleApplyTemplate = (templateId) => {
+    if (!templateId) return;
+    const tmpl = TASK_TEMPLATES.find((t) => t.id === templateId);
+    if (!tmpl) return;
+
+    const standortName = selectedLocation?.name || '[Standort auswählen]';
+
+    // Build details block from location + installation
+    const detailLines = [];
+    if (selectedLocation) {
+      const loc = selectedLocation;
+      const inst = installationData;
+      if (loc.city) {
+        const addr = [loc.street, loc.streetNumber].filter(Boolean).join(' ');
+        detailLines.push(`Adresse: ${addr ? addr + ', ' : ''}${loc.postalCode || ''} ${loc.city}`.trim());
+      }
+      if (loc.jetIds?.[0]) detailLines.push(`JET ID: ${loc.jetIds[0]}`);
+      if (loc.displayIds?.length) detailLines.push(`Display IDs: ${loc.displayIds.join(', ')}`);
+      if (loc.contactPerson) detailLines.push(`Kontakt: ${loc.contactPerson}`);
+      if (loc.contactPhone) detailLines.push(`Telefon: ${loc.contactPhone}`);
+      if (inst?.installDate) detailLines.push(`Aufbaudatum: ${formatDateDE(inst.installDate)}`);
+      if (inst?.integrator) detailLines.push(`Integrator: ${inst.integrator}`);
+      if (inst?.screenType) detailLines.push(`Screen: ${inst.screenType}${inst.screenSize ? ` (${inst.screenSize})` : ''}`);
+      if (inst?.opsNr) detailLines.push(`OPS Nr: ${inst.opsNr}`);
+      if (inst?.simId) detailLines.push(`SIM-ID: ${inst.simId}`);
+      if (inst?.protocol?.[0]?.url) detailLines.push(`Protokoll: ${inst.protocol[0].url}`);
+    }
+
+    const detailsBlock = detailLines.length > 0
+      ? '--- Standort-Info ---\n' + detailLines.join('\n')
+      : '';
+
+    setTitle(tmpl.title.replace('{standort}', standortName));
+    setDescription(tmpl.description.replace('{details}', detailsBlock).trim());
+    setPriority(tmpl.priority || 'Medium');
+    setErrors({});
   };
 
   /* Validate & submit */
@@ -193,12 +450,18 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
       taskData.locations = [selectedLocation.id];
     }
 
-    // Add assigned user name (for display / matching)
+    // Add assigned user (name for display, email for Airtable Collaborator field)
     if (assignedUserId) {
       const user = dashboardUsers.find((u) => u.id === assignedUserId);
       if (user) {
         taskData.assignedUserName = user.name;
+        taskData.assignedUserEmail = user.email;
       }
+    }
+
+    // Include pending files for upload
+    if (pendingFiles.length > 0) {
+      taskData.pendingFiles = pendingFiles;
     }
 
     onSave(taskData);
@@ -239,6 +502,27 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* ── Vorlage / Template Selector ── */}
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+              <ClipboardList size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+              Vorlage verwenden
+            </label>
+            <select
+              onChange={(e) => {
+                handleApplyTemplate(e.target.value);
+                e.target.value = ''; // reset select after applying
+              }}
+              className="w-full appearance-none px-3 py-2.5 bg-gradient-to-r from-slate-50/80 to-[#3b82f6]/[0.03] border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+            >
+              <option value="">– Vorlage auswählen (optional) –</option>
+              {TASK_TEMPLATES.map((t) => (
+                <option key={t.id} value={t.id}>{t.label}</option>
+              ))}
+            </select>
+            <p className="text-[9px] text-slate-400 mt-1">Füllt Titel, Beschreibung & Priorität automatisch aus</p>
+          </div>
+
           {/* Title */}
           <div>
             <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
@@ -484,18 +768,86 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
             />
           </div>
 
-          {/* Description */}
+          {/* Description + Auto-Details */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              Beschreibung
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[11px] font-medium text-slate-600">
+                Beschreibung
+              </label>
+              {selectedLocation && (
+                <button
+                  type="button"
+                  onClick={handleInsertDetails}
+                  disabled={installationLoading}
+                  className="inline-flex items-center gap-1 text-[10px] font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors disabled:opacity-50"
+                >
+                  {installationLoading ? (
+                    <Loader2 size={10} className="animate-spin" />
+                  ) : (
+                    <Info size={10} />
+                  )}
+                  Standort-Details einfügen
+                </button>
+              )}
+            </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              rows={description.split('\n').length > 4 ? 8 : 3}
               placeholder="Optionale Beschreibung der Aufgabe..."
               className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors resize-none"
             />
+          </div>
+
+          {/* ── Anhänge / Attachments ── */}
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+              <Paperclip size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+              Anhänge
+            </label>
+
+            {/* File list */}
+            {pendingFiles.length > 0 && (
+              <div className="space-y-1.5 mb-2">
+                {pendingFiles.map((file, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50/80 border border-slate-200/60 rounded-lg"
+                  >
+                    <FileText size={13} className="text-[#3b82f6] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] font-medium text-slate-900 truncate">{file.name}</div>
+                      <div className="text-[9px] text-slate-400">{formatFileSize(file.size)}</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removePendingFile(i)}
+                      className="p-0.5 rounded hover:bg-slate-100/60 text-slate-400 hover:text-[#ef4444] transition-colors"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50/80 border border-dashed border-slate-300/60 rounded-lg text-[10px] font-medium text-slate-500 hover:text-[#3b82f6] hover:border-[#3b82f6]/40 transition-colors"
+            >
+              <Paperclip size={11} />
+              Datei anfügen
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              hidden
+              onChange={handleFileSelect}
+              accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv,.txt"
+            />
+            <p className="text-[9px] text-slate-400 mt-1">Max. 10 MB pro Datei · Bilder, PDF, Office-Dokumente</p>
           </div>
         </form>
 

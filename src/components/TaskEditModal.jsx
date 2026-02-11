@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Save, Trash2, AlertCircle, Loader2, Search, MapPin, User, Building2, Briefcase } from 'lucide-react';
-import { fetchAllStammdaten } from '../utils/airtableService';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  X, Save, Trash2, AlertCircle, Loader2, Search, MapPin, User, Building2, Briefcase,
+  ChevronDown, ChevronUp, Calendar, Phone, Mail, FileText, ExternalLink, Download,
+  Info, Wrench, Paperclip,
+} from 'lucide-react';
+import { fetchAllStammdaten, fetchInstallationByDisplayId } from '../utils/airtableService';
 import { fetchAllUsers, getAllUsers } from '../utils/authService';
 
 const STATUS_OPTIONS = ['New', 'In Progress', 'Follow Up', 'On Hold', 'In Review', 'Completed'];
@@ -16,6 +20,14 @@ const PARTNERS = [
   'T-Ads / emetriq',
 ];
 
+/* ── Helper: format date as DD.MM.YYYY ── */
+function formatDateDE(dateStr) {
+  if (!dateStr) return '–';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+}
+
 export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task, loading }) {
   const [title, setTitle] = useState('');
   const [partner, setPartner] = useState('');
@@ -25,7 +37,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
   const [description, setDescription] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // New fields
+  // Location & user fields
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -35,6 +47,14 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
   const [locations, setLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
   const [dashboardUsers, setDashboardUsers] = useState([]);
+
+  // Installation details for info box
+  const [installationData, setInstallationData] = useState(null);
+  const [installationLoading, setInstallationLoading] = useState(false);
+  const [showInfoBox, setShowInfoBox] = useState(false);
+
+  // Existing attachments from task
+  const [existingAttachments, setExistingAttachments] = useState([]);
 
   const locationDropdownRef = useRef(null);
 
@@ -50,12 +70,15 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
       setShowDeleteConfirm(false);
       setLocationSearch('');
       setShowLocationDropdown(false);
+      setInstallationData(null);
+      setInstallationLoading(false);
+      setShowInfoBox(false);
+      setExistingAttachments(task.attachments || []);
 
       // Load data sources (fetchAllUsers is async - loads from Supabase)
       fetchAllUsers()
         .then((users) => {
           setDashboardUsers(users || []);
-          // Pre-select assigned user after users are loaded
           if (task.responsibleUser) {
             const match = (users || []).find((u) => u.name === task.responsibleUser);
             setAssignedUserId(match?.id || '');
@@ -69,7 +92,6 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
       fetchAllStammdaten()
         .then((data) => {
           setLocations(data);
-
           // Try to pre-select location from task data
           if (task.locationIds && task.locationIds.length > 0) {
             const match = data.find((loc) => task.locationIds.includes(loc.id));
@@ -98,6 +120,19 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
       }
     }
   }, [task, isOpen]);
+
+  /* Fetch installation data when location is selected */
+  useEffect(() => {
+    if (!selectedLocation?.displayIds?.length) {
+      setInstallationData(null);
+      return;
+    }
+    setInstallationLoading(true);
+    fetchInstallationByDisplayId(selectedLocation.displayIds[0])
+      .then((data) => setInstallationData(data))
+      .catch(() => setInstallationData(null))
+      .finally(() => setInstallationLoading(false));
+  }, [selectedLocation]);
 
   /* Close location dropdown on outside click */
   useEffect(() => {
@@ -135,6 +170,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
   const handleClearLocation = () => {
     setSelectedLocation(null);
     setLocationSearch('');
+    setInstallationData(null);
   };
 
   const handleSave = () => {
@@ -152,11 +188,11 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
       updatedFields['Locations'] = [selectedLocation.id];
     }
 
-    // Assigned user
+    // Assigned user – Collaborator field needs { email: "..." }
     if (assignedUserId) {
       const user = dashboardUsers.find((u) => u.id === assignedUserId);
-      if (user) {
-        updatedFields['Responsible User'] = user.name;
+      if (user?.email) {
+        updatedFields['Responsible User'] = { email: user.email };
       }
     }
 
@@ -176,6 +212,15 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
       onClose();
     }
   };
+
+  /* Check if there's location info to show */
+  const hasLocationInfo = selectedLocation && (
+    selectedLocation.contactPerson ||
+    selectedLocation.contactPhone ||
+    selectedLocation.contactEmail ||
+    selectedLocation.city ||
+    installationData
+  );
 
   return (
     <div
@@ -373,6 +418,125 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
             )}
           </div>
 
+          {/* ═══════ STANDORT INFO-BOX (collapsible) ═══════ */}
+          {hasLocationInfo && (
+            <div className="border border-[#3b82f6]/20 rounded-xl overflow-hidden">
+              {/* Toggle header */}
+              <button
+                type="button"
+                onClick={() => setShowInfoBox(!showInfoBox)}
+                className="w-full flex items-center gap-2 px-3 py-2 bg-[#3b82f6]/5 hover:bg-[#3b82f6]/10 transition-colors text-left"
+              >
+                <Info size={12} className="text-[#3b82f6] shrink-0" />
+                <span className="text-[10px] font-medium text-[#3b82f6] flex-1">
+                  Standort-Details
+                  {installationLoading && <Loader2 size={10} className="inline ml-1 animate-spin" />}
+                </span>
+                {showInfoBox ? (
+                  <ChevronUp size={12} className="text-[#3b82f6]" />
+                ) : (
+                  <ChevronDown size={12} className="text-[#3b82f6]" />
+                )}
+              </button>
+
+              {/* Expandable content */}
+              {showInfoBox && (
+                <div className="px-3 py-3 space-y-3 bg-[#3b82f6]/[0.02]">
+                  {/* Location info */}
+                  <div className="space-y-1.5">
+                    {selectedLocation.city && (
+                      <InfoRow
+                        icon={<MapPin size={10} />}
+                        label="Adresse"
+                        value={`${[selectedLocation.street, selectedLocation.streetNumber].filter(Boolean).join(' ')}${selectedLocation.street ? ', ' : ''}${selectedLocation.postalCode || ''} ${selectedLocation.city}`.trim()}
+                      />
+                    )}
+                    {selectedLocation.jetIds?.[0] && (
+                      <InfoRow
+                        icon={<span className="text-[8px] font-bold">ID</span>}
+                        label="JET ID"
+                        value={selectedLocation.jetIds[0]}
+                        mono
+                      />
+                    )}
+                    {selectedLocation.displayIds?.length > 0 && (
+                      <InfoRow
+                        icon={<span className="text-[8px] font-bold">D</span>}
+                        label="Displays"
+                        value={selectedLocation.displayIds.join(', ')}
+                        mono
+                      />
+                    )}
+                  </div>
+
+                  {/* Contact info */}
+                  {(selectedLocation.contactPerson || selectedLocation.contactPhone || selectedLocation.contactEmail) && (
+                    <div className="pt-2 border-t border-[#3b82f6]/10 space-y-1.5">
+                      <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">Kontakt</div>
+                      {selectedLocation.contactPerson && (
+                        <InfoRow icon={<User size={10} />} label="Person" value={selectedLocation.contactPerson} />
+                      )}
+                      {selectedLocation.contactPhone && (
+                        <InfoRow icon={<Phone size={10} />} label="Telefon" value={selectedLocation.contactPhone} />
+                      )}
+                      {selectedLocation.contactEmail && (
+                        <InfoRow icon={<Mail size={10} />} label="E-Mail" value={selectedLocation.contactEmail} />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Installation info */}
+                  {installationData && (
+                    <div className="pt-2 border-t border-[#3b82f6]/10 space-y-1.5">
+                      <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">Installation</div>
+                      {installationData.installDate && (
+                        <InfoRow icon={<Calendar size={10} />} label="Aufbaudatum" value={formatDateDE(installationData.installDate)} />
+                      )}
+                      {installationData.status && (
+                        <InfoRow icon={<Info size={10} />} label="Status" value={installationData.status} />
+                      )}
+                      {installationData.integrator && (
+                        <InfoRow icon={<Wrench size={10} />} label="Integrator" value={installationData.integrator} />
+                      )}
+                      {installationData.screenType && (
+                        <InfoRow icon={<span className="text-[8px]">📺</span>} label="Screen" value={`${installationData.screenType}${installationData.screenSize ? ` (${installationData.screenSize})` : ''}`} />
+                      )}
+                      {installationData.protocol?.[0]?.url && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 flex items-center justify-center text-slate-400"><FileText size={10} /></div>
+                          <a
+                            href={installationData.protocol[0].url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors"
+                          >
+                            <Download size={9} />
+                            {installationData.protocol[0].filename || 'Installationsprotokoll'}
+                            <ExternalLink size={8} className="opacity-50" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Lead status */}
+                  {selectedLocation.leadStatus?.length > 0 && (
+                    <div className="pt-2 border-t border-[#3b82f6]/10">
+                      <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1">Akquise-Status</div>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedLocation.leadStatus.map((s, i) => (
+                          <span key={i} className="text-[9px] px-1.5 py-0.5 bg-[#3b82f6]/10 text-[#3b82f6] rounded font-medium">
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ── Zuständig / Assigned User ── */}
           <div>
             <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
@@ -420,10 +584,52 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Beschreibung der Aufgabe..."
-              rows={3}
+              rows={description.split('\n').length > 4 ? 8 : 3}
               className="w-full px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors resize-none"
             />
           </div>
+
+          {/* ── Existing Attachments ── */}
+          {existingAttachments.length > 0 && (
+            <div>
+              <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+                <Paperclip size={10} className="inline -mt-0.5 mr-1" />
+                Anhänge ({existingAttachments.length})
+              </label>
+              <div className="space-y-1.5">
+                {existingAttachments.map((att, i) => (
+                  <a
+                    key={i}
+                    href={att.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50/80 border border-slate-200/60 rounded-lg hover:border-[#3b82f6]/40 transition-colors group"
+                  >
+                    {att.type?.startsWith('image/') ? (
+                      <img
+                        src={att.thumbnails?.small?.url || att.url}
+                        alt={att.filename}
+                        className="w-8 h-8 rounded object-cover shrink-0"
+                      />
+                    ) : (
+                      <FileText size={14} className="text-[#3b82f6] shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] font-medium text-slate-900 truncate group-hover:text-[#3b82f6] transition-colors">
+                        {att.filename || 'Datei'}
+                      </div>
+                      {att.size > 0 && (
+                        <div className="text-[9px] text-slate-400">
+                          {att.size < 1024 * 1024 ? `${(att.size / 1024).toFixed(0)} KB` : `${(att.size / (1024 * 1024)).toFixed(1)} MB`}
+                        </div>
+                      )}
+                    </div>
+                    <ExternalLink size={10} className="text-slate-300 group-hover:text-[#3b82f6] transition-colors shrink-0" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -492,6 +698,20 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Small reusable info row component ── */
+function InfoRow({ icon, label, value, mono = false }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-start gap-2">
+      <div className="w-4 flex items-center justify-center text-slate-400 mt-0.5 shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <div className="text-[9px] text-slate-400">{label}</div>
+        <div className={`text-[10px] text-slate-700 ${mono ? 'font-mono' : ''} break-all`}>{value}</div>
       </div>
     </div>
   );

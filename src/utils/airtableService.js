@@ -280,6 +280,7 @@ function mapTaskFromSupabase(row) {
     overdue: row.overdue || '',
     completedDate: row.completed_date || null,
     completedBy: row.completed_by || '',
+    attachments: row.attachments || [],
   };
 }
 
@@ -412,7 +413,10 @@ export async function createTask(taskData) {
       const validLocIds = taskData.locations.filter(id => typeof id === 'string' && id.startsWith('rec'));
       if (validLocIds.length > 0) fields['Locations'] = validLocIds;
     }
-    if (taskData.assignedUserName) fields['Responsible User'] = taskData.assignedUserName;
+    // Responsible User is a Collaborator field – must send { email: "..." }
+    if (taskData.assignedUserEmail) {
+      fields['Responsible User'] = { email: taskData.assignedUserEmail };
+    }
 
     const url = `${AIRTABLE_BASE}/${BASE_ID}/${TASKS_TABLE}`;
     const response = await fetch(url, airtableWriteOptions('POST', { fields }));
@@ -536,6 +540,13 @@ function syncTaskToSupabase(airtableRecord, partnerName) {
     overdue: f['Overdue'] || null,
     completed_date: f['completed_task_date'] || null,
     completed_by: f['completed_task_by'] || null,
+    attachments: Array.isArray(f['Attachments'])
+      ? f['Attachments'].map(att => ({
+          url: att.url || '', filename: att.filename || '',
+          size: att.size || 0, type: att.type || '',
+          id: att.id || '', thumbnails: att.thumbnails || null,
+        }))
+      : [],
     updated_at: new Date().toISOString(),
   }, { onConflict: 'airtable_id' })
     .then(() => console.log('[sync] Task synced to Supabase:', airtableRecord.id))

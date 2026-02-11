@@ -224,6 +224,16 @@ function mapTask(rec) {
     overdue: f['Overdue'] || null,
     completed_date: f['completed_task_date'] || null,
     completed_by: f['completed_task_by'] || null,
+    attachments: Array.isArray(f['Attachments'])
+      ? f['Attachments'].map(att => ({
+          url: att.url || '',
+          filename: att.filename || '',
+          size: att.size || 0,
+          type: att.type || '',
+          id: att.id || '',
+          thumbnails: att.thumbnails || null,
+        }))
+      : [],
     updated_at: new Date().toISOString(),
   };
 }
@@ -445,7 +455,7 @@ export default async (request) => {
       'Task Title', 'Task Type', 'Partner', 'Company (from Partner)', 'Status', 'Priority', 'Due Date',
       'Description', 'Created time', 'Responsible User', 'Assigned',
       'Created by', 'Display ID (from Displays )', 'Location Name (from Locations)',
-      'Overdue', 'completed_task_date', 'completed_task_by'
+      'Overdue', 'completed_task_date', 'completed_task_by', 'Attachments'
     ]);
     const taskRows = taskRecords.map(mapTask);
     results.tasks = {
