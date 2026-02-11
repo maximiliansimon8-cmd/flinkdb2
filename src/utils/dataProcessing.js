@@ -592,7 +592,7 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
         trendData.reduce((sum, s) => sum + (s.warningCount || 0), 0) / trendData.length
       );
       avgCritical = Math.round(
-        trendData.reduce((sum, s) => sum + (s.criticalCount || 0), 0) / trendData.length
+        trendData.reduce((sum, s) => sum + (s.criticalCount || 0) + (s.permanentOfflineCount || 0), 0) / trendData.length
       );
       avgPermanentOffline = Math.round(
         trendData.reduce((sum, s) => sum + (s.permanentOfflineCount || 0), 0) / trendData.length
