@@ -19,6 +19,7 @@ import { supabase } from './authService';
 const BASE_ID = 'apppFUWK829K6B3R2';
 const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
 const ACTIVITY_LOG_TABLE = 'tblDk1dl4J3Ow3Qde';
+const PARTNERS_TABLE = 'Partners'; // Uses table name (Airtable also accepts names)
 
 // Proxy endpoint – both dev (Vite) and prod (Netlify Function)
 const AIRTABLE_BASE = '/api/airtable';
@@ -37,6 +38,8 @@ const cache = {
   allStammdatenTimestamp: null,
   allCommunications: null,
   allCommunicationsTimestamp: null,
+  partners: null,               // { name → recordId } mapping
+  partnersTimestamp: null,
 };
 
 const CACHE_TTL = 1 * 60 * 1000; // 1 minute – other teams work on Airtable, keep data fresh
@@ -349,14 +352,49 @@ function airtableWriteOptions(method, body) {
 }
 
 /**
+ * Fetch partner records from Airtable to get name → record ID mapping.
+ * Used for linked record fields in Tasks.
+ */
+export async function fetchPartners() {
+  if (cache.partners && cache.partnersTimestamp && Date.now() - cache.partnersTimestamp < 5 * 60 * 1000) {
+    return cache.partners;
+  }
+  try {
+    const url = `${AIRTABLE_BASE}/${BASE_ID}/${encodeURIComponent(PARTNERS_TABLE)}?fields%5B%5D=Company`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Partner fetch failed: ${res.status}`);
+    const data = await res.json();
+    const map = {};
+    (data.records || []).forEach(rec => {
+      const name = rec.fields?.Company;
+      if (name) map[name] = rec.id;
+    });
+    cache.partners = map;
+    cache.partnersTimestamp = Date.now();
+    return map;
+  } catch (err) {
+    console.error('[fetchPartners] Error:', err);
+    return cache.partners || {};
+  }
+}
+
+/**
  * Create a new Task in Airtable (then sync to Supabase).
  */
 export async function createTask(taskData) {
   try {
     const fields = {};
     if (taskData.title) fields['Task Title'] = taskData.title;
-    // Partner is stored locally; we also try to send it to Airtable if the field exists
-    if (taskData.partner) fields['Partner'] = taskData.partner;
+
+    // Partner: resolve name to Airtable record ID (linked record field)
+    if (taskData.partner) {
+      const partnerMap = await fetchPartners();
+      const partnerId = partnerMap[taskData.partner];
+      if (partnerId) {
+        fields['Partner'] = [partnerId]; // Linked record expects array of IDs
+      }
+    }
+
     if (taskData.status) fields['Status'] = taskData.status;
     if (taskData.priority) fields['Priority'] = taskData.priority;
     // Validate date before sending to Airtable (must be YYYY-MM-DD or empty)
@@ -393,8 +431,8 @@ export async function createTask(taskData) {
 
     const data = await response.json();
 
-    // Sync to Supabase (fire-and-forget)
-    syncTaskToSupabase(data);
+    // Sync to Supabase (fire-and-forget), pass partner name for display
+    syncTaskToSupabase(data, taskData.partner);
 
     // Invalidate cache
     cache.allTasks = null;
@@ -470,18 +508,21 @@ export async function deleteTask(recordId) {
  * Sync a single Airtable task record to Supabase (fire-and-forget).
  * Called after create/update to keep Supabase in sync.
  */
-function syncTaskToSupabase(airtableRecord) {
+function syncTaskToSupabase(airtableRecord, partnerName) {
   if (!airtableRecord?.id) return;
   const f = airtableRecord.fields || {};
   const assigned = Array.isArray(f['Assigned'])
     ? f['Assigned'].map(a => typeof a === 'object' ? a.name : a).filter(Boolean)
     : [];
 
+  // Resolve partner: use passed name, or try to extract from Airtable fields
+  const resolvedPartner = partnerName || f['Company (from Partner)'] || f['Partner'] || f['Task Type'] || [];
+
   supabase.from('tasks').upsert({
     id: airtableRecord.id,
     airtable_id: airtableRecord.id,
     title: f['Task Title'] || null,
-    task_type: f['Partner'] || f['Task Type'] || [],
+    task_type: resolvedPartner,
     status: f['Status'] || null,
     priority: f['Priority'] || null,
     due_date: f['Due Date'] || null,
