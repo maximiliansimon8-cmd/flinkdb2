@@ -350,7 +350,9 @@ export async function createTask(taskData) {
   try {
     const fields = {};
     if (taskData.title) fields['Task Title'] = taskData.title;
-    if (taskData.type && taskData.type.length > 0) fields['Task Type'] = taskData.type;
+    // Note: Task Type is NOT sent to Airtable – the API token lacks permission
+    // to create new select options. The type is kept in the UI for future use
+    // once the Airtable base has the options pre-configured.
     if (taskData.status) fields['Status'] = taskData.status;
     if (taskData.priority) fields['Priority'] = taskData.priority;
     // Validate date before sending to Airtable (must be YYYY-MM-DD or empty)
@@ -363,7 +365,11 @@ export async function createTask(taskData) {
     }
     if (taskData.description) fields['Description'] = taskData.description;
     if (taskData.displays && taskData.displays.length > 0) fields['Displays'] = taskData.displays;
-    if (taskData.locations && taskData.locations.length > 0) fields['Locations'] = taskData.locations;
+    // Only send Locations if they are valid Airtable record IDs (start with "rec")
+    if (taskData.locations && taskData.locations.length > 0) {
+      const validLocIds = taskData.locations.filter(id => typeof id === 'string' && id.startsWith('rec'));
+      if (validLocIds.length > 0) fields['Locations'] = validLocIds;
+    }
     if (taskData.assignedUserName) fields['Responsible User'] = taskData.assignedUserName;
 
     const url = `${AIRTABLE_BASE}/${BASE_ID}/${TASKS_TABLE}`;

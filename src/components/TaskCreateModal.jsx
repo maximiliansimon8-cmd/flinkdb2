@@ -142,6 +142,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
     setSelectedLocation(loc);
     setLocationSearch('');
     setShowLocationDropdown(false);
+    if (errors.location) setErrors((prev) => ({ ...prev, location: null }));
   };
 
   /* Clear location */
@@ -152,11 +153,14 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
   /* Validate & submit */
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
     const newErrors = {};
     if (!title.trim()) {
       newErrors.title = 'Titel ist erforderlich';
+    }
+    if (!selectedLocation) {
+      newErrors.location = 'Standort / Partner ist erforderlich';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -169,9 +173,13 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
       type,
       status,
       priority,
-      dueDate,
       description: description.trim(),
     };
+
+    // Only include dueDate if set (HTML date input gives YYYY-MM-DD)
+    if (dueDate) {
+      taskData.dueDate = dueDate;
+    }
 
     // Add location (Airtable record ID for linked record)
     if (selectedLocation) {
@@ -352,7 +360,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
           <div ref={locationDropdownRef} className="relative">
             <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
               <MapPin size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
-              Standort / Partner
+              Standort / Partner <span className="text-[#ef4444]">*</span>
             </label>
 
             {selectedLocation ? (
@@ -435,6 +443,13 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                     </button>
                   ))
                 )}
+              </div>
+            )}
+
+            {errors.location && (
+              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
+                <AlertCircle size={11} />
+                <span className="text-[10px]">{errors.location}</span>
               </div>
             )}
           </div>

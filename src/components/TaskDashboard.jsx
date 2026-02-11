@@ -105,9 +105,7 @@ export default function TaskDashboard() {
     setLoading(true);
     setError(null);
     try {
-      console.log('[TaskDashboard] Loading tasks...');
       const data = await fetchAllTasks();
-      console.log('[TaskDashboard] Got tasks:', data.length, data.slice(0, 2));
       setTasks(data);
     } catch (err) {
       console.error('[TaskDashboard] Error:', err);
@@ -132,9 +130,11 @@ export default function TaskDashboard() {
         setShowCreateModal(false);
         setCreateError(null);
         await loadTasks();
+      } else {
+        setCreateError('Task konnte nicht erstellt werden. Bitte versuche es erneut.');
       }
     } catch (err) {
-      console.error('Create task error:', err);
+      console.error('[TaskDashboard] Create task error:', err);
       setCreateError(err.message || 'Fehler beim Erstellen des Tasks');
     } finally {
       setModalLoading(false);
