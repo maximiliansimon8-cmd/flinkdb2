@@ -371,15 +371,13 @@ export default async (request, context) => {
       }
 
       // 2. Query Airtable for records matching this city
-      //    Include records that are ready_for_installation OR have bookings
-      const filterFormula = `OR({City}='${city.replace(/'/g, "\\'")}', {ready_for_installation}=TRUE())`;
+      //    Real values: Lead_Status="Won / Signed", approval_status="Accepted"
       let akquiseRecords = [];
       if (AIRTABLE_TOKEN) {
         try {
-          // Use a city-specific filter to be more targeted
-          const cityFilter = `{City}='${city.replace(/'/g, "\\'")}')`;
+          // Fetch all Won/Signed records for this city
           const rawRecords = await fetchAkquiseRecords(
-            `AND({City}='${city.replace(/'/g, "\\'")}', OR({ready_for_installation}=TRUE(), {Lead_Status}='Ready for Install'))`,
+            `AND({City}='${city.replace(/'/g, "\\'")}', {Lead_Status}='Won / Signed')`,
             500
           );
           akquiseRecords = rawRecords.map(transformAkquiseRecord);

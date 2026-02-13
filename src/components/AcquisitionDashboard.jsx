@@ -76,13 +76,12 @@ const recordIsApproved = (r) => {
   const ls = r.leadStatus || '';
   // Direct lead status match (definitive)
   if (ls === 'Approved' || ls === 'Ready for Install' || ls === 'Installation' || ls === 'Live') return true;
-  // readyForInstallation flag is a clear boolean indicator
-  if (r.readyForInstallation) return true;
-  // approvalStatus must be a positive value (not just "any string")
-  // Common positive values: "Approved", "Genehmigt", etc.
-  // We exclude empty, "Pending", "Nicht Genehmigt", etc.
+  // readyForInstallation flag — Airtable value is "checked" (string) or boolean true
+  if (r.readyForInstallation === true || r.readyForInstallation === 'checked' || r.readyForInstallation === 'true') return true;
+  // approvalStatus — real Airtable values: "Accepted", "Rejected", "In review", "Info required"
+  // Only "Accepted" means truly approved
   const as = (r.approvalStatus || '').toLowerCase();
-  if (as && as !== 'pending' && as !== 'nicht genehmigt' && as !== 'abgelehnt' && as !== 'unbekannt') return true;
+  if (as === 'accepted' || as === 'approved' || as === 'genehmigt') return true;
   return false;
 };
 

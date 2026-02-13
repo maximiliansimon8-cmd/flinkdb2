@@ -102,8 +102,12 @@ export default function InstallationExecutiveDashboard() {
 
     // Helper: is this ready for installation?
     const isReady = (a) => {
-      if (a.readyForInstallation === true || a.readyForInstallation === 'true') return true;
+      // Airtable: readyForInstallation = "checked" or boolean true
+      if (a.readyForInstallation === true || a.readyForInstallation === 'checked' || a.readyForInstallation === 'true') return true;
+      // Won / Signed + Accepted = ready
       const ls = (a.leadStatus || '').toLowerCase();
+      const as = (a.approvalStatus || '').toLowerCase();
+      if ((ls === 'won / signed' || ls === 'won/signed') && as === 'accepted') return true;
       return ls.includes('ready') || ls.includes('installation');
     };
 

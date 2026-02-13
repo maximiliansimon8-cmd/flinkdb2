@@ -298,10 +298,13 @@ export default function InstallationInviteManager() {
 
   // Helper: is this record actually ready for installation?
   const isReadyForInstall = (a) => {
-    // Explicit flag
-    if (a.readyForInstallation === true || a.readyForInstallation === 'true') return true;
-    // Or lead status indicates readiness
+    // Airtable: readyForInstallation = "checked" or boolean true
+    if (a.readyForInstallation === true || a.readyForInstallation === 'checked' || a.readyForInstallation === 'true') return true;
+    // Won / Signed + Accepted = ready
     const ls = (a.leadStatus || '').toLowerCase();
+    const as = (a.approvalStatus || '').toLowerCase();
+    if ((ls === 'won / signed' || ls === 'won/signed') && as === 'accepted') return true;
+    // Legacy status indicators
     if (ls.includes('ready') || ls.includes('installation')) return true;
     return false;
   };

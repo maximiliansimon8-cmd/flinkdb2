@@ -540,8 +540,9 @@ function BoolIndicator({ label, value, description }) {
    ================================================================= */
 
 function ApprovalRow({ label, status, comment }) {
-  const isApproved = status === 'approved' || status === 'Ja' || status === 'ja' || status === true;
-  const isRejected = status === 'rejected' || status === 'Nein' || status === 'nein' || status === false;
+  const s = (status || '').toLowerCase();
+  const isApproved = s === 'approved' || s === 'accepted' || s === 'ja' || status === true;
+  const isRejected = s === 'rejected' || s === 'nein' || s === 'abgelehnt' || status === false;
   const isPending = !isApproved && !isRejected;
 
   const colorClass = isApproved
