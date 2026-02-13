@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Send,
   Phone,
+  Building2,
   LogOut,
   Loader2,
   Lock,
@@ -39,6 +40,7 @@ const InstallationInviteManager = lazy(() =>
   import('../src/components/InstallationInviteManager')
 );
 const PhoneAcquisitionTab = lazy(() => import('./PhoneAcquisitionTab'));
+const LocationDetailTab = lazy(() => import('./LocationDetailTab'));
 
 /* ═══════════════════════════════════════════
    TAB DEFINITIONS
@@ -74,6 +76,12 @@ const TABS = [
     label: 'Telefonakquise',
     icon: Phone,
     component: PhoneAcquisitionTab,
+  },
+  {
+    id: 'details',
+    label: 'Aufbau-Details',
+    icon: Building2,
+    component: LocationDetailTab,
   },
 ];
 

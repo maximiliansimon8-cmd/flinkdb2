@@ -16,6 +16,8 @@
 /api/install-booker/invite   /.netlify/functions/install-booker-invite   200!
 /api/install-booker/slots    /.netlify/functions/install-booker-slots    200!
 /api/install-booker/book     /.netlify/functions/install-booker-book     200!
+/api/install-booker/detail   /.netlify/functions/install-booker-detail   200!
+/api/install-booker/detail/* /.netlify/functions/install-booker-detail   200!
 /api/install-booker/status   /.netlify/functions/install-booker-status   200!
 /api/install-booker/status/* /.netlify/functions/install-booker-status   200!
 
