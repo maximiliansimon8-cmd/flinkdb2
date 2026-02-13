@@ -8,23 +8,23 @@
  */
 
 import { logApiCall, logApiCalls, estimateAirtableCost } from './shared/apiLogger.js';
+import {
+  AIRTABLE_BASE, TABLES, FETCH_FIELDS, SHEET_CSV_URL,
+} from './shared/airtableFields.js';
 
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const STAMMDATEN_TABLE = 'tblLJ1S7OUhc2w5Jw';
-const DISPLAYS_TABLE = 'tblS6cWN7uEhZHcie';
-const DAYN_SCREENS_TABLE = 'Dayn Screens';  // Airtable accepts table names
-const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
-const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
-const ACTIVITY_LOG_TABLE = 'tblDk1dl4J3Ow3Qde';
-const OPS_INVENTORY_TABLE = 'tbl7szvfLUjsUvMkH';
-const SIM_INVENTORY_TABLE = 'tblaV4UQX6hhcSDAj';
-const DISPLAY_INVENTORY_TABLE = 'tblaMScl3j45Q4Dtc';
-const CHG_APPROVAL_TABLE = 'tblvj4qjJpBVLbY7F';
-const DEINSTALL_TABLE = 'tbltdxgzDeNz9d0ZC';
-const HARDWARE_SWAP_TABLE = 'tblzFHk0HhB4bNYJ4';
-
-const SHEET_CSV_URL =
-  'https://docs.google.com/spreadsheets/d/1MGqJAGgROYohc_SwR3NhW-BEyJXixLKQZhS9yUOH8_s/export?format=csv&gid=0';
+// Local aliases for backward compat
+const STAMMDATEN_TABLE = TABLES.STAMMDATEN;
+const DISPLAYS_TABLE = TABLES.DISPLAYS;
+const DAYN_SCREENS_TABLE = TABLES.DAYN_SCREENS;
+const TASKS_TABLE = TABLES.TASKS;
+const INSTALLATIONEN_TABLE = TABLES.INSTALLATIONEN;
+const ACTIVITY_LOG_TABLE = TABLES.ACTIVITY_LOG;
+const OPS_INVENTORY_TABLE = TABLES.OPS_INVENTORY;
+const SIM_INVENTORY_TABLE = TABLES.SIM_INVENTORY;
+const DISPLAY_INVENTORY_TABLE = TABLES.DISPLAY_INVENTORY;
+const CHG_APPROVAL_TABLE = TABLES.CHG_APPROVAL;
+const DEINSTALL_TABLE = TABLES.DEINSTALL;
+const HARDWARE_SWAP_TABLE = TABLES.HARDWARE_SWAP;
 
 async function fetchAllAirtable(token, tableId, fields) {
   const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
@@ -459,13 +459,7 @@ function parseCSVLine(line) {
 /* ─── Individual sync functions (each returns {name, result}) ─── */
 
 async function syncDisplays(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, DISPLAYS_TABLE, [
-    'Display ID', 'Display Table ID', 'display_name', 'Online Status ',
-    'Live since', 'deinstall_date', 'Screen Type', 'Screen Size ',
-    'Navori Venue ID (from Installationen)',
-    'Location Name', 'City', 'Street', 'Street Number', 'Postal Code',
-    'JET ID (from JET ID)', 'SoV Partner Ad',
-  ]);
+  const records = await fetchAllAirtable(token, DISPLAYS_TABLE, FETCH_FIELDS.displays);
   const rows = records.map(mapDisplay);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'airtable_displays', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'airtable_displays', records.map(r => r.id));
@@ -474,19 +468,7 @@ async function syncDisplays(token, supabaseUrl, serviceKey) {
 }
 
 async function syncAcquisition(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, 'tblqFMBAeKQ1NbSI8', [
-    'Akquise ID', 'Lead_Status', 'frequency_approval (previous FAW Check)',
-    'install_approval', 'approval_status', 'Acquisition Date',
-    'Installations Status', 'Display Location Status',
-    'City', 'Location Name_new', 'Street', 'Street Number', 'Postal Code',
-    'JET_ID', 'Contact Person', 'Contact Email', 'Contact Phone',
-    'Akquisition Partner Name (from Team)',
-    '# dVAC / Woche 100% SoV', 'Schaufenster einsehbar', 'Hindernisse vorhanden',
-    'Mount Type', 'Submitted By', 'Submitted At',
-    'Vertrag PDF vorhanden', 'Akquise Storno',
-    'Post\u2011Install Storno', 'Post\u2011Install Storno Grund',
-    'ready_for_installation',
-  ]);
+  const records = await fetchAllAirtable(token, TABLES.ACQUISITION, FETCH_FIELDS.acquisition);
   const rows = records.map(mapAcquisition);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'acquisition', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'acquisition', records.map(r => r.id));
@@ -495,19 +477,7 @@ async function syncAcquisition(token, supabaseUrl, serviceKey) {
 }
 
 async function syncDaynScreens(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, DAYN_SCREENS_TABLE, [
-    'Dayn_Screen_ID', 'DO_Screen_ID', 'Screen Status', 'location_name',
-    'address', 'city', 'region', 'country', 'zip_code', 'venue type',
-    'floor CPM', 'screen width (px)', 'screen height (px)',
-    'latitude', 'longitude', 'Screen_Inch', 'Screen_Type',
-    'install_year', 'Street with Number',
-    '# dVAC / Woche 100% SoV', 'dVAC / Month', 'dVAC per Day',
-    'Impressions per Spot',
-    'Maximun video spot lenth (seconds)', 'Minimum video spot lenth (seconds)',
-    'static duration (in seconds)',
-    'static_supported (can your screens run images JPG/PNG)',
-    'video_supported (can your screens run video?)',
-  ]);
+  const records = await fetchAllAirtable(token, DAYN_SCREENS_TABLE, FETCH_FIELDS.daynScreens);
   const rows = records.map(mapDaynScreen);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'dayn_screens', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'dayn_screens', records.map(r => r.id));
@@ -516,13 +486,7 @@ async function syncDaynScreens(token, supabaseUrl, serviceKey) {
 }
 
 async function syncOps(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, OPS_INVENTORY_TABLE, [
-    'OpsNr.', 'status', 'OPS-SN', 'ops_hardware_type', 'navori_venueID',
-    'SimID', 'SimID (from SimID)', 'display_inventory',
-    'display_serial_number (from display_inventory)',
-    'Live Display Locations', 'Online Status  (from Live Display Locations)',
-    'Partner', 'note',
-  ]);
+  const records = await fetchAllAirtable(token, OPS_INVENTORY_TABLE, FETCH_FIELDS.opsInventory);
   const rows = records.map(rec => {
     const f = rec.fields;
     const simIds = Array.isArray(f['SimID (from SimID)']) ? f['SimID (from SimID)'] : [];
@@ -550,7 +514,7 @@ async function syncOps(token, supabaseUrl, serviceKey) {
 }
 
 async function syncSim(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, SIM_INVENTORY_TABLE, ['SimID', 'activate_date', 'OPS_Player_inventory 2']);
+  const records = await fetchAllAirtable(token, SIM_INVENTORY_TABLE, FETCH_FIELDS.simInventory);
   const rows = records.map(rec => {
     const f = rec.fields;
     const opsRecs = Array.isArray(f['OPS_Player_inventory 2']) ? f['OPS_Player_inventory 2'] : [];
@@ -563,7 +527,7 @@ async function syncSim(token, supabaseUrl, serviceKey) {
 }
 
 async function syncDisplayInventory(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, DISPLAY_INVENTORY_TABLE, ['display_serial_number', 'location', 'OPS_Player_inventory']);
+  const records = await fetchAllAirtable(token, DISPLAY_INVENTORY_TABLE, FETCH_FIELDS.displayInventory);
   const rows = records.map(rec => {
     const f = rec.fields;
     const opsRecs = Array.isArray(f['OPS_Player_inventory']) ? f['OPS_Player_inventory'] : [];
@@ -576,14 +540,7 @@ async function syncDisplayInventory(token, supabaseUrl, serviceKey) {
 }
 
 async function syncChg(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, CHG_APPROVAL_TABLE, [
-    'JET ID Location', 'Asset ID', 'Display SN', 'Integrator Invoice No',
-    'Installation certificate at the bank (CHG)', 'Invoice date',
-    'Rental start date at the bank', 'Rental end date at the bank',
-    'Payment released on', 'Payment released by', 'Status',
-    'Installation', 'Inspection Status', 'DisplayID',
-    'Location Name', 'City', 'Address', 'created',
-  ]);
+  const records = await fetchAllAirtable(token, CHG_APPROVAL_TABLE, FETCH_FIELDS.chgApproval);
   // CHG Approval table only contains records for leased displays (not all 313).
   // 44 records is expected if only ~44 locations have active leasing agreements.
   // No filter is applied — this fetches ALL records from the CHG table.
@@ -618,12 +575,7 @@ async function syncChg(token, supabaseUrl, serviceKey) {
 }
 
 async function syncStammdaten(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, STAMMDATEN_TABLE, [
-    'JET ID', 'Display ID', 'Location Name', 'Contact Person',
-    'Contact Email', 'Contact Phone', 'Location Email', 'Location Phone',
-    'Legal Entity', 'Street', 'Street Number', 'Postal Code', 'City',
-    'Lead Status  (from Akquise)', 'Status',
-  ]);
+  const records = await fetchAllAirtable(token, STAMMDATEN_TABLE, FETCH_FIELDS.stammdaten);
   const rows = records.map(mapStammdaten);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'stammdaten', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'stammdaten', records.map(r => r.id));
@@ -632,19 +584,7 @@ async function syncStammdaten(token, supabaseUrl, serviceKey) {
 }
 
 async function syncTasks(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, TASKS_TABLE, [
-    'Task Title', 'Task Type', 'Partner', 'Company (from Partner)', 'Status', 'Priority', 'Due Date',
-    'Description', 'Created time', 'Responsible User', 'Assigned',
-    'Created by', 'Display ID (from Displays )', 'Location Name (from Locations)',
-    'Overdue', 'completed_task_date', 'completed_task_by', 'Attachments',
-    'Online Status  (from Displays )', 'Live since (from Displays )',
-    'Status Installation (from Installation)', 'Integrator (from Installation)',
-    'Aufbau Datum (from Installation)', 'Display Serial Number (from Installation)',
-    'Allgemeine Bemerkungen (from Installation)', 'Installationsart (from Installation)',
-    'external_visiblity', 'Kommentar Nacharbeit', 'Superchat',
-    'Status changed by', 'Status changed date',
-    'JET ID (from Locations)', 'City (from Locations)',
-  ]);
+  const records = await fetchAllAirtable(token, TASKS_TABLE, FETCH_FIELDS.tasks);
   const rows = records.map(mapTask);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'tasks', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'tasks', records.map(r => r.id));
@@ -653,14 +593,7 @@ async function syncTasks(token, supabaseUrl, serviceKey) {
 }
 
 async function syncInstallationen(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, INSTALLATIONEN_TABLE, [
-    'Aufbau Datum', 'Status Installation', 'Installationsart',
-    'Company (from Integrator)', 'Name (from Technikers)',
-    'Installationsprotokoll', 'Screen Art', 'Screen Size',
-    'OPS Nr', 'SIM-ID', 'Installationsstart', 'Installationsabschluss',
-    'Allgemeine Bemerkungen', 'Abnahme Partner (Name)',
-    'Display Table ID (from Link to Display ID )',
-  ]);
+  const records = await fetchAllAirtable(token, INSTALLATIONEN_TABLE, FETCH_FIELDS.installationen);
   const rows = records.map(mapInstallation);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'installationen', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'installationen', records.map(r => r.id));
@@ -669,13 +602,7 @@ async function syncInstallationen(token, supabaseUrl, serviceKey) {
 }
 
 async function syncSwaps(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, HARDWARE_SWAP_TABLE, [
-    'Tausch-ID', 'Live Display Location', 'Tausch-Typ', 'Tausch-Datum',
-    'Tausch-Grund', 'Partner', 'Techniker', 'ALTE Hardware', 'NEUE Hardware',
-    'Defekt-Beschreibung', 'Status',
-    'Location Name (from Live Display Location)',
-    'City (from Live Display Location)',
-  ]);
+  const records = await fetchAllAirtable(token, HARDWARE_SWAP_TABLE, FETCH_FIELDS.hardwareSwap);
   const rows = records.map(mapHardwareSwap);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_swaps', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_swaps', records.map(r => r.id), 'id');
@@ -684,13 +611,7 @@ async function syncSwaps(token, supabaseUrl, serviceKey) {
 }
 
 async function syncDeinstalls(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, DEINSTALL_TABLE, [
-    'Deinstallations-ID', 'Live Display Location', 'OPS-Nr / Hardware-Set',
-    'Deinstallationsdatum', 'Grund', 'Partner', 'Techniker',
-    'Hardware-Zustand', 'Zustandsbeschreibung', 'Status',
-    'Location Name (from Live Display Location)',
-    'City (from Live Display Location)',
-  ]);
+  const records = await fetchAllAirtable(token, DEINSTALL_TABLE, FETCH_FIELDS.deinstall);
   const rows = records.map(mapDeinstall);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_deinstalls', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_deinstalls', records.map(r => r.id), 'id');
@@ -699,13 +620,7 @@ async function syncDeinstalls(token, supabaseUrl, serviceKey) {
 }
 
 async function syncCommunications(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, ACTIVITY_LOG_TABLE, [
-    'Channel', 'Direction', 'Subject', 'Message', 'Timestamp',
-    'Status', 'Recipient Name', 'Recipient Contact', 'Sender',
-    'External ID', 'Location', 'Location Name (from Location)',
-    'Display ID (from Location)', 'JET ID (from Location)',
-    'Related Task',
-  ]);
+  const records = await fetchAllAirtable(token, ACTIVITY_LOG_TABLE, FETCH_FIELDS.communications);
   const rows = records.map(mapCommunication);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'communications', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'communications', records.map(r => r.id));

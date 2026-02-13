@@ -17,23 +17,27 @@
  */
 
 import { logApiCall, logApiCalls, estimateAirtableCost } from './shared/apiLogger.js';
+import {
+  AIRTABLE_BASE, TABLES, FETCH_FIELDS, SHEET_CSV_URL,
+  STAMMDATEN_FIELDS, DISPLAY_FIELDS, TASK_FIELDS, ACQUISITION_FIELDS,
+  INSTALLATION_FIELDS, DAYN_FIELDS, OPS_FIELDS, SIM_FIELDS,
+  DISPLAY_INV_FIELDS, CHG_FIELDS, SWAP_FIELDS, DEINSTALL_FIELDS,
+  COMMUNICATION_FIELDS,
+} from './shared/airtableFields.js';
 
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const STAMMDATEN_TABLE = 'tblLJ1S7OUhc2w5Jw';
-const DISPLAYS_TABLE = 'tblS6cWN7uEhZHcie';   // "Live Display Locations" – the actual display records
-const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
-const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
-const ACTIVITY_LOG_TABLE = 'tblDk1dl4J3Ow3Qde';
-const DAYN_SCREENS_TABLE = 'Dayn Screens';  // Airtable accepts table names
-const OPS_INVENTORY_TABLE = 'tbl7szvfLUjsUvMkH';
-const SIM_INVENTORY_TABLE = 'tblaV4UQX6hhcSDAj';
-const DISPLAY_INVENTORY_TABLE = 'tblaMScl3j45Q4Dtc';
-const CHG_APPROVAL_TABLE = 'tblvj4qjJpBVLbY7F';
-const DEINSTALL_TABLE = 'tbltdxgzDeNz9d0ZC';
-const HARDWARE_SWAP_TABLE = 'tblzFHk0HhB4bNYJ4';
-
-const SHEET_CSV_URL =
-  'https://docs.google.com/spreadsheets/d/1MGqJAGgROYohc_SwR3NhW-BEyJXixLKQZhS9yUOH8_s/export?format=csv&gid=0';
+// Local aliases for backward compat (used in fetchAllAirtable calls below)
+const STAMMDATEN_TABLE = TABLES.STAMMDATEN;
+const DISPLAYS_TABLE = TABLES.DISPLAYS;
+const TASKS_TABLE = TABLES.TASKS;
+const INSTALLATIONEN_TABLE = TABLES.INSTALLATIONEN;
+const ACTIVITY_LOG_TABLE = TABLES.ACTIVITY_LOG;
+const DAYN_SCREENS_TABLE = TABLES.DAYN_SCREENS;
+const OPS_INVENTORY_TABLE = TABLES.OPS_INVENTORY;
+const SIM_INVENTORY_TABLE = TABLES.SIM_INVENTORY;
+const DISPLAY_INVENTORY_TABLE = TABLES.DISPLAY_INVENTORY;
+const CHG_APPROVAL_TABLE = TABLES.CHG_APPROVAL;
+const DEINSTALL_TABLE = TABLES.DEINSTALL;
+const HARDWARE_SWAP_TABLE = TABLES.HARDWARE_SWAP;
 
 /**
  * Fetch all records from an Airtable table (paginated).
@@ -722,12 +726,7 @@ export default async (request) => {
 
     // ═══ 2. AIRTABLE: Stammdaten ═══
     console.log('[sync] Fetching Stammdaten...');
-    const stammdatenRecords = await fetchAllAirtable(AIRTABLE_TOKEN, STAMMDATEN_TABLE, [
-      'JET ID', 'Display ID', 'Location Name', 'Contact Person',
-      'Contact Email', 'Contact Phone', 'Location Email', 'Location Phone',
-      'Legal Entity', 'Street', 'Street Number', 'Postal Code', 'City',
-      'Lead Status  (from Akquise)', 'Status'
-    ]);
+    const stammdatenRecords = await fetchAllAirtable(AIRTABLE_TOKEN, STAMMDATEN_TABLE, FETCH_FIELDS.stammdaten);
     const stammdatenRows = stammdatenRecords.map(mapStammdaten);
     results.stammdaten = {
       fetched: stammdatenRecords.length,
@@ -738,13 +737,7 @@ export default async (request) => {
 
     // ═══ 2b. AIRTABLE: Live Display Locations (Displays) ═══
     console.log('[sync] Fetching Live Display Locations...');
-    const displayRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DISPLAYS_TABLE, [
-      'Display ID', 'Display Table ID', 'display_name', 'Online Status ',
-      'Live since', 'deinstall_date', 'Screen Type', 'Screen Size ',
-      'Navori Venue ID (from Installationen)',
-      'Location Name', 'City', 'Street', 'Street Number', 'Postal Code',
-      'JET ID (from JET ID)', 'SoV Partner Ad',
-    ]);
+    const displayRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DISPLAYS_TABLE, FETCH_FIELDS.displays);
     const displayRows = displayRecords.map(mapDisplay);
     results.displays = {
       fetched: displayRecords.length,
@@ -755,21 +748,7 @@ export default async (request) => {
 
     // ═══ 3. AIRTABLE: Tasks (with expanded lookup fields) ═══
     console.log('[sync] Fetching Tasks...');
-    const taskRecords = await fetchAllAirtable(AIRTABLE_TOKEN, TASKS_TABLE, [
-      'Task Title', 'Task Type', 'Partner', 'Company (from Partner)', 'Status', 'Priority', 'Due Date',
-      'Description', 'Created time', 'Responsible User', 'Assigned',
-      'Created by', 'Display ID (from Displays )', 'Location Name (from Locations)',
-      'Overdue', 'completed_task_date', 'completed_task_by', 'Attachments',
-      // New: display & installation lookups
-      'Online Status  (from Displays )', 'Live since (from Displays )',
-      'Status Installation (from Installation)', 'Integrator (from Installation)',
-      'Aufbau Datum (from Installation)', 'Display Serial Number (from Installation)',
-      'Allgemeine Bemerkungen (from Installation)', 'Installationsart (from Installation)',
-      // New: task meta
-      'external_visiblity', 'Kommentar Nacharbeit', 'Superchat',
-      'Status changed by', 'Status changed date',
-      'JET ID (from Locations)', 'City (from Locations)',
-    ]);
+    const taskRecords = await fetchAllAirtable(AIRTABLE_TOKEN, TASKS_TABLE, FETCH_FIELDS.tasks);
     const taskRows = taskRecords.map(mapTask);
     results.tasks = {
       fetched: taskRecords.length,
@@ -780,19 +759,7 @@ export default async (request) => {
 
     // ═══ 3b. AIRTABLE: Acquisition_DB ═══
     console.log('[sync] Fetching Acquisition_DB...');
-    const acqRecords = await fetchAllAirtable(AIRTABLE_TOKEN, 'tblqFMBAeKQ1NbSI8', [
-      'Akquise ID', 'Lead_Status', 'frequency_approval (previous FAW Check)',
-      'install_approval', 'approval_status', 'Acquisition Date',
-      'Installations Status', 'Display Location Status',
-      'City', 'Location Name_new', 'Street', 'Street Number', 'Postal Code',
-      'JET_ID', 'Contact Person', 'Contact Email', 'Contact Phone',
-      'Akquisition Partner Name (from Team)',
-      '# dVAC / Woche 100% SoV', 'Schaufenster einsehbar', 'Hindernisse vorhanden',
-      'Mount Type', 'Submitted By', 'Submitted At',
-      'Vertrag PDF vorhanden', 'Akquise Storno',
-      'Post\u2011Install Storno', 'Post\u2011Install Storno Grund',
-      'ready_for_installation',
-    ]);
+    const acqRecords = await fetchAllAirtable(AIRTABLE_TOKEN, TABLES.ACQUISITION, FETCH_FIELDS.acquisition);
     const acqRows = acqRecords.map(mapAcquisition);
     results.acquisition = {
       fetched: acqRecords.length,
@@ -803,19 +770,7 @@ export default async (request) => {
 
     // ═══ 3b. AIRTABLE: Dayn Screens ═══
     console.log('[sync] Fetching Dayn Screens...');
-    const daynRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DAYN_SCREENS_TABLE, [
-      'Dayn_Screen_ID', 'DO_Screen_ID', 'Screen Status', 'location_name',
-      'address', 'city', 'region', 'country', 'zip_code', 'venue type',
-      'floor CPM', 'screen width (px)', 'screen height (px)',
-      'latitude', 'longitude', 'Screen_Inch', 'Screen_Type',
-      'install_year', 'Street with Number',
-      '# dVAC / Woche 100% SoV', 'dVAC / Month', 'dVAC per Day',
-      'Impressions per Spot',
-      'Maximun video spot lenth (seconds)', 'Minimum video spot lenth (seconds)',
-      'static duration (in seconds)',
-      'static_supported (can your screens run images JPG/PNG)',
-      'video_supported (can your screens run video?)',
-    ]);
+    const daynRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DAYN_SCREENS_TABLE, FETCH_FIELDS.daynScreens);
     const daynRows = daynRecords.map(mapDaynScreen);
     results.dayn_screens = {
       fetched: daynRecords.length,
@@ -826,14 +781,7 @@ export default async (request) => {
 
     // ═══ 4. AIRTABLE: Installationen ═══
     console.log('[sync] Fetching Installationen...');
-    const installRecords = await fetchAllAirtable(AIRTABLE_TOKEN, INSTALLATIONEN_TABLE, [
-      'Aufbau Datum', 'Status Installation', 'Installationsart',
-      'Company (from Integrator)', 'Name (from Technikers)',
-      'Installationsprotokoll', 'Screen Art', 'Screen Size',
-      'OPS Nr', 'SIM-ID', 'Installationsstart', 'Installationsabschluss',
-      'Allgemeine Bemerkungen', 'Abnahme Partner (Name)',
-      'Display Table ID (from Link to Display ID )'
-    ]);
+    const installRecords = await fetchAllAirtable(AIRTABLE_TOKEN, INSTALLATIONEN_TABLE, FETCH_FIELDS.installationen);
     const installRows = installRecords.map(mapInstallation);
     results.installationen = {
       fetched: installRecords.length,
@@ -844,13 +792,7 @@ export default async (request) => {
 
     // ═══ 5. HARDWARE: OPS Player Inventory ═══
     console.log('[sync] Fetching OPS Player Inventory...');
-    const opsRecords = await fetchAllAirtable(AIRTABLE_TOKEN, OPS_INVENTORY_TABLE, [
-      'OpsNr.', 'status', 'OPS-SN', 'ops_hardware_type', 'navori_venueID',
-      'SimID', 'SimID (from SimID)', 'display_inventory',
-      'display_serial_number (from display_inventory)',
-      'Live Display Locations', 'Online Status  (from Live Display Locations)',
-      'Partner', 'note',
-    ]);
+    const opsRecords = await fetchAllAirtable(AIRTABLE_TOKEN, OPS_INVENTORY_TABLE, FETCH_FIELDS.opsInventory);
     const opsRows = opsRecords.map(mapOpsInventory);
     results.hardware_ops = {
       fetched: opsRecords.length,
@@ -861,9 +803,7 @@ export default async (request) => {
 
     // ═══ 6. HARDWARE: SIM Card Inventory ═══
     console.log('[sync] Fetching SIM Card Inventory...');
-    const simRecords = await fetchAllAirtable(AIRTABLE_TOKEN, SIM_INVENTORY_TABLE, [
-      'SimID', 'activate_date', 'OPS_Player_inventory 2',
-    ]);
+    const simRecords = await fetchAllAirtable(AIRTABLE_TOKEN, SIM_INVENTORY_TABLE, FETCH_FIELDS.simInventory);
     const simRows = simRecords.map(mapSimInventory);
     results.hardware_sim = {
       fetched: simRecords.length,
@@ -874,9 +814,7 @@ export default async (request) => {
 
     // ═══ 7. HARDWARE: Display Inventory ═══
     console.log('[sync] Fetching Display Inventory...');
-    const dispInvRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DISPLAY_INVENTORY_TABLE, [
-      'display_serial_number', 'location', 'OPS_Player_inventory',
-    ]);
+    const dispInvRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DISPLAY_INVENTORY_TABLE, FETCH_FIELDS.displayInventory);
     const dispInvRows = dispInvRecords.map(mapDisplayInventory);
     results.hardware_displays = {
       fetched: dispInvRecords.length,
@@ -887,14 +825,7 @@ export default async (request) => {
 
     // ═══ 8. HARDWARE: CHG Approval (Leasing) ═══
     console.log('[sync] Fetching CHG Approval...');
-    const chgRecords = await fetchAllAirtable(AIRTABLE_TOKEN, CHG_APPROVAL_TABLE, [
-      'JET ID Location', 'Asset ID', 'Display SN', 'Integrator Invoice No',
-      'Installation certificate at the bank (CHG)', 'Invoice date',
-      'Rental start date at the bank', 'Rental end date at the bank',
-      'Payment released on', 'Payment released by', 'Status',
-      'Installation', 'Inspection Status', 'DisplayID',
-      'Location Name', 'City', 'Address', 'created',
-    ]);
+    const chgRecords = await fetchAllAirtable(AIRTABLE_TOKEN, CHG_APPROVAL_TABLE, FETCH_FIELDS.chgApproval);
     const chgRows = chgRecords.map(mapChgApproval);
     results.chg_approvals = {
       fetched: chgRecords.length,
@@ -906,13 +837,7 @@ export default async (request) => {
     // ═══ 9. HARDWARE: Hardware Swaps ═══
     console.log('[sync] Fetching Hardware Swaps...');
     try {
-      const swapRecords = await fetchAllAirtable(AIRTABLE_TOKEN, HARDWARE_SWAP_TABLE, [
-        'Tausch-ID', 'Live Display Location', 'Tausch-Typ', 'Tausch-Datum',
-        'Tausch-Grund', 'Partner', 'Techniker', 'ALTE Hardware', 'NEUE Hardware',
-        'Defekt-Beschreibung', 'Status',
-        'Location Name (from Live Display Location)',
-        'City (from Live Display Location)',
-      ]);
+      const swapRecords = await fetchAllAirtable(AIRTABLE_TOKEN, HARDWARE_SWAP_TABLE, FETCH_FIELDS.hardwareSwap);
       const swapRows = swapRecords.map(mapHardwareSwap);
       results.hardware_swaps = {
         fetched: swapRecords.length,
@@ -928,13 +853,7 @@ export default async (request) => {
     // ═══ 10. HARDWARE: Deinstallationen ═══
     console.log('[sync] Fetching Deinstallationen...');
     try {
-      const deinstRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DEINSTALL_TABLE, [
-        'Deinstallations-ID', 'Live Display Location', 'OPS-Nr / Hardware-Set',
-        'Deinstallationsdatum', 'Grund', 'Partner', 'Techniker',
-        'Hardware-Zustand', 'Zustandsbeschreibung', 'Status',
-        'Location Name (from Live Display Location)',
-        'City (from Live Display Location)',
-      ]);
+      const deinstRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DEINSTALL_TABLE, FETCH_FIELDS.deinstall);
       const deinstRows = deinstRecords.map(mapDeinstall);
       results.hardware_deinstalls = {
         fetched: deinstRecords.length,
@@ -949,13 +868,7 @@ export default async (request) => {
 
     // ═══ 11. AIRTABLE: Activity Log / Communications ═══
     console.log('[sync] Fetching Activity Log...');
-    const commRecords = await fetchAllAirtable(AIRTABLE_TOKEN, ACTIVITY_LOG_TABLE, [
-      'Channel', 'Direction', 'Subject', 'Message', 'Timestamp',
-      'Status', 'Recipient Name', 'Recipient Contact', 'Sender',
-      'External ID', 'Location', 'Location Name (from Location)',
-      'Display ID (from Location)', 'JET ID (from Location)',
-      'Related Task',
-    ]);
+    const commRecords = await fetchAllAirtable(AIRTABLE_TOKEN, ACTIVITY_LOG_TABLE, FETCH_FIELDS.communications);
     const commRows = commRecords.map(mapCommunication);
     results.communications = {
       fetched: commRecords.length,
