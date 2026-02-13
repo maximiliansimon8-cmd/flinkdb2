@@ -141,38 +141,73 @@ export default async (request, context) => {
     const bookingUrl = `${BOOKING_BASE_URL}/${bookingToken}`;
     const dateRange = formatDateRange(availableRoutes);
 
-    // Build message text (template or plain text depending on SuperChat config)
+    // Build message text matching the "install_date" WhatsApp template
     const messageText = [
       `Hallo ${contactName || 'Standortinhaber/in'},`,
       '',
-      `wir planen demnächst Installationen in ${city} und würden gerne einen Termin für Ihren Standort${locationName ? ` ${locationName}` : ''} vereinbaren.`,
+      `Hier ist das Lieferando Display Team. Wir planen demnächst Installationen in ${city} und würden gerne einen Termin für Ihren Standort ${locationName || 'Ihrem Standort'} vereinbaren.`,
       '',
       `Verfügbare Termine: ${dateRange}`,
       '',
-      `Buchen Sie hier Ihren Wunschtermin:`,
-      bookingUrl,
+      `Buchen Sie hier Ihren Wunschtermin: ${bookingUrl}`,
       '',
       `Bei Fragen antworten Sie einfach auf diese Nachricht.`,
       '',
-      `Ihr JET Germany Team`,
+      `Viele Grüße`,
     ].join('\n');
 
     let whatsappResult = { ok: false };
+    const WA_CHANNEL = process.env.SUPERCHAT_WA_CHANNEL_ID || 'mc_cy5HABDnpRhRtosxckRzb';
+    const INSTALL_TEMPLATE_ID = process.env.SUPERCHAT_INSTALL_TEMPLATE_ID || null;
+
     if (SUPERCHAT_API_KEY) {
-      const scRes = await fetch('https://api.superchat.com/v1.0/messages', {
-        method: 'POST',
-        headers: {
-          'X-API-KEY': SUPERCHAT_API_KEY,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          contactHandle: contactPhone,
-          channelType: 'whats_app',
-          body: messageText,
-        }),
-      });
-      whatsappResult = { ok: scRes.ok, status: scRes.status, data: await scRes.json().catch(() => null) };
+      // Try template first (required for first contact / outside 24h window)
+      // Template "install_date" has variables: {{1}}=name, {{2}}=city, {{3}}=location, {{4}}=dates, {{5}}=link
+      if (INSTALL_TEMPLATE_ID) {
+        const scRes = await fetch('https://api.superchat.com/v1.0/messages', {
+          method: 'POST',
+          headers: {
+            'X-API-KEY': SUPERCHAT_API_KEY,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            to: [{ identifier: contactPhone }],
+            from: { channel_id: WA_CHANNEL },
+            content: {
+              type: 'whats_app_template',
+              template_id: INSTALL_TEMPLATE_ID,
+              variables: [
+                { position: 1, value: contactName || 'Standortinhaber/in' },
+                { position: 2, value: city },
+                { position: 3, value: locationName || 'Ihrem Standort' },
+                { position: 4, value: dateRange },
+                { position: 5, value: bookingUrl },
+              ],
+            },
+          }),
+        });
+        whatsappResult = { ok: scRes.ok, status: scRes.status, data: await scRes.json().catch(() => null) };
+      }
+
+      // Fallback: send as plain text if no template or template failed
+      if (!whatsappResult.ok) {
+        console.log('[install-booker-invite] Template send failed or unavailable, trying text fallback');
+        const scRes = await fetch('https://api.superchat.com/v1.0/messages', {
+          method: 'POST',
+          headers: {
+            'X-API-KEY': SUPERCHAT_API_KEY,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            to: [{ identifier: contactPhone }],
+            from: { channel_id: WA_CHANNEL },
+            content: { type: 'text', body: messageText },
+          }),
+        });
+        whatsappResult = { ok: scRes.ok, status: scRes.status, data: await scRes.json().catch(() => null) };
+      }
     }
 
     // 5. Update Airtable Akquise record

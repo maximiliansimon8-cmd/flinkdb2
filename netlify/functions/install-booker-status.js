@@ -279,9 +279,9 @@ export default async (request, context) => {
                 'Accept': 'application/json',
               },
               body: JSON.stringify({
-                contactHandle: currentBooking.contact_phone,
-                channelType: 'whats_app',
-                body: cancelText,
+                to: [{ identifier: currentBooking.contact_phone }],
+                from: { channel_id: process.env.SUPERCHAT_WA_CHANNEL_ID || 'mc_cy5HABDnpRhRtosxckRzb' },
+                content: { type: 'text', body: cancelText },
               }),
             });
             console.log(`[install-booker-status] WhatsApp cancel notification sent to ${currentBooking.contact_phone}`);
