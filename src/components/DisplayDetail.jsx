@@ -29,6 +29,16 @@ import {
   ExternalLink,
   Lock,
   UtensilsCrossed,
+  HardDrive,
+  CardSim,
+  Landmark,
+  ArrowLeftRight,
+  Package,
+  TriangleAlert,
+  DollarSign,
+  History,
+  ArrowRight,
+  MapPinned,
 } from 'lucide-react';
 import {
   LineChart,
@@ -55,8 +65,18 @@ import {
   fetchTasksByDisplayId,
   fetchInstallationByDisplayId,
   fetchAllCommunications,
+  fetchAirtableDisplayByDisplayId,
+  fetchHardwareByLocationId,
+  fetchLeaseByJetId,
+  fetchSwapsByLocationId,
+  fetchDeinstallsByLocationId,
+  findHardwareReassignment,
+  fetchHardwareMovementHistory,
 } from '../utils/airtableService';
 import { hasPermission } from '../utils/authService';
+import { fetchSingleVenueReport } from '../utils/vistarService';
+import HardwareSwapModal from './HardwareSwapModal';
+import DeinstallModal from './DeinstallModal';
 
 function InfoRow({ icon: Icon, label, value, mono }) {
   return (
@@ -542,7 +562,7 @@ function buildLieferandoSearchUrl(stammdaten) {
   return `https://www.google.com/search?q=${encodeURIComponent(query)}&btnI=1`;
 }
 
-function ContactInfoPanel({ stammdaten, loading }) {
+function ContactInfoPanel({ stammdaten, loading, airtableDisplay }) {
   const canViewContacts = hasPermission('view_contacts');
 
   if (loading) {
@@ -653,6 +673,68 @@ function ContactInfoPanel({ stammdaten, loading }) {
           )}
         </div>
       </div>
+
+      {/* ─── Airtable Display Enrichment (from airtable_displays) ─── */}
+      {airtableDisplay && (
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0">
+            <div>
+              {airtableDisplay.online_status && (
+                <div className="flex items-center gap-3 py-1.5">
+                  <Monitor size={14} className="text-slate-400 flex-shrink-0" />
+                  <span className="text-slate-400 text-xs w-32 flex-shrink-0">AT Status</span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    /^live$/i.test(airtableDisplay.online_status)
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : /deinstall/i.test(airtableDisplay.online_status)
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {airtableDisplay.online_status}
+                  </span>
+                </div>
+              )}
+              {airtableDisplay.screen_type && (
+                <InfoRow icon={Monitor} label="Screen-Typ" value={airtableDisplay.screen_type} />
+              )}
+              {airtableDisplay.screen_size && (
+                <InfoRow icon={Monitor} label="Screen-Größe" value={airtableDisplay.screen_size} />
+              )}
+              {airtableDisplay.rtb_venue_type && (
+                <InfoRow icon={Building2} label="RTB Venue Type" value={airtableDisplay.rtb_venue_type} mono />
+              )}
+            </div>
+            <div>
+              {airtableDisplay.sov_partner_ad != null && airtableDisplay.sov_partner_ad > 0 && (
+                <div className="flex items-center gap-3 py-1.5">
+                  <TrendingUp size={14} className="text-slate-400 flex-shrink-0" />
+                  <span className="text-slate-400 text-xs w-32 flex-shrink-0">SoV Partner Ad</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#3b82f6] rounded-full"
+                        style={{ width: `${Math.min(100, airtableDisplay.sov_partner_ad)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-mono font-medium text-slate-900">
+                      {airtableDisplay.sov_partner_ad}%
+                    </span>
+                  </div>
+                </div>
+              )}
+              {airtableDisplay.live_since && (
+                <InfoRow icon={Calendar} label="Live seit" value={formatDate(airtableDisplay.live_since)} />
+              )}
+              {airtableDisplay.screen_network_category && (
+                <InfoRow icon={Wifi} label="Netzwerk-Kategorie" value={airtableDisplay.screen_network_category} />
+              )}
+              {airtableDisplay.navori_venue_id && (
+                <InfoRow icon={Hash} label="Navori Venue ID" value={airtableDisplay.navori_venue_id} mono />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -801,15 +883,12 @@ function TasksPanel({ tasks, loading }) {
                 </span>
               )}
 
-              {/* Task Type badges */}
-              {task.type.length > 0 && task.type.map((t, i) => (
-                <span
-                  key={i}
-                  className="text-[10px] font-mono text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded"
-                >
-                  {t}
+              {/* Partner badge */}
+              {task.partner && (
+                <span className="text-[10px] font-mono text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">
+                  {task.partner}
                 </span>
-              ))}
+              )}
             </div>
           </div>
 
@@ -1014,6 +1093,666 @@ function InstallationPanel({ installation, loading }) {
   );
 }
 
+// ─── Hardware Set Panel ──────────────────────────────────────────────────────
+
+function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading, onShowHistory, leaseData, installation, airtableDisplay }) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-4 justify-center">
+        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
+        <span className="text-xs text-slate-400 font-mono">Lade Hardware-Daten...</span>
+      </div>
+    );
+  }
+
+  if (!hardware || (hardware.ops.length === 0 && hardware.sims.length === 0 && hardware.displays.length === 0)) {
+    return null;
+  }
+
+  const statusBadge = (status) => {
+    const colors = {
+      'active': { bg: '#22c55e15', text: '#22c55e', border: '#22c55e33', label: 'Aktiv' },
+      'defect': { bg: '#ef444415', text: '#ef4444', border: '#ef444433', label: 'Defekt' },
+      'prep/ warehouse': { bg: '#64748b15', text: '#64748b', border: '#64748b33', label: 'Lager' },
+      'out for installation': { bg: '#f59e0b15', text: '#f59e0b', border: '#f59e0b33', label: 'Unterwegs' },
+      'test device': { bg: '#8b5cf615', text: '#8b5cf6', border: '#8b5cf633', label: 'Test' },
+    };
+    const c = colors[status] || { bg: '#64748b15', text: '#64748b', border: '#64748b33', label: status || '–' };
+    return (
+      <span
+        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-mono font-medium"
+        style={{ backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}` }}
+      >
+        {c.label}
+      </span>
+    );
+  };
+
+  // Build reassignment info per serial
+  const reassignmentForSn = (snType, snValue) => {
+    if (reassignmentLoading || !reassignment || !snValue) return null;
+    const info = reassignment[snType];
+    if (!info || !info.location) return null;
+    const loc = info.location;
+    return (
+      <div className="mt-2 bg-blue-50/80 border border-blue-200/50 rounded-md px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5">
+          <MapPinned size={10} className="text-blue-500 flex-shrink-0" />
+          <span className="text-[10px] text-blue-700 font-medium">Jetzt bei:</span>
+          <span className="text-[10px] text-blue-800 font-mono">
+            {loc.locationName}{loc.city ? ` (${loc.city})` : ''}
+          </span>
+        </div>
+        {info.opsRecord?.status && (
+          <div className="text-[9px] text-blue-500 mt-0.5 ml-4">
+            Status: {info.opsRecord.status} · OPS {info.opsRecord.opsNr || info.opsRecord.opsSn}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const historyButton = (snType, snValue, label) => {
+    if (!snValue || !onShowHistory) return null;
+    return (
+      <button
+        onClick={() => onShowHistory(snType, snValue, label)}
+        className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-400 hover:text-blue-500 transition-colors"
+        title={`Bewegungshistorie für ${label}`}
+      >
+        <History size={10} />
+        <span>Historie</span>
+      </button>
+    );
+  };
+
+  // Check if any hardware has been reassigned
+  const hasReassignment = reassignment && (reassignment.opsSn || reassignment.displaySn || reassignment.simId);
+
+  // ─── SN Mismatch Detection ───────────────────────────────────────────
+  // Compare serial numbers across sources: Hardware (Airtable), Leasing (Bank/CHG), Navori Venue ID
+  const mismatches = useMemo(() => {
+    const issues = [];
+    const ops0 = hardware?.ops?.[0];
+    const disp0 = hardware?.displays?.[0];
+    const chg = leaseData?.chg;
+    const bank = leaseData?.bank;
+    const navoriVenueId = airtableDisplay?.navori_venue_id || '';
+
+    // OPS-SN from hardware
+    const hwOpsSn = ops0?.opsSn || '';
+    // Display-SN from hardware_displays
+    const hwDisplaySn = disp0?.displaySerialNumber || ops0?.displaySn || '';
+    // Display-SN from CHG Leasing
+    const chgDisplaySn = chg?.displaySn || '';
+    // Serial from Bank Leasing
+    const bankSerial = bank?.serialNumber || '';
+    // Navori Venue ID from airtable_displays
+    const navoriId = navoriVenueId;
+    // Navori Venue ID from OPS
+    const opsNavoriId = ops0?.navoriVenueId || '';
+
+    // Check: CHG Display-SN ≠ Hardware Display-SN
+    if (chgDisplaySn && hwDisplaySn && chgDisplaySn !== hwDisplaySn) {
+      issues.push({
+        label: 'Display-SN',
+        source1: 'Hardware', value1: hwDisplaySn,
+        source2: 'CHG Leasing', value2: chgDisplaySn,
+      });
+    }
+
+    // Check: Bank Serial ≠ Hardware Display-SN
+    if (bankSerial && hwDisplaySn && bankSerial !== hwDisplaySn) {
+      issues.push({
+        label: 'Display-SN',
+        source1: 'Hardware', value1: hwDisplaySn,
+        source2: 'Bank Leasing', value2: bankSerial,
+      });
+    }
+
+    // Check: CHG Display-SN ≠ Bank Serial
+    if (chgDisplaySn && bankSerial && chgDisplaySn !== bankSerial) {
+      issues.push({
+        label: 'Display-SN',
+        source1: 'CHG Leasing', value1: chgDisplaySn,
+        source2: 'Bank Leasing', value2: bankSerial,
+      });
+    }
+
+    // Check: Navori Venue ID mismatch (airtable_displays vs OPS)
+    if (navoriId && opsNavoriId && navoriId !== opsNavoriId) {
+      issues.push({
+        label: 'Navori Venue-ID',
+        source1: 'Standort (AT)', value1: navoriId,
+        source2: 'OPS', value2: opsNavoriId,
+      });
+    }
+
+    // Check: OPS-SN not matching bank serial (if bank tracks OPS)
+    if (bankSerial && hwOpsSn && bankSerial === hwOpsSn) {
+      // This is actually OK — bank serial IS the OPS-SN, not display-SN
+      // Don't flag as mismatch
+    }
+
+    return issues;
+  }, [hardware, leaseData, airtableDisplay]);
+
+  // ─── Leasing Display-SN (for cross-reference) ────────────────────────
+  const leasingDisplaySn = leaseData?.chg?.displaySn || leaseData?.bank?.serialNumber || '';
+
+  // ─── Installation protocol SN for cross-reference ─────────────────────
+  const installOpsSn = installation?.opsNr || '';
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <HardDrive size={14} className="text-[#3b82f6]" />
+        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+          Hardware-Set
+        </h3>
+        {reassignmentLoading && (
+          <Loader2 size={10} className="text-blue-400 animate-spin" />
+        )}
+      </div>
+
+      {/* SN Mismatch Warnings */}
+      {mismatches.length > 0 && (
+        <div className="mb-3 bg-red-50/80 border border-red-200/60 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <TriangleAlert size={12} className="text-red-500" />
+            <span className="text-xs font-medium text-red-700">SN-Abweichungen erkannt</span>
+          </div>
+          <div className="space-y-1.5">
+            {mismatches.map((m, i) => (
+              <div key={i} className="text-[11px] bg-red-100/50 rounded px-2 py-1.5">
+                <span className="text-red-600 font-medium">{m.label}</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-red-500 text-[10px]">{m.source1}:</span>
+                  <span className="font-mono text-red-800 text-[10px]">{m.value1}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-red-500 text-[10px]">{m.source2}:</span>
+                  <span className="font-mono text-red-800 text-[10px]">{m.value2}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Cross-reference: Leasing + Installation SNs */}
+      {(leasingDisplaySn || installOpsSn) && (
+        <div className="mb-3 bg-slate-50/80 border border-slate-200/40 rounded-lg px-3 py-2">
+          <div className="text-[10px] font-mono text-slate-400 uppercase mb-1">Abgleich-Referenz</div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+            {leasingDisplaySn && (
+              <div className="text-[11px]">
+                <span className="text-slate-400">Leasing-SN: </span>
+                <span className="font-mono text-slate-600">{leasingDisplaySn}</span>
+              </div>
+            )}
+            {installOpsSn && (
+              <div className="text-[11px]">
+                <span className="text-slate-400">Install-Protokoll OPS: </span>
+                <span className="font-mono text-slate-600">{installOpsSn}</span>
+              </div>
+            )}
+            {installation?.simId && (
+              <div className="text-[11px]">
+                <span className="text-slate-400">Install-Protokoll SIM: </span>
+                <span className="font-mono text-slate-600">{installation.simId}</span>
+              </div>
+            )}
+            {installation?.screenType && (
+              <div className="text-[11px]">
+                <span className="text-slate-400">Install Screen: </span>
+                <span className="font-mono text-slate-600">{installation.screenType} {installation.screenSize || ''}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Reassignment Summary Banner */}
+      {hasReassignment && (
+        <div className="mb-3 bg-amber-50/80 border border-amber-200/60 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <ArrowRight size={12} className="text-amber-600" />
+            <span className="text-xs font-medium text-amber-800">Hardware umgezogen</span>
+          </div>
+          <div className="space-y-1">
+            {reassignment.opsSn?.location && (
+              <div className="text-[11px] text-amber-700">
+                <span className="text-amber-500">OPS-SN</span>
+                <ArrowRight size={9} className="inline mx-1 text-amber-400" />
+                <span className="font-mono">{reassignment.opsSn.location.locationName}</span>
+                {reassignment.opsSn.location.city && <span className="text-amber-500"> ({reassignment.opsSn.location.city})</span>}
+              </div>
+            )}
+            {reassignment.displaySn?.location && (
+              <div className="text-[11px] text-amber-700">
+                <span className="text-amber-500">Display-SN</span>
+                <ArrowRight size={9} className="inline mx-1 text-amber-400" />
+                <span className="font-mono">{reassignment.displaySn.location.locationName}</span>
+                {reassignment.displaySn.location.city && <span className="text-amber-500"> ({reassignment.displaySn.location.city})</span>}
+              </div>
+            )}
+            {reassignment.simId?.location && (
+              <div className="text-[11px] text-amber-700">
+                <span className="text-amber-500">SIM-ID</span>
+                <ArrowRight size={9} className="inline mx-1 text-amber-400" />
+                <span className="font-mono">{reassignment.simId.location.locationName}</span>
+                {reassignment.simId.location.city && <span className="text-amber-500"> ({reassignment.simId.location.city})</span>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* OPS Player */}
+        {hardware.ops.map((ops, i) => (
+          <div key={ops.id || i} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <Cpu size={12} className="text-blue-500" />
+                <span className="text-[10px] font-mono font-medium text-slate-500 uppercase">OPS Player</span>
+              </div>
+              {statusBadge(ops.status)}
+            </div>
+            <div className="space-y-1">
+              {ops.opsNr && <div className="text-xs"><span className="text-slate-400">Nr: </span><span className="font-mono text-slate-700">{ops.opsNr}</span></div>}
+              {ops.opsSn && <div className="text-xs"><span className="text-slate-400">SN: </span><span className="font-mono text-slate-700 text-[10px]">{ops.opsSn}</span></div>}
+              {ops.hardwareType && <div className="text-xs"><span className="text-slate-400">Typ: </span><span className="text-slate-700">{ops.hardwareType}</span></div>}
+            </div>
+            {reassignmentForSn('opsSn', ops.opsSn)}
+            {historyButton('opsSn', ops.opsSn, `OPS ${ops.opsNr || ops.opsSn}`)}
+          </div>
+        ))}
+
+        {/* SIM Cards */}
+        {hardware.sims.map((sim, i) => (
+          <div key={sim.id || i} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <CardSim size={12} className="text-green-500" />
+                <span className="text-[10px] font-mono font-medium text-slate-500 uppercase">SIM-Karte</span>
+              </div>
+              {statusBadge(sim.status)}
+            </div>
+            <div className="space-y-1">
+              {sim.simId && (
+                <div className="text-xs">
+                  <span className="text-slate-400">ICCID: </span>
+                  {sim.simIdImprecise ? (
+                    <span className="text-amber-500 text-[10px]" title="ICCID ungenau – Airtable speichert als Zahl (Präzisionsverlust)">⚠ ungenau</span>
+                  ) : (
+                    <span className="font-mono text-slate-700 text-[10px]">{sim.simId}</span>
+                  )}
+                </div>
+              )}
+              {sim.activateDate && <div className="text-xs"><span className="text-slate-400">Aktiv seit: </span><span className="font-mono text-slate-700">{new Date(sim.activateDate).toLocaleDateString('de-DE')}</span></div>}
+            </div>
+            {sim.simId && !sim.simIdImprecise && reassignmentForSn('simId', sim.simId)}
+            {sim.simId && !sim.simIdImprecise && historyButton('simId', sim.simId, `SIM ${sim.simId.substring(0, 10)}...`)}
+          </div>
+        ))}
+
+        {/* Displays */}
+        {hardware.displays.map((disp, i) => (
+          <div key={disp.id || i} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <Monitor size={12} className="text-purple-500" />
+                <span className="text-[10px] font-mono font-medium text-slate-500 uppercase">Display</span>
+              </div>
+              {statusBadge(disp.status)}
+            </div>
+            <div className="space-y-1">
+              {disp.displaySerialNumber && <div className="text-xs"><span className="text-slate-400">SN: </span><span className="font-mono text-slate-700 text-[10px]">{disp.displaySerialNumber}</span></div>}
+              {disp.location && <div className="text-xs"><span className="text-slate-400">Standort: </span><span className="text-slate-700">{disp.location}</span></div>}
+            </div>
+            {disp.displaySerialNumber && reassignmentForSn('displaySn', disp.displaySerialNumber)}
+            {disp.displaySerialNumber && historyButton('displaySn', disp.displaySerialNumber, `Display ${disp.displaySerialNumber}`)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Hardware Movement History Modal ──────────────────────────────────────────
+
+function HardwareHistoryModal({ isOpen, onClose, snType, snValue, label }) {
+  const [timeline, setTimeline] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isOpen || !snValue) return;
+    setLoading(true);
+    fetchHardwareMovementHistory(snType, snValue).then((data) => {
+      setTimeline(data);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [isOpen, snType, snValue]);
+
+  if (!isOpen) return null;
+
+  const fmtDate = (d) => {
+    if (!d) return null;
+    try { return new Date(d).toLocaleDateString('de-DE'); } catch { return d; }
+  };
+
+  const typeIcon = (type) => {
+    switch (type) {
+      case 'assignment': return <MapPinned size={11} className="text-blue-500" />;
+      case 'installed': return <ArrowRight size={11} className="text-green-500" />;
+      case 'removed': return <ArrowRight size={11} className="text-red-400 rotate-180" />;
+      default: return <Circle size={11} className="text-slate-400" />;
+    }
+  };
+
+  const typeBg = (type) => {
+    switch (type) {
+      case 'assignment': return 'border-l-blue-400';
+      case 'installed': return 'border-l-green-400';
+      case 'removed': return 'border-l-red-400';
+      default: return 'border-l-slate-300';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md mx-4 max-h-[80vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+              <History size={14} className="text-[#3b82f6]" />
+              Hardware-Historie
+            </h3>
+            <p className="text-[11px] text-slate-400 font-mono mt-0.5">{label}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+            <X size={16} className="text-slate-400" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {loading ? (
+            <div className="flex items-center gap-2 py-8 justify-center">
+              <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
+              <span className="text-xs text-slate-400 font-mono">Lade Historie...</span>
+            </div>
+          ) : timeline.length === 0 ? (
+            <div className="text-center py-8">
+              <History size={20} className="text-slate-300 mx-auto mb-2" />
+              <p className="text-xs text-slate-400">Keine Bewegungshistorie gefunden</p>
+            </div>
+          ) : (
+            <div className="space-y-0">
+              {timeline.map((entry, i) => (
+                <div key={i} className={`flex gap-3 pb-3 ${i < timeline.length - 1 ? 'border-l-2 ml-[5px] pl-4 ' + typeBg(entry.type) : 'ml-[5px] pl-4'}`}>
+                  <div className="flex-shrink-0 -ml-[21px] mt-0.5 bg-white p-0.5 rounded-full">
+                    {typeIcon(entry.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-medium text-slate-700 truncate">
+                        {entry.locationName}
+                      </span>
+                      {entry.city && (
+                        <span className="text-[10px] text-slate-400">{entry.city}</span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">
+                      {entry.detail}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {entry.date && (
+                        <span className="text-[10px] font-mono text-slate-400">
+                          {fmtDate(entry.date)}
+                        </span>
+                      )}
+                      {entry.liveSince && !entry.date && (
+                        <span className="text-[10px] font-mono text-slate-400">
+                          Live seit {fmtDate(entry.liveSince)}
+                        </span>
+                      )}
+                      {entry.status && (
+                        <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-1 py-0.5 rounded">
+                          {entry.status}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Leasing Panel ───────────────────────────────────────────────────────────
+
+function LeasingPanel({ leaseData, loading }) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-4 justify-center">
+        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
+        <span className="text-xs text-slate-400 font-mono">Lade Leasing-Daten...</span>
+      </div>
+    );
+  }
+
+  if (!leaseData || (!leaseData.chg && !leaseData.bank)) return null;
+
+  const bank = leaseData.bank;
+  const chg = leaseData.chg;
+
+  const fmtDate = (d) => {
+    if (!d) return '–';
+    try { return new Date(d).toLocaleDateString('de-DE'); } catch { return d; }
+  };
+
+  // Calculate lease progress
+  let progress = null;
+  const startRaw = bank?.rentalStart || chg?.rentalStart;
+  const endRaw = bank?.rentalEndPlanned || chg?.rentalEnd;
+  // Safely parse dates (could be strings, arrays, or invalid)
+  const start = startRaw ? new Date(Array.isArray(startRaw) ? startRaw[0] : startRaw) : null;
+  const end = endRaw ? new Date(Array.isArray(endRaw) ? endRaw[0] : endRaw) : null;
+  const startValid = start && !isNaN(start.getTime());
+  const endValid = end && !isNaN(end.getTime());
+  if (startValid && endValid) {
+    const total = end.getTime() - start.getTime();
+    if (total > 0) {
+      progress = Math.min(100, Math.max(0, Math.round(((Date.now() - start.getTime()) / total) * 100)));
+    }
+  }
+
+  // Calculate months
+  let totalMonths = null;
+  if (startValid && endValid) {
+    totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <Landmark size={14} className="text-[#3b82f6]" />
+        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+          Leasing
+        </h3>
+        {bank?.contractStatus && (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium"
+            style={{ backgroundColor: '#22c55e15', color: '#22c55e', border: '1px solid #22c55e33' }}>
+            {bank.contractStatus}
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0">
+        <div>
+          {(bank?.lessor || chg?.status) && (
+            <InfoRow icon={Building2} label="Leasinggeber" value={bank?.lessor || '–'} />
+          )}
+          {(bank?.rentalCertificate) && (
+            <InfoRow icon={FileText} label="Mietschein" value={bank.rentalCertificate} mono />
+          )}
+          {(bank?.assetId || chg?.assetId) && (
+            <InfoRow icon={Hash} label="Asset-ID" value={bank?.assetId || chg?.assetId} mono />
+          )}
+          {bank?.designation && (
+            <InfoRow icon={Monitor} label="Produkt" value={bank.designation} />
+          )}
+        </div>
+        <div>
+          {startValid && (
+            <InfoRow icon={Calendar} label="Laufzeit" value={`${fmtDate(startRaw)} → ${endValid ? fmtDate(endRaw) : '–'}${totalMonths ? ` (${totalMonths} Mon.)` : ''}`} mono />
+          )}
+          {bank?.monthlyPrice != null && (
+            <InfoRow icon={TrendingUp} label="Monatspreis" value={`${bank.monthlyPrice.toFixed(2).replace('.', ',')}€`} mono />
+          )}
+          {chg?.paymentReleasedOn && (
+            <InfoRow icon={CheckCircle2} label="Zahlung freigeg." value={`${fmtDate(chg.paymentReleasedOn)}${chg.paymentReleasedBy ? ` von ${chg.paymentReleasedBy}` : ''}`} />
+          )}
+          {chg?.chgCertificate && (
+            <InfoRow icon={FileText} label="CHG Zertifikat" value={chg.chgCertificate} mono />
+          )}
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      {progress !== null && (
+        <div className="mt-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] text-slate-400 font-mono">Laufzeit-Fortschritt</span>
+            <span className="text-[10px] text-slate-500 font-mono font-medium">{progress}%</span>
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-1.5">
+            <div
+              className="h-1.5 rounded-full transition-all"
+              style={{
+                width: `${progress}%`,
+                backgroundColor: progress > 80 ? '#f59e0b' : '#3b82f6',
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Swap History Panel ──────────────────────────────────────────────────────
+
+function SwapHistoryPanel({ swaps, deinstalls, loading }) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-4 justify-center">
+        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
+        <span className="text-xs text-slate-400 font-mono">Lade Hardware-Historie...</span>
+      </div>
+    );
+  }
+
+  const hasSwaps = swaps && swaps.length > 0;
+  const hasDeinstalls = deinstalls && deinstalls.length > 0;
+  if (!hasSwaps && !hasDeinstalls) return null;
+
+  const fmtDate = (d) => {
+    if (!d) return '–';
+    try { return new Date(d).toLocaleDateString('de-DE'); } catch { return d; }
+  };
+
+  const statusColors = {
+    'Geplant': { bg: '#3b82f615', text: '#3b82f6', border: '#3b82f633' },
+    'In Bearbeitung': { bg: '#f59e0b15', text: '#f59e0b', border: '#f59e0b33' },
+    'Abgeschlossen': { bg: '#22c55e15', text: '#22c55e', border: '#22c55e33' },
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <ArrowLeftRight size={14} className="text-[#3b82f6]" />
+        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+          Hardware-Historie
+        </h3>
+      </div>
+
+      {/* Swaps */}
+      {hasSwaps && (
+        <div className="mb-3">
+          <div className="text-[10px] font-mono font-medium text-slate-400 uppercase mb-2">Tausch-Aufträge</div>
+          <div className="space-y-2">
+            {swaps.map((swap) => {
+              const sc = statusColors[swap.status] || statusColors['Geplant'];
+              return (
+                <div key={swap.id} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-2.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-mono font-medium text-slate-700">{swap.swapId || swap.id?.substring(0, 8)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400 font-mono">{fmtDate(swap.swapDate)}</span>
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-mono font-medium"
+                        style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>
+                        {swap.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    {swap.swapType?.join(', ')}{swap.swapReason ? ` — ${swap.swapReason}` : ''}
+                  </div>
+                  {swap.defectDescription && (
+                    <div className="text-[10px] text-slate-400 mt-1">{swap.defectDescription}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Deinstalls */}
+      {hasDeinstalls && (
+        <div>
+          <div className="text-[10px] font-mono font-medium text-slate-400 uppercase mb-2">Deinstallationen</div>
+          <div className="space-y-2">
+            {deinstalls.map((d) => {
+              const sc = statusColors[d.status] || statusColors['Geplant'];
+              return (
+                <div key={d.id} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-2.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-mono font-medium text-slate-700">{d.deinstallId || d.id?.substring(0, 8)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400 font-mono">{fmtDate(d.deinstallDate)}</span>
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-mono font-medium"
+                        style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>
+                        {d.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    {d.reason}{d.hardwareCondition ? ` — Zustand: ${d.hardwareCondition}` : ''}
+                  </div>
+                  {d.conditionDescription && (
+                    <div className="text-[10px] text-slate-400 mt-1">{d.conditionDescription}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Communications Panel ────────────────────────────────────────────────────
 
 function CommunicationsPanel({ communications, loading }) {
@@ -1113,9 +1852,237 @@ function CommunicationsPanel({ communications, loading }) {
   );
 }
 
+// ─── Vistar Programmatic Performance Panel ────────────────────────────────────
+
+function VistarPanel({ data, loading }) {
+  const canViewRevenue = hasPermission('view_revenue');
+  const hasData = data && data.length > 0;
+
+  const formatNum = (n) => {
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    return String(Math.round(n));
+  };
+
+  // Aggregate totals (or zeros)
+  const totals = hasData
+    ? data.reduce(
+        (acc, row) => {
+          acc.impressions += Number(row.impressions) || 0;
+          acc.spots += Number(row.spots) || 0;
+          acc.revenue += Number(row.partner_revenue) || 0;
+          acc.profit += Number(row.partner_profit) || 0;
+          return acc;
+        },
+        { impressions: 0, spots: 0, revenue: 0, profit: 0 }
+      )
+    : { impressions: 0, spots: 0, revenue: 0, profit: 0 };
+
+  const activeDays = hasData
+    ? new Set(data.filter((r) => (Number(r.spots) || 0) > 0).map((r) => r.date)).size
+    : 0;
+  const avgECPM = totals.impressions > 0
+    ? Math.round((totals.revenue / totals.impressions) * 1000 * 100) / 100
+    : 0;
+
+  // Daily chart data
+  const dailyMap = new Map();
+  if (hasData) {
+    data.forEach((row) => {
+      const date = row.date || '';
+      if (!date) return;
+      if (!dailyMap.has(date)) {
+        dailyMap.set(date, { impressions: 0, spots: 0, revenue: 0 });
+      }
+      const d = dailyMap.get(date);
+      d.impressions += Number(row.impressions) || 0;
+      d.spots += Number(row.spots) || 0;
+      d.revenue += Number(row.partner_revenue) || 0;
+    });
+  }
+
+  const dailyChart = Array.from(dailyMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, vals]) => ({
+      date,
+      label: date.slice(5).replace('-', '.'),
+      ...vals,
+    }));
+
+  const avgSpotsPerDay = activeDays > 0 ? Math.round(totals.spots / activeDays) : 0;
+  const totalDays = dailyChart.length || 30;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <TrendingUp size={14} className="text-[#8b5cf6]" />
+        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+          Programmatic Performance
+        </h3>
+        <span className="text-[10px] font-mono text-[#8b5cf6] bg-[#8b5cf6]/10 px-2 py-0.5 rounded-full border border-[#8b5cf6]/25">
+          Vistar SSP · 30 Tage
+        </span>
+        {!hasData && !loading && (
+          <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+            API nicht verbunden
+          </span>
+        )}
+        {loading && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400">
+            <Loader2 size={10} className="animate-spin" /> Lade...
+          </span>
+        )}
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
+        <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
+          <div className={`text-lg font-mono font-bold ${hasData ? 'text-[#8b5cf6]' : 'text-slate-300'}`}>
+            {hasData ? formatNum(totals.impressions) : '–'}
+          </div>
+          <div className="text-[9px] text-slate-400 mt-0.5">Impressions</div>
+        </div>
+        <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
+          <div className={`text-lg font-mono font-bold ${hasData ? 'text-slate-700' : 'text-slate-300'}`}>
+            {hasData ? formatNum(totals.spots) : '–'}
+          </div>
+          <div className="text-[9px] text-slate-400 mt-0.5">Ad Plays</div>
+        </div>
+        {canViewRevenue ? (
+          <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
+            <div className={`text-lg font-mono font-bold ${hasData ? 'text-emerald-600' : 'text-slate-300'}`}>
+              {hasData ? `${totals.revenue.toFixed(2)}€` : '–'}
+            </div>
+            <div className="text-[9px] text-slate-400 mt-0.5">Revenue</div>
+          </div>
+        ) : (
+          <div className="bg-slate-50/80 rounded-lg p-2.5 text-center flex items-center justify-center">
+            <div className="flex items-center gap-1 text-slate-400">
+              <Lock size={12} />
+              <span className="text-[9px]">Revenue</span>
+            </div>
+          </div>
+        )}
+        {canViewRevenue ? (
+          <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
+            <div className={`text-lg font-mono font-bold ${hasData ? 'text-slate-600' : 'text-slate-300'}`}>
+              {hasData ? `${avgECPM.toFixed(2)}€` : '–'}
+            </div>
+            <div className="text-[9px] text-slate-400 mt-0.5">Ø eCPM</div>
+          </div>
+        ) : (
+          <div className="bg-slate-50/80 rounded-lg p-2.5 text-center flex items-center justify-center">
+            <div className="flex items-center gap-1 text-slate-400">
+              <Lock size={12} />
+              <span className="text-[9px]">eCPM</span>
+            </div>
+          </div>
+        )}
+        <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
+          <div className={`text-lg font-mono font-bold ${hasData ? 'text-slate-600' : 'text-slate-300'}`}>
+            {hasData ? <>{activeDays}<span className="text-xs text-slate-400">/{totalDays}</span></> : '–'}
+          </div>
+          <div className="text-[9px] text-slate-400 mt-0.5">Active Days</div>
+        </div>
+      </div>
+
+      {/* Daily bar chart or placeholder */}
+      <div>
+        <div className="text-[10px] font-mono text-slate-400 mb-1.5">
+          {hasData ? `Spots pro Tag (Ø ${avgSpotsPerDay}/Tag)` : 'Spots pro Tag'}
+        </div>
+        <div className="flex items-end gap-[2px] h-[60px]">
+          {hasData && dailyChart.length > 0 ? (
+            dailyChart.map((day) => {
+              const maxSpots = Math.max(...dailyChart.map((d) => d.spots), 1);
+              const h = Math.max(2, (day.spots / maxSpots) * 56);
+              return (
+                <div
+                  key={day.date}
+                  className="flex-1 rounded-t-sm transition-all hover:opacity-80"
+                  style={{
+                    height: `${h}px`,
+                    backgroundColor: day.spots > 0 ? '#8b5cf6' : '#e2e8f0',
+                    opacity: day.spots > 0 ? 0.7 : 0.3,
+                  }}
+                  title={`${day.label}: ${day.spots} Spots, ${formatNum(day.impressions)} Impr.${canViewRevenue ? `, ${day.revenue.toFixed(2)}€` : ''}`}
+                />
+              );
+            })
+          ) : (
+            // Placeholder bars (empty state)
+            Array.from({ length: 30 }, (_, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-t-sm"
+                style={{
+                  height: `${4 + Math.random() * 20}px`,
+                  backgroundColor: '#e2e8f0',
+                  opacity: 0.3,
+                }}
+              />
+            ))
+          )}
+        </div>
+        {dailyChart.length > 0 ? (
+          <div className="flex justify-between mt-1 text-[9px] font-mono text-slate-400">
+            <span>{dailyChart[0]?.label}</span>
+            <span>{dailyChart[dailyChart.length - 1]?.label}</span>
+          </div>
+        ) : (
+          <div className="text-center mt-2 text-[10px] font-mono text-slate-400">
+            Vistar API-Credentials in Netlify hinterlegen um Live-Daten zu sehen
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Detail component ────────────────────────────────────────────────────
 
-export default function DisplayDetail({ display, onClose }) {
+/* ── Error Boundary for DisplayDetail ── */
+class DisplayDetailErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error('[DisplayDetail] Render crash:', error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+            <AlertTriangle size={32} className="text-red-500 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Display-Detail Fehler</h3>
+            <p className="text-xs text-slate-500 mb-3">Ein Fehler ist beim Rendern aufgetreten:</p>
+            <pre className="text-[10px] bg-red-50 text-red-700 p-3 rounded-lg text-left overflow-auto max-h-32 mb-4 font-mono">
+              {this.state.error?.message || 'Unbekannter Fehler'}
+            </pre>
+            <button
+              onClick={this.props.onClose}
+              className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700"
+            >
+              Schließen
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return <DisplayDetailInner {...this.props} />;
+  }
+}
+
+export default function DisplayDetail(props) {
+  return <DisplayDetailErrorBoundary {...props} />;
+}
+
+function DisplayDetailInner({ display, onClose }) {
   const timeline = useMemo(
     () => computeDisplayTimeline(display),
     [display]
@@ -1130,6 +2097,33 @@ export default function DisplayDetail({ display, onClose }) {
   const [installationLoading, setInstallationLoading] = useState(true);
   const [communications, setCommunications] = useState([]);
   const [communicationsLoading, setCommunicationsLoading] = useState(true);
+
+  // Airtable display record (from airtable_displays table)
+  const [airtableDisplay, setAirtableDisplay] = useState(null);
+
+  // Vistar programmatic data
+  const [vistarData, setVistarData] = useState(null);
+  const [vistarLoading, setVistarLoading] = useState(true);
+
+  // Hardware inventory
+  const [hardwareSet, setHardwareSet] = useState(null);
+  const [hardwareLoading, setHardwareLoading] = useState(true);
+  const [leaseData, setLeaseData] = useState(null);
+  const [leaseLoading, setLeaseLoading] = useState(true);
+  const [swapHistory, setSwapHistory] = useState([]);
+  const [deinstallHistory, setDeinstallHistory] = useState([]);
+  const [hwHistoryLoading, setHwHistoryLoading] = useState(true);
+
+  // Hardware reassignment tracking
+  const [hardwareReassignment, setHardwareReassignment] = useState(null);
+  const [reassignmentLoading, setReassignmentLoading] = useState(false);
+
+  // Hardware movement history modal
+  const [hwHistoryModal, setHwHistoryModal] = useState({ open: false, snType: null, snValue: null, label: '' });
+
+  // Hardware modals
+  const [showSwapModal, setShowSwapModal] = useState(false);
+  const [showDeinstallModal, setShowDeinstallModal] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1147,6 +2141,76 @@ export default function DisplayDetail({ display, onClose }) {
       }
     });
 
+    // Fetch enriched display data from airtable_displays, then load hardware
+    setHardwareLoading(true);
+    setLeaseLoading(true);
+    setHwHistoryLoading(true);
+    fetchAirtableDisplayByDisplayId(displayId).then((data) => {
+      if (cancelled) return;
+      setAirtableDisplay(data);
+
+      // Use airtable record ID as Live Display Location ID for hardware queries
+      const locationRecordId = data?.airtable_id || data?.id;
+      if (locationRecordId) {
+        // Load hardware set (OPS + SIM + Display), then check reassignment
+        fetchHardwareByLocationId(locationRecordId).then((hw) => {
+          if (!cancelled) {
+            setHardwareSet(hw);
+            setHardwareLoading(false);
+
+            // For deinstalled displays: check where hardware is now
+            const isDeinstalled = /deinstall/i.test(data?.online_status || '');
+            if (isDeinstalled && hw && hw.ops.length > 0) {
+              setReassignmentLoading(true);
+              const ops0 = hw.ops[0];
+              const serials = {
+                opsSn: ops0.opsSn || undefined,
+                displaySn: ops0.displaySn || (hw.displays[0]?.displaySerialNumber) || undefined,
+                simId: ops0.simId || (hw.sims[0]?.simId) || undefined,
+              };
+              findHardwareReassignment(serials, locationRecordId).then((r) => {
+                if (!cancelled) { setHardwareReassignment(r); setReassignmentLoading(false); }
+              }).catch(() => {
+                if (!cancelled) setReassignmentLoading(false);
+              });
+            }
+          }
+        }).catch(() => {
+          if (!cancelled) { setHardwareLoading(false); }
+        });
+
+        // Load leasing data via jet_id (parallel, not dependent on hardware)
+        const jetId = data?.jet_id;
+        if (jetId) {
+          fetchLeaseByJetId(jetId).then((lease) => {
+            if (!cancelled) { setLeaseData(lease); setLeaseLoading(false); }
+          }).catch(() => { if (!cancelled) setLeaseLoading(false); });
+        } else {
+          if (!cancelled) setLeaseLoading(false);
+        }
+
+        // Load swap + deinstall history
+        Promise.all([
+          fetchSwapsByLocationId(locationRecordId),
+          fetchDeinstallsByLocationId(locationRecordId),
+        ]).then(([swaps, deinstalls]) => {
+          if (!cancelled) {
+            setSwapHistory(swaps);
+            setDeinstallHistory(deinstalls);
+            setHwHistoryLoading(false);
+          }
+        }).catch(() => {
+          if (!cancelled) setHwHistoryLoading(false);
+        });
+      } else {
+        if (!cancelled) {
+          setHardwareLoading(false);
+          setLeaseLoading(false);
+          setHwHistoryLoading(false);
+        }
+      }
+    });
+
     fetchTasksByDisplayId(displayId).then((data) => {
       if (!cancelled) {
         setTasks(data);
@@ -1160,6 +2224,26 @@ export default function DisplayDetail({ display, onClose }) {
         setInstallationLoading(false);
       }
     });
+
+    // Fetch Vistar programmatic data (last 30 days)
+    setVistarLoading(true);
+    const venueId = display.serialNumber;
+    if (venueId) {
+      const endDate = new Date().toISOString().slice(0, 10);
+      const startDateObj = new Date();
+      startDateObj.setDate(startDateObj.getDate() - 30);
+      const startDate = startDateObj.toISOString().slice(0, 10);
+      fetchSingleVenueReport(venueId, startDate, endDate).then((data) => {
+        if (!cancelled) {
+          setVistarData(data);
+          setVistarLoading(false);
+        }
+      }).catch(() => {
+        if (!cancelled) setVistarLoading(false);
+      });
+    } else {
+      setVistarLoading(false);
+    }
 
     // Fetch communications and filter by display/location
     fetchAllCommunications().then((allComms) => {
@@ -1247,15 +2331,117 @@ export default function DisplayDetail({ display, onClose }) {
                 <InfoRow icon={Monitor} label="Display ID" value={display.displayId} mono />
                 <InfoRow icon={MapPin} label="Standort" value={display.displayName || display.locationName} />
                 <InfoRow icon={MapPin} label="Stadt" value={`${display.city} (${display.cityCode})`} />
+                {display.geoAddress && (
+                  <InfoRow icon={MapPin} label="Adresse" value={display.geoAddress} />
+                )}
+                {display.geoCityLine && !display.geoAddress && (
+                  <InfoRow icon={MapPin} label="Ort" value={display.geoCityLine} />
+                )}
+                {display.geoLat && display.geoLng && (
+                  <div className="flex items-center gap-3 py-1.5">
+                    <MapPin size={14} className="text-slate-400 flex-shrink-0" />
+                    <span className="text-slate-400 text-xs w-32 flex-shrink-0">Koordinaten</span>
+                    <a
+                      href={`https://www.google.com/maps?q=${display.geoLat},${display.geoLng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 font-mono"
+                    >
+                      <ExternalLink size={10} />
+                      {display.geoLat.toFixed(4)}, {display.geoLng.toFixed(4)}
+                    </a>
+                  </div>
+                )}
                 <InfoRow icon={Hash} label="Navori Venue ID" value={display.serialNumber} mono />
+                {display.daynScreenId && (
+                  <InfoRow icon={Hash} label="Dayn Screen ID" value={display.daynScreenId} mono />
+                )}
               </div>
               <div>
                 <InfoRow icon={Calendar} label="Installiert" value={formatDate(display.firstSeen)} mono />
                 <InfoRow icon={Calendar} label="Letzter Check" value={formatDateTime(display.lastSeen)} mono />
                 <InfoRow icon={Clock} label="Letzter Heartbeat" value={formatDateTime(display.heartbeat)} mono />
                 <InfoRow icon={TrendingUp} label="Uptime-Rate" value={`${timeline.uptimeRate}%`} mono />
+                {display.installYear && (
+                  <InfoRow icon={Calendar} label="Install-Jahr" value={display.installYear} />
+                )}
               </div>
             </div>
+            {/* ── Screen-Daten & Impressions ── */}
+            {(display.venueType || display.floorCpm != null || display.dvacDay != null || display.screenWidthPx) && (
+              <div className="mt-3 pt-3 border-t border-slate-100">
+                <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-2">Screen-Daten</div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-0">
+                  {display.venueType && (
+                    <InfoRow icon={Monitor} label="Venue Type" value={display.venueType} />
+                  )}
+                  {display.region && (
+                    <InfoRow icon={MapPin} label="Region" value={display.region} />
+                  )}
+                  {display.floorCpm != null && (
+                    <InfoRow icon={DollarSign} label="Floor CPM" value={`€${display.floorCpm.toFixed(2)}`} mono />
+                  )}
+                  {display.screenType && (
+                    <InfoRow icon={Monitor} label="Screen-Typ" value={display.screenType} />
+                  )}
+                  {display.screenInch && (
+                    <InfoRow icon={Monitor} label="Bildschirm" value={`${display.screenInch}"`} />
+                  )}
+                  {display.screenWidthPx && display.screenHeightPx && (
+                    <InfoRow icon={Monitor} label="Auflösung" value={`${display.screenWidthPx} × ${display.screenHeightPx} px`} mono />
+                  )}
+                  {display.videoSupported != null && (
+                    <InfoRow icon={Monitor} label="Video" value={display.videoSupported ? '✓ Ja' : '✗ Nein'} />
+                  )}
+                  {display.staticSupported != null && (
+                    <InfoRow icon={Monitor} label="Statisch" value={display.staticSupported ? '✓ Ja' : '✗ Nein'} />
+                  )}
+                  {display.maxVideoLength != null && (
+                    <InfoRow icon={Clock} label="Video max." value={`${display.maxVideoLength}s`} mono />
+                  )}
+                  {display.minVideoLength != null && (
+                    <InfoRow icon={Clock} label="Video min." value={`${display.minVideoLength}s`} mono />
+                  )}
+                  {display.staticDuration != null && (
+                    <InfoRow icon={Clock} label="Statisch-Dauer" value={`${display.staticDuration}s`} mono />
+                  )}
+                </div>
+                {/* dVAC & Impressions */}
+                {(display.dvacDay != null || display.dvacWeek != null || display.dvacMonth != null) && (
+                  <div className="mt-2 pt-2 border-t border-slate-50">
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-2">dVAC & Impressions (dVAC × 6)</div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {display.dvacDay != null && (
+                        <div className="bg-blue-50/60 rounded-lg p-2.5 text-center">
+                          <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsDay?.toLocaleString('de-DE') || '–'}</div>
+                          <div className="text-[9px] text-slate-400 mt-0.5">Imp./Tag</div>
+                          <div className="text-[9px] text-slate-400">dVAC: {display.dvacDay.toLocaleString('de-DE')}</div>
+                        </div>
+                      )}
+                      {display.dvacWeek != null && (
+                        <div className="bg-blue-50/60 rounded-lg p-2.5 text-center">
+                          <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsWeek?.toLocaleString('de-DE') || '–'}</div>
+                          <div className="text-[9px] text-slate-400 mt-0.5">Imp./Woche</div>
+                          <div className="text-[9px] text-slate-400">dVAC: {display.dvacWeek.toLocaleString('de-DE')}</div>
+                        </div>
+                      )}
+                      {display.dvacMonth != null && (
+                        <div className="bg-blue-50/60 rounded-lg p-2.5 text-center">
+                          <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsMonth?.toLocaleString('de-DE') || '–'}</div>
+                          <div className="text-[9px] text-slate-400 mt-0.5">Imp./Monat</div>
+                          <div className="text-[9px] text-slate-400">dVAC: {display.dvacMonth.toLocaleString('de-DE')}</div>
+                        </div>
+                      )}
+                    </div>
+                    {display.impressionsPerSpot != null && (
+                      <div className="mt-1.5 text-[10px] text-slate-400 text-center">
+                        Impressions/Spot: <span className="font-mono font-medium text-slate-600">{display.impressionsPerSpot.toLocaleString('de-DE')}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Summary stats */}
@@ -1288,7 +2474,7 @@ export default function DisplayDetail({ display, onClose }) {
         {/* Airtable: Contact Info */}
         {(stammdatenLoading || stammdaten) && (
           <div className="p-5 border-b border-slate-200/60">
-            <ContactInfoPanel stammdaten={stammdaten} loading={stammdatenLoading} />
+            <ContactInfoPanel stammdaten={stammdaten} loading={stammdatenLoading} airtableDisplay={airtableDisplay} />
           </div>
         )}
 
@@ -1298,6 +2484,60 @@ export default function DisplayDetail({ display, onClose }) {
             <InstallationPanel installation={installation} loading={installationLoading} />
           </div>
         )}
+
+        {/* Hardware Set (OPS + SIM + Display) */}
+        {(hardwareLoading || hardwareSet || leaseData) && (
+          <div className="p-5 border-b border-slate-200/60">
+            <HardwareSetPanel
+              hardware={hardwareSet}
+              loading={hardwareLoading}
+              reassignment={hardwareReassignment}
+              reassignmentLoading={reassignmentLoading}
+              onShowHistory={(snType, snValue, label) => setHwHistoryModal({ open: true, snType, snValue, label })}
+              leaseData={leaseData}
+              installation={installation}
+              airtableDisplay={airtableDisplay}
+            />
+          </div>
+        )}
+
+        {/* Leasing (CHG + Bank TESMA) */}
+        {(leaseLoading || leaseData) && (
+          <div className="p-5 border-b border-slate-200/60">
+            <LeasingPanel leaseData={leaseData} loading={leaseLoading} />
+          </div>
+        )}
+
+        {/* Hardware-Historie (Tausch + Deinstall) + Action Buttons */}
+        {(hwHistoryLoading || swapHistory.length > 0 || deinstallHistory.length > 0 || hardwareSet) && (
+          <div className="p-5 border-b border-slate-200/60">
+            <SwapHistoryPanel swaps={swapHistory} deinstalls={deinstallHistory} loading={hwHistoryLoading} />
+            {/* Hardware Action Buttons */}
+            {!hwHistoryLoading && airtableDisplay && (
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={() => setShowSwapModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs font-medium text-amber-700 transition-colors"
+                >
+                  <ArrowLeftRight size={12} />
+                  Tausch initiieren
+                </button>
+                <button
+                  onClick={() => setShowDeinstallModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-medium text-red-600 transition-colors"
+                >
+                  <Package size={12} />
+                  Deinstallation
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Vistar: Programmatic Performance (always shown) */}
+        <div className="p-5 border-b border-slate-200/60">
+          <VistarPanel data={vistarData} loading={vistarLoading} />
+        </div>
 
         {/* Airtable: Tasks */}
         {(tasksLoading || tasks.length > 0) && (
@@ -1398,6 +2638,58 @@ export default function DisplayDetail({ display, onClose }) {
           </div>
         </div>
       </div>
+
+      {/* ═══════ MODALS ═══════ */}
+      <HardwareSwapModal
+        isOpen={showSwapModal}
+        onClose={() => setShowSwapModal(false)}
+        onSuccess={() => {
+          // Reload swap history
+          const locId = airtableDisplay?.airtable_id || airtableDisplay?.id;
+          if (locId) {
+            setHwHistoryLoading(true);
+            Promise.all([
+              fetchSwapsByLocationId(locId),
+              fetchDeinstallsByLocationId(locId),
+            ]).then(([s, d]) => {
+              setSwapHistory(s);
+              setDeinstallHistory(d);
+            }).finally(() => setHwHistoryLoading(false));
+          }
+        }}
+        displayLocationId={airtableDisplay?.airtable_id || airtableDisplay?.id || null}
+        locationName={display.locationName || airtableDisplay?.locationName || ''}
+        city={display.city || airtableDisplay?.city || ''}
+        currentHardware={hardwareSet}
+      />
+      <DeinstallModal
+        isOpen={showDeinstallModal}
+        onClose={() => setShowDeinstallModal(false)}
+        onSuccess={() => {
+          const locId = airtableDisplay?.airtable_id || airtableDisplay?.id;
+          if (locId) {
+            setHwHistoryLoading(true);
+            Promise.all([
+              fetchSwapsByLocationId(locId),
+              fetchDeinstallsByLocationId(locId),
+            ]).then(([s, d]) => {
+              setSwapHistory(s);
+              setDeinstallHistory(d);
+            }).finally(() => setHwHistoryLoading(false));
+          }
+        }}
+        displayLocationId={airtableDisplay?.airtable_id || airtableDisplay?.id || null}
+        locationName={display.locationName || airtableDisplay?.locationName || ''}
+        city={display.city || airtableDisplay?.city || ''}
+        currentHardware={hardwareSet}
+      />
+      <HardwareHistoryModal
+        isOpen={hwHistoryModal.open}
+        onClose={() => setHwHistoryModal({ open: false, snType: null, snValue: null, label: '' })}
+        snType={hwHistoryModal.snType}
+        snValue={hwHistoryModal.snValue}
+        label={hwHistoryModal.label}
+      />
     </div>
   );
 }

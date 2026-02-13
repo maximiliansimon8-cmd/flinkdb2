@@ -190,7 +190,7 @@ function App() {
   // Hash-based routing: read initial tab from URL hash
   const getTabFromHash = () => {
     const hash = window.location.hash.replace('#', '').replace('/', '');
-    const validTabs = ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'akquise-app'];
+    const validTabs = ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app'];
     return validTabs.includes(hash) ? hash : 'overview';
   };
   const [activeMainTab, setActiveMainTabRaw] = useState(getTabFromHash);
@@ -248,10 +248,10 @@ function App() {
   }
 
   /**
-   * Load heartbeat data from Supabase (OPTIMIZED: only last 30 days + globalFirstSeen).
+   * Load heartbeat data from Supabase (OPTIMIZED: only last 90 days + globalFirstSeen).
    * Instead of loading ALL 170K rows, we:
    * 1. Fetch globalFirstSeen from the display_first_seen view (~350 rows)
-   * 2. Fetch only last 30 days of heartbeats (~10-15K rows)
+   * 2. Fetch last 90 days of heartbeats (~30-45K rows)
    * Falls back to Google Sheets CSV proxy if Supabase has no data.
    */
   const loadData = useCallback(async (forceRefresh = false) => {
@@ -295,9 +295,9 @@ function App() {
       let cutoffISO = null;
       if (!maxTsResult.error && maxTsResult.data && maxTsResult.data.length > 0 && maxTsResult.data[0].timestamp_parsed) {
         const latestDate = new Date(maxTsResult.data[0].timestamp_parsed);
-        const cutoff = new Date(latestDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const cutoff = new Date(latestDate.getTime() - 90 * 24 * 60 * 60 * 1000);
         cutoffISO = cutoff.toISOString();
-        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (30 days before ${maxTsResult.data[0].timestamp_parsed})`);
+        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (90 days before ${maxTsResult.data[0].timestamp_parsed})`);
       }
 
       // Step 3: Fetch only recent heartbeat data (paginated, 1000 per page)
@@ -447,7 +447,7 @@ function App() {
   useEffect(() => {
     const onHashChange = () => {
       const hash = window.location.hash.replace('#', '').replace('/', '');
-      const validTabs = ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'akquise-app'];
+      const validTabs = ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app'];
       if (validTabs.includes(hash)) {
         setActiveMainTabRaw(hash);
       }
@@ -546,10 +546,30 @@ function App() {
     return Math.round(avgHealth * 10) / 10;
   }, [comparisonTrendData]);
 
+  // Comparison KPIs for Neu/Deinstalliert (previous period)
+  const comparisonKPIs = useMemo(() => {
+    if (!parsedRows || !rawData || !rawData.trendData || rawData.trendData.length === 0) return null;
+    const currentEnd = rangeEnd || rawData.latestTimestamp;
+    const currentStart = rangeStart || (rawData.trendData.length > 0 ? rawData.trendData[0].timestamp : null);
+    if (!currentEnd || !currentStart) return null;
+
+    const rangeDuration = currentEnd.getTime() - currentStart.getTime();
+    const compEnd = new Date(currentStart.getTime() - 1);
+    const compStart = new Date(compEnd.getTime() - rangeDuration);
+
+    if (dataEarliest && compEnd >= dataEarliest) {
+      const compData = aggregateData(parsedRows, compStart, compEnd, globalFirstSeen);
+      if (compData && compData.latestTimestamp) {
+        return computeKPIs(compData.displays, compData.latestTimestamp, globalFirstSeen, compData.trendData, compStart);
+      }
+    }
+    return null;
+  }, [parsedRows, rawData, rangeStart, rangeEnd, dataEarliest, globalFirstSeen]);
+
   const kpis = useMemo(() => {
     if (!rawData || !rawData.latestTimestamp) return null;
-    return computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData);
-  }, [rawData, globalFirstSeen]);
+    return computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
+  }, [rawData, globalFirstSeen, rangeStart]);
 
   const distribution = useMemo(() => {
     if (!rawData) return [];
@@ -756,6 +776,7 @@ function App() {
       if (diffDays <= 7) return '7 Tage';
       if (diffDays <= 14) return '14 Tage';
       if (diffDays <= 30) return '30 Tage';
+      if (diffDays <= 60) return '60 Tage';
       if (diffDays <= 90) return '90 Tage';
       return `${diffDays} Tage`;
     }
@@ -1197,11 +1218,11 @@ function App() {
     { id: 'programmatic', label: 'Programmatic', icon: BarChart3, access: 'displays' },
     { id: 'hardware', label: 'Hardware', icon: HardDrive, access: 'displays' },
     { id: 'acquisition', label: 'Akquise', icon: Target, access: 'displays' },
+    { id: 'installations', label: 'Installationen', icon: CalendarCheck, access: 'installations' },
     { id: 'map', label: 'Karte', icon: MapIcon, access: 'displays' },
     { id: 'contacts', label: 'Kontakte', icon: BookUser, access: 'displays' },
     { id: 'activities', label: 'Aktivitäten', icon: Activity, access: 'displays' },
     { id: 'tasks', label: 'Tasks', icon: ClipboardList, access: 'tasks' },
-    { id: 'installations', label: 'Installationen', icon: CalendarCheck, access: 'installations' },
     { id: 'communication', label: 'Kommunikation', icon: MessageSquare, access: 'communication' },
     { id: 'admin', label: 'Admin', icon: Shield, access: 'admin' },
   ];
@@ -1465,6 +1486,7 @@ function App() {
               activeFilter={kpiFilter}
               onFilterClick={handleKpiFilterClick}
               rangeLabel={rangeLabel}
+              comparisonKPIs={comparisonKPIs}
             />
 
             {/* KPI Drill-Down Panel */}

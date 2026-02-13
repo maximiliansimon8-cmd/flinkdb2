@@ -7,6 +7,7 @@
  */
 
 import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import { logApiCall } from './shared/apiLogger.js';
 
 export default async (request, context) => {
   // Handle CORS preflight
@@ -47,8 +48,20 @@ export default async (request, context) => {
       } catch (_) { /* no body */ }
     }
 
+    const apiStart = Date.now();
     const response = await fetch(airtableUrl, fetchOpts);
     const data = await response.text();
+
+    logApiCall({
+      functionName: 'airtable-proxy',
+      service: 'airtable',
+      method: request.method,
+      endpoint: pathAndQuery.split('?')[0],
+      durationMs: Date.now() - apiStart,
+      statusCode: response.status,
+      success: response.ok,
+      bytesTransferred: data.length,
+    });
 
     return new Response(data, {
       status: response.status,
@@ -59,6 +72,14 @@ export default async (request, context) => {
       },
     });
   } catch (err) {
+    logApiCall({
+      functionName: 'airtable-proxy',
+      service: 'airtable',
+      method: request.method,
+      endpoint: 'unknown',
+      success: false,
+      errorMessage: err.message,
+    });
     return new Response(
       JSON.stringify({ error: `Airtable proxy error: ${err.message}` }),
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }

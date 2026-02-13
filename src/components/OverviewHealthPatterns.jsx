@@ -5,17 +5,17 @@ const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
 function rateColor(rate) {
   if (rate == null) return '#cbd5e1';
-  if (rate >= 90) return '#22c55e';
-  if (rate >= 70) return '#f59e0b';
-  if (rate >= 50) return '#f97316';
+  if (rate >= 80) return '#22c55e';
+  if (rate >= 60) return '#f59e0b';
+  if (rate >= 40) return '#f97316';
   return '#ef4444';
 }
 
 function rateBg(rate) {
   if (rate == null) return '#94a3b820';
-  if (rate >= 90) return '#22c55e15';
-  if (rate >= 70) return '#f59e0b15';
-  if (rate >= 50) return '#f9731615';
+  if (rate >= 80) return '#22c55e15';
+  if (rate >= 60) return '#f59e0b15';
+  if (rate >= 40) return '#f9731615';
   return '#ef444415';
 }
 
@@ -121,10 +121,10 @@ function HeatmapTooltip({ data, position }) {
 
 /**
  * Compute network-wide health rate grouped by weekday.
- * IMPORTANT: Only uses real (non-interpolated) snapshots to avoid
- * stale data from gap-filling distorting the averages.
- * Method: Compute per-snapshot health rate, then average those rates per weekday.
- * This avoids bias from snapshots with varying display counts.
+ * Includes interpolated data for continuous coverage between snapshots.
+ * Method: Use uptime-based healthRate from each snapshot (consistent with KPI cards),
+ * then average those rates per weekday. This avoids the mismatch between
+ * KPI health rate (uptime-based) and pattern health rate (online/total ratio).
  */
 function computeWeekdayHealth(trendData) {
   // Collect per-snapshot health rates grouped by weekday
@@ -136,22 +136,21 @@ function computeWeekdayHealth(trendData) {
   }));
 
   trendData.forEach((snap) => {
-    // Skip interpolated data – it copies stale values and distorts results
-    if (snap._interpolated) return;
-
     const jsDay = snap.timestamp.getDay();
     const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
     days[dayIdx].totalOnline += snap.online;
     days[dayIdx].totalDisplays += snap.total;
     days[dayIdx].snapshots++;
     if (snap.total > 0) {
-      days[dayIdx].rates.push(snap.online / snap.total);
+      // Use uptime-based healthRate if available, fallback to online/total ratio
+      const rate = snap.healthRate != null ? snap.healthRate / 100 : snap.online / snap.total;
+      days[dayIdx].rates.push(rate);
     }
   });
 
   return days.map((d, i) => ({
     label: WEEKDAY_LABELS[i],
-    // Average of per-snapshot rates (more accurate than sum(online)/sum(total))
+    // Average of per-snapshot uptime-based health rates (consistent with KPI cards)
     rate:
       d.rates.length > 0
         ? Math.round((d.rates.reduce((a, b) => a + b, 0) / d.rates.length) * 1000) / 10
@@ -164,8 +163,9 @@ function computeWeekdayHealth(trendData) {
 
 /**
  * Compute network-wide health rate grouped by hour of day.
- * IMPORTANT: Only uses real (non-interpolated) snapshots.
- * Method: Average of per-snapshot health rates per hour.
+ * Includes interpolated data: if a display is online at 06:00 and 09:00,
+ * it's assumed online for 07:00 and 08:00 as well (cumulative fill).
+ * Method: Average of per-snapshot uptime-based health rates per hour.
  */
 function computeHourHealth(trendData) {
   const hours = Array.from({ length: 24 }, () => ({
@@ -176,21 +176,20 @@ function computeHourHealth(trendData) {
   }));
 
   trendData.forEach((snap) => {
-    // Skip interpolated data – it copies stale values into wrong hours
-    if (snap._interpolated) return;
-
     const h = snap.timestamp.getHours();
     hours[h].totalOnline += snap.online;
     hours[h].totalDisplays += snap.total;
     hours[h].snapshots++;
     if (snap.total > 0) {
-      hours[h].rates.push(snap.online / snap.total);
+      // Use uptime-based healthRate if available, fallback to online/total ratio
+      const rate = snap.healthRate != null ? snap.healthRate / 100 : snap.online / snap.total;
+      hours[h].rates.push(rate);
     }
   });
 
   return hours.map((d, i) => ({
     label: String(i).padStart(2, '0'),
-    // Average of per-snapshot rates (more accurate)
+    // Average of per-snapshot uptime-based health rates (consistent with KPI cards)
     rate:
       d.rates.length > 0
         ? Math.round((d.rates.reduce((a, b) => a + b, 0) / d.rates.length) * 1000) / 10
@@ -203,19 +202,17 @@ function computeHourHealth(trendData) {
 
 /**
  * Compute a weekday x hour heatmap (7x24 grid) with full detail data.
- * Uses real snapshots for rate calculation; interpolated entries are tracked
- * but only used as visual gap-fill when no real data exists for a cell.
+ * All data (real + interpolated) is treated equally — between two snapshots
+ * where a display is online, it's assumed online for the hours in between.
+ * Uses uptime-based healthRate (consistent with KPI cards).
  */
 function computeHeatmap(trendData) {
   const grid = Array.from({ length: 7 }, () =>
     Array.from({ length: 24 }, () => ({
-      realOnline: 0,
-      realDisplays: 0,
-      realSnapshots: 0,
-      realRates: [],
-      interpolatedOnline: 0,
-      interpolatedDisplays: 0,
-      interpolatedCount: 0,
+      totalOnline: 0,
+      totalDisplays: 0,
+      snapshots: 0,
+      rates: [],
     }))
   );
 
@@ -225,45 +222,35 @@ function computeHeatmap(trendData) {
     const h = snap.timestamp.getHours();
     const cell = grid[dayIdx][h];
 
-    if (snap._interpolated) {
-      cell.interpolatedOnline += snap.online;
-      cell.interpolatedDisplays += snap.total;
-      cell.interpolatedCount++;
-    } else {
-      cell.realOnline += snap.online;
-      cell.realDisplays += snap.total;
-      cell.realSnapshots++;
-      if (snap.total > 0) {
-        cell.realRates.push(snap.online / snap.total);
-      }
+    cell.totalOnline += snap.online;
+    cell.totalDisplays += snap.total;
+    cell.snapshots++;
+    if (snap.total > 0) {
+      // Use uptime-based healthRate if available, fallback to online/total ratio
+      const rate = snap.healthRate != null ? snap.healthRate / 100 : snap.online / snap.total;
+      cell.rates.push(rate);
     }
   });
 
   return grid.map((dayRow, dayIdx) =>
     dayRow.map((cell, hourIdx) => {
-      // Prefer real data; fall back to interpolated if no real snapshots exist
       let rate = null;
       let avgOnline = 0;
       let avgDisplays = 0;
-      const totalSnapshots = cell.realSnapshots + cell.interpolatedCount;
 
-      if (cell.realRates.length > 0) {
-        rate = Math.round((cell.realRates.reduce((a, b) => a + b, 0) / cell.realRates.length) * 1000) / 10;
-        avgOnline = Math.round(cell.realOnline / cell.realSnapshots);
-        avgDisplays = Math.round(cell.realDisplays / cell.realSnapshots);
-      } else if (cell.interpolatedCount > 0 && cell.interpolatedDisplays > 0) {
-        rate = Math.round((cell.interpolatedOnline / cell.interpolatedDisplays) * 1000) / 10;
-        avgOnline = Math.round(cell.interpolatedOnline / cell.interpolatedCount);
-        avgDisplays = Math.round(cell.interpolatedDisplays / cell.interpolatedCount);
+      if (cell.rates.length > 0) {
+        rate = Math.round((cell.rates.reduce((a, b) => a + b, 0) / cell.rates.length) * 1000) / 10;
+        avgOnline = Math.round(cell.totalOnline / cell.snapshots);
+        avgDisplays = Math.round(cell.totalDisplays / cell.snapshots);
       }
 
       return {
         rate,
         avgOnline,
         avgDisplays,
-        snapshots: totalSnapshots,
-        realSnapshots: cell.realSnapshots,
-        interpolatedCount: cell.interpolatedCount,
+        snapshots: cell.snapshots,
+        realSnapshots: cell.snapshots,
+        interpolatedCount: 0,
         label: `${WEEKDAY_LABELS[dayIdx]} ${String(hourIdx).padStart(2, '0')}:00`,
       };
     })
@@ -379,19 +366,19 @@ function HourBar({ stats, rangeLabel }) {
       <div className="flex items-center gap-3 mt-2">
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#22c55e]" />
-          <span className="text-[9px] text-slate-400">&ge;90%</span>
+          <span className="text-[9px] text-slate-400">&ge;80%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]" />
-          <span className="text-[9px] text-slate-400">70–90%</span>
+          <span className="text-[9px] text-slate-400">60–80%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#f97316]" />
-          <span className="text-[9px] text-slate-400">50–70%</span>
+          <span className="text-[9px] text-slate-400">40–60%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#ef4444]" />
-          <span className="text-[9px] text-slate-400">&lt;50%</span>
+          <span className="text-[9px] text-slate-400">&lt;40%</span>
         </div>
       </div>
       {problemHours.length > 0 && (
@@ -500,19 +487,19 @@ function Heatmap({ grid, rangeLabel }) {
       <div className="flex items-center gap-3 mt-2">
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#22c55e]" />
-          <span className="text-[9px] text-slate-400">&ge;90%</span>
+          <span className="text-[9px] text-slate-400">&ge;80%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]" />
-          <span className="text-[9px] text-slate-400">70–90%</span>
+          <span className="text-[9px] text-slate-400">60–80%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#f97316]" />
-          <span className="text-[9px] text-slate-400">50–70%</span>
+          <span className="text-[9px] text-slate-400">40–60%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#ef4444]" />
-          <span className="text-[9px] text-slate-400">&lt;50%</span>
+          <span className="text-[9px] text-slate-400">&lt;40%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-slate-300 opacity-30" />

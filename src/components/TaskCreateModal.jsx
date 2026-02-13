@@ -162,7 +162,7 @@ const STATUS_OPTIONS = [
   'Completed',
 ];
 
-const PRIORITY_OPTIONS = ['High', 'Medium', 'Low'];
+const PRIORITY_OPTIONS = ['Urgent', 'High', 'Medium', 'Low'];
 
 const STATUS_COLORS = {
   'New':         '#3b82f6',
@@ -174,6 +174,7 @@ const STATUS_COLORS = {
 };
 
 const PRIORITY_COLORS = {
+  'Urgent': '#dc2626',
   'High':   '#ef4444',
   'Medium': '#f59e0b',
   'Low':    '#22c55e',
@@ -243,7 +244,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
         .catch(() => setLocations([]))
         .finally(() => setLocationsLoading(false));
 
-      setTimeout(() => titleInputRef.current?.focus(), 150);
+      // Don't auto-focus title – location search is the first field now
     }
   }, [isOpen]);
 
@@ -502,138 +503,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
-          {/* ── Vorlage / Template Selector ── */}
-          <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              <ClipboardList size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
-              Vorlage verwenden
-            </label>
-            <select
-              onChange={(e) => {
-                handleApplyTemplate(e.target.value);
-                e.target.value = ''; // reset select after applying
-              }}
-              className="w-full appearance-none px-3 py-2.5 bg-gradient-to-r from-slate-50/80 to-[#3b82f6]/[0.03] border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
-            >
-              <option value="">– Vorlage auswählen (optional) –</option>
-              {TASK_TEMPLATES.map((t) => (
-                <option key={t.id} value={t.id}>{t.label}</option>
-              ))}
-            </select>
-            <p className="text-[9px] text-slate-400 mt-1">Füllt Titel, Beschreibung & Priorität automatisch aus</p>
-          </div>
-
-          {/* Title */}
-          <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              Titel <span className="text-[#ef4444]">*</span>
-            </label>
-            <input
-              ref={titleInputRef}
-              type="text"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (errors.title) setErrors((prev) => ({ ...prev, title: null }));
-              }}
-              placeholder="Task-Bezeichnung eingeben..."
-              className={`w-full px-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-colors ${
-                errors.title
-                  ? 'border-[#ef4444] focus:border-[#ef4444]'
-                  : 'border-slate-200/60 focus:border-[#3b82f6]'
-              }`}
-            />
-            {errors.title && (
-              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
-                <AlertCircle size={11} />
-                <span className="text-[10px]">{errors.title}</span>
-              </div>
-            )}
-          </div>
-
-          {/* ── Partner (required) ── */}
-          <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              <Briefcase size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
-              Partner <span className="text-[#ef4444]">*</span>
-            </label>
-            <select
-              value={partner}
-              onChange={(e) => {
-                setPartner(e.target.value);
-                if (errors.partner) setErrors((prev) => ({ ...prev, partner: null }));
-              }}
-              className={`w-full appearance-none px-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 focus:outline-none transition-colors pr-8 ${
-                errors.partner
-                  ? 'border-[#ef4444] focus:border-[#ef4444]'
-                  : 'border-slate-200/60 focus:border-[#3b82f6]'
-              }`}
-            >
-              <option value="">– Partner auswählen –</option>
-              {PARTNERS.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-            {errors.partner && (
-              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
-                <AlertCircle size={11} />
-                <span className="text-[10px]">{errors.partner}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Status & Priority row */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Status */}
-            <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-                Status
-              </label>
-              <div className="relative">
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors pr-8"
-                >
-                  {STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <div
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full pointer-events-none"
-                  style={{ backgroundColor: STATUS_COLORS[status] }}
-                />
-              </div>
-            </div>
-
-            {/* Priority */}
-            <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-                Priorität
-              </label>
-              <div className="relative">
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors pr-8"
-                >
-                  {PRIORITY_OPTIONS.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-                <div
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full pointer-events-none"
-                  style={{ backgroundColor: PRIORITY_COLORS[priority] }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* ── Standort / Location (searchable) ── */}
+          {/* ── 1. Standort / Location (searchable) — first, so template can use details ── */}
           <div ref={locationDropdownRef} className="relative">
             <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
               <MapPin size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
@@ -735,7 +605,142 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
             )}
           </div>
 
-          {/* ── Zuständig / Assigned User ── */}
+          {/* ── Vorlage / Template Selector (after location so details are available) ── */}
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+              <ClipboardList size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+              Vorlage verwenden
+            </label>
+            <select
+              onChange={(e) => {
+                handleApplyTemplate(e.target.value);
+                e.target.value = ''; // reset select after applying
+              }}
+              className="w-full appearance-none px-3 py-2.5 bg-gradient-to-r from-slate-50/80 to-[#3b82f6]/[0.03] border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+            >
+              <option value="">– Vorlage auswählen (optional) –</option>
+              {TASK_TEMPLATES.map((t) => (
+                <option key={t.id} value={t.id}>{t.label}</option>
+              ))}
+            </select>
+            <p className="text-[9px] text-slate-400 mt-1">
+              {selectedLocation
+                ? 'Füllt Titel, Beschreibung & Priorität mit Standort-Details aus'
+                : 'Erst Standort auswählen für vollständige Details'}
+            </p>
+          </div>
+
+          {/* ── 3. Title ── */}
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+              Titel <span className="text-[#ef4444]">*</span>
+            </label>
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (errors.title) setErrors((prev) => ({ ...prev, title: null }));
+              }}
+              placeholder="Task-Bezeichnung eingeben..."
+              className={`w-full px-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-colors ${
+                errors.title
+                  ? 'border-[#ef4444] focus:border-[#ef4444]'
+                  : 'border-slate-200/60 focus:border-[#3b82f6]'
+              }`}
+            />
+            {errors.title && (
+              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
+                <AlertCircle size={11} />
+                <span className="text-[10px]">{errors.title}</span>
+              </div>
+            )}
+          </div>
+
+          {/* ── 4. Partner (required) ── */}
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+              <Briefcase size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+              Partner <span className="text-[#ef4444]">*</span>
+            </label>
+            <select
+              value={partner}
+              onChange={(e) => {
+                setPartner(e.target.value);
+                if (errors.partner) setErrors((prev) => ({ ...prev, partner: null }));
+              }}
+              className={`w-full appearance-none px-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 focus:outline-none transition-colors pr-8 ${
+                errors.partner
+                  ? 'border-[#ef4444] focus:border-[#ef4444]'
+                  : 'border-slate-200/60 focus:border-[#3b82f6]'
+              }`}
+            >
+              <option value="">– Partner auswählen –</option>
+              {PARTNERS.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+            {errors.partner && (
+              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
+                <AlertCircle size={11} />
+                <span className="text-[10px]">{errors.partner}</span>
+              </div>
+            )}
+          </div>
+
+          {/* ── 5. Status & Priority row ── */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Status */}
+            <div>
+              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+                Status
+              </label>
+              <div className="relative">
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors pr-8"
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <div
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full pointer-events-none"
+                  style={{ backgroundColor: STATUS_COLORS[status] }}
+                />
+              </div>
+            </div>
+
+            {/* Priority */}
+            <div>
+              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+                Priorität
+              </label>
+              <div className="relative">
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors pr-8"
+                >
+                  {PRIORITY_OPTIONS.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+                <div
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full pointer-events-none"
+                  style={{ backgroundColor: PRIORITY_COLORS[priority] }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ── 6. Zuständig / Assigned User ── */}
           <div>
             <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
               <User size={11} className="inline -mt-0.5 mr-1 text-slate-400" />

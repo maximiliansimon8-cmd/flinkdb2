@@ -85,19 +85,11 @@ function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, ac
   );
 }
 
-// Filter keys that can be passed to the parent
-export const KPI_FILTERS = {
-  ACTIVE: 'active',
-  ONLINE: 'online',
-  WARNING: 'warning',
-  CRITICAL: 'critical',
-  PERMANENT_OFFLINE: 'permanent_offline',
-  NEVER_ONLINE: 'never_online',
-  NEW: 'new',
-  DEINSTALLED: 'deinstalled',
-};
+// Import from shared constants + re-export for backwards compatibility
+import { KPI_FILTERS } from '../constants/kpiFilters';
+export { KPI_FILTERS };
 
-export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel }) {
+export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel, comparisonKPIs }) {
   const healthColor =
     kpis.healthRate >= 90
       ? '#22c55e'
@@ -188,7 +180,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         value={kpis.criticalCount}
         icon={AlertTriangle}
         color="#ef4444"
-        subtitle={showAvg && kpis.avgCritical !== kpis.criticalCount ? `Ø ${kpis.avgCritical}` : '> 72h'}
+        subtitle={showAvg && kpis.avgCritical !== kpis.criticalCount ? `Ø ${kpis.avgCritical}` : '72h – 7d'}
         onClick={() => toggle(KPI_FILTERS.CRITICAL)}
         active={activeFilter === KPI_FILTERS.CRITICAL}
         trend={
@@ -242,9 +234,23 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         value={`+${kpis.newlyInstalled} / -${kpis.deinstalled}`}
         icon={PlusCircle}
         color="#94a3b8"
-        subtitle="7d / 30d"
-        onClick={() => toggle(KPI_FILTERS.NEW)}
-        active={activeFilter === KPI_FILTERS.NEW}
+        subtitle={rangeLabel || 'Zeitraum'}
+        avgLabel={comparisonKPIs ? `Vorz. +${comparisonKPIs.newlyInstalled} / -${comparisonKPIs.deinstalled}` : undefined}
+        onClick={() => {
+          // Cycle: null → NEW → DEINSTALLED → null
+          if (activeFilter === KPI_FILTERS.NEW) toggle(KPI_FILTERS.DEINSTALLED);
+          else if (activeFilter === KPI_FILTERS.DEINSTALLED) onFilterClick(null);
+          else toggle(KPI_FILTERS.NEW);
+        }}
+        active={activeFilter === KPI_FILTERS.NEW || activeFilter === KPI_FILTERS.DEINSTALLED}
+        trend={
+          comparisonKPIs ? (
+            <TrendIndicator
+              current={kpis.newlyInstalled - kpis.deinstalled}
+              previous={comparisonKPIs.newlyInstalled - comparisonKPIs.deinstalled}
+            />
+          ) : null
+        }
       />
     </div>
   );

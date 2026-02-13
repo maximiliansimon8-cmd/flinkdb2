@@ -335,6 +335,8 @@ export function hasPermission(action) {
 }
 
 export function canAccessTab(tabId) {
+  // Admin always has access to all tabs
+  if (isAdmin()) return true;
   return (getCurrentGroup()?.tabs || []).includes(tabId);
 }
 

@@ -16,11 +16,21 @@
  *   - SYNC_SECRET (optional, for manual trigger auth)
  */
 
+import { logApiCall, logApiCalls, estimateAirtableCost } from './shared/apiLogger.js';
+
 const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 const STAMMDATEN_TABLE = 'tblLJ1S7OUhc2w5Jw';
+const DISPLAYS_TABLE = 'tblS6cWN7uEhZHcie';   // "Live Display Locations" – the actual display records
 const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
 const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
 const ACTIVITY_LOG_TABLE = 'tblDk1dl4J3Ow3Qde';
+const DAYN_SCREENS_TABLE = 'Dayn Screens';  // Airtable accepts table names
+const OPS_INVENTORY_TABLE = 'tbl7szvfLUjsUvMkH';
+const SIM_INVENTORY_TABLE = 'tblaV4UQX6hhcSDAj';
+const DISPLAY_INVENTORY_TABLE = 'tblaMScl3j45Q4Dtc';
+const CHG_APPROVAL_TABLE = 'tblvj4qjJpBVLbY7F';
+const DEINSTALL_TABLE = 'tbltdxgzDeNz9d0ZC';
+const HARDWARE_SWAP_TABLE = 'tblzFHk0HhB4bNYJ4';
 
 const SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1MGqJAGgROYohc_SwR3NhW-BEyJXixLKQZhS9yUOH8_s/export?format=csv&gid=0';
@@ -197,6 +207,38 @@ function mapStammdaten(rec) {
     postal_code: f['Postal Code'] || null,
     city: f['City'] || null,
     lead_status: Array.isArray(f['Lead Status  (from Akquise)']) ? f['Lead Status  (from Akquise)'] : [],
+    display_status: f['Status'] || null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function mapDisplay(rec) {
+  const f = rec.fields;
+  // Helper: get first value from lookup array or scalar
+  const first = (field) => {
+    const v = f[field];
+    return Array.isArray(v) ? (v[0] || null) : (v || null);
+  };
+  return {
+    id: rec.id,
+    airtable_id: rec.id,
+    display_id: f['Display ID'] || null,
+    display_table_id: f['Display Table ID'] || null,
+    display_name: f['display_name'] || null,
+    online_status: f['Online Status '] || null,         // Note: trailing space in Airtable field name!
+    live_since: f['Live since'] || null,
+    deinstall_date: f['deinstall_date'] || null,
+    screen_type: f['Screen Type'] || null,
+    screen_size: f['Screen Size '] || null,              // Note: trailing space!
+    navori_venue_id: first('Navori Venue ID (from Installationen)'),
+    location_name: first('Location Name'),
+    city: first('City'),
+    street: first('Street'),
+    street_number: first('Street Number'),
+    postal_code: first('Postal Code'),
+    jet_id: first('JET ID (from JET ID)'),
+    sov_partner_ad: f['SoV Partner Ad'] || null,
+    created_at: f['Created'] || null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -211,6 +253,7 @@ function mapTask(rec) {
     title: f['Task Title'] || null,
     // Partner: prefer lookup field "Company (from Partner)", fallback to legacy Task Type
     task_type: f['Company (from Partner)'] || f['Partner'] || f['Task Type'] || [],
+    task_type_select: Array.isArray(f['Task Type']) ? f['Task Type'] : (f['Task Type'] ? [f['Task Type']] : []),
     status: f['Status'] || null,
     priority: f['Priority'] || null,
     due_date: f['Due Date'] || null,
@@ -223,7 +266,23 @@ function mapTask(rec) {
     location_names: f['Location Name (from Locations)'] || [],
     overdue: f['Overdue'] || null,
     completed_date: f['completed_task_date'] || null,
-    completed_by: f['completed_task_by'] || null,
+    completed_by: f['completed_task_by']?.name || f['completed_task_by'] || null,
+    // New fields from lookups
+    online_status: f['Online Status  (from Displays )'] || [],
+    live_since: f['Live since (from Displays )'] || [],
+    installation_status: f['Status Installation (from Installation)'] || [],
+    integrator: f['Integrator (from Installation)'] || [],
+    install_date: f['Aufbau Datum (from Installation)'] || [],
+    display_serial_number: f['Display Serial Number (from Installation)'] || [],
+    install_remarks: f['Allgemeine Bemerkungen (from Installation)'] || [],
+    install_type: f['Installationsart (from Installation)'] || [],
+    external_visibility: f['external_visiblity'] || false,
+    nacharbeit_kommentar: f['Kommentar Nacharbeit'] || null,
+    superchat: f['Superchat'] || false,
+    status_changed_by: f['Status changed by']?.name || f['Status changed by'] || null,
+    status_changed_date: f['Status changed date'] || null,
+    jet_ids: f['JET ID (from Locations)'] || [],
+    cities: f['City (from Locations)'] || [],
     attachments: Array.isArray(f['Attachments'])
       ? f['Attachments'].map(att => ({
           url: att.url || '',
@@ -234,6 +293,87 @@ function mapTask(rec) {
           thumbnails: att.thumbnails || null,
         }))
       : [],
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function mapAcquisition(rec) {
+  const f = rec.fields;
+  const lookupFirst = (field) => Array.isArray(f[field]) ? f[field][0] || null : (f[field] || null);
+  const lookupArray = (field) => Array.isArray(f[field]) ? f[field].filter(Boolean) : [];
+  return {
+    id: rec.id, airtable_id: rec.id,
+    akquise_id: f['Akquise ID'] || null,
+    lead_status: f['Lead_Status'] || null,
+    frequency_approval: f['frequency_approval (previous FAW Check)'] || null,
+    install_approval: f['install_approval'] || null,
+    approval_status: f['approval_status'] || null,
+    acquisition_date: f['Acquisition Date'] || null,
+    installations_status: lookupArray('Installations Status'),
+    display_location_status: lookupArray('Display Location Status'),
+    city: lookupArray('City'),
+    location_name: lookupFirst('Location Name_new'),
+    street: lookupFirst('Street'),
+    street_number: lookupFirst('Street Number'),
+    postal_code: lookupFirst('Postal Code'),
+    jet_id: lookupFirst('JET_ID'),
+    contact_person: lookupFirst('Contact Person'),
+    contact_email: lookupFirst('Contact Email'),
+    contact_phone: lookupFirst('Contact Phone'),
+    acquisition_partner: lookupFirst('Akquisition Partner Name (from Team)'),
+    dvac_week: f['# dVAC / Woche 100% SoV'] || null,
+    schaufenster: f['Schaufenster einsehbar'] || null,
+    hindernisse: f['Hindernisse vorhanden'] || null,
+    mount_type: f['Mount Type'] || null,
+    submitted_by: f['Submitted By'] || null,
+    submitted_at: f['Submitted At'] || null,
+    vertrag_vorhanden: f['Vertrag PDF vorhanden'] || null,
+    akquise_storno: f['Akquise Storno'] || false,
+    post_install_storno: f['Post‑Install Storno'] || false,
+    post_install_storno_grund: Array.isArray(f['Post‑Install Storno Grund']) ? f['Post‑Install Storno Grund'] : [],
+    ready_for_installation: f['ready_for_installation'] || false,
+    created_at: f['Created'] || null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function mapDaynScreen(rec) {
+  const f = rec.fields;
+  const zipVal = f['zip_code'];
+  const zip = (zipVal && typeof zipVal === 'object') ? zipVal.value : (zipVal || null);
+  const streetVal = f['Street with Number'];
+  const street = (streetVal && typeof streetVal === 'object') ? streetVal.value : (streetVal || null);
+  return {
+    id: rec.id,
+    airtable_id: rec.id,
+    dayn_screen_id: f['Dayn_Screen_ID'] || null,
+    do_screen_id: f['DO_Screen_ID'] || null,
+    screen_status: f['Screen Status'] || null,
+    network: 'dayn',
+    location_name: f['location_name'] || null,
+    address: street || f['address'] || null,
+    city: f['city'] || null,
+    region: f['region'] || null,
+    country: f['country'] || 'GER',
+    zip_code: zip,
+    venue_type: f['venue type'] || null,
+    floor_cpm: f['floor CPM'] != null ? Number(f['floor CPM']) : null,
+    screen_width_px: f['screen width (px)'] != null ? Number(f['screen width (px)']) : null,
+    screen_height_px: f['screen height (px)'] != null ? Number(f['screen height (px)']) : null,
+    latitude: f['latitude'] != null ? Number(f['latitude']) : null,
+    longitude: f['longitude'] != null ? Number(f['longitude']) : null,
+    screen_inch: f['Screen_Inch'] || null,
+    screen_type: f['Screen_Type'] || null,
+    max_video_length: f['Maximun video spot lenth (seconds)'] || null,
+    min_video_length: f['Minimum video spot lenth (seconds)'] || null,
+    static_duration: f['static duration (in seconds)'] || null,
+    static_supported: f['static_supported (can your screens run images JPG/PNG)'] === 'TRUE' ? true : f['static_supported (can your screens run images JPG/PNG)'] === 'FALSE' ? false : null,
+    video_supported: f['video_supported (can your screens run video?)'] === 'TRUE' ? true : f['video_supported (can your screens run video?)'] === 'FALSE' ? false : null,
+    dvac_week: f['# dVAC / Woche 100% SoV'] != null ? Number(f['# dVAC / Woche 100% SoV']) : null,
+    dvac_month: f['dVAC / Month'] != null ? Number(f['dVAC / Month']) : null,
+    dvac_day: f['dVAC per Day'] != null ? Number(f['dVAC per Day']) : null,
+    impressions_per_spot: f['Impressions per Spot'] != null ? Number(f['Impressions per Spot']) : null,
+    install_year: f['install_year'] || null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -266,6 +406,153 @@ function mapInstallation(rec) {
     install_end: f['Installationsabschluss'] || null,
     remarks: f['Allgemeine Bemerkungen'] || null,
     partner_name: f['Abnahme Partner (Name)'] || null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+// ─── Hardware Inventory Mapping Functions ───
+
+function mapOpsInventory(rec) {
+  const f = rec.fields;
+  const simIds = Array.isArray(f['SimID (from SimID)']) ? f['SimID (from SimID)'] : [];
+  const displaySns = Array.isArray(f['display_serial_number (from display_inventory)'])
+    ? f['display_serial_number (from display_inventory)'] : [];
+  const onlineStatus = Array.isArray(f['Online Status  (from Live Display Locations)'])
+    ? f['Online Status  (from Live Display Locations)'] : [];
+  const simRecords = Array.isArray(f['SimID']) ? f['SimID'] : [];
+  const displayRecords = Array.isArray(f['display_inventory']) ? f['display_inventory'] : [];
+  const locationRecords = Array.isArray(f['Live Display Locations']) ? f['Live Display Locations'] : [];
+  const partnerRecords = Array.isArray(f['Partner']) ? f['Partner'] : [];
+  return {
+    id: rec.id,
+    ops_nr: f['OpsNr.'] || null,
+    status: f['status'] || null,
+    ops_sn: f['OPS-SN'] || null,
+    hardware_type: f['ops_hardware_type'] || null,
+    navori_venue_id: f['navori_venueID'] || null,
+    sim_record_id: simRecords[0] || null,
+    sim_id: simIds[0] || null,
+    display_record_id: displayRecords[0] || null,
+    display_sn: displaySns[0] || null,
+    display_location_id: locationRecords[0] || null,
+    location_online_status: onlineStatus[0] || null,
+    partner_id: partnerRecords[0] || null,
+    note: f['note'] || null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function mapSimInventory(rec) {
+  const f = rec.fields;
+  const opsRecords = Array.isArray(f['OPS_Player_inventory 2']) ? f['OPS_Player_inventory 2'] : [];
+  return {
+    id: rec.id,
+    sim_id: f['SimID'] ? String(f['SimID']) : null,
+    activate_date: f['activate_date'] || null,
+    ops_record_id: opsRecords[0] || null,
+    status: f['status'] || null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function mapDisplayInventory(rec) {
+  const f = rec.fields;
+  const opsRecords = Array.isArray(f['OPS_Player_inventory']) ? f['OPS_Player_inventory'] : [];
+  return {
+    id: rec.id,
+    display_serial_number: f['display_serial_number'] ? String(f['display_serial_number']) : null,
+    location: f['location'] || null,
+    ops_record_id: opsRecords[0] || null,
+    status: f['status'] || null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function mapChgApproval(rec) {
+  const f = rec.fields;
+  const installRecords = Array.isArray(f['Installation']) ? f['Installation'] : [];
+  const inspectionStatus = Array.isArray(f['Inspection Status']) ? f['Inspection Status'] : [];
+  const displayIds = Array.isArray(f['DisplayID']) ? f['DisplayID'] : [];
+  const locationNames = Array.isArray(f['Location Name']) ? f['Location Name'] : [];
+  const cities = Array.isArray(f['City']) ? f['City'] : [];
+  const addresses = Array.isArray(f['Address']) ? f['Address'] : [];
+  return {
+    id: rec.id,
+    jet_id_location: f['JET ID Location'] || null,
+    asset_id: f['Asset ID'] || null,
+    display_sn: f['Display SN'] || null,
+    integrator_invoice_no: f['Integrator Invoice No'] || null,
+    chg_certificate: f['Installation certificate at the bank (CHG)'] || null,
+    invoice_date: f['Invoice date'] || null,
+    rental_start: f['Rental start date at the bank'] || null,
+    rental_end: f['Rental end date at the bank'] || null,
+    payment_released_on: f['Payment released on'] || null,
+    payment_released_by: f['Payment released by'] || null,
+    status: f['Status'] || null,
+    installation_id: installRecords[0] || null,
+    inspection_status: inspectionStatus,
+    display_id: displayIds,
+    location_name: locationNames,
+    city: cities,
+    address: addresses,
+    created_at: f['created'] || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function mapHardwareSwap(rec) {
+  const f = rec.fields;
+  const locationRecords = Array.isArray(f['Live Display Location']) ? f['Live Display Location'] : [];
+  const swapType = Array.isArray(f['Tausch-Typ']) ? f['Tausch-Typ'] : (f['Tausch-Typ'] ? [f['Tausch-Typ']] : []);
+  const oldHw = Array.isArray(f['ALTE Hardware']) ? f['ALTE Hardware'] : [];
+  const newHw = Array.isArray(f['NEUE Hardware']) ? f['NEUE Hardware'] : [];
+  const partnerRecords = Array.isArray(f['Partner']) ? f['Partner'] : [];
+  const locationNames = Array.isArray(f['Location Name (from Live Display Location)'])
+    ? f['Location Name (from Live Display Location)'] : [];
+  const cities = Array.isArray(f['City (from Live Display Location)'])
+    ? f['City (from Live Display Location)'] : [];
+  return {
+    id: rec.id,
+    swap_id: f['Tausch-ID'] ? String(f['Tausch-ID']) : null,
+    display_location_id: locationRecords[0] || null,
+    swap_type: swapType,
+    swap_date: f['Tausch-Datum'] || null,
+    swap_reason: f['Tausch-Grund'] || null,
+    partner_id: partnerRecords[0] || null,
+    technician: f['Techniker'] || null,
+    old_hardware_ids: oldHw,
+    new_hardware_ids: newHw,
+    defect_description: f['Defekt-Beschreibung'] || null,
+    status: f['Status'] || null,
+    location_name: locationNames[0] || null,
+    city: cities[0] || null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function mapDeinstall(rec) {
+  const f = rec.fields;
+  const locationRecords = Array.isArray(f['Live Display Location']) ? f['Live Display Location'] : [];
+  const opsRecords = Array.isArray(f['OPS-Nr / Hardware-Set']) ? f['OPS-Nr / Hardware-Set'] : [];
+  const partnerRecords = Array.isArray(f['Partner']) ? f['Partner'] : [];
+  const locationNames = Array.isArray(f['Location Name (from Live Display Location)'])
+    ? f['Location Name (from Live Display Location)'] : [];
+  const cities = Array.isArray(f['City (from Live Display Location)'])
+    ? f['City (from Live Display Location)'] : [];
+  return {
+    id: rec.id,
+    deinstall_id: f['Deinstallations-ID'] ? String(f['Deinstallations-ID']) : null,
+    display_location_id: locationRecords[0] || null,
+    ops_record_id: opsRecords[0] || null,
+    deinstall_date: f['Deinstallationsdatum'] || null,
+    reason: f['Grund'] || null,
+    partner_id: partnerRecords[0] || null,
+    technician: f['Techniker'] || null,
+    hardware_condition: f['Hardware-Zustand'] || null,
+    condition_description: f['Zustandsbeschreibung'] || null,
+    status: f['Status'] || null,
+    location_name: locationNames[0] || null,
+    city: cities[0] || null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -439,7 +726,7 @@ export default async (request) => {
       'JET ID', 'Display ID', 'Location Name', 'Contact Person',
       'Contact Email', 'Contact Phone', 'Location Email', 'Location Phone',
       'Legal Entity', 'Street', 'Street Number', 'Postal Code', 'City',
-      'Lead Status  (from Akquise)'
+      'Lead Status  (from Akquise)', 'Status'
     ]);
     const stammdatenRows = stammdatenRecords.map(mapStammdaten);
     results.stammdaten = {
@@ -449,13 +736,39 @@ export default async (request) => {
     };
     console.log(`[sync] Stammdaten: ${results.stammdaten.fetched} → ${results.stammdaten.upserted} upserted, ${results.stammdaten.deleted} orphans deleted`);
 
-    // ═══ 3. AIRTABLE: Tasks ═══
+    // ═══ 2b. AIRTABLE: Live Display Locations (Displays) ═══
+    console.log('[sync] Fetching Live Display Locations...');
+    const displayRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DISPLAYS_TABLE, [
+      'Display ID', 'Display Table ID', 'display_name', 'Online Status ',
+      'Live since', 'deinstall_date', 'Screen Type', 'Screen Size ',
+      'Navori Venue ID (from Installationen)',
+      'Location Name', 'City', 'Street', 'Street Number', 'Postal Code',
+      'JET ID (from JET ID)', 'SoV Partner Ad',
+    ]);
+    const displayRows = displayRecords.map(mapDisplay);
+    results.displays = {
+      fetched: displayRecords.length,
+      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'airtable_displays', displayRows),
+      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'airtable_displays', displayRecords.map(r => r.id)),
+    };
+    console.log(`[sync] Displays: ${results.displays.fetched} → ${results.displays.upserted} upserted, ${results.displays.deleted} orphans deleted`);
+
+    // ═══ 3. AIRTABLE: Tasks (with expanded lookup fields) ═══
     console.log('[sync] Fetching Tasks...');
     const taskRecords = await fetchAllAirtable(AIRTABLE_TOKEN, TASKS_TABLE, [
       'Task Title', 'Task Type', 'Partner', 'Company (from Partner)', 'Status', 'Priority', 'Due Date',
       'Description', 'Created time', 'Responsible User', 'Assigned',
       'Created by', 'Display ID (from Displays )', 'Location Name (from Locations)',
-      'Overdue', 'completed_task_date', 'completed_task_by', 'Attachments'
+      'Overdue', 'completed_task_date', 'completed_task_by', 'Attachments',
+      // New: display & installation lookups
+      'Online Status  (from Displays )', 'Live since (from Displays )',
+      'Status Installation (from Installation)', 'Integrator (from Installation)',
+      'Aufbau Datum (from Installation)', 'Display Serial Number (from Installation)',
+      'Allgemeine Bemerkungen (from Installation)', 'Installationsart (from Installation)',
+      // New: task meta
+      'external_visiblity', 'Kommentar Nacharbeit', 'Superchat',
+      'Status changed by', 'Status changed date',
+      'JET ID (from Locations)', 'City (from Locations)',
     ]);
     const taskRows = taskRecords.map(mapTask);
     results.tasks = {
@@ -464,6 +777,52 @@ export default async (request) => {
       deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'tasks', taskRecords.map(r => r.id)),
     };
     console.log(`[sync] Tasks: ${results.tasks.fetched} → ${results.tasks.upserted} upserted, ${results.tasks.deleted} orphans deleted`);
+
+    // ═══ 3b. AIRTABLE: Acquisition_DB ═══
+    console.log('[sync] Fetching Acquisition_DB...');
+    const acqRecords = await fetchAllAirtable(AIRTABLE_TOKEN, 'tblqFMBAeKQ1NbSI8', [
+      'Akquise ID', 'Lead_Status', 'frequency_approval (previous FAW Check)',
+      'install_approval', 'approval_status', 'Acquisition Date',
+      'Installations Status', 'Display Location Status',
+      'City', 'Location Name_new', 'Street', 'Street Number', 'Postal Code',
+      'JET_ID', 'Contact Person', 'Contact Email', 'Contact Phone',
+      'Akquisition Partner Name (from Team)',
+      '# dVAC / Woche 100% SoV', 'Schaufenster einsehbar', 'Hindernisse vorhanden',
+      'Mount Type', 'Submitted By', 'Submitted At',
+      'Vertrag PDF vorhanden', 'Akquise Storno',
+      'Post\u2011Install Storno', 'Post\u2011Install Storno Grund',
+      'ready_for_installation',
+    ]);
+    const acqRows = acqRecords.map(mapAcquisition);
+    results.acquisition = {
+      fetched: acqRecords.length,
+      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'acquisition', acqRows),
+      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'acquisition', acqRecords.map(r => r.id)),
+    };
+    console.log(`[sync] Acquisition: ${results.acquisition.fetched} → ${results.acquisition.upserted} upserted, ${results.acquisition.deleted} orphans deleted`);
+
+    // ═══ 3b. AIRTABLE: Dayn Screens ═══
+    console.log('[sync] Fetching Dayn Screens...');
+    const daynRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DAYN_SCREENS_TABLE, [
+      'Dayn_Screen_ID', 'DO_Screen_ID', 'Screen Status', 'location_name',
+      'address', 'city', 'region', 'country', 'zip_code', 'venue type',
+      'floor CPM', 'screen width (px)', 'screen height (px)',
+      'latitude', 'longitude', 'Screen_Inch', 'Screen_Type',
+      'install_year', 'Street with Number',
+      '# dVAC / Woche 100% SoV', 'dVAC / Month', 'dVAC per Day',
+      'Impressions per Spot',
+      'Maximun video spot lenth (seconds)', 'Minimum video spot lenth (seconds)',
+      'static duration (in seconds)',
+      'static_supported (can your screens run images JPG/PNG)',
+      'video_supported (can your screens run video?)',
+    ]);
+    const daynRows = daynRecords.map(mapDaynScreen);
+    results.dayn_screens = {
+      fetched: daynRecords.length,
+      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'dayn_screens', daynRows),
+      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'dayn_screens', daynRecords.map(r => r.id)),
+    };
+    console.log(`[sync] Dayn Screens: ${results.dayn_screens.fetched} → ${results.dayn_screens.upserted} upserted, ${results.dayn_screens.deleted} orphans deleted`);
 
     // ═══ 4. AIRTABLE: Installationen ═══
     console.log('[sync] Fetching Installationen...');
@@ -483,7 +842,112 @@ export default async (request) => {
     };
     console.log(`[sync] Installationen: ${results.installationen.fetched} → ${results.installationen.upserted} upserted, ${results.installationen.deleted} orphans deleted`);
 
-    // ═══ 5. AIRTABLE: Activity Log / Communications ═══
+    // ═══ 5. HARDWARE: OPS Player Inventory ═══
+    console.log('[sync] Fetching OPS Player Inventory...');
+    const opsRecords = await fetchAllAirtable(AIRTABLE_TOKEN, OPS_INVENTORY_TABLE, [
+      'OpsNr.', 'status', 'OPS-SN', 'ops_hardware_type', 'navori_venueID',
+      'SimID', 'SimID (from SimID)', 'display_inventory',
+      'display_serial_number (from display_inventory)',
+      'Live Display Locations', 'Online Status  (from Live Display Locations)',
+      'Partner', 'note',
+    ]);
+    const opsRows = opsRecords.map(mapOpsInventory);
+    results.hardware_ops = {
+      fetched: opsRecords.length,
+      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_ops', opsRows),
+      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_ops', opsRecords.map(r => r.id)),
+    };
+    console.log(`[sync] OPS Inventory: ${results.hardware_ops.fetched} → ${results.hardware_ops.upserted} upserted, ${results.hardware_ops.deleted} orphans deleted`);
+
+    // ═══ 6. HARDWARE: SIM Card Inventory ═══
+    console.log('[sync] Fetching SIM Card Inventory...');
+    const simRecords = await fetchAllAirtable(AIRTABLE_TOKEN, SIM_INVENTORY_TABLE, [
+      'SimID', 'activate_date', 'OPS_Player_inventory 2',
+    ]);
+    const simRows = simRecords.map(mapSimInventory);
+    results.hardware_sim = {
+      fetched: simRecords.length,
+      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_sim', simRows),
+      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_sim', simRecords.map(r => r.id)),
+    };
+    console.log(`[sync] SIM Inventory: ${results.hardware_sim.fetched} → ${results.hardware_sim.upserted} upserted, ${results.hardware_sim.deleted} orphans deleted`);
+
+    // ═══ 7. HARDWARE: Display Inventory ═══
+    console.log('[sync] Fetching Display Inventory...');
+    const dispInvRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DISPLAY_INVENTORY_TABLE, [
+      'display_serial_number', 'location', 'OPS_Player_inventory',
+    ]);
+    const dispInvRows = dispInvRecords.map(mapDisplayInventory);
+    results.hardware_displays = {
+      fetched: dispInvRecords.length,
+      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_displays', dispInvRows),
+      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_displays', dispInvRecords.map(r => r.id)),
+    };
+    console.log(`[sync] Display Inventory: ${results.hardware_displays.fetched} → ${results.hardware_displays.upserted} upserted, ${results.hardware_displays.deleted} orphans deleted`);
+
+    // ═══ 8. HARDWARE: CHG Approval (Leasing) ═══
+    console.log('[sync] Fetching CHG Approval...');
+    const chgRecords = await fetchAllAirtable(AIRTABLE_TOKEN, CHG_APPROVAL_TABLE, [
+      'JET ID Location', 'Asset ID', 'Display SN', 'Integrator Invoice No',
+      'Installation certificate at the bank (CHG)', 'Invoice date',
+      'Rental start date at the bank', 'Rental end date at the bank',
+      'Payment released on', 'Payment released by', 'Status',
+      'Installation', 'Inspection Status', 'DisplayID',
+      'Location Name', 'City', 'Address', 'created',
+    ]);
+    const chgRows = chgRecords.map(mapChgApproval);
+    results.chg_approvals = {
+      fetched: chgRecords.length,
+      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'chg_approvals', chgRows),
+      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'chg_approvals', chgRecords.map(r => r.id)),
+    };
+    console.log(`[sync] CHG Approval: ${results.chg_approvals.fetched} → ${results.chg_approvals.upserted} upserted, ${results.chg_approvals.deleted} orphans deleted`);
+
+    // ═══ 9. HARDWARE: Hardware Swaps ═══
+    console.log('[sync] Fetching Hardware Swaps...');
+    try {
+      const swapRecords = await fetchAllAirtable(AIRTABLE_TOKEN, HARDWARE_SWAP_TABLE, [
+        'Tausch-ID', 'Live Display Location', 'Tausch-Typ', 'Tausch-Datum',
+        'Tausch-Grund', 'Partner', 'Techniker', 'ALTE Hardware', 'NEUE Hardware',
+        'Defekt-Beschreibung', 'Status',
+        'Location Name (from Live Display Location)',
+        'City (from Live Display Location)',
+      ]);
+      const swapRows = swapRecords.map(mapHardwareSwap);
+      results.hardware_swaps = {
+        fetched: swapRecords.length,
+        upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_swaps', swapRows),
+        deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_swaps', swapRecords.map(r => r.id)),
+      };
+      console.log(`[sync] Hardware Swaps: ${results.hardware_swaps.fetched} → ${results.hardware_swaps.upserted} upserted`);
+    } catch (e) {
+      console.warn('[sync] Hardware Swaps table not ready yet:', e.message);
+      results.hardware_swaps = { fetched: 0, upserted: 0, error: e.message };
+    }
+
+    // ═══ 10. HARDWARE: Deinstallationen ═══
+    console.log('[sync] Fetching Deinstallationen...');
+    try {
+      const deinstRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DEINSTALL_TABLE, [
+        'Deinstallations-ID', 'Live Display Location', 'OPS-Nr / Hardware-Set',
+        'Deinstallationsdatum', 'Grund', 'Partner', 'Techniker',
+        'Hardware-Zustand', 'Zustandsbeschreibung', 'Status',
+        'Location Name (from Live Display Location)',
+        'City (from Live Display Location)',
+      ]);
+      const deinstRows = deinstRecords.map(mapDeinstall);
+      results.hardware_deinstalls = {
+        fetched: deinstRecords.length,
+        upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_deinstalls', deinstRows),
+        deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_deinstalls', deinstRecords.map(r => r.id)),
+      };
+      console.log(`[sync] Deinstallationen: ${results.hardware_deinstalls.fetched} → ${results.hardware_deinstalls.upserted} upserted`);
+    } catch (e) {
+      console.warn('[sync] Deinstallationen table not ready yet:', e.message);
+      results.hardware_deinstalls = { fetched: 0, upserted: 0, error: e.message };
+    }
+
+    // ═══ 11. AIRTABLE: Activity Log / Communications ═══
     console.log('[sync] Fetching Activity Log...');
     const commRecords = await fetchAllAirtable(AIRTABLE_TOKEN, ACTIVITY_LOG_TABLE, [
       'Channel', 'Direction', 'Subject', 'Message', 'Timestamp',
@@ -503,6 +967,35 @@ export default async (request) => {
     const durationMs = Date.now() - startTime;
     console.log(`[sync] Complete in ${(durationMs / 1000).toFixed(1)}s`);
 
+    // Summarize totals for API usage logging
+    const tableKeys = Object.keys(results);
+    const totalFetched = tableKeys.reduce((sum, k) => sum + (results[k]?.fetched || 0), 0);
+    const totalUpserted = tableKeys.reduce((sum, k) => sum + (results[k]?.upserted || results[k]?.inserted || 0), 0);
+
+    logApiCall({
+      functionName: 'sync-airtable',
+      service: 'airtable',
+      method: 'GET',
+      endpoint: '/sync-all',
+      durationMs,
+      statusCode: 200,
+      success: true,
+      recordsCount: totalFetched,
+      estimatedCostCents: estimateAirtableCost(totalFetched),
+      metadata: { tablesProcessed: tableKeys.length, totalRecords: totalFetched },
+    });
+
+    logApiCall({
+      functionName: 'sync-airtable',
+      service: 'supabase',
+      method: 'POST',
+      endpoint: '/upsert-all',
+      durationMs,
+      statusCode: 200,
+      success: true,
+      recordsCount: totalUpserted,
+    });
+
     return new Response(JSON.stringify({
       success: true,
       duration_ms: durationMs,
@@ -513,6 +1006,18 @@ export default async (request) => {
     });
   } catch (err) {
     console.error('[sync] Error:', err);
+
+    logApiCall({
+      functionName: 'sync-airtable',
+      service: 'airtable',
+      method: 'GET',
+      endpoint: '/sync-all',
+      durationMs: Date.now() - startTime,
+      statusCode: 500,
+      success: false,
+      errorMessage: err.message,
+    });
+
     return new Response(JSON.stringify({
       success: false,
       error: err.message,
@@ -525,7 +1030,7 @@ export default async (request) => {
 };
 
 // Netlify Scheduled Function config
-// Runs every 15 minutes
+// Runs every 2 hours (saves credits; manual sync via trigger-sync.js button)
 export const config = {
-  schedule: '*/15 * * * *',
+  schedule: '0 */2 * * *',
 };

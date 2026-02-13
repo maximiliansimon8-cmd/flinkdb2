@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -10,13 +10,13 @@ import {
   ReferenceLine,
 } from 'recharts';
 
-function CustomTooltip({ active, payload, comparisonHealthRate }) {
+function CustomTooltip({ active, payload }) {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
   return (
     <div className="bg-white/90 backdrop-blur-xl border border-slate-300/40 rounded-lg px-3 py-2 text-xs font-mono shadow-sm shadow-black/[0.03]">
       <div className="text-slate-600 mb-1">{data.date}</div>
-      <div className="text-[#22c55e] font-bold">
+      <div className="text-[#3b82f6] font-bold">
         {data.healthRate}% Betriebszeit
       </div>
       <div className="text-slate-400">
@@ -27,49 +27,17 @@ function CustomTooltip({ active, payload, comparisonHealthRate }) {
       <div className="text-slate-400">
         {data.total} Displays
       </div>
-      {comparisonHealthRate != null && (
+      {data.compHealthRate != null && (
         <div className="text-violet-600 mt-1 border-t border-slate-200/60 pt-1">
-          Vorperiode Ø: {comparisonHealthRate}%
+          {data.compDate && <span className="text-slate-400">{data.compDate}: </span>}
+          Vorperiode: {data.compHealthRate}%
         </div>
       )}
     </div>
   );
 }
 
-function ComparisonLabel({ viewBox, value }) {
-  if (!viewBox) return null;
-  const labelWidth = 140;
-  const labelHeight = 22;
-  // Position the label at the right side of the chart
-  const x = (viewBox.width || viewBox.x || 0) + (viewBox.x || 0) - labelWidth - 8;
-  const y = (viewBox.y || 0) - labelHeight / 2;
-  return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={labelWidth}
-        height={labelHeight}
-        rx={4}
-        fill="#7c3aed"
-        fillOpacity={0.9}
-      />
-      <text
-        x={x + labelWidth / 2}
-        y={y + labelHeight / 2 + 4}
-        textAnchor="middle"
-        fill="#ffffff"
-        fontSize={11}
-        fontWeight="600"
-        fontFamily="monospace"
-      >
-        Vorperiode Ø {value}%
-      </text>
-    </g>
-  );
-}
-
-export default function HealthTrendChart({ trendData, rangeLabel = '30 Tage', comparisonHealthRate }) {
+export default function HealthTrendChart({ trendData, rangeLabel = '30 Tage', comparisonHealthRate, comparisonTrendData }) {
   if (!trendData || trendData.length === 0) {
     return (
       <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
@@ -90,6 +58,36 @@ export default function HealthTrendChart({ trendData, rangeLabel = '30 Tage', co
     chartData = trendData.filter((_, i) => i % step === 0 || i === trendData.length - 1);
   }
 
+  // Merge comparison data day-by-day aligned
+  // The comparison period has the same number of days, shifted back.
+  // We align by index: day 0 of current = day 0 of comparison, etc.
+  const mergedData = useMemo(() => {
+    // Downsample comparison data the same way
+    let compData = comparisonTrendData || [];
+    if (compData.length > 60) {
+      const step = Math.ceil(compData.length / 60);
+      compData = compData.filter((_, i) => i % step === 0 || i === compData.length - 1);
+    }
+
+    return chartData.map((d, i) => {
+      const entry = {
+        ...d,
+        ts: d.timestamp.getTime(),
+      };
+
+      // Align by index (day 0 current ↔ day 0 comparison)
+      if (compData.length > 0 && i < compData.length) {
+        const comp = compData[i];
+        entry.compHealthRate = comp.healthRate;
+        // Format comparison date for tooltip
+        const cd = comp.timestamp;
+        entry.compDate = `${cd.getDate().toString().padStart(2, '0')}.${(cd.getMonth() + 1).toString().padStart(2, '0')}`;
+      }
+
+      return entry;
+    });
+  }, [chartData, comparisonTrendData]);
+
   // Format X-axis labels
   const formatXAxis = (val) => {
     const d = new Date(val);
@@ -98,11 +96,6 @@ export default function HealthTrendChart({ trendData, rangeLabel = '30 Tage', co
       .toString()
       .padStart(2, '0')}`;
   };
-
-  const dataWithTs = chartData.map((d) => ({
-    ...d,
-    ts: d.timestamp.getTime(),
-  }));
 
   // Compute the difference between current avg and comparison
   let diffLabel = null;
@@ -113,6 +106,8 @@ export default function HealthTrendChart({ trendData, rangeLabel = '30 Tage', co
     else if (diff < 0) diffLabel = `${diff}%`;
     else diffLabel = '±0%';
   }
+
+  const hasComparison = comparisonTrendData && comparisonTrendData.length > 0;
 
   return (
     <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
@@ -127,7 +122,7 @@ export default function HealthTrendChart({ trendData, rangeLabel = '30 Tage', co
               <span className="text-xs font-mono text-slate-500">Aktuell</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-5 h-[3px] bg-violet-500 rounded-full opacity-80" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #8b5cf6 0, #8b5cf6 4px, transparent 4px, transparent 7px)' }} />
+              <div className="w-5 h-[2px] bg-violet-400 rounded-full opacity-60" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #8b5cf6 0, #8b5cf6 4px, transparent 4px, transparent 7px)' }} />
               <span className="text-xs font-mono text-violet-600 font-medium">
                 Vorperiode Ø {comparisonHealthRate}%
               </span>
@@ -146,7 +141,7 @@ export default function HealthTrendChart({ trendData, rangeLabel = '30 Tage', co
       </div>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={dataWithTs} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+          <LineChart data={mergedData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis
               dataKey="ts"
@@ -162,19 +157,24 @@ export default function HealthTrendChart({ trendData, rangeLabel = '30 Tage', co
               stroke="#e2e8f0"
               tickFormatter={(v) => `${v}%`}
             />
-            <Tooltip content={<CustomTooltip comparisonHealthRate={comparisonHealthRate} />} />
+            <Tooltip content={<CustomTooltip />} />
             <ReferenceLine y={90} stroke="#22c55e" strokeDasharray="3 3" strokeOpacity={0.3} />
             <ReferenceLine y={70} stroke="#f59e0b" strokeDasharray="3 3" strokeOpacity={0.3} />
-            {comparisonHealthRate != null && (
-              <ReferenceLine
-                y={comparisonHealthRate}
-                stroke="#7c3aed"
-                strokeDasharray="8 4"
-                strokeOpacity={0.9}
-                strokeWidth={2.5}
-                label={<ComparisonLabel value={comparisonHealthRate} />}
+            {/* Comparison period line (behind current) */}
+            {hasComparison && (
+              <Line
+                type="monotone"
+                dataKey="compHealthRate"
+                stroke="#8b5cf6"
+                strokeWidth={1.5}
+                strokeDasharray="6 3"
+                strokeOpacity={0.5}
+                dot={false}
+                activeDot={{ r: 3, fill: '#8b5cf6', stroke: '#ffffff', strokeWidth: 1.5 }}
+                connectNulls
               />
             )}
+            {/* Current period line (on top) */}
             <Line
               type="monotone"
               dataKey="healthRate"

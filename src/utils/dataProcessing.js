@@ -1,23 +1,110 @@
-import _ from 'lodash';
+// --- Native helper functions (replaces lodash) ---
+
+/**
+ * Returns the element in `arr` for which `fn(element)` is smallest.
+ * Returns undefined for empty arrays.
+ */
+function minBy(arr, fn) {
+  if (!arr || arr.length === 0) return undefined;
+  let minVal = fn(arr[0]);
+  let minItem = arr[0];
+  for (let i = 1; i < arr.length; i++) {
+    const val = fn(arr[i]);
+    if (val < minVal) {
+      minVal = val;
+      minItem = arr[i];
+    }
+  }
+  return minItem;
+}
+
+/**
+ * Returns the element in `arr` for which `fn(element)` is largest.
+ * Returns undefined for empty arrays.
+ */
+function maxBy(arr, fn) {
+  if (!arr || arr.length === 0) return undefined;
+  let maxVal = fn(arr[0]);
+  let maxItem = arr[0];
+  for (let i = 1; i < arr.length; i++) {
+    const val = fn(arr[i]);
+    if (val > maxVal) {
+      maxVal = val;
+      maxItem = arr[i];
+    }
+  }
+  return maxItem;
+}
+
+/**
+ * Groups elements of `arr` by a key.
+ * `keyOrFn` can be a string (property name) or a function.
+ * Returns a plain object with arrays as values.
+ */
+function groupBy(arr, keyOrFn) {
+  const fn = typeof keyOrFn === 'function' ? keyOrFn : (item) => item[keyOrFn];
+  const result = {};
+  for (let i = 0; i < arr.length; i++) {
+    const key = fn(arr[i]);
+    if (!result[key]) result[key] = [];
+    result[key].push(arr[i]);
+  }
+  return result;
+}
+
+/**
+ * Returns a new sorted copy of `arr`, ordered by the value returned by `fn`.
+ */
+function sortBy(arr, fn) {
+  return [...arr].sort((a, b) => {
+    const va = fn(a);
+    const vb = fn(b);
+    if (va < vb) return -1;
+    if (va > vb) return 1;
+    return 0;
+  });
+}
+
+/**
+ * Returns a new array with duplicates removed, where uniqueness is
+ * determined by the value returned by `fn` for each element.
+ * Keeps the first occurrence.
+ */
+function uniqBy(arr, fn) {
+  const seen = new Set();
+  const result = [];
+  for (let i = 0; i < arr.length; i++) {
+    const key = fn(arr[i]);
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(arr[i]);
+    }
+  }
+  return result;
+}
+
+// --- End native helpers ---
 
 // City code mapping
+// City code mapping — each city has ONE canonical code, duplicates removed.
+// Previous duplicates: HH+HAM→Hamburg (kept HAM), DO+DTM→Dortmund (kept DTM)
 const CITY_MAP = {
   'CGN': 'Köln',
   'BER': 'Berlin',
   'MUC': 'München',
-  'HH': 'Hamburg',
+  'HAM': 'Hamburg',
+  'HH': 'Hamburg',       // alias → same city (both codes exist in data)
   'DUS': 'Düsseldorf',
   'FRA': 'Frankfurt',
   'STR': 'Stuttgart',
-  'DO': 'Dortmund',
+  'DTM': 'Dortmund',
+  'DO': 'Dortmund',      // alias → same city (both codes exist in data)
   'LEJ': 'Leipzig',
   'DRS': 'Dresden',
-  'HAM': 'Hamburg',
   'NUE': 'Nürnberg',
   'HAN': 'Hannover',
   'BRE': 'Bremen',
   'ESS': 'Essen',
-  'DTM': 'Dortmund',
   'KA': 'Karlsruhe',
   'MS': 'Münster',
   'BI': 'Bielefeld',
@@ -139,19 +226,25 @@ export function formatDuration(hours) {
 
 export function formatDate(date) {
   if (!date) return '–';
-  const d = date.getDate().toString().padStart(2, '0');
-  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-  const y = date.getFullYear();
+  // Support both Date objects and date strings
+  const dt = date instanceof Date ? date : new Date(date);
+  if (isNaN(dt.getTime())) return typeof date === 'string' ? date : '–';
+  const d = dt.getDate().toString().padStart(2, '0');
+  const m = (dt.getMonth() + 1).toString().padStart(2, '0');
+  const y = dt.getFullYear();
   return `${d}.${m}.${y}`;
 }
 
 export function formatDateTime(date) {
   if (!date) return '–';
-  const d = date.getDate().toString().padStart(2, '0');
-  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-  const y = date.getFullYear();
-  const h = date.getHours().toString().padStart(2, '0');
-  const min = date.getMinutes().toString().padStart(2, '0');
+  // Support both Date objects and date strings
+  const dt = date instanceof Date ? date : new Date(date);
+  if (isNaN(dt.getTime())) return typeof date === 'string' ? date : '–';
+  const d = dt.getDate().toString().padStart(2, '0');
+  const m = (dt.getMonth() + 1).toString().padStart(2, '0');
+  const y = dt.getFullYear();
+  const h = dt.getHours().toString().padStart(2, '0');
+  const min = dt.getMinutes().toString().padStart(2, '0');
   return `${d}.${m}.${y} ${h}:${min}`;
 }
 
@@ -215,15 +308,15 @@ export function parseRows(rawRows) {
     .filter(Boolean);
 
   // Pre-compute global bounds
-  const earliest = _.minBy(parsed, (r) => r.timestamp.getTime())?.timestamp ?? null;
-  const latest = _.maxBy(parsed, (r) => r.timestamp.getTime())?.timestamp ?? null;
+  const earliest = minBy(parsed, (r) => r.timestamp.getTime())?.timestamp ?? null;
+  const latest = maxBy(parsed, (r) => r.timestamp.getTime())?.timestamp ?? null;
 
   // Pre-compute global first-seen per display (unaffected by date range filters)
   // Now grouped by stableId (displayId field)
-  const byDisplay = _.groupBy(parsed, 'displayId');
+  const byDisplay = groupBy(parsed, 'displayId');
   const globalFirstSeen = {};
   Object.entries(byDisplay).forEach(([id, rows]) => {
-    globalFirstSeen[id] = _.minBy(rows, (r) => r.timestamp.getTime())?.timestamp ?? null;
+    globalFirstSeen[id] = minBy(rows, (r) => r.timestamp.getTime())?.timestamp ?? null;
   });
 
   return { parsed, earliest, latest, globalFirstSeen, totalRows: parsed.length };
@@ -257,23 +350,32 @@ export function aggregateData(parsed, rangeStart, rangeEnd, globalFirstSeen) {
     };
   }
 
-  const byDisplay = _.groupBy(rows, 'displayId');
+  const byDisplay = groupBy(rows, 'displayId');
 
-  const latestTimestamp = _.maxBy(rows, (r) => r.timestamp.getTime())?.timestamp;
+  const latestTimestamp = maxBy(rows, (r) => r.timestamp.getTime())?.timestamp;
 
-  const snapshotTimestamps = _.uniqBy(
+  const snapshotTimestamps = uniqBy(
     rows.map((r) => r.timestamp),
     (d) => d.getTime()
   ).sort((a, b) => a - b);
 
   // Build display summaries
+  // A display is "active" (installed) if it appeared in a recent snapshot.
+  // We allow a tolerance window: if a display was seen within 24 hours of the latest
+  // snapshot, it's still considered active. This prevents displays that miss a single
+  // system check (~3.5h intervals) from disappearing entirely.
+  const ACTIVE_TOLERANCE_HOURS = 24;
+  const activeCutoff = new Date(
+    latestTimestamp.getTime() - ACTIVE_TOLERANCE_HOURS * 60 * 60 * 1000
+  );
+
   const displays = Object.entries(byDisplay).map(([displayId, displayRows]) => {
-    const sorted = _.sortBy(displayRows, (r) => r.timestamp.getTime());
+    const sorted = sortBy(displayRows, (r) => r.timestamp.getTime());
     const firstSeen = sorted[0].timestamp;
     const lastSeen = sorted[sorted.length - 1].timestamp;
     const latestRow = sorted[sorted.length - 1];
 
-    const isActive = latestRow.timestamp.getTime() === latestTimestamp.getTime();
+    const isActive = latestRow.timestamp >= activeCutoff;
 
     let offlineHours = null;
     // Check if display was ever online (ever had a heartbeat across all snapshots)
@@ -321,62 +423,30 @@ export function aggregateData(parsed, rangeStart, rangeEnd, globalFirstSeen) {
   // We group snapshots by calendar day and compute per-display daily uptime,
   // then aggregate across all displays and days.
 
-  const { START: OP_START, END: OP_END, DAILY_HOURS } = OPERATING_HOURS;
-
-  /**
-   * For a given display snapshot, estimate how many operating hours (6:00-22:00) the display
-   * was online on that day.
-   *
-   * Logic:
-   * - The heartbeat = last confirmed online time for the display.
-   * - System checks happen every ~3.5 hours, so we add a CHECK_INTERVAL grace period:
-   *   if the heartbeat is within CHECK_INTERVAL of the snapshot, the display is considered
-   *   still online (it just hasn't been re-checked yet).
-   * - We assume the display was online from 06:00 until (heartbeat + grace period),
-   *   clamped to the operating window [06:00 – 22:00].
-   * - No heartbeat = 0 hours online.
-   *
-   * Examples (snapshot at 18:00):
-   * - heartbeat 17:30 → online until ~17:30+grace → ~16h/16h = ~100%
-   * - heartbeat 14:00 → online 06:00–14:00 = 8h/16h = 50%
-   * - heartbeat yesterday → online 0h = 0%
-   */
+  const { DAILY_HOURS } = OPERATING_HOURS;
   const CHECK_INTERVAL_HOURS = 3.5; // system checks every ~3.5h
 
-  function estimateOperatingOnlineHours(snapshotTime, heartbeat) {
-    if (!heartbeat) return 0;
+  /**
+   * Estimate how many of the 16 operating hours (06:00-22:00) a display was online on a given day.
+   *
+   * We use `offlineHours` (= snapshot_time - heartbeat_time) as our primary signal:
+   * - offlineHours ≤ CHECK_INTERVAL (3.5h): Display is considered fully online → 16h
+   *   (it was recently checked and confirmed alive; the gap is just the check interval)
+   * - offlineHours > CHECK_INTERVAL and ≤ 16h: Partially online → max(0, 16 - offlineHours)
+   *   (it went offline some hours ago, so we subtract those hours from the full day)
+   * - offlineHours > 16h or no heartbeat: Offline all day → 0h
+   */
+  function estimateOperatingOnlineHours(offlineHours) {
+    if (offlineHours == null || isNaN(offlineHours) || offlineHours < 0) return 0;
 
-    const day = new Date(snapshotTime);
-    const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate(), OP_START, 0, 0);
-    const dayEnd = new Date(day.getFullYear(), day.getMonth(), day.getDate(), OP_END, 0, 0);
+    // Within the check interval grace period → considered fully online
+    if (offlineHours <= CHECK_INTERVAL_HOURS) return DAILY_HOURS;
 
-    // If heartbeat was before operating window start of this day → 0h online today
-    if (heartbeat < dayStart) {
-      // Check if the display went offline before today's operating window
-      const hoursSinceHeartbeat = (dayStart.getTime() - heartbeat.getTime()) / (1000 * 60 * 60);
-      if (hoursSinceHeartbeat > CHECK_INTERVAL_HOURS) return 0;
-      // If within grace period of dayStart, consider it online from dayStart
-    }
+    // Partially offline: subtract offline hours from full operating day
+    if (offlineHours <= DAILY_HOURS) return Math.max(0, DAILY_HOURS - offlineHours);
 
-    // Effective "last online" = heartbeat + grace period (could still be online, just not re-checked)
-    const effectiveLastOnline = new Date(
-      Math.min(
-        heartbeat.getTime() + CHECK_INTERVAL_HOURS * 60 * 60 * 1000,
-        snapshotTime.getTime() // but not beyond snapshot time
-      )
-    );
-
-    // If the effective last-online is after operating window end → full day online
-    if (effectiveLastOnline >= dayEnd) return DAILY_HOURS;
-
-    // Clamp effective last-online to the operating window
-    const onlineTo = new Date(Math.max(dayStart.getTime(), Math.min(effectiveLastOnline.getTime(), dayEnd.getTime())));
-
-    // If online-to is at or before day start → 0h
-    if (onlineTo <= dayStart) return 0;
-
-    const onlineHrs = (onlineTo.getTime() - dayStart.getTime()) / (1000 * 60 * 60);
-    return Math.min(DAILY_HOURS, Math.max(0, onlineHrs));
+    // Offline longer than a full operating day → 0
+    return 0;
   }
 
   // Group rows by calendar day (YYYY-MM-DD)
@@ -396,7 +466,7 @@ export function aggregateData(parsed, rangeStart, rangeEnd, globalFirstSeen) {
   const trendData = dayKeys.map((dayKey) => {
     const dayRows = rowsByDay[dayKey];
     // Use the latest snapshot per display for this day (most accurate heartbeat info)
-    const byDisplayThisDay = _.groupBy(dayRows, 'displayId');
+    const byDisplayThisDay = groupBy(dayRows, 'displayId');
     const displayCount = Object.keys(byDisplayThisDay).length;
 
     let totalOnlineHours = 0;
@@ -411,19 +481,26 @@ export function aggregateData(parsed, rangeStart, rangeEnd, globalFirstSeen) {
 
     Object.entries(byDisplayThisDay).forEach(([displayId, dRows]) => {
       // Take the latest snapshot of the day for this display
-      const latestSnap = _.maxBy(dRows, (r) => r.timestamp.getTime());
+      const latestSnap = maxBy(dRows, (r) => r.timestamp.getTime());
 
-      // Estimate operating online hours for this display on this day
-      const onlineHrs = estimateOperatingOnlineHours(latestSnap.timestamp, latestSnap.heartbeat);
-      totalOnlineHours += onlineHrs;
-
-      // Category for breakdown
+      // Compute offlineHours first (needed for both health rate and status category)
       let offlineHours = null;
       if (latestSnap.heartbeat) {
         offlineHours = (latestSnap.timestamp.getTime() - latestSnap.heartbeat.getTime()) / (1000 * 60 * 60);
         if (offlineHours < 0) offlineHours = 0;
       }
-      const neverOnline = !latestSnap.heartbeat;
+      // Use global display-level everHadHeartbeat to determine neverOnline,
+      // not just this snapshot's heartbeat. A display that had heartbeats on
+      // Monday but not Tuesday is "offline", NOT "never_online".
+      const displayObj = byDisplay[displayId];
+      const everHadHeartbeat = displayObj
+        ? displayObj.some((snap) => snap.heartbeat != null)
+        : !!latestSnap.heartbeat;
+      const neverOnline = !everHadHeartbeat;
+
+      // Estimate operating online hours for this display on this day
+      const onlineHrs = neverOnline ? 0 : estimateOperatingOnlineHours(offlineHours);
+      totalOnlineHours += onlineHrs;
       const cat = getStatusCategory(offlineHours, neverOnline);
       if (cat === 'online') onlineCount++;
       else if (cat === 'warning') warningCount++;
@@ -438,7 +515,7 @@ export function aggregateData(parsed, rangeStart, rangeEnd, globalFirstSeen) {
       : 0;
 
     // Use the latest snapshot timestamp for this day as the "timestamp"
-    const dayTimestamp = _.maxBy(dayRows, (r) => r.timestamp.getTime()).timestamp;
+    const dayTimestamp = maxBy(dayRows, (r) => r.timestamp.getTime()).timestamp;
 
     return {
       timestamp: dayTimestamp,
@@ -457,32 +534,85 @@ export function aggregateData(parsed, rangeStart, rangeEnd, globalFirstSeen) {
     };
   });
 
+  // --- Snapshot-based trend data (for heatmap / hourly analysis) ---
+  // The day-grouped trendData above is used for KPIs and health rate.
+  // For the heatmap and hourly health patterns, we need per-snapshot data.
+  // Each snapshot now includes an uptime-based healthRate (same formula as daily KPIs)
+  // to ensure consistency between KPI cards and OverviewHealthPatterns charts.
+  const bySnapshot = groupBy(rows, (r) => r.timestamp.getTime());
+  const snapshotTrendData = Object.entries(bySnapshot)
+    .sort(([a], [b]) => +a - +b)
+    .map(([tsKey, snapRows]) => {
+      const ts = new Date(+tsKey);
+      const byDisp = groupBy(snapRows, 'displayId');
+      const total = Object.keys(byDisp).length;
+      let onlineCount = 0;
+      let totalOnlineHours = 0;
+      const totalExpectedHours = total * DAILY_HOURS;
+
+      Object.values(byDisp).forEach((dRows) => {
+        const latest = maxBy(dRows, (r) => r.timestamp.getTime());
+        let oh = null;
+        if (latest.heartbeat) {
+          oh = (latest.timestamp.getTime() - latest.heartbeat.getTime()) / (1000 * 60 * 60);
+          if (oh < 0) oh = 0;
+        }
+        const neverOn = !latest.heartbeat;
+        if (getStatusCategory(oh, neverOn) === 'online') onlineCount++;
+        // Uptime-based: same formula as daily health rate calculation
+        const onlineHrs = neverOn ? 0 : estimateOperatingOnlineHours(oh);
+        totalOnlineHours += onlineHrs;
+      });
+
+      const healthRate = totalExpectedHours > 0
+        ? Math.round((totalOnlineHours / totalExpectedHours) * 1000) / 10
+        : 0;
+
+      return {
+        timestamp: ts,
+        total,
+        online: onlineCount,
+        offline: total - onlineCount,
+        healthRate,
+      };
+    });
+
   // City aggregation (based on latest snapshot in range, with uptime-based health)
+  // Group by resolved city NAME (not code) to avoid duplicates like HH+HAM→Hamburg
   const activeDisplays = displays.filter((d) => d.isActive);
-  const cityGroups = _.groupBy(activeDisplays, 'cityCode');
-  const cityData = Object.entries(cityGroups)
-    .map(([code, cityDisplays]) => {
+  const cityGroupsByName = {};
+  activeDisplays.forEach((d) => {
+    const cityName = d.city || 'Unbekannt';
+    if (!cityGroupsByName[cityName]) cityGroupsByName[cityName] = { code: d.cityCode, displays: [] };
+    cityGroupsByName[cityName].displays.push(d);
+  });
+  const cityData = Object.entries(cityGroupsByName)
+    .map(([name, { code, displays: cityDisplays }]) => {
       const total = cityDisplays.length;
       const online = cityDisplays.filter(
         (d) => d.status === 'online'
       ).length;
+      const warning = cityDisplays.filter((d) => d.status === 'warning').length;
+      const critical = cityDisplays.filter((d) => d.status === 'critical').length;
 
-      // Uptime-based health rate for this city: compute operating hours from latest snapshot
+      // Uptime-based health rate for this city: use offlineHours from each display
       let cityOnlineHours = 0;
       const cityExpectedHours = total * DAILY_HOURS;
       cityDisplays.forEach((d) => {
-        if (d.heartbeat && d.snapshots && d.snapshots.length > 0) {
-          const latestSnap = d.snapshots[d.snapshots.length - 1];
-          cityOnlineHours += estimateOperatingOnlineHours(latestSnap.timestamp, latestSnap.heartbeat);
+        if (d.offlineHours != null) {
+          cityOnlineHours += estimateOperatingOnlineHours(d.offlineHours);
         }
+        // displays with no heartbeat (never online) contribute 0h
       });
       const healthRate = cityExpectedHours > 0 ? (cityOnlineHours / cityExpectedHours) * 100 : 0;
 
       return {
         code,
-        name: getCityFromDisplayId(`DO-GER-${code}-X`),
+        name,
         total,
         online,
+        warning,
+        critical,
         offline: total - online,
         healthRate: Math.round(healthRate * 10) / 10,
       };
@@ -493,6 +623,7 @@ export function aggregateData(parsed, rangeStart, rangeEnd, globalFirstSeen) {
     displays,
     latestTimestamp,
     trendData,
+    snapshotTrendData,   // per-snapshot data for heatmap / hourly analysis
     cityData,
     snapshotTimestamps,
     totalParsedRows: rows.length,
@@ -518,18 +649,19 @@ export function processData(rawRows) {
  * Deinstalled = not seen in latest snapshot AND last seen within DEINSTALL_DAYS.
  * Deinstalled displays are excluded from totalActive and health calculation.
  */
-export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendData) {
-  // Deinstalled: not in latest snapshot, last seen within 30 days (for visibility)
-  // but the "deinstalled" flag uses DEINSTALL_DAYS (3 days) for detection
+export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendData, rangeStart) {
+  // Deinstalled: not in latest snapshot, last seen within the selected range
+  // "deinstalled" detection uses DEINSTALL_DAYS (3 days) for core detection
   const deinstallCutoff = new Date(
     latestTimestamp.getTime() - DEINSTALL_DAYS * 24 * 60 * 60 * 1000
   );
-  const thirtyDaysAgo = new Date(latestTimestamp.getTime() - 30 * 24 * 60 * 60 * 1000);
+  // Use rangeStart for visibility window (instead of fixed 30d)
+  const rangeStartDate = rangeStart || new Date(latestTimestamp.getTime() - 30 * 24 * 60 * 60 * 1000);
   const deinstalled = displays.filter(
     (d) => !d.isActive && d.lastSeen >= deinstallCutoff
   );
-  const deinstalledRecent = displays.filter(
-    (d) => !d.isActive && d.lastSeen >= thirtyDaysAgo
+  const deinstalledInRange = displays.filter(
+    (d) => !d.isActive && d.lastSeen >= rangeStartDate
   );
 
   const active = displays.filter((d) => d.isActive);
@@ -553,9 +685,9 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
   // Warnung: 24-72h
   const warningDisplays = active.filter((d) => d.status === 'warning');
 
-  // Kritisch: >72h (includes permanent_offline)
+  // Kritisch: 72h - 7d (excludes permanent_offline to avoid double counting)
   const criticalDisplays = active.filter(
-    (d) => d.status === 'critical' || d.status === 'permanent_offline'
+    (d) => d.status === 'critical'
   );
 
   // Dauerhaft Offline: > 7 Tage
@@ -564,12 +696,11 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
   // Nie Online: never had a heartbeat
   const neverOnlineDisplays = active.filter((d) => d.status === 'never_online');
 
-  // Newly installed in last 7 days (use global first-seen, not filtered first-seen)
-  const sevenDaysAgo = new Date(latestTimestamp.getTime() - 7 * 24 * 60 * 60 * 1000);
+  // Newly installed within the selected range (use global first-seen, not filtered first-seen)
   const newlyInstalled = displays.filter((d) => {
     const gfs = globalFirstSeen?.[d.displayId];
     const effectiveFirstSeen = gfs || d.firstSeen;
-    return effectiveFirstSeen >= sevenDaysAgo;
+    return effectiveFirstSeen >= rangeStartDate;
   });
 
   // Compute avg online / avg total / avg offline categories over the selected range
@@ -592,7 +723,7 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
         trendData.reduce((sum, s) => sum + (s.warningCount || 0), 0) / trendData.length
       );
       avgCritical = Math.round(
-        trendData.reduce((sum, s) => sum + (s.criticalCount || 0) + (s.permanentOfflineCount || 0), 0) / trendData.length
+        trendData.reduce((sum, s) => sum + (s.criticalCount || 0), 0) / trendData.length
       );
       avgPermanentOffline = Math.round(
         trendData.reduce((sum, s) => sum + (s.permanentOfflineCount || 0), 0) / trendData.length
@@ -617,7 +748,7 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
     firstOnline = first.online;
     firstTotal = first.total;
     firstWarning = first.warningCount ?? null;
-    firstCritical = (first.criticalCount ?? 0) + (first.permanentOfflineCount ?? 0);
+    firstCritical = first.criticalCount ?? 0;
     firstPermanentOffline = first.permanentOfflineCount ?? null;
     firstNeverOnline = first.neverOnlineCount ?? null;
   }
@@ -631,7 +762,7 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
     permanentOfflineCount: permanentOfflineDisplays.length,
     neverOnlineCount: neverOnlineDisplays.length,
     newlyInstalled: newlyInstalled.length,
-    deinstalled: deinstalledRecent.length,
+    deinstalled: deinstalledInRange.length,
     avgOnline,
     avgTotal,
     avgWarning,
@@ -656,7 +787,7 @@ export function computeKPIs(displays, latestTimestamp, globalFirstSeen, trendDat
       permanent_offline: permanentOfflineDisplays,
       never_online: neverOnlineDisplays,
       new: newlyInstalled,
-      deinstalled: deinstalledRecent,
+      deinstalled: deinstalledInRange,
     },
   };
 }
@@ -714,6 +845,7 @@ export function computeNewDisplayWatchlist(displays, latestTimestamp) {
 
 /**
  * Compute offline duration distribution buckets for active displays.
+ * "Nie Online" displays get their own bucket instead of being falsely placed in 0-24h.
  */
 export function computeOfflineDistribution(displays) {
   const active = displays.filter((d) => d.isActive);
@@ -722,15 +854,22 @@ export function computeOfflineDistribution(displays) {
     { label: '24–72h', min: 24, max: 72, count: 0, color: '#f59e0b' },
     { label: '72h–7d', min: 72, max: 168, count: 0, color: '#ef4444' },
     { label: '>7d', min: 168, max: Infinity, count: 0, color: '#dc2626' },
+    { label: 'Nie Online', min: -1, max: -1, count: 0, color: '#64748b' },
   ];
 
   active.forEach((d) => {
+    // Never-online displays go to separate bucket (not falsely in 0-24h)
+    if (d.status === 'never_online') {
+      buckets[4].count++;
+      return;
+    }
     const h = d.offlineHours ?? 0;
     const bucket = buckets.find((b) => h >= b.min && h < b.max);
     if (bucket) bucket.count++;
   });
 
-  return buckets;
+  // Only include "Nie Online" bucket if there are any
+  return buckets[4].count > 0 ? buckets : buckets.slice(0, 4);
 }
 
 /**
@@ -741,7 +880,7 @@ export function computeDisplayTimeline(display) {
   const snapshots = display.snapshots;
   if (!snapshots || snapshots.length === 0) return { segments: [], uptimeRate: 0 };
 
-  const { START: OP_START, END: OP_END, DAILY_HOURS } = OPERATING_HOURS;
+  const { DAILY_HOURS } = OPERATING_HOURS;
   const CHECK_INTERVAL_HOURS = 3.5;
 
   const segments = snapshots.map((snap) => {
@@ -777,33 +916,18 @@ export function computeDisplayTimeline(display) {
   Object.values(byDay).forEach((daySegs) => {
     // Use the latest segment of the day
     const latest = daySegs.reduce((a, b) => (a.timestamp > b.timestamp ? a : b));
-    if (!latest.heartbeat) return;
+    if (!latest.heartbeat) return; // never online → 0h
 
-    const day = new Date(latest.timestamp);
-    const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate(), OP_START, 0, 0);
-    const dayEnd = new Date(day.getFullYear(), day.getMonth(), day.getDate(), OP_END, 0, 0);
-
-    if (latest.heartbeat < dayStart) {
-      const hoursSince = (dayStart.getTime() - latest.heartbeat.getTime()) / (1000 * 60 * 60);
-      if (hoursSince > CHECK_INTERVAL_HOURS) return; // offline all day
-    }
-
-    const effectiveLastOnline = new Date(
-      Math.min(
-        latest.heartbeat.getTime() + CHECK_INTERVAL_HOURS * 60 * 60 * 1000,
-        latest.timestamp.getTime()
-      )
-    );
-
-    if (effectiveLastOnline >= dayEnd) {
+    // Use offlineHours-based estimation (same as aggregateData)
+    let oh = latest.offlineHours;
+    if (oh == null || isNaN(oh)) return;
+    // Within check interval grace → full day online
+    if (oh <= CHECK_INTERVAL_HOURS) {
       totalOnlineHours += DAILY_HOURS;
-      return;
+    } else if (oh <= DAILY_HOURS) {
+      totalOnlineHours += Math.max(0, DAILY_HOURS - oh);
     }
-
-    const onlineTo = new Date(Math.max(dayStart.getTime(), Math.min(effectiveLastOnline.getTime(), dayEnd.getTime())));
-    if (onlineTo <= dayStart) return;
-
-    totalOnlineHours += Math.min(DAILY_HOURS, (onlineTo.getTime() - dayStart.getTime()) / (1000 * 60 * 60));
+    // else: offline longer than operating day → 0h
   });
 
   const uptimeRate = totalExpectedHours > 0 ? (totalOnlineHours / totalExpectedHours) * 100 : 0;
@@ -836,7 +960,7 @@ export function computeDisplayTimeline(display) {
     if (ep.segments.length === 1) ep.durationHours = 3.5;
   });
 
-  const longestEpisode = _.maxBy(episodes, 'durationHours') || null;
+  const longestEpisode = maxBy(episodes, (ep) => ep.durationHours) || null;
 
   return {
     segments,

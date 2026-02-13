@@ -141,3 +141,88 @@ body {
 .loading-dot:nth-child(1) { animation-delay: 0s; }
 .loading-dot:nth-child(2) { animation-delay: 0.16s; }
 .loading-dot:nth-child(3) { animation-delay: 0.32s; }
+
+/* ═══════ Mobile Agent View ═══════ */
+
+@keyframes voice-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  70% { box-shadow: 0 0 0 16px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+@keyframes voice-pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+@keyframes slide-up-full {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-voice-pulse {
+  animation: voice-pulse-red 1.5s ease-out infinite;
+}
+
+.animate-slide-up-full {
+  animation: slide-up-full 0.3s ease-out forwards;
+}
+
+/* Safe area utilities for iPhone notch / home indicator */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar utility for mobile horizontal scroll */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ═══════ Akquise App (iOS-style) ═══════ */
+
+@keyframes akquise-slide-in {
+  from { transform: translateY(100%); opacity: 0.8; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes akquise-step-enter {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes akquise-success-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.5); }
+  50% { box-shadow: 0 0 0 20px rgba(52, 199, 89, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+}
+
+@keyframes akquise-fab-pulse {
+  0% { box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4); }
+  50% { box-shadow: 0 4px 25px rgba(0, 122, 255, 0.6); }
+  100% { box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4); }
+}
+
+.akquise-slide-in {
+  animation: akquise-slide-in 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.akquise-step-transition {
+  animation: akquise-step-enter 0.3s ease-out;
+}
+
+.akquise-success-pulse {
+  animation: akquise-success-pulse 1.5s ease-out infinite;
+}
+
+.akquise-fab-pulse {
+  animation: akquise-fab-pulse 2s ease-in-out infinite;
+}

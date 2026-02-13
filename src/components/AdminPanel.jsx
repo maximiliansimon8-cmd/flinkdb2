@@ -38,6 +38,15 @@ import {
   UserMinus,
   KeyRound,
   ShieldAlert,
+  Lightbulb,
+  Bug,
+  HelpCircle,
+  ArrowUpDown,
+  Zap,
+  DollarSign,
+  RefreshCw,
+  Wifi,
+  Server,
 } from 'lucide-react';
 import {
   getAllUsers,
@@ -59,6 +68,7 @@ import {
   getAuditLog,
   clearAuditLog,
   getSessionTimeoutMinutes,
+  supabase,
 } from '../utils/authService';
 
 /* ─── Group Icon Map ─── */
@@ -506,6 +516,16 @@ export default function AdminPanel() {
   const [confirmGroupDelete, setConfirmGroupDelete] = useState(null);
   const [toast, setToast] = useState(null);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [feedbackItems, setFeedbackItems] = useState([]);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [feedbackFilter, setFeedbackFilter] = useState('');
+
+  // API Usage state
+  const [apiUsageData, setApiUsageData] = useState([]);
+  const [loadingApiUsage, setLoadingApiUsage] = useState(false);
+  const [apiTimeRange, setApiTimeRange] = useState('24h'); // '24h' | '7d' | '30d'
+  const [feedbackTypeFilter, setFeedbackTypeFilter] = useState('all');
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('all');
 
   const currentUser = getCurrentUser();
 
@@ -702,10 +722,161 @@ export default function AdminPanel() {
     return '#64748b';
   };
 
+  /* ─── Feedback ─── */
+
+  const refreshFeedback = useCallback(async () => {
+    setLoadingFeedback(true);
+    try {
+      const { data, error } = await supabase
+        .from('feedback_requests')
+        .select('id,user_id,user_name,type,title,description,priority,status,admin_notes,created_at,updated_at,resolved_at,resolved_by')
+        .order('created_at', { ascending: false });
+      if (!error) setFeedbackItems(data || []);
+    } catch (e) {
+      console.error('[AdminPanel] feedback load error:', e);
+    } finally {
+      setLoadingFeedback(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeSection === 'feedback') refreshFeedback();
+  }, [activeSection, refreshFeedback]);
+
+  const filteredFeedback = useMemo(() => {
+    let items = feedbackItems;
+    if (feedbackTypeFilter !== 'all') items = items.filter(i => i.type === feedbackTypeFilter);
+    if (feedbackStatusFilter !== 'all') items = items.filter(i => i.status === feedbackStatusFilter);
+    if (feedbackFilter.trim()) {
+      const q = feedbackFilter.toLowerCase();
+      items = items.filter(i =>
+        i.title?.toLowerCase().includes(q) ||
+        i.description?.toLowerCase().includes(q) ||
+        i.user_name?.toLowerCase().includes(q)
+      );
+    }
+    return items;
+  }, [feedbackItems, feedbackTypeFilter, feedbackStatusFilter, feedbackFilter]);
+
+  async function updateFeedbackStatus(id, newStatus) {
+    const { error } = await supabase
+      .from('feedback_requests')
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (!error) {
+      setFeedbackItems(prev => prev.map(item =>
+        item.id === id ? { ...item, status: newStatus, updated_at: new Date().toISOString() } : item
+      ));
+    }
+  }
+
+  async function updateFeedbackPriority(id, newPriority) {
+    const { error } = await supabase
+      .from('feedback_requests')
+      .update({ priority: newPriority, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (!error) {
+      setFeedbackItems(prev => prev.map(item =>
+        item.id === id ? { ...item, priority: newPriority, updated_at: new Date().toISOString() } : item
+      ));
+    }
+  }
+
+  const feedbackStats = useMemo(() => ({
+    open: feedbackItems.filter(i => i.status === 'open').length,
+    in_review: feedbackItems.filter(i => i.status === 'in_review').length,
+    planned: feedbackItems.filter(i => i.status === 'planned').length,
+    done: feedbackItems.filter(i => i.status === 'done').length,
+  }), [feedbackItems]);
+
+  /* ─── API Usage ─── */
+
+  const refreshApiUsage = useCallback(async () => {
+    setLoadingApiUsage(true);
+    try {
+      const hoursMap = { '24h': 24, '7d': 168, '30d': 720 };
+      const hours = hoursMap[apiTimeRange] || 24;
+      const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+
+      const { data, error } = await supabase
+        .from('api_usage_log')
+        .select('id,created_at,function_name,service,method,endpoint,duration_ms,status_code,success,tokens_in,tokens_out,records_count,bytes_transferred,estimated_cost_cents,user_id,error_message')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(2000);
+
+      if (!error) setApiUsageData(data || []);
+    } catch (e) {
+      console.error('[AdminPanel] API usage load error:', e);
+    } finally {
+      setLoadingApiUsage(false);
+    }
+  }, [apiTimeRange]);
+
+  useEffect(() => {
+    if (activeSection === 'api-usage') refreshApiUsage();
+  }, [activeSection, refreshApiUsage]);
+
+  const apiStats = useMemo(() => {
+    if (!apiUsageData.length) return { totalCalls: 0, byService: {}, byFunction: {}, errorCount: 0, totalCostCents: 0, totalTokensIn: 0, totalTokensOut: 0, avgDuration: 0 };
+
+    const byService = {};
+    const byFunction = {};
+    let errorCount = 0;
+    let totalCostCents = 0;
+    let totalTokensIn = 0;
+    let totalTokensOut = 0;
+    let totalDuration = 0;
+    let durationCount = 0;
+
+    for (const row of apiUsageData) {
+      // By service
+      const svc = row.service || 'unknown';
+      if (!byService[svc]) byService[svc] = { calls: 0, errors: 0, cost: 0, tokensIn: 0, tokensOut: 0 };
+      byService[svc].calls++;
+      if (!row.success) byService[svc].errors++;
+      byService[svc].cost += row.estimated_cost_cents || 0;
+      byService[svc].tokensIn += row.tokens_in || 0;
+      byService[svc].tokensOut += row.tokens_out || 0;
+
+      // By function
+      const fn = row.function_name || 'unknown';
+      if (!byFunction[fn]) byFunction[fn] = { calls: 0, errors: 0, cost: 0, avgMs: 0, totalMs: 0 };
+      byFunction[fn].calls++;
+      if (!row.success) byFunction[fn].errors++;
+      byFunction[fn].cost += row.estimated_cost_cents || 0;
+      if (row.duration_ms) { byFunction[fn].totalMs += row.duration_ms; }
+
+      if (!row.success) errorCount++;
+      totalCostCents += row.estimated_cost_cents || 0;
+      totalTokensIn += row.tokens_in || 0;
+      totalTokensOut += row.tokens_out || 0;
+      if (row.duration_ms) { totalDuration += row.duration_ms; durationCount++; }
+    }
+
+    // Calculate averages
+    for (const fn of Object.values(byFunction)) {
+      fn.avgMs = fn.calls > 0 ? Math.round(fn.totalMs / fn.calls) : 0;
+    }
+
+    return {
+      totalCalls: apiUsageData.length,
+      byService,
+      byFunction,
+      errorCount,
+      totalCostCents: Math.round(totalCostCents * 100) / 100,
+      totalTokensIn,
+      totalTokensOut,
+      avgDuration: durationCount > 0 ? Math.round(totalDuration / durationCount) : 0,
+    };
+  }, [apiUsageData]);
+
   const sections = [
     { id: 'users', label: 'Benutzer', icon: Users, count: stats.totalUsers },
     { id: 'groups', label: 'Gruppen', icon: Layers, count: stats.totalGroups },
     { id: 'audit', label: 'Audit-Log', icon: FileText, count: auditLog.length },
+    { id: 'feedback', label: 'Feedback', icon: Lightbulb, count: feedbackItems.length },
+    { id: 'api-usage', label: 'API Usage', icon: Zap, count: apiStats.totalCalls },
   ];
 
   return (
@@ -1282,6 +1453,523 @@ export default function AdminPanel() {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════ FEEDBACK SECTION ═══════ */}
+      {activeSection === 'feedback' && (
+        <div className="space-y-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50">
+                  <AlertCircle size={16} className="text-amber-500" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.open}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Offen</div>
+            </div>
+            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50">
+                  <Eye size={16} className="text-blue-500" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.in_review}</div>
+              <div className="text-xs text-slate-400 mt-0.5">In Review</div>
+            </div>
+            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-50">
+                  <ClipboardList size={16} className="text-purple-500" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.planned}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Geplant</div>
+            </div>
+            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50">
+                  <Check size={16} className="text-emerald-500" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.done}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Erledigt</div>
+            </div>
+          </div>
+
+          {/* Feedback Table */}
+          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-4 rounded-full bg-amber-500" />
+                <h3 className="text-sm font-semibold text-slate-900">Feedback & Anfragen</h3>
+                <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+                  {filteredFeedback.length}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Type Filter */}
+                <div className="flex gap-1 bg-slate-50/80 rounded-lg p-0.5 border border-slate-200/60">
+                  {[
+                    { key: 'all', label: 'Alle' },
+                    { key: 'feature', label: 'Features' },
+                    { key: 'bug', label: 'Bugs' },
+                    { key: 'question', label: 'Fragen' },
+                  ].map((t) => (
+                    <button
+                      key={t.key}
+                      onClick={() => setFeedbackTypeFilter(t.key)}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
+                        feedbackTypeFilter === t.key
+                          ? 'bg-white shadow-sm text-slate-900 border border-slate-200/60'
+                          : 'text-slate-400 hover:text-slate-600'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                {/* Status Filter */}
+                <div className="relative">
+                  <select
+                    value={feedbackStatusFilter}
+                    onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+                    className="bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none cursor-pointer pr-7"
+                  >
+                    <option value="all">Alle Status</option>
+                    <option value="open">Offen</option>
+                    <option value="in_review">In Review</option>
+                    <option value="planned">Geplant</option>
+                    <option value="in_progress">In Bearbeitung</option>
+                    <option value="done">Erledigt</option>
+                    <option value="rejected">Abgelehnt</option>
+                  </select>
+                  <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+                {/* Search */}
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={feedbackFilter}
+                    onChange={(e) => setFeedbackFilter(e.target.value)}
+                    placeholder="Suchen..."
+                    className="bg-slate-50/80 border border-slate-200/60 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors w-48"
+                  />
+                </div>
+                <button
+                  onClick={() => refreshFeedback()}
+                  className="p-2 rounded-lg hover:bg-slate-100/60 text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Aktualisieren"
+                >
+                  <Activity size={14} />
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200/40">
+                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3 w-10">Typ</th>
+                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Titel</th>
+                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Benutzer</th>
+                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Priorität</th>
+                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Status</th>
+                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Erstellt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFeedback.map((item) => {
+                    const TypeIcon = item.type === 'feature' ? Lightbulb : item.type === 'bug' ? Bug : HelpCircle;
+                    const typeColor = item.type === 'feature' ? '#f59e0b' : item.type === 'bug' ? '#ef4444' : '#3b82f6';
+                    const priorityConfig = {
+                      low: { label: 'Low', bg: 'bg-slate-50/80', text: 'text-slate-600', border: 'border-slate-200/60' },
+                      medium: { label: 'Medium', bg: 'bg-blue-50/80', text: 'text-blue-600', border: 'border-blue-200/60' },
+                      high: { label: 'High', bg: 'bg-amber-50/80', text: 'text-amber-600', border: 'border-amber-200/60' },
+                      critical: { label: 'Critical', bg: 'bg-red-50/80', text: 'text-red-600', border: 'border-red-200/60' },
+                    };
+                    const prio = priorityConfig[item.priority] || priorityConfig.medium;
+
+                    return (
+                      <tr
+                        key={item.id}
+                        className="border-b border-slate-100/60 hover:bg-blue-50/30 transition-colors"
+                      >
+                        {/* Type Icon */}
+                        <td className="px-5 py-3">
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: typeColor + '15' }}
+                          >
+                            <TypeIcon size={14} style={{ color: typeColor }} />
+                          </div>
+                        </td>
+
+                        {/* Title */}
+                        <td className="px-5 py-3">
+                          <div className="text-sm font-medium text-slate-900 truncate max-w-xs">
+                            {item.title}
+                          </div>
+                          {item.description && (
+                            <div className="text-[11px] text-slate-400 truncate max-w-xs mt-0.5">
+                              {item.description}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* User */}
+                        <td className="px-5 py-3">
+                          <span className="text-sm text-slate-600">{item.user_name || '–'}</span>
+                        </td>
+
+                        {/* Priority */}
+                        <td className="px-5 py-3">
+                          <div className="relative inline-block">
+                            <select
+                              value={item.priority || 'medium'}
+                              onChange={(e) => updateFeedbackPriority(item.id, e.target.value)}
+                              className={`${prio.bg} ${prio.text} ${prio.border} border rounded-full px-2.5 py-1 text-[11px] font-medium focus:outline-none appearance-none cursor-pointer pr-6`}
+                            >
+                              <option value="low">Low</option>
+                              <option value="medium">Medium</option>
+                              <option value="high">High</option>
+                              <option value="critical">Critical</option>
+                            </select>
+                            <ArrowUpDown size={10} className={`absolute right-2 top-1/2 -translate-y-1/2 ${prio.text} pointer-events-none`} />
+                          </div>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-5 py-3">
+                          <div className="relative inline-block">
+                            <select
+                              value={item.status || 'open'}
+                              onChange={(e) => updateFeedbackStatus(item.id, e.target.value)}
+                              className="bg-slate-50/80 border border-slate-200/60 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-700 focus:outline-none focus:border-[#3b82f6] appearance-none cursor-pointer pr-7 transition-colors"
+                            >
+                              <option value="open">Offen</option>
+                              <option value="in_review">In Review</option>
+                              <option value="planned">Geplant</option>
+                              <option value="in_progress">In Bearbeitung</option>
+                              <option value="done">Erledigt</option>
+                              <option value="rejected">Abgelehnt</option>
+                            </select>
+                            <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                          </div>
+                        </td>
+
+                        {/* Created */}
+                        <td className="px-5 py-3">
+                          <span className="text-xs font-mono text-slate-400">
+                            {item.created_at
+                              ? new Date(item.created_at).toLocaleString('de-DE', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : '–'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {loadingFeedback && (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-12 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
+                          <span className="text-xs text-slate-400">Lade Feedback...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {!loadingFeedback && filteredFeedback.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-12 text-center">
+                        <Lightbulb size={32} className="text-slate-200 mx-auto mb-3" />
+                        <div className="text-sm text-slate-400">Kein Feedback vorhanden</div>
+                        <p className="text-xs text-slate-300 font-mono mt-1">
+                          Feedback wird hier angezeigt, sobald Benutzer Anfragen einreichen
+                        </p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════ API Usage Section ═══════ */}
+      {activeSection === 'api-usage' && (
+        <div className="space-y-5">
+          {/* Time Range + Refresh */}
+          <div className="flex items-center justify-between">
+            <div className="flex gap-1 bg-white/40 backdrop-blur-sm border border-slate-200/40 rounded-lg p-0.5">
+              {[
+                { id: '24h', label: '24h' },
+                { id: '7d', label: '7 Tage' },
+                { id: '30d', label: '30 Tage' },
+              ].map((range) => (
+                <button
+                  key={range.id}
+                  onClick={() => setApiTimeRange(range.id)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    apiTimeRange === range.id
+                      ? 'bg-white shadow-sm text-slate-900 border border-slate-200/60'
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  {range.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={refreshApiUsage}
+              disabled={loadingApiUsage}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-white/60 transition-colors"
+            >
+              <RefreshCw size={13} className={loadingApiUsage ? 'animate-spin' : ''} />
+              Aktualisieren
+            </button>
+          </div>
+
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="glass-card rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">API Calls</span>
+                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <Zap size={14} className="text-blue-500" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-slate-800 font-mono">{apiStats.totalCalls.toLocaleString('de-DE')}</div>
+              <div className="text-[10px] text-slate-400 mt-1 font-mono">{apiTimeRange === '24h' ? 'Letzte 24 Stunden' : apiTimeRange === '7d' ? 'Letzte 7 Tage' : 'Letzte 30 Tage'}</div>
+            </div>
+
+            <div className="glass-card rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Kosten (est.)</span>
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+                  <DollarSign size={14} className="text-emerald-500" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-slate-800 font-mono">
+                ${(apiStats.totalCostCents / 100).toFixed(2)}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-1 font-mono">
+                {apiStats.totalTokensIn > 0 ? `${((apiStats.totalTokensIn + apiStats.totalTokensOut) / 1000).toFixed(0)}k Tokens` : 'Keine Token-Daten'}
+              </div>
+            </div>
+
+            <div className="glass-card rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Fehler</span>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${apiStats.errorCount > 0 ? 'bg-red-50' : 'bg-emerald-50'}`}>
+                  <AlertCircle size={14} className={apiStats.errorCount > 0 ? 'text-red-500' : 'text-emerald-500'} />
+                </div>
+              </div>
+              <div className={`text-2xl font-bold font-mono ${apiStats.errorCount > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                {apiStats.errorCount}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-1 font-mono">
+                {apiStats.totalCalls > 0 ? `${(apiStats.errorCount / apiStats.totalCalls * 100).toFixed(1)}% Error-Rate` : '—'}
+              </div>
+            </div>
+
+            <div className="glass-card rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Ø Latenz</span>
+                <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Clock size={14} className="text-amber-500" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-slate-800 font-mono">{apiStats.avgDuration}ms</div>
+              <div className="text-[10px] text-slate-400 mt-1 font-mono">Durchschnittliche Antwortzeit</div>
+            </div>
+          </div>
+
+          {/* Service Breakdown */}
+          <div className="glass-card rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-200/60 flex items-center gap-2">
+              <Server size={14} className="text-slate-400" />
+              <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Kosten nach Service</span>
+            </div>
+            <div className="divide-y divide-slate-100/80">
+              {Object.entries(apiStats.byService)
+                .sort((a, b) => b[1].cost - a[1].cost)
+                .map(([service, data]) => {
+                  const serviceColors = {
+                    anthropic: { bg: 'bg-purple-50', text: 'text-purple-600', bar: 'bg-purple-400' },
+                    airtable: { bg: 'bg-blue-50', text: 'text-blue-600', bar: 'bg-blue-400' },
+                    supabase: { bg: 'bg-emerald-50', text: 'text-emerald-600', bar: 'bg-emerald-400' },
+                    vistar: { bg: 'bg-orange-50', text: 'text-orange-600', bar: 'bg-orange-400' },
+                    'google-sheets': { bg: 'bg-green-50', text: 'text-green-600', bar: 'bg-green-400' },
+                    superchat: { bg: 'bg-cyan-50', text: 'text-cyan-600', bar: 'bg-cyan-400' },
+                  };
+                  const colors = serviceColors[service] || { bg: 'bg-slate-50', text: 'text-slate-600', bar: 'bg-slate-400' };
+                  const costPct = apiStats.totalCostCents > 0 ? (data.cost / apiStats.totalCostCents * 100) : 0;
+
+                  return (
+                    <div key={service} className="px-5 py-3 flex items-center gap-4">
+                      <div className={`w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center shrink-0`}>
+                        <Wifi size={14} className={colors.text} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-slate-800 capitalize">{service}</span>
+                          <span className="text-xs font-mono text-slate-500">${(data.cost / 100).toFixed(3)}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className={`h-full ${colors.bar} rounded-full transition-all`} style={{ width: `${Math.max(costPct, 1)}%` }} />
+                          </div>
+                          <span className="text-[10px] font-mono text-slate-400 shrink-0">{data.calls} calls</span>
+                        </div>
+                        {data.tokensIn > 0 && (
+                          <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                            {(data.tokensIn / 1000).toFixed(0)}k in / {(data.tokensOut / 1000).toFixed(0)}k out tokens
+                          </div>
+                        )}
+                      </div>
+                      {data.errors > 0 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-500 font-mono shrink-0">{data.errors} err</span>
+                      )}
+                    </div>
+                  );
+                })}
+              {Object.keys(apiStats.byService).length === 0 && (
+                <div className="px-5 py-8 text-center">
+                  <Zap size={24} className="text-slate-200 mx-auto mb-2" />
+                  <div className="text-sm text-slate-400">Noch keine API-Daten</div>
+                  <p className="text-xs text-slate-300 font-mono mt-1">Daten werden erfasst sobald API-Calls stattfinden</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Function Breakdown Table */}
+          <div className="glass-card rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-200/60 flex items-center gap-2">
+              <Code size={14} className="text-slate-400" />
+              <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Calls nach Function</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+                    <th className="px-5 py-2.5 text-left">Function</th>
+                    <th className="px-3 py-2.5 text-right">Calls</th>
+                    <th className="px-3 py-2.5 text-right">Errors</th>
+                    <th className="px-3 py-2.5 text-right">Ø Latenz</th>
+                    <th className="px-5 py-2.5 text-right">Kosten</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100/80">
+                  {Object.entries(apiStats.byFunction)
+                    .sort((a, b) => b[1].calls - a[1].calls)
+                    .map(([fn, data]) => (
+                      <tr key={fn} className="hover:bg-white/40 transition-colors">
+                        <td className="px-5 py-2.5 text-sm font-mono text-slate-800">{fn}</td>
+                        <td className="px-3 py-2.5 text-sm font-mono text-slate-600 text-right">{data.calls}</td>
+                        <td className="px-3 py-2.5 text-right">
+                          {data.errors > 0 ? (
+                            <span className="text-xs font-mono text-red-500">{data.errors}</span>
+                          ) : (
+                            <span className="text-xs font-mono text-emerald-500">0</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-xs font-mono text-slate-500 text-right">{data.avgMs}ms</td>
+                        <td className="px-5 py-2.5 text-xs font-mono text-slate-600 text-right">${(data.cost / 100).toFixed(3)}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Recent Calls Log */}
+          <div className="glass-card rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-200/60 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity size={14} className="text-slate-400" />
+                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Letzte API Calls</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400">{apiUsageData.length} Einträge</span>
+            </div>
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <table className="w-full">
+                <thead className="sticky top-0 bg-white/90 backdrop-blur-sm">
+                  <tr className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+                    <th className="px-4 py-2 text-left">Zeit</th>
+                    <th className="px-3 py-2 text-left">Function</th>
+                    <th className="px-3 py-2 text-left">Service</th>
+                    <th className="px-3 py-2 text-center">Status</th>
+                    <th className="px-3 py-2 text-right">Latenz</th>
+                    <th className="px-4 py-2 text-right">Kosten</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {apiUsageData.slice(0, 100).map((row) => (
+                    <tr key={row.id} className="hover:bg-white/30 transition-colors text-xs">
+                      <td className="px-4 py-2 font-mono text-slate-500 whitespace-nowrap">
+                        {new Date(row.created_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-slate-700">{row.function_name}</td>
+                      <td className="px-3 py-2">
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                          row.service === 'anthropic' ? 'bg-purple-50 text-purple-600' :
+                          row.service === 'airtable' ? 'bg-blue-50 text-blue-600' :
+                          row.service === 'supabase' ? 'bg-emerald-50 text-emerald-600' :
+                          row.service === 'vistar' ? 'bg-orange-50 text-orange-600' :
+                          'bg-slate-50 text-slate-600'
+                        }`}>
+                          {row.service}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {row.success ? (
+                          <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 inline-flex items-center justify-center text-[9px] font-bold">{row.status_code || '✓'}</span>
+                        ) : (
+                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 inline-flex items-center justify-center text-[9px] font-bold">{row.status_code || '✗'}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-slate-500 text-right">{row.duration_ms ? `${row.duration_ms}ms` : '—'}</td>
+                      <td className="px-4 py-2 font-mono text-slate-600 text-right">{row.estimated_cost_cents ? `$${(row.estimated_cost_cents / 100).toFixed(4)}` : '—'}</td>
+                    </tr>
+                  ))}
+                  {loadingApiUsage && (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-8 text-center">
+                        <div className="flex items-center justify-center gap-2 text-slate-400">
+                          <RefreshCw size={14} className="animate-spin" />
+                          <span className="text-sm">Lade API-Daten...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {!loadingApiUsage && apiUsageData.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-12 text-center">
+                        <Zap size={32} className="text-slate-200 mx-auto mb-3" />
+                        <div className="text-sm text-slate-400">Keine API-Daten vorhanden</div>
+                        <p className="text-xs text-slate-300 font-mono mt-1">
+                          API-Calls werden automatisch geloggt sobald die Tabelle erstellt ist
+                        </p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

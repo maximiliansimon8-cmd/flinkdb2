@@ -8,7 +8,7 @@ import { fetchAllStammdaten, fetchInstallationByDisplayId } from '../utils/airta
 import { fetchAllUsers, getAllUsers } from '../utils/authService';
 
 const STATUS_OPTIONS = ['New', 'In Progress', 'Follow Up', 'On Hold', 'In Review', 'Completed'];
-const PRIORITY_OPTIONS = ['High', 'Medium', 'Low'];
+const PRIORITY_OPTIONS = ['Urgent', 'High', 'Medium', 'Low'];
 const PARTNERS = [
   'Dimension Outdoor GmbH',
   'Inbound Lead',

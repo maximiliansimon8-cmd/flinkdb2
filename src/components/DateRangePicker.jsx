@@ -5,8 +5,8 @@ const PRESETS = [
   { label: '7T', days: 7 },
   { label: '14T', days: 14 },
   { label: '30T', days: 30 },
+  { label: '60T', days: 60 },
   { label: '90T', days: 90 },
-  { label: 'Alle', days: null },
 ];
 
 function toInputValue(date) {

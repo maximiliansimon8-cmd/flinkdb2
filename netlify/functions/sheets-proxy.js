@@ -6,6 +6,7 @@
  */
 
 import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import { logApiCall } from './shared/apiLogger.js';
 
 const SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1MGqJAGgROYohc_SwR3NhW-BEyJXixLKQZhS9yUOH8_s/export?format=csv&gid=0';
@@ -21,6 +22,7 @@ export default async (request, context) => {
   if (!origin) return forbiddenResponse();
 
   try {
+    const apiStart = Date.now();
     const response = await fetch(SHEET_CSV_URL, {
       headers: { 'User-Agent': 'JET-Dashboard/2.0' },
     });
@@ -34,6 +36,17 @@ export default async (request, context) => {
 
     const csvData = await response.text();
 
+    logApiCall({
+      functionName: 'sheets-proxy',
+      service: 'google-sheets',
+      method: 'GET',
+      endpoint: '/export',
+      durationMs: Date.now() - apiStart,
+      statusCode: response.ok ? 200 : response.status,
+      success: response.ok,
+      bytesTransferred: csvData.length,
+    });
+
     return new Response(csvData, {
       status: 200,
       headers: {
@@ -44,6 +57,14 @@ export default async (request, context) => {
       },
     });
   } catch (err) {
+    logApiCall({
+      functionName: 'sheets-proxy',
+      service: 'google-sheets',
+      method: 'GET',
+      endpoint: '/export',
+      success: false,
+      errorMessage: err.message,
+    });
     return new Response(
       JSON.stringify({ error: `Sheets proxy error: ${err.message}` }),
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }

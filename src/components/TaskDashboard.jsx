@@ -48,6 +48,7 @@ const STATUS_CONFIG = {
 const STATUS_ORDER = ['New', 'In Progress', 'Follow Up', 'On Hold', 'In Review', 'Completed'];
 
 const PRIORITY_COLORS = {
+  'Urgent': '#dc2626',
   'High': '#ef4444',
   'Medium': '#f59e0b',
   'Low': '#22c55e',
@@ -1061,7 +1062,61 @@ export default function TaskDashboard() {
                                   <span className="text-xs text-slate-600 font-mono">{task.displayIds.join(', ')}</span>
                                 </div>
                               )}
+
+                              {/* ─── Extended Fields ─── */}
+                              {/* Audit Trail */}
+                              {(task.statusChangedBy || task.statusChangedDate) && (
+                                <div className="pt-1 border-t border-slate-200/40">
+                                  <span className="text-[10px] text-slate-400">Status geändert: </span>
+                                  <span className="text-xs text-slate-600">
+                                    {task.statusChangedBy || '–'}
+                                    {task.statusChangedDate && ` am ${formatDate(task.statusChangedDate)}`}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Installation Info */}
+                              {(task.integrator || task.installDate) && (
+                                <div className="pt-1 border-t border-slate-200/40">
+                                  <div className="text-[10px] text-slate-400 uppercase mb-0.5">Installation</div>
+                                  {task.integrator && (
+                                    <div><span className="text-[10px] text-slate-400">Integrator: </span><span className="text-xs text-slate-600">{task.integrator}</span></div>
+                                  )}
+                                  {task.installDate && (
+                                    <div><span className="text-[10px] text-slate-400">Aufbau: </span><span className="text-xs text-slate-600 font-mono">{formatDate(task.installDate)}</span></div>
+                                  )}
+                                  {task.installRemarks && (
+                                    <div><span className="text-[10px] text-slate-400">Bemerkungen: </span><span className="text-xs text-slate-600">{task.installRemarks}</span></div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Visibility + Superchat */}
+                              <div className="flex flex-wrap items-center gap-2 pt-1">
+                                {task.externalVisibility && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-200">
+                                    👁 Extern sichtbar
+                                  </span>
+                                )}
+                                {task.superchat && (
+                                  <a href={typeof task.superchat === 'string' ? task.superchat : '#'} target="_blank" rel="noopener noreferrer"
+                                    onClick={e => e.stopPropagation()}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors">
+                                    💬 Superchat
+                                  </a>
+                                )}
+                              </div>
                             </div>
+
+                          {/* Nacharbeit Kommentar */}
+                          {task.nacharbeitKommentar && (
+                            <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-slate-200/40">
+                              <div className="text-[10px] text-slate-400 uppercase mb-1">Nacharbeit / Follow-Up</div>
+                              <div className="text-xs text-slate-600 whitespace-pre-wrap bg-amber-50/50 rounded-lg p-2 border border-amber-100">
+                                {task.nacharbeitKommentar}
+                              </div>
+                            </div>
+                          )}
                           </div>
 
                           {/* Quick Actions */}
