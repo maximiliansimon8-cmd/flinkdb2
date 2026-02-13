@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -125,6 +126,55 @@ function superchatProxy() {
   }
 }
 
+/** Dev proxy for install-booker API endpoints (mirrors Netlify Functions in dev) */
+function installBookerProxy() {
+  return {
+    name: 'install-booker-proxy',
+    configureServer(server) {
+      // Proxy /api/install-schedule and /api/install-booker/* to Supabase directly in dev
+      // In production, Netlify redirects handle this
+      const SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost:54321'
+      const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+      server.middlewares.use('/api/install-schedule', async (req, res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key')
+        if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }
+        // In dev, forward to the actual Netlify function via netlify dev
+        res.writeHead(501)
+        res.end(JSON.stringify({ error: 'Use netlify dev for install-schedule in development' }))
+      })
+
+      server.middlewares.use('/api/install-booker', async (req, res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key')
+        if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }
+        res.writeHead(501)
+        res.end(JSON.stringify({ error: 'Use netlify dev for install-booker in development' }))
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), googleSheetsProxy(), airtableProxy(), superchatProxy()],
+  plugins: [react(), tailwindcss(), googleSheetsProxy(), airtableProxy(), superchatProxy(), installBookerProxy()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        booking: resolve(__dirname, 'booking/index.html'),
+      },
+      output: {
+        manualChunks(id) {
+          // Split heavy vendor libraries into separate cacheable chunks
+          if (id.includes('node_modules/@supabase')) return 'vendor-supabase';
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-recharts';
+          if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
+          if (id.includes('node_modules/react-dom') || (id.includes('node_modules/react/') && !id.includes('react-'))) return 'vendor-react';
+        },
+      },
+    },
+  },
 })

@@ -40,6 +40,9 @@ export const ALL_TABS = [
   { id: 'displays.cities',   label: 'Städte',              parent: 'displays' },
   { id: 'tasks',             label: 'Tasks',               parent: null },
   { id: 'communication',     label: 'Kommunikation',       parent: null },
+  { id: 'installations',           label: 'Installationen',      parent: null },
+  { id: 'installations.calendar',  label: 'Routen-Kalender',     parent: 'installations' },
+  { id: 'installations.bookings',  label: 'Buchungen',           parent: 'installations' },
   { id: 'admin',             label: 'Admin',               parent: null },
 ];
 
@@ -47,11 +50,15 @@ export const ALL_ACTIONS = [
   { id: 'view',           label: 'Dashboard anzeigen',     category: 'Allgemein' },
   { id: 'export',         label: 'Daten exportieren',      category: 'Allgemein' },
   { id: 'view_contacts',  label: 'Kontaktdaten einsehen',  category: 'Allgemein' },
+  { id: 'view_revenue',   label: 'Umsätze einsehen',       category: 'Allgemein' },
   { id: 'create_task',    label: 'Task erstellen',         category: 'Tasks' },
   { id: 'edit_task',      label: 'Task bearbeiten',        category: 'Tasks' },
   { id: 'delete_task',    label: 'Task löschen',           category: 'Tasks' },
   { id: 'send_message',   label: 'Nachrichten senden',     category: 'Kommunikation' },
   { id: 'view_messages',  label: 'Nachrichten lesen',      category: 'Kommunikation' },
+  { id: 'manage_schedule',     label: 'Routen verwalten',         category: 'Installationen' },
+  { id: 'manage_bookings',    label: 'Buchungen verwalten',      category: 'Installationen' },
+  { id: 'send_booking_invite', label: 'Buchungseinladung senden', category: 'Installationen' },
   { id: 'manage_users',   label: 'Benutzer verwalten',     category: 'Admin' },
   { id: 'manage_groups',  label: 'Gruppen verwalten',      category: 'Admin' },
   { id: 'settings',       label: 'Einstellungen ändern',   category: 'Admin' },
@@ -322,6 +329,8 @@ export function getCurrentGroup() {
 }
 
 export function hasPermission(action) {
+  // Admin always has all permissions
+  if (isAdmin()) return true;
   return (getCurrentGroup()?.actions || []).includes(action);
 }
 
@@ -375,6 +384,7 @@ function getDefaultGroups() {
     { id: 'grp_sales', name: 'Sales', description: 'Übersicht & Kommunikation', color: '#f59e0b', icon: 'TrendingUp', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_management', name: 'Management', description: 'Berichte', color: '#a855f7', icon: 'BarChart3', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_tech', name: 'Tech', description: 'Technische Tasks', color: '#06b6d4', icon: 'Code', tabs: [], actions: [], memberCount: 0 },
+    { id: 'grp_scheduling', name: 'Terminierung', description: 'Installationstermine planen', color: '#f97316', icon: 'CalendarCheck', tabs: [], actions: [], memberCount: 0 },
   ];
 }
 

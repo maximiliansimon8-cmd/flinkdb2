@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense, lazy } from 'react';
 import { supabase } from './utils/authService';
 import {
   Monitor,
@@ -6,7 +6,6 @@ import {
   Loader2,
   AlertCircle,
   LayoutDashboard,
-  List,
   MapPin,
   ClipboardList,
   X,
@@ -16,8 +15,16 @@ import {
   LogOut,
   Mail,
   Key,
-  Clock,
   AlertTriangle,
+  BarChart3,
+  Database,
+  HardDrive,
+  Target,
+  Map as MapIcon,
+  BookUser,
+  Activity,
+  Search,
+  CalendarCheck,
 } from 'lucide-react';
 
 import {
@@ -44,18 +51,34 @@ import {
   requestPasswordReset,
 } from './utils/authService';
 import ChangePasswordModal from './components/ChangePasswordModal';
-import KPICards, { KPI_FILTERS } from './components/KPICards';
-import HealthTrendChart from './components/HealthTrendChart';
-import OfflineDistributionChart from './components/OfflineDistributionChart';
-import CityHealthChart from './components/CityHealthChart';
-import DisplayTable from './components/DisplayTable';
-import DisplayDetail from './components/DisplayDetail';
+import { KPI_FILTERS } from './constants/kpiFilters';
 import DateRangePicker from './components/DateRangePicker';
-import NewDisplayWatchlist from './components/NewDisplayWatchlist';
-import OverviewHealthPatterns from './components/OverviewHealthPatterns';
-import TaskDashboard from './components/TaskDashboard';
-import CommunicationDashboard from './components/CommunicationDashboard';
-import AdminPanel from './components/AdminPanel';
+
+// Lazy-loaded components — split into separate chunks for faster initial load
+const KPICards = lazy(() => import('./components/KPICards'));
+const HealthTrendChart = lazy(() => import('./components/HealthTrendChart'));
+const OfflineDistributionChart = lazy(() => import('./components/OfflineDistributionChart'));
+const CityHealthChart = lazy(() => import('./components/CityHealthChart'));
+const DisplayTable = lazy(() => import('./components/DisplayTable'));
+const DisplayDetail = lazy(() => import('./components/DisplayDetail'));
+const NewDisplayWatchlist = lazy(() => import('./components/NewDisplayWatchlist'));
+const OverviewHealthPatterns = lazy(() => import('./components/OverviewHealthPatterns'));
+const TaskDashboard = lazy(() => import('./components/TaskDashboard'));
+const CommunicationDashboard = lazy(() => import('./components/CommunicationDashboard'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const ProgrammaticDashboard = lazy(() => import('./components/ProgrammaticDashboard'));
+const HardwareDashboard = lazy(() => import('./components/HardwareDashboard'));
+const DataQualityDashboard = lazy(() => import('./components/DataQualityDashboard'));
+const AcquisitionDashboard = lazy(() => import('./components/AcquisitionDashboard'));
+const DisplayMap = lazy(() => import('./components/DisplayMap'));
+const ContactDirectory = lazy(() => import('./components/ContactDirectory'));
+const CityDashboard = lazy(() => import('./components/CityDashboard'));
+const ActivityFeed = lazy(() => import('./components/ActivityFeed'));
+const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
+const AkquiseApp = lazy(() => import('./components/AkquiseApp'));
+const InstallationsDashboard = lazy(() => import('./components/InstallationsDashboard'));
+import { fetchVenuePerformance } from './utils/vistarService';
+import useIsMobile from './hooks/useIsMobile';
 
 // Heartbeat data now loaded from Supabase (fast, zero Netlify Function calls)
 // Fallback to Google Sheets proxy if Supabase has no data
@@ -72,6 +95,70 @@ const KPI_FILTER_LABELS = {
   [KPI_FILTERS.DEINSTALLED]: 'Deinstallierte Displays (30 Tage)',
 };
 
+/* ─── KPI Cache for Instant-Load ─── */
+const CACHE_KEY = 'jet_dashboard_cache';
+const CACHE_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+function saveToCache(data) {
+  try {
+    const cache = {
+      timestamp: Date.now(),
+      kpis: {
+        healthRate: data.kpis.healthRate,
+        totalActive: data.kpis.totalActive,
+        onlineCount: data.kpis.onlineCount,
+        warningCount: data.kpis.warningCount,
+        criticalCount: data.kpis.criticalCount,
+        permanentOfflineCount: data.kpis.permanentOfflineCount,
+        neverOnlineCount: data.kpis.neverOnlineCount,
+        newlyInstalled: data.kpis.newlyInstalled,
+      },
+      displayCount: data.displayCount,
+      cityData: data.cityData?.slice(0, 20),
+      latestTimestamp: data.latestTimestamp,
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch (e) {
+    // Silently fail — localStorage quota etc.
+  }
+}
+
+function loadFromCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const cache = JSON.parse(raw);
+    if (Date.now() - cache.timestamp > CACHE_MAX_AGE_MS) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+    return cache;
+  } catch {
+    return null;
+  }
+}
+
+class TabErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  componentDidCatch(error, info) { console.error('[TabError]', this.props?.name || 'unknown', error, info?.componentStack); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 m-4 text-center">
+          <div className="text-red-600 font-bold mb-2">Fehler in "{this.props.name || 'Tab'}"</div>
+          <div className="text-xs text-red-500 font-mono mb-3">Ein Fehler ist aufgetreten. Bitte versuche es erneut.</div>
+          <button onClick={() => this.setState({ hasError: false, error: null })}
+            className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200">
+            Erneut versuchen
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   /* ─── Auth State ─── */
   const [authenticated, setAuthenticated] = useState(() => isAuthenticated());
@@ -85,6 +172,9 @@ function App() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [sessionWarning, setSessionWarning] = useState(false);
 
+  /* ─── Cached KPI Snapshot (for instant loading screen) ─── */
+  const [cachedSnapshot] = useState(() => loadFromCache());
+
   /* ─── Data State ─── */
   const [parsedRows, setParsedRows] = useState(null);
   const [dataEarliest, setDataEarliest] = useState(null);
@@ -94,15 +184,34 @@ function App() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
   const [selectedDisplay, setSelectedDisplay] = useState(null);
-  const [activeMainTab, setActiveMainTab] = useState('displays');
-  const [activeSubTab, setActiveSubTab] = useState('overview');
+  // Hash-based routing: read initial tab from URL hash
+  const getTabFromHash = () => {
+    const hash = window.location.hash.replace('#', '').replace('/', '');
+    const validTabs = ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'akquise-app'];
+    return validTabs.includes(hash) ? hash : 'overview';
+  };
+  const [activeMainTab, setActiveMainTabRaw] = useState(getTabFromHash);
+  const setActiveMainTab = useCallback((tab) => {
+    setActiveMainTabRaw(tab);
+    window.history.replaceState(null, '', `#${tab}`);
+  }, []);
+  const [activeSubTab, setActiveSubTab] = useState('overview'); // kept for compat
   const [loadProgress, setLoadProgress] = useState('');
 
   const [rangeStart, setRangeStart] = useState(null);
   const [rangeEnd, setRangeEnd] = useState(null);
 
   const [kpiFilter, setKpiFilter] = useState(null);
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+
+  /* ─── Mobile Akquise App Overlay ─── */
+  const isMobile = useIsMobile(768);
+  const [showAkquiseApp, setShowAkquiseApp] = useState(false);
+  const globalSearchRef = useRef(null);
 
   // Webhook URL for alert automation (persisted in localStorage)
   const [webhookUrl, setWebhookUrl] = useState(
@@ -157,7 +266,7 @@ function App() {
           processRawRows(csvCacheRef.current, csvCacheRef._firstSeen);
         } catch (e) {
           csvCacheRef.current = null;
-          setError(`Fehler bei Datenverarbeitung: ${e.message}`);
+          setError('Fehler bei der Datenverarbeitung. Bitte neu laden.');
           setLoading(false);
         }
       }, 20);
@@ -167,14 +276,15 @@ function App() {
     try {
       setLoadProgress('Lade Display-Daten...');
 
-      // Step 1: Fetch globalFirstSeen from the precomputed view (fast, ~350 rows)
-      const { data: firstSeenData, error: fsError } = await supabase
-        .from('display_first_seen')
-        .select('display_id, first_seen');
+      // Step 1+2 PARALLEL: Fetch first-seen AND max timestamp at the same time
+      const [firstSeenResult, maxTsResult] = await Promise.all([
+        supabase.from('display_first_seen').select('display_id, first_seen'),
+        supabase.from('display_heartbeats').select('timestamp_parsed').order('timestamp_parsed', { ascending: false }).limit(1),
+      ]);
 
       const preloadedFirstSeen = {};
-      if (!fsError && firstSeenData) {
-        for (const row of firstSeenData) {
+      if (!firstSeenResult.error && firstSeenResult.data) {
+        for (const row of firstSeenResult.data) {
           if (row.first_seen) {
             preloadedFirstSeen[row.display_id] = new Date(row.first_seen);
           }
@@ -182,20 +292,12 @@ function App() {
         console.log(`[loadData] Loaded first-seen for ${Object.keys(preloadedFirstSeen).length} displays`);
       }
 
-      // Step 2: Determine cutoff date (30 days before the latest heartbeat)
-      // First get the max timestamp_parsed to calculate the cutoff
-      const { data: maxRow, error: maxError } = await supabase
-        .from('display_heartbeats')
-        .select('timestamp_parsed')
-        .order('timestamp_parsed', { ascending: false })
-        .limit(1);
-
       let cutoffISO = null;
-      if (!maxError && maxRow && maxRow.length > 0 && maxRow[0].timestamp_parsed) {
-        const latestDate = new Date(maxRow[0].timestamp_parsed);
-        const cutoff = new Date(latestDate.getTime() - 60 * 24 * 60 * 60 * 1000);
+      if (!maxTsResult.error && maxTsResult.data && maxTsResult.data.length > 0 && maxTsResult.data[0].timestamp_parsed) {
+        const latestDate = new Date(maxTsResult.data[0].timestamp_parsed);
+        const cutoff = new Date(latestDate.getTime() - 30 * 24 * 60 * 60 * 1000);
         cutoffISO = cutoff.toISOString();
-        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (60 days before ${maxRow[0].timestamp_parsed})`);
+        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (30 days before ${maxTsResult.data[0].timestamp_parsed})`);
       }
 
       // Step 3: Fetch only recent heartbeat data (paginated, 1000 per page)
@@ -221,7 +323,7 @@ function App() {
         if (sbError) throw sbError;
         if (!data || data.length === 0) break;
         allRows = allRows.concat(data);
-        setLoadProgress(`${allRows.length} Zeilen geladen...`);
+        setLoadProgress('Lade Displaydaten...');
         if (data.length < pageSize) break;
         from += pageSize;
       }
@@ -241,14 +343,14 @@ function App() {
           'Days Offline': row.days_offline != null ? String(row.days_offline) : '',
         }));
 
-        setLoadProgress(`${mappedRows.length} Zeilen geladen. Verarbeite...`);
+        setLoadProgress('Daten werden verarbeitet...');
         csvCacheRef.current = mappedRows;
         csvCacheRef._firstSeen = preloadedFirstSeen;
         setTimeout(() => {
           try {
             processRawRows(mappedRows, preloadedFirstSeen);
           } catch (e) {
-            setError(`Fehler bei Datenverarbeitung: ${e.message}`);
+            setError('Fehler bei der Datenverarbeitung. Bitte neu laden.');
             setLoading(false);
           }
         }, 50);
@@ -265,24 +367,24 @@ function App() {
         skipEmptyLines: true,
         complete: (results) => {
           try {
-            setLoadProgress(`${results.data.length} Zeilen geladen. Verarbeite...`);
+            setLoadProgress('Daten werden verarbeitet...');
             csvCacheRef.current = results.data;
             csvCacheRef._firstSeen = null;
             setTimeout(() => {
               try {
                 processRawRows(results.data, null);
               } catch (e) {
-                setError(`Fehler bei Datenverarbeitung: ${e.message}`);
+                setError('Fehler bei der Datenverarbeitung. Bitte neu laden.');
                 setLoading(false);
               }
             }, 50);
           } catch (e) {
-            setError(`Fehler beim Parsen: ${e.message}`);
+            setError('Fehler beim Laden der Daten. Bitte neu laden.');
             setLoading(false);
           }
         },
         error: (err) => {
-          setError(`Fehler beim Laden der CSV: ${err.message}`);
+          setError('Verbindungsfehler. Bitte Internetverbindung prüfen und neu laden.');
           setLoading(false);
         },
       });
@@ -300,16 +402,59 @@ function App() {
           setTimeout(() => processRawRows(results.data, null), 50);
         },
         error: (csvErr) => {
-          setError(`Fehler beim Laden: ${csvErr.message}`);
+          setError('Verbindungsfehler. Bitte Internetverbindung prüfen und neu laden.');
           setLoading(false);
         },
       });
     }
   }, []);
 
+  /* ─── Sync Trigger (defined after loadData so the dep is available) ─── */
+  const triggerSync = useCallback(async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch('/api/trigger-sync');
+      if (res.status === 202) {
+        setSyncResult({ success: true, background: true });
+        setTimeout(() => loadData(true), 30000);
+      } else {
+        const data = await res.json();
+        if (data.success) {
+          setSyncResult({
+            success: true,
+            displays: data.results?.displays?.upserted || 0,
+            acquisition: data.results?.acquisition?.upserted || 0,
+          });
+          setTimeout(() => loadData(true), 1000);
+        } else {
+          setSyncResult({ success: false, error: data.error });
+        }
+      }
+    } catch (err) {
+      setSyncResult({ success: false, error: err.message });
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncResult(null), 5000);
+    }
+  }, [loadData]);
+
   useEffect(() => {
     loadData(false);
   }, [loadData]);
+
+  /* ─── URL Hash Routing (browser back/forward) ─── */
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.replace('#', '').replace('/', '');
+      const validTabs = ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'akquise-app'];
+      if (validTabs.includes(hash)) {
+        setActiveMainTabRaw(hash);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   /* ─── Session Timeout Monitoring ─── */
 
@@ -367,9 +512,10 @@ function App() {
     return aggregateData(parsedRows, rangeStart, rangeEnd, globalFirstSeen);
   }, [parsedRows, rangeStart, rangeEnd, globalFirstSeen]);
 
-  // Compute comparison health rate: previous period of same duration.
-  // If no prior data available, use first half of current range as comparison.
-  const comparisonHealthRate = useMemo(() => {
+  // Compute comparison trend data: previous period of same duration.
+  // Returns the full daily trendData from the prior period so the chart can
+  // show a day-by-day comparison line (e.g. Mon vs Mon before).
+  const comparisonTrendData = useMemo(() => {
     if (!parsedRows || !rawData || !rawData.trendData || rawData.trendData.length === 0) return null;
     const currentEnd = rangeEnd || rawData.latestTimestamp;
     const currentStart = rangeStart || (rawData.trendData.length > 0 ? rawData.trendData[0].timestamp : null);
@@ -382,28 +528,23 @@ function App() {
     const compStart = new Date(compEnd.getTime() - rangeDuration);
 
     if (dataEarliest && compEnd >= dataEarliest) {
-      // Prior period data exists – use uptime-based weighted average
       const compData = aggregateData(parsedRows, compStart, compEnd, globalFirstSeen);
       if (compData && compData.trendData && compData.trendData.length > 0) {
-        const totalOnline = compData.trendData.reduce((sum, s) => sum + (s.totalOnlineHours || 0), 0);
-        const totalExpected = compData.trendData.reduce((sum, s) => sum + (s.totalExpectedHours || 0), 0);
-        const avgHealth = totalExpected > 0 ? (totalOnline / totalExpected) * 100 : 0;
-        return Math.round(avgHealth * 10) / 10;
+        return compData.trendData;
       }
-    }
-
-    // Fallback: split current range in half → first half = comparison
-    if (rawData.trendData.length >= 4) {
-      const midIndex = Math.floor(rawData.trendData.length / 2);
-      const firstHalf = rawData.trendData.slice(0, midIndex);
-      const totalOnline = firstHalf.reduce((sum, s) => sum + (s.totalOnlineHours || 0), 0);
-      const totalExpected = firstHalf.reduce((sum, s) => sum + (s.totalExpectedHours || 0), 0);
-      const avgHealth = totalExpected > 0 ? (totalOnline / totalExpected) * 100 : 0;
-      return Math.round(avgHealth * 10) / 10;
     }
 
     return null;
   }, [parsedRows, rawData, rangeStart, rangeEnd, dataEarliest, globalFirstSeen]);
+
+  // Keep the single average for the badge/label
+  const comparisonHealthRate = useMemo(() => {
+    if (!comparisonTrendData || comparisonTrendData.length === 0) return null;
+    const totalOnline = comparisonTrendData.reduce((sum, s) => sum + (s.totalOnlineHours || 0), 0);
+    const totalExpected = comparisonTrendData.reduce((sum, s) => sum + (s.totalExpectedHours || 0), 0);
+    const avgHealth = totalExpected > 0 ? (totalOnline / totalExpected) * 100 : 0;
+    return Math.round(avgHealth * 10) / 10;
+  }, [comparisonTrendData]);
 
   const kpis = useMemo(() => {
     if (!rawData || !rawData.latestTimestamp) return null;
@@ -424,6 +565,187 @@ function App() {
     if (!kpiFilter || !kpis?._lists) return null;
     return kpis._lists[kpiFilter] || null;
   }, [kpiFilter, kpis]);
+
+  // Save KPIs to localStorage cache for instant-load on next visit
+  useEffect(() => {
+    if (kpis && rawData) {
+      saveToCache({
+        kpis,
+        displayCount: rawData.displays.length,
+        cityData: rawData.cityData,
+        latestTimestamp: rawData.latestTimestamp?.toISOString(),
+      });
+    }
+  }, [kpis, rawData]);
+
+  // Vistar venue performance data (loaded once, cached in service)
+  const [vistarData, setVistarData] = useState(null);
+  useEffect(() => {
+    if (!rawData) return;
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+    fetchVenuePerformance(startStr, endStr)
+      .then((data) => { if (data && data.size > 0) setVistarData(data); })
+      .catch(() => {});
+  }, [rawData]);
+
+  // ── Comparison data: loaded ONCE in App, shared with all DisplayTable instances ──
+  // This eliminates 3 redundant Supabase queries per DisplayTable mount
+  const [comparisonData, setComparisonData] = useState(null);
+  useEffect(() => {
+    if (!rawData) return;
+    async function loadComparisonData() {
+      const startTime = Date.now();
+      try {
+        const [dispResult, vistarResult, daynResult, bankLeasingResult, chgResult] = await Promise.all([
+          supabase.from('airtable_displays').select('display_id, display_name, online_status, location_name, city, street, street_number, postal_code, navori_venue_id, jet_id, live_since, deinstall_date, screen_type, screen_size, sov_partner_ad, updated_at').then(r => {
+            if (r.error && /deinstall_date/.test(r.error.message || '')) {
+              return supabase.from('airtable_displays').select('display_id, display_name, online_status, location_name, city, street, street_number, postal_code, navori_venue_id, jet_id, live_since, screen_type, screen_size, sov_partner_ad, updated_at');
+            }
+            return r;
+          }),
+          supabase.from('vistar_venues').select('id, name, partner_venue_id, is_active, city'),
+          supabase.from('dayn_screens').select('dayn_screen_id, do_screen_id, screen_status, location_name, city, address, zip_code, venue_type, screen_type, screen_inch, latitude, longitude, region, country, floor_cpm, screen_width_px, screen_height_px, max_video_length, min_video_length, static_duration, static_supported, video_supported, dvac_week, dvac_month, dvac_day, impressions_per_spot, install_year'),
+          supabase.from('bank_leasing').select('serial_number, asset_id, rental_certificate, contract_status, monthly_price, rental_start, rental_end_planned, installation_location, city'),
+          supabase.from('chg_approvals').select('display_sn, asset_id, chg_certificate, status, rental_start, rental_end, jet_id_location, location_name, city'),
+        ]);
+
+        let airtable = null;
+        if (!dispResult.error && dispResult.data && dispResult.data.length > 0) {
+          const allDisplayIds = new Set();
+          const activeDisplayIds = new Set();
+          const deinstalledIds = new Set();
+          const locationMap = new Map();
+          for (const d of dispResult.data) {
+            if (!d.display_id) continue;
+            allDisplayIds.add(d.display_id);
+            const isDeinstalled = d.online_status && /deinstall/i.test(d.online_status);
+            if (isDeinstalled) { deinstalledIds.add(d.display_id); } else { activeDisplayIds.add(d.display_id); }
+            locationMap.set(d.display_id, {
+              locationName: d.location_name || d.display_name || '',
+              city: d.city || '', street: d.street || '',
+              streetNumber: d.street_number || '', postalCode: d.postal_code || '',
+              status: d.online_status || '', navoriVenueId: d.navori_venue_id || '',
+              jetId: d.jet_id || '', liveSince: d.live_since || '',
+              deinstallDate: d.deinstall_date || '',
+              screenType: d.screen_type || '', screenSize: d.screen_size || '',
+              updatedAt: d.updated_at || '',
+            });
+          }
+          airtable = { locations: 0, allDisplayIds, activeDisplayIds, deinstalledIds, locationMap, hasStatusField: true, source: 'airtable_displays' };
+        }
+
+        let vistarVenuesList = null;
+        if (!vistarResult.error && vistarResult.data) vistarVenuesList = vistarResult.data;
+
+        let dayn = null;
+        if (!daynResult.error && daynResult.data && daynResult.data.length > 0) {
+          const allIds = new Set();
+          const activeIds = new Set();
+          for (const d of daynResult.data) {
+            const screenId = d.dayn_screen_id || d.do_screen_id;
+            if (!screenId) continue;
+            allIds.add(screenId);
+            if (d.screen_status && /online/i.test(d.screen_status)) activeIds.add(screenId);
+          }
+          dayn = { records: daynResult.data, total: daynResult.data.length, allIds, activeIds };
+        }
+
+        // Build screen data lookup from dayn_screens + airtable_displays
+        // Contains geo data + ALL dayn_screens fields (floor_cpm, dvac, venue_type, screen specs, etc.)
+        const geoLookup = new Map();
+
+        // First: airtable_displays (address data)
+        if (!dispResult.error && dispResult.data) {
+          for (const d of dispResult.data) {
+            if (!d.display_id) continue;
+            const addr = [d.street, d.street_number].filter(Boolean).join(' ');
+            const cityLine = [d.postal_code, d.city].filter(Boolean).join(' ');
+            geoLookup.set(d.display_id, {
+              address: addr || null,
+              cityLine: cityLine || null,
+              postalCode: d.postal_code || null,
+              city: d.city || null,
+              lat: null,
+              lng: null,
+            });
+          }
+        }
+
+        // Second: dayn_screens (lat/lng + ALL enrichment fields — overrides/supplements airtable)
+        if (!daynResult.error && daynResult.data) {
+          for (const s of daynResult.data) {
+            const screenId = s.do_screen_id || s.dayn_screen_id;
+            if (!screenId) continue;
+            const lat = parseFloat(s.latitude);
+            const lng = parseFloat(s.longitude);
+            const hasCoords = !isNaN(lat) && !isNaN(lng);
+
+            const existing = geoLookup.get(screenId) || {};
+            geoLookup.set(screenId, {
+              ...existing,
+              lat: hasCoords ? lat : (existing.lat || null),
+              lng: hasCoords ? lng : (existing.lng || null),
+              address: existing.address || s.address || null,
+              city: existing.city || s.city || null,
+              postalCode: existing.postalCode || s.zip_code || null,
+              cityLine: existing.cityLine || [s.zip_code, s.city].filter(Boolean).join(' ') || null,
+              // ── Dayn Screen enrichment fields ──
+              venueType: s.venue_type || null,
+              floorCpm: s.floor_cpm != null ? Number(s.floor_cpm) : null,
+              screenWidthPx: s.screen_width_px != null ? Number(s.screen_width_px) : null,
+              screenHeightPx: s.screen_height_px != null ? Number(s.screen_height_px) : null,
+              screenType: s.screen_type || null,
+              screenInch: s.screen_inch || null,
+              maxVideoLength: s.max_video_length != null ? Number(s.max_video_length) : null,
+              minVideoLength: s.min_video_length != null ? Number(s.min_video_length) : null,
+              staticDuration: s.static_duration != null ? Number(s.static_duration) : null,
+              staticSupported: s.static_supported ?? null,
+              videoSupported: s.video_supported ?? null,
+              dvacWeek: s.dvac_week != null ? Number(s.dvac_week) : null,
+              dvacMonth: s.dvac_month != null ? Number(s.dvac_month) : null,
+              dvacDay: s.dvac_day != null ? Number(s.dvac_day) : null,
+              impressionsPerSpot: s.impressions_per_spot != null ? Number(s.impressions_per_spot) : null,
+              installYear: s.install_year || null,
+              region: s.region || null,
+              country: s.country || null,
+              daynScreenId: s.dayn_screen_id || null,
+              screenStatus: s.screen_status || null,
+            });
+          }
+        }
+
+        // Bank leasing data — build serial number lookup set for cross-system matching
+        let bankLeasing = null;
+        if (!bankLeasingResult.error && bankLeasingResult.data && bankLeasingResult.data.length > 0) {
+          const serialNumbers = new Set();
+          for (const b of bankLeasingResult.data) {
+            if (b.serial_number) serialNumbers.add(b.serial_number);
+          }
+          bankLeasing = { records: bankLeasingResult.data, total: bankLeasingResult.data.length, serialNumbers };
+        }
+
+        // CHG approvals data — build display_sn lookup set
+        let chgApprovals = null;
+        if (!chgResult.error && chgResult.data && chgResult.data.length > 0) {
+          const displaySns = new Set();
+          for (const c of chgResult.data) {
+            if (c.display_sn) displaySns.add(c.display_sn);
+          }
+          chgApprovals = { records: chgResult.data, total: chgResult.data.length, displaySns };
+        }
+
+        setComparisonData({ airtable, vistarVenues: vistarVenuesList, dayn, bankLeasing, chgApprovals, geoLookup });
+        console.log(`[App] Comparison data loaded in ${Date.now() - startTime}ms`);
+      } catch (e) {
+        console.warn('[App] Comparison data load error:', e);
+      }
+    }
+    loadComparisonData();
+  }, [rawData]);
 
   const rangeLabel = useMemo(() => {
     if (!rangeStart && !rangeEnd) return 'Gesamter Zeitraum';
@@ -457,6 +779,72 @@ function App() {
 
   const handleKpiFilterClick = useCallback((filter) => {
     setKpiFilter(filter);
+  }, []);
+
+  /* ─── Global Search Results (must be before conditional returns) ─── */
+  const globalSearchResults = useMemo(() => {
+    if (!globalSearch || globalSearch.length < 2) return [];
+    const q = globalSearch.toLowerCase().trim();
+    const results = [];
+    const seenIds = new Set();
+
+    // Search active displays
+    for (const d of (rawData?.displays || [])) {
+      if (results.length >= 12) break;
+      const match =
+        d.displayId?.toLowerCase().includes(q) ||
+        d.locationName?.toLowerCase().includes(q) ||
+        d.serialNumber?.toLowerCase().includes(q) ||
+        d.city?.toLowerCase().includes(q);
+      if (match && !seenIds.has(d.displayId)) {
+        seenIds.add(d.displayId);
+        results.push({
+          type: 'display',
+          id: d.displayId,
+          label: d.locationName || d.displayId,
+          sublabel: `${d.city || '–'} · ${d.status === 'online' ? '🟢' : d.status === 'warning' ? '🟡' : '🔴'} ${d.status}`,
+          display: d,
+        });
+      }
+    }
+
+    // Search Airtable stammdaten (JET IDs, addresses)
+    if (comparisonData?.airtable?.locationMap) {
+      for (const [did, loc] of comparisonData.airtable.locationMap) {
+        if (results.length >= 12) break;
+        if (seenIds.has(did)) continue;
+        const match =
+          (loc.jetId && loc.jetId.toLowerCase().includes(q)) ||
+          (loc.locationName && loc.locationName.toLowerCase().includes(q)) ||
+          (loc.street && loc.street.toLowerCase().includes(q)) ||
+          (loc.postalCode && loc.postalCode.includes(q));
+        if (match) {
+          seenIds.add(did);
+          const display = rawData?.displays?.find(d => d.displayId === did);
+          results.push({
+            type: display ? 'display' : 'stammdaten',
+            id: did,
+            label: loc.locationName || did,
+            sublabel: `JET-ID: ${loc.jetId || '–'} · ${loc.city || '–'}${loc.screenType ? ' · ' + loc.screenType : ''}`,
+            display: display || null,
+            jetId: loc.jetId,
+          });
+        }
+      }
+    }
+
+    return results;
+  }, [globalSearch, rawData?.displays, comparisonData?.airtable?.locationMap]);
+
+  // Close search dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (globalSearchRef.current && !globalSearchRef.current.contains(e.target)) {
+        setGlobalSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   /* ─── Auth Handlers ─── */
@@ -711,8 +1099,31 @@ function App() {
             </div>
           </div>
 
+          {/* Cached KPI preview — show last known data while loading */}
+          {cachedSnapshot && (
+            <div className="animate-slide-up mt-6 w-64 mx-auto" style={{ animationDelay: '0.5s', opacity: 0 }}>
+              <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-3 text-center">
+                <div className="text-[10px] font-mono text-slate-400 mb-1">Letzte bekannte Daten</div>
+                <div className="flex items-center justify-center gap-3">
+                  <div>
+                    <div className="text-lg font-mono font-bold text-emerald-600">{cachedSnapshot.kpis?.healthRate}%</div>
+                    <div className="text-[9px] font-mono text-slate-400">Health Rate</div>
+                  </div>
+                  <div className="w-px h-8 bg-slate-200" />
+                  <div>
+                    <div className="text-lg font-mono font-bold text-blue-600">{cachedSnapshot.displayCount}</div>
+                    <div className="text-[9px] font-mono text-slate-400">Displays</div>
+                  </div>
+                </div>
+                <div className="text-[9px] font-mono text-slate-300 mt-1">
+                  {cachedSnapshot.latestTimestamp ? `Stand: ${new Date(cachedSnapshot.latestTimestamp).toLocaleString('de-DE')}` : ''}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Subtle grid pattern hint */}
-          <div className="animate-slide-up mt-10" style={{ animationDelay: '0.6s', opacity: 0 }}>
+          <div className="animate-slide-up mt-10" style={{ animationDelay: cachedSnapshot ? '0.7s' : '0.6s', opacity: 0 }}>
             <div className="flex items-center justify-center gap-1.5">
               {[...Array(5)].map((_, i) => (
                 <div
@@ -744,7 +1155,7 @@ function App() {
           <div className="text-slate-900 text-sm font-medium mb-2">
             Fehler beim Laden
           </div>
-          <div className="text-slate-400 text-xs font-mono mb-4">{error}</div>
+          <div className="text-slate-400 text-xs font-mono mb-4">{error || 'Ein unerwarteter Fehler ist aufgetreten.'}</div>
           <button
             onClick={() => loadData(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg text-xs text-slate-600 hover:border-[#3b82f6] transition-colors"
@@ -759,55 +1170,80 @@ function App() {
 
   if (!rawData || !kpis) return null;
 
+  /* ─── Standalone Akquise App Mode (/#akquise-app) ─── */
+  if (activeMainTab === 'akquise-app') {
+    return (
+      <Suspense fallback={
+        <div className="fixed inset-0 z-[10000] bg-[#F2F2F7] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" />
+        </div>
+      }>
+        <AkquiseApp
+          standalone
+          onClose={() => setActiveMainTab('overview')}
+        />
+      </Suspense>
+    );
+  }
+
   /* ─── Tabs ─── */
 
   const userGroup = getCurrentGroup();
 
   const allMainTabs = [
-    { id: 'displays', label: 'Display Management', icon: Monitor },
-    { id: 'tasks', label: 'Tasks', icon: ClipboardList },
-    { id: 'communication', label: 'Kommunikation', icon: MessageSquare },
-    { id: 'admin', label: 'Admin', icon: Shield },
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard, access: 'displays' },
+    { id: 'displays-list', label: 'Displays', icon: Monitor, access: 'displays' },
+    { id: 'cities', label: 'Städte', icon: MapPin, access: 'displays' },
+    { id: 'programmatic', label: 'Programmatic', icon: BarChart3, access: 'displays' },
+    { id: 'hardware', label: 'Hardware', icon: HardDrive, access: 'displays' },
+    { id: 'acquisition', label: 'Akquise', icon: Target, access: 'displays' },
+    { id: 'map', label: 'Karte', icon: MapIcon, access: 'displays' },
+    { id: 'contacts', label: 'Kontakte', icon: BookUser, access: 'displays' },
+    { id: 'activities', label: 'Aktivitäten', icon: Activity, access: 'displays' },
+    { id: 'tasks', label: 'Tasks', icon: ClipboardList, access: 'tasks' },
+    { id: 'installations', label: 'Installationen', icon: CalendarCheck, access: 'installations' },
+    { id: 'communication', label: 'Kommunikation', icon: MessageSquare, access: 'communication' },
+    { id: 'admin', label: 'Admin', icon: Shield, access: 'admin' },
   ];
 
-  const mainTabs = allMainTabs.filter((tab) => canAccessTab(tab.id));
+  const mainTabs = allMainTabs.filter((tab) => canAccessTab(tab.access));
 
-  const subTabs = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'list', label: 'Displays', icon: List },
-    { id: 'cities', label: 'Stadte', icon: MapPin },
-  ];
+  // Display-related tabs that need the date range picker
+  const displayTabs = ['overview', 'displays-list', 'cities'];
 
   /* ─── Group Badge ─── */
 
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b border-slate-200/60 bg-white/60 backdrop-blur-xl">
-        <div className="max-w-[1600px] mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      <header className="border-b border-slate-200/60 bg-white/60 backdrop-blur-xl safe-top">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 py-2 sm:py-3">
+          <div className="flex items-center justify-between gap-2">
+            {/* Left: Logo + Branding */}
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <img
                 src="/dimension-outdoor-logo.png"
                 alt="Dimension Outdoor"
-                className="h-8 w-auto brightness-0 opacity-80"
+                className="h-6 sm:h-8 w-auto brightness-0 opacity-80 shrink-0"
               />
-              <div className="w-px h-6 bg-slate-200" />
-              <div className="flex items-center gap-3">
-                <Monitor size={20} className="text-[#3b82f6]" />
-                <div>
-                  <h1 className="text-base font-bold text-slate-900 tracking-wide">
+              <div className="w-px h-5 sm:h-6 bg-slate-200 hidden sm:block" />
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <Monitor size={18} className="text-[#3b82f6] shrink-0 hidden sm:block" />
+                <div className="min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-wide truncate">
                     JET GERMANY
                   </h1>
-                  <p className="text-xs text-slate-400 font-mono">
+                  <p className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:block">
                     Display Network Monitor
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
+            {/* Right: Actions */}
+            <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+              {/* API check + data points — desktop only */}
+              <div className="text-right hidden lg:block">
                 <div className="text-xs text-slate-400 font-mono">
                   Letzter API-Check
                 </div>
@@ -815,7 +1251,7 @@ function App() {
                   {formatDateTime(rawData.latestTimestamp)}
                 </div>
               </div>
-              <div className="text-right hidden sm:block">
+              <div className="text-right hidden lg:block">
                 <div className="text-xs text-slate-400 font-mono">
                   Datenpunkte
                 </div>
@@ -823,32 +1259,57 @@ function App() {
                   {totalRowsGlobal.toLocaleString('de-DE')}
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-emerald-50/60 border border-emerald-200/40 rounded-full px-3 py-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse-glow" />
-                <span className="text-sm font-mono font-medium text-emerald-700">
-                  {kpis.totalActive} Displays
+
+              {/* Display count badge — Navori + Dayn total */}
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50/60 border border-emerald-200/40 rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
+                <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-[#22c55e] animate-pulse-glow" />
+                <span className="text-xs sm:text-sm font-mono font-medium text-emerald-700">
+                  {rawData.displays.length + (comparisonData?.dayn?.total || 0)}
                 </span>
               </div>
+
+              {/* Refresh + Sync — larger touch targets on mobile */}
               <button
                 onClick={() => loadData(true)}
-                className="p-1.5 rounded-md hover:bg-slate-100/60 text-slate-400 hover:text-slate-900 transition-colors"
+                className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-slate-100/60 text-slate-400 hover:text-slate-900 transition-colors"
                 title="Daten neu laden"
               >
-                <RefreshCw size={14} />
+                <RefreshCw size={16} className="sm:w-[14px] sm:h-[14px]" />
+              </button>
+              <button
+                onClick={triggerSync}
+                disabled={syncing}
+                className={`relative p-2 sm:p-1.5 rounded-lg sm:rounded-md transition-colors ${
+                  syncing
+                    ? 'bg-blue-50 text-blue-500'
+                    : syncResult?.success
+                      ? 'bg-emerald-50 text-emerald-500'
+                      : syncResult && !syncResult.success
+                        ? 'bg-red-50 text-red-500'
+                        : 'hover:bg-blue-50/60 text-slate-400 hover:text-blue-600'
+                }`}
+                title={syncing ? 'Sync läuft...' : 'Airtable → Supabase Sync'}
+              >
+                <Database size={16} className={`sm:w-[14px] sm:h-[14px] ${syncing ? 'animate-pulse' : ''}`} />
+                {syncResult?.success && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <span className="text-[7px] text-white font-bold">✓</span>
+                  </span>
+                )}
               </button>
 
               {/* User Info + Logout */}
               {currentUser && (
                 <>
-                  <div className="w-px h-6 bg-slate-200 hidden sm:block" />
-                  <div className="flex items-center gap-2.5">
+                  <div className="w-px h-5 sm:h-6 bg-slate-200 hidden sm:block" />
+                  <div className="flex items-center gap-1.5 sm:gap-2.5">
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                       style={{ backgroundColor: userGroup?.color || '#64748b' }}
                     >
                       {getInitials(currentUser.name)}
                     </div>
-                    <div className="hidden sm:block text-right">
+                    <div className="hidden md:block text-right">
                       <div className="text-xs font-medium text-slate-900 leading-tight">
                         {currentUser.name}
                       </div>
@@ -865,17 +1326,17 @@ function App() {
                     </div>
                     <button
                       onClick={() => setShowPasswordModal(true)}
-                      className="p-1.5 rounded-md hover:bg-amber-50/60 text-slate-400 hover:text-amber-600 transition-colors"
+                      className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-amber-50/60 text-slate-400 hover:text-amber-600 transition-colors hidden sm:flex"
                       title="Passwort ändern"
                     >
                       <Key size={14} />
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="p-1.5 rounded-md hover:bg-red-50/60 text-slate-400 hover:text-red-500 transition-colors"
+                      className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-red-50/60 text-slate-400 hover:text-red-500 transition-colors"
                       title="Abmelden"
                     >
-                      <LogOut size={14} />
+                      <LogOut size={16} className="sm:w-[14px] sm:h-[14px]" />
                     </button>
                   </div>
                 </>
@@ -887,9 +1348,10 @@ function App() {
 
       {/* Main Navigation */}
       <nav className="border-b border-slate-200/60 bg-white/40 backdrop-blur-sm">
-        <div className="max-w-[1600px] mx-auto px-4">
-          <div className="flex items-center justify-between flex-wrap gap-2 py-0">
-            <div className="flex gap-0">
+        <div className="max-w-[1600px] mx-auto px-0 sm:px-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0">
+            {/* Tabs — horizontal scroll on mobile */}
+            <div className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory">
               {mainTabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeMainTab === tab.id;
@@ -897,65 +1359,107 @@ function App() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveMainTab(tab.id)}
-                    className={`flex items-center gap-2.5 px-5 py-3 text-sm font-semibold transition-all border-b-[3px] ${
+                    className={`flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all border-b-[3px] whitespace-nowrap snap-start shrink-0 ${
                       isActive
                         ? 'text-[#3b82f6] border-[#3b82f6] bg-white/30'
                         : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-white/20'
                     }`}
                   >
-                    <Icon size={16} />
+                    <Icon size={14} className="sm:w-4 sm:h-4" />
                     {tab.label}
                   </button>
                 );
               })}
             </div>
 
-            {activeMainTab === 'displays' && (
-              <DateRangePicker
-                rangeStart={rangeStart}
-                rangeEnd={rangeEnd}
-                dataEarliest={dataEarliest}
-                dataLatest={dataLatest}
-                onRangeChange={handleRangeChange}
-              />
-            )}
+            {/* Global Search */}
+            <div className="flex items-center gap-2 px-3 sm:px-0 py-1.5 sm:py-0">
+              <div className="relative" ref={globalSearchRef}>
+                <div className="relative">
+                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Standort, JET-ID, Display-ID..."
+                    value={globalSearch}
+                    onChange={e => { setGlobalSearch(e.target.value); setGlobalSearchOpen(true); }}
+                    onFocus={() => globalSearch.length >= 2 && setGlobalSearchOpen(true)}
+                    className="w-48 sm:w-64 pl-8 pr-3 py-1.5 text-xs font-mono bg-white/70 border border-slate-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 placeholder:text-slate-300"
+                  />
+                  {globalSearch && (
+                    <button onClick={() => { setGlobalSearch(''); setGlobalSearchOpen(false); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500">
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+                {/* Search Results Dropdown */}
+                {globalSearchOpen && globalSearchResults.length > 0 && (
+                  <div className="absolute top-full left-0 mt-1 w-80 sm:w-96 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto">
+                    <div className="p-1.5">
+                      {globalSearchResults.map(r => (
+                        <button
+                          key={r.id}
+                          onClick={() => {
+                            if (r.display) {
+                              setSelectedDisplay(r.display);
+                            } else {
+                              // Stammdaten only — switch to display list tab
+                              setActiveMainTab('displays-list');
+                            }
+                            setGlobalSearchOpen(false);
+                            setGlobalSearch('');
+                          }}
+                          className="w-full flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-blue-50/60 transition-colors text-left"
+                        >
+                          <div className="flex-shrink-0 mt-0.5">
+                            {r.type === 'display' ? (
+                              <Monitor size={14} className="text-blue-500" />
+                            ) : (
+                              <MapPin size={14} className="text-slate-400" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs font-medium text-slate-700 truncate">{r.label}</div>
+                            <div className="text-[10px] text-slate-400 font-mono truncate">{r.sublabel}</div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${r.type === 'display' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                              {r.type === 'display' ? 'Live' : 'Stamm'}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="px-3 py-1.5 border-t border-slate-100 text-[10px] text-slate-400 text-center">
+                      {globalSearchResults.length} Ergebnisse
+                    </div>
+                  </div>
+                )}
+                {globalSearchOpen && globalSearch.length >= 2 && globalSearchResults.length === 0 && (
+                  <div className="absolute top-full left-0 mt-1 w-80 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl z-50 p-4 text-center">
+                    <span className="text-xs text-slate-400">Keine Ergebnisse für "{globalSearch}"</span>
+                  </div>
+                )}
+              </div>
+
+              {displayTabs.includes(activeMainTab) && (
+                <DateRangePicker
+                  rangeStart={rangeStart}
+                  rangeEnd={rangeEnd}
+                  dataEarliest={dataEarliest}
+                  dataLatest={dataLatest}
+                  onRangeChange={handleRangeChange}
+                />
+              )}
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Sub Navigation for Display Management */}
-      {activeMainTab === 'displays' && (
-        <nav className="border-b border-slate-200/40 bg-white/20 backdrop-blur-sm">
-          <div className="max-w-[1600px] mx-auto px-4">
-            <div className="flex gap-0">
-              {subTabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeSubTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveSubTab(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-2 text-xs font-medium transition-all border-b-2 ${
-                      isActive
-                        ? 'text-[#3b82f6] border-[#3b82f6]'
-                        : 'text-slate-400 border-transparent hover:text-slate-500'
-                    }`}
-                  >
-                    <Icon size={13} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </nav>
-      )}
-
       {/* Content */}
-      <main className="max-w-[1600px] mx-auto px-4 py-5 space-y-5">
-        {/* Overview Sub-Tab (under Display Management) */}
-        {activeMainTab === 'displays' && activeSubTab === 'overview' && (
-          <>
+      <main className="max-w-[1600px] mx-auto px-2 sm:px-4 py-3 sm:py-5 space-y-3 sm:space-y-5">
+        {/* Overview */}
+        {activeMainTab === 'overview' && (
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Overview...</span></div>}>
             <KPICards
               kpis={kpis}
               activeFilter={kpiFilter}
@@ -987,6 +1491,7 @@ function App() {
                   displays={kpiFilteredDisplays}
                   onSelectDisplay={setSelectedDisplay}
                   skipActiveFilter
+                  comparisonData={comparisonData}
                 />
               </div>
             )}
@@ -994,9 +1499,9 @@ function App() {
             {!kpiFilter && (
               <>
                 {/* Visualizations first */}
-                <HealthTrendChart trendData={rawData.trendData} rangeLabel={rangeLabel} comparisonHealthRate={comparisonHealthRate} />
+                <HealthTrendChart trendData={rawData.trendData} rangeLabel={rangeLabel} comparisonHealthRate={comparisonHealthRate} comparisonTrendData={comparisonTrendData} />
 
-                <OverviewHealthPatterns trendData={rawData.trendData} rangeLabel={rangeLabel} />
+                <OverviewHealthPatterns trendData={rawData.snapshotTrendData || rawData.trendData} rangeLabel={rangeLabel} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <OfflineDistributionChart distribution={distribution} />
@@ -1014,90 +1519,115 @@ function App() {
                 <DisplayTable
                   displays={rawData.displays}
                   onSelectDisplay={setSelectedDisplay}
+                  comparisonData={comparisonData}
                 />
               </>
             )}
-          </>
+          </Suspense>
         )}
 
-        {/* Displays List Sub-Tab */}
-        {activeMainTab === 'displays' && activeSubTab === 'list' && (
-          <DisplayTable
-            displays={rawData.displays}
-            onSelectDisplay={setSelectedDisplay}
-          />
+        {/* Displays List */}
+        {activeMainTab === 'displays-list' && (
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Displays...</span></div>}>
+            <DisplayTable
+              displays={rawData.displays}
+              onSelectDisplay={setSelectedDisplay}
+              vistarData={vistarData}
+              comparisonData={comparisonData}
+            />
+          </Suspense>
         )}
 
         {/* Tasks Main Tab */}
         {activeMainTab === 'tasks' && (
-          <TaskDashboard />
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Tasks...</span></div>}>
+            <TaskDashboard />
+          </Suspense>
+        )}
+
+        {/* Installationen Main Tab */}
+        {activeMainTab === 'installations' && (
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Installationen...</span></div>}>
+            <InstallationsDashboard />
+          </Suspense>
         )}
 
         {/* Kommunikation Main Tab */}
         {activeMainTab === 'communication' && (
-          <CommunicationDashboard />
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Kommunikation...</span></div>}>
+            <CommunicationDashboard />
+          </Suspense>
         )}
 
         {/* Admin Main Tab */}
         {activeMainTab === 'admin' && canAccessTab('admin') && (
-          <AdminPanel />
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Admin...</span></div>}>
+            <AdminPanel />
+          </Suspense>
         )}
 
-        {/* Cities Sub-Tab */}
-        {activeMainTab === 'displays' && activeSubTab === 'cities' && (
-          <div className="space-y-5">
-            <CityHealthChart cityData={rawData.cityData} />
+        {/* Programmatic Dashboard */}
+        {activeMainTab === 'programmatic' && (
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Programmatic...</span></div>}>
+            <ProgrammaticDashboard />
+          </Suspense>
+        )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {rawData.cityData.map((city) => {
-                const healthColor =
-                  city.healthRate >= 90
-                    ? '#22c55e'
-                    : city.healthRate >= 70
-                      ? '#f59e0b'
-                      : '#ef4444';
-                return (
-                  <div
-                    key={city.code}
-                    className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <div className="text-sm font-medium text-slate-900">
-                          {city.name}
-                        </div>
-                        <div className="text-xs font-mono text-slate-400">
-                          {city.code}
-                        </div>
-                      </div>
-                      <div
-                        className="text-xl font-mono font-bold"
-                        style={{ color: healthColor }}
-                      >
-                        {city.healthRate}%
-                      </div>
-                    </div>
+        {/* Hardware Dashboard (includes Datenqualität as sub-tab) */}
+        {activeMainTab === 'hardware' && (
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Hardware...</span></div>}>
+            <HardwareDashboard comparisonData={comparisonData} rawData={rawData} />
+          </Suspense>
+        )}
 
-                    <div className="w-full h-2 bg-slate-50/80 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${city.healthRate}%`,
-                          backgroundColor: healthColor,
-                        }}
-                      />
-                    </div>
+        {/* Acquisition Pipeline */}
+        {activeMainTab === 'acquisition' && (
+          <TabErrorBoundary name="Akquise">
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Akquise...</span></div>}>
+              <AcquisitionDashboard onOpenAkquiseApp={isMobile ? () => setShowAkquiseApp(true) : undefined} />
+            </Suspense>
+          </TabErrorBoundary>
+        )}
 
-                    <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-400">
-                      <span>{city.online} online</span>
-                      <span>{city.offline} offline</span>
-                      <span>{city.total} gesamt</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        {/* Display Map */}
+        {activeMainTab === 'map' && (
+          <TabErrorBoundary name="Karte">
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Karte...</span></div>}>
+              <DisplayMap rawData={rawData} comparisonData={comparisonData} onSelectDisplay={setSelectedDisplay} />
+            </Suspense>
+          </TabErrorBoundary>
+        )}
+
+        {/* Contact Directory */}
+        {activeMainTab === 'contacts' && (
+          <TabErrorBoundary name="Kontakte">
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Kontakte...</span></div>}>
+              <ContactDirectory />
+            </Suspense>
+          </TabErrorBoundary>
+        )}
+
+        {/* Cities */}
+        {activeMainTab === 'cities' && (
+          <TabErrorBoundary name="Staedte">
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Staedte...</span></div>}>
+              <CityDashboard
+                cityData={rawData.cityData}
+                displays={rawData.displays}
+                trendData={rawData.trendData}
+                onSelectDisplay={setSelectedDisplay}
+              />
+            </Suspense>
+          </TabErrorBoundary>
+        )}
+
+        {/* Activity Feed */}
+        {activeMainTab === 'activities' && (
+          <TabErrorBoundary name="Aktivitäten">
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Aktivitäten...</span></div>}>
+              <ActivityFeed rawData={rawData} />
+            </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Data summary footer */}
@@ -1109,6 +1639,16 @@ function App() {
           </div>
         </div>
       </main>
+
+      {/* AI Chat Assistant — floating button, available on all tabs */}
+      <Suspense fallback={null}>
+        <ChatAssistant
+          rawData={rawData}
+          kpis={kpis}
+          comparisonData={comparisonData}
+          currentUser={currentUser}
+        />
+      </Suspense>
 
       {/* Session Timeout Warning Banner */}
       {sessionWarning && (
@@ -1129,15 +1669,28 @@ function App() {
 
       {/* Display Detail Modal */}
       {selectedDisplay && (
-        <DisplayDetail
-          display={selectedDisplay}
-          onClose={() => setSelectedDisplay(null)}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-white" /></div>}>
+          <DisplayDetail
+            display={selectedDisplay}
+            onClose={() => setSelectedDisplay(null)}
+          />
+        </Suspense>
       )}
 
       {/* Password Change Modal */}
       {showPasswordModal && (
         <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
+      )}
+
+      {/* Mobile Akquise App Overlay (launched from Akquise tab on mobile) */}
+      {showAkquiseApp && (
+        <Suspense fallback={
+          <div className="fixed inset-0 z-[10000] bg-[#F2F2F7] flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" />
+          </div>
+        }>
+          <AkquiseApp onClose={() => setShowAkquiseApp(false)} />
+        </Suspense>
       )}
     </div>
   );
