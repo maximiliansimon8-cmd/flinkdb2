@@ -165,6 +165,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         booking: resolve(__dirname, 'booking/index.html'),
+        scheduling: resolve(__dirname, 'scheduling/index.html'),
       },
       output: {
         manualChunks(id) {

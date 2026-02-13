@@ -386,7 +386,7 @@ function getDefaultGroups() {
     { id: 'grp_sales', name: 'Sales', description: 'Übersicht & Kommunikation', color: '#f59e0b', icon: 'TrendingUp', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_management', name: 'Management', description: 'Berichte', color: '#a855f7', icon: 'BarChart3', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_tech', name: 'Tech', description: 'Technische Tasks', color: '#06b6d4', icon: 'Code', tabs: [], actions: [], memberCount: 0 },
-    { id: 'grp_scheduling', name: 'Terminierung', description: 'Installationstermine planen', color: '#f97316', icon: 'CalendarCheck', tabs: [], actions: [], memberCount: 0 },
+    { id: 'grp_scheduling', name: 'Terminierung', description: 'Installationstermine planen', color: '#f97316', icon: 'CalendarCheck', tabs: ['installations', 'installations.calendar', 'installations.bookings'], actions: ['manage_schedule', 'manage_bookings', 'send_booking_invite'], memberCount: 0 },
   ];
 }
 

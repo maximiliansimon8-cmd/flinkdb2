@@ -22,5 +22,8 @@
 # Booking page (public, separate SPA)
 /book/*  /booking/index.html  200
 
+# Scheduling tool (standalone SPA, auth required)
+/scheduling/*  /scheduling/index.html  200
+
 # SPA fallback
 /*  /index.html  200
