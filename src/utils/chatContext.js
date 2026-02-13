@@ -804,7 +804,7 @@ function buildAcquisitionSummary(acquisition) {
       cd.byStatus[ls] = (cd.byStatus[ls] || 0) + 1;
       if (!isCancelled) {
         cd.active++;
-        if (ls !== 'New Lead') cd.pipeline++; // Pipeline = aktiv bearbeitete Leads (ohne New Leads)
+        if (ls !== 'New Lead' && ls !== 'Live') cd.pipeline++; // Pipeline = aktiv bearbeitete Leads (ohne New Leads & Live)
         if (isSigned) cd.signed++;
         if (isLive) cd.live++;
         if (isInstalled) cd.installed++;
@@ -881,8 +881,8 @@ function buildAcquisitionSummary(acquisition) {
       }
     }
 
-    // Pipeline = aktiv bearbeitete Leads (nicht New Lead, nicht storniert)
-    if (!isCancelled && ls !== 'New Lead' && ls !== 'Unbekannt') pipelineCount++;
+    // Pipeline = aktiv bearbeitete Leads (nicht New Lead, nicht Live, nicht storniert)
+    if (!isCancelled && ls !== 'New Lead' && ls !== 'Live' && ls !== 'Unbekannt') pipelineCount++;
 
     // "Gewonnen" = Live status (successfully installed and running)
     if (isLive) gewonnenCount++;
@@ -918,7 +918,7 @@ function buildAcquisitionSummary(acquisition) {
       const avgDays = Math.round(days.reduce((s, d) => s + d, 0) / days.length);
       cd.installMetrics = {
         installRate: Math.round(cd.installed / cd.pipeline * 1000) / 10 + '%',
-        installRateBasis: 'pipeline (ohne New Leads)',
+        installRateBasis: 'pipeline (ohne New Leads & Live)',
         avgDaysToInstall: avgDays,
         installedCount: cd.installed,
         pipelineCount: cd.pipeline,
@@ -942,7 +942,7 @@ function buildAcquisitionSummary(acquisition) {
 
   return {
     total: acquisition.length,
-    hinweis: 'total = ALL-TIME Gesamtpool. pipeline = aktiv bearbeitete Leads OHNE New Leads (Contacted+Approved+ReadyForInstall+Installation+Live). newLeads = unbearbeitete Leads. Install-Rate wird auf pipeline berechnet, NICHT auf total. Für Pipeline-Fragen IMMER pipeline verwenden, NIEMALS total!',
+    hinweis: 'total = ALL-TIME Gesamtpool. pipeline = aktiv bearbeitete Leads OHNE New Leads und OHNE Live (Contacted+Approved+ReadyForInstall+Installation). Live = bereits gewonnen/installiert. Install-Rate wird auf pipeline berechnet, NICHT auf total. Für Pipeline-Fragen IMMER pipeline verwenden, NIEMALS total!',
     stornoCount,
     pipeline: pipelineCount,
     gewonnenLive: gewonnenCount,

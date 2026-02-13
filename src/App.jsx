@@ -25,6 +25,7 @@ import {
   Activity,
   Search,
   CalendarCheck,
+  ChevronDown,
 } from 'lucide-react';
 
 import {
@@ -566,10 +567,21 @@ function App() {
     return null;
   }, [parsedRows, rawData, rangeStart, rangeEnd, dataEarliest, globalFirstSeen]);
 
+  // Filter displays: mark stammdaten-confirmed deinstalled displays as inactive
+  // This prevents inflated city counts (e.g. Köln showing 104 instead of real active count)
+  const effectiveDisplays = useMemo(() => {
+    if (!rawData?.displays) return [];
+    const deinstalledIds = comparisonData?.airtable?.deinstalledIds;
+    if (!deinstalledIds || deinstalledIds.size === 0) return rawData.displays;
+    return rawData.displays.map(d =>
+      deinstalledIds.has(d.displayId) ? { ...d, isActive: false } : d
+    );
+  }, [rawData?.displays, comparisonData?.airtable?.deinstalledIds]);
+
   const kpis = useMemo(() => {
     if (!rawData || !rawData.latestTimestamp) return null;
-    return computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
-  }, [rawData, globalFirstSeen, rangeStart]);
+    return computeKPIs(effectiveDisplays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
+  }, [effectiveDisplays, rawData, globalFirstSeen, rangeStart]);
 
   const distribution = useMemo(() => {
     if (!rawData) return [];
@@ -1211,23 +1223,57 @@ function App() {
 
   const userGroup = getCurrentGroup();
 
-  const allMainTabs = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard, access: 'displays' },
-    { id: 'displays-list', label: 'Displays', icon: Monitor, access: 'displays' },
-    { id: 'cities', label: 'Städte', icon: MapPin, access: 'displays' },
-    { id: 'programmatic', label: 'Programmatic', icon: BarChart3, access: 'displays' },
-    { id: 'hardware', label: 'Hardware', icon: HardDrive, access: 'displays' },
-    { id: 'acquisition', label: 'Akquise', icon: Target, access: 'displays' },
-    { id: 'installations', label: 'Installationen', icon: CalendarCheck, access: 'installations' },
-    { id: 'map', label: 'Karte', icon: MapIcon, access: 'displays' },
-    { id: 'contacts', label: 'Kontakte', icon: BookUser, access: 'displays' },
-    { id: 'activities', label: 'Aktivitäten', icon: Activity, access: 'displays' },
-    { id: 'tasks', label: 'Tasks', icon: ClipboardList, access: 'tasks' },
-    { id: 'communication', label: 'Kommunikation', icon: MessageSquare, access: 'communication' },
-    { id: 'admin', label: 'Admin', icon: Shield, access: 'admin' },
+  const tabGroups = [
+    {
+      group: 'Monitoring',
+      tabs: [
+        { id: 'overview', label: 'Overview', icon: LayoutDashboard, access: 'displays' },
+        { id: 'displays-list', label: 'Displays', icon: Monitor, access: 'displays' },
+        { id: 'cities', label: 'Städte', icon: MapPin, access: 'displays' },
+        { id: 'hardware', label: 'Hardware', icon: HardDrive, access: 'displays' },
+      ],
+    },
+    {
+      group: 'Vertrieb',
+      tabs: [
+        { id: 'acquisition', label: 'Akquise', icon: Target, access: 'displays' },
+        { id: 'installations', label: 'Installationen', icon: CalendarCheck, access: 'installations' },
+        { id: 'map', label: 'Karte', icon: MapIcon, access: 'displays' },
+        { id: 'contacts', label: 'Kontakte', icon: BookUser, access: 'displays' },
+      ],
+    },
+    {
+      group: 'Analytics',
+      tabs: [
+        { id: 'programmatic', label: 'Programmatic', icon: BarChart3, access: 'displays' },
+        { id: 'activities', label: 'Aktivitäten', icon: Activity, access: 'displays' },
+      ],
+    },
+    {
+      group: 'Betrieb',
+      tabs: [
+        { id: 'tasks', label: 'Tasks', icon: ClipboardList, access: 'tasks' },
+        { id: 'communication', label: 'Kommunikation', icon: MessageSquare, access: 'communication' },
+      ],
+    },
+    {
+      group: 'Admin',
+      tabs: [
+        { id: 'admin', label: 'Admin', icon: Shield, access: 'admin' },
+      ],
+    },
   ];
 
-  const mainTabs = allMainTabs.filter((tab) => canAccessTab(tab.access));
+  // Filter tabs by user permissions and remove empty groups
+  const visibleGroups = tabGroups
+    .map(g => ({ ...g, tabs: g.tabs.filter(t => canAccessTab(t.access)) }))
+    .filter(g => g.tabs.length > 0);
+
+  // Flat list for compatibility (used in hash routing validation etc.)
+  const mainTabs = visibleGroups.flatMap(g => g.tabs);
+
+  // Determine which group the active tab belongs to
+  const activeGroup = visibleGroups.find(g => g.tabs.some(t => t.id === activeMainTab))?.group || visibleGroups[0]?.group;
 
   // Display-related tabs that need the date range picker
   const displayTabs = ['overview', 'displays-list', 'cities'];
@@ -1367,34 +1413,42 @@ function App() {
         </div>
       </header>
 
-      {/* Main Navigation */}
+      {/* Main Navigation — 2-level grouped menu */}
       <nav className="border-b border-slate-200/60 bg-white/40 backdrop-blur-sm">
         <div className="max-w-[1600px] mx-auto px-0 sm:px-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0">
-            {/* Tabs — horizontal scroll on mobile */}
-            <div className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory">
-              {mainTabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeMainTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveMainTab(tab.id)}
-                    className={`flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all border-b-[3px] whitespace-nowrap snap-start shrink-0 ${
-                      isActive
-                        ? 'text-[#3b82f6] border-[#3b82f6] bg-white/30'
-                        : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-white/20'
-                    }`}
-                  >
-                    <Icon size={14} className="sm:w-4 sm:h-4" />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Level 1: Group headers */}
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between">
+              <div className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory">
+                {visibleGroups.map((g) => {
+                  const isGroupActive = activeGroup === g.group;
+                  return (
+                    <button
+                      key={g.group}
+                      onClick={() => {
+                        // Clicking a group switches to the first tab of that group
+                        // (unless already in that group, then do nothing)
+                        if (!isGroupActive) {
+                          setActiveMainTab(g.tabs[0].id);
+                        }
+                      }}
+                      className={`flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all border-b-[3px] whitespace-nowrap snap-start shrink-0 ${
+                        isGroupActive
+                          ? 'text-[#3b82f6] border-[#3b82f6] bg-white/30'
+                          : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-white/20'
+                      }`}
+                    >
+                      {g.group}
+                      {g.tabs.length > 1 && (
+                        <ChevronDown size={12} className={`transition-transform ${isGroupActive ? 'rotate-180' : ''}`} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
 
-            {/* Global Search */}
-            <div className="flex items-center gap-2 px-3 sm:px-0 py-1.5 sm:py-0">
+              {/* Global Search */}
+              <div className="flex items-center gap-2 px-3 sm:px-0 py-1.5 sm:py-0">
               <div className="relative" ref={globalSearchRef}>
                 <div className="relative">
                   <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -1472,6 +1526,31 @@ function App() {
                 />
               )}
             </div>
+            </div>
+
+            {/* Level 2: Sub-tabs within active group */}
+            {visibleGroups.find(g => g.group === activeGroup)?.tabs.length > 1 && (
+              <div className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory border-t border-slate-100/60 bg-slate-50/30">
+                {visibleGroups.find(g => g.group === activeGroup)?.tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeMainTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveMainTab(tab.id)}
+                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium transition-all whitespace-nowrap snap-start shrink-0 border-b-2 ${
+                        isActive
+                          ? 'text-[#3b82f6] border-[#3b82f6] bg-white/50'
+                          : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-white/30'
+                      }`}
+                    >
+                      <Icon size={12} className="sm:w-3.5 sm:h-3.5" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -1480,6 +1559,7 @@ function App() {
       <main className="max-w-[1600px] mx-auto px-2 sm:px-4 py-3 sm:py-5 space-y-3 sm:space-y-5">
         {/* Overview */}
         {activeMainTab === 'overview' && (
+          <TabErrorBoundary name="Overview">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Overview...</span></div>}>
             <KPICards
               kpis={kpis}
@@ -1546,10 +1626,12 @@ function App() {
               </>
             )}
           </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Displays List */}
         {activeMainTab === 'displays-list' && (
+          <TabErrorBoundary name="Displays">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Displays...</span></div>}>
             <DisplayTable
               displays={rawData.displays}
@@ -1558,48 +1640,61 @@ function App() {
               comparisonData={comparisonData}
             />
           </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Tasks Main Tab */}
         {activeMainTab === 'tasks' && (
+          <TabErrorBoundary name="Tasks">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Tasks...</span></div>}>
             <TaskDashboard />
           </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Installationen Main Tab */}
         {activeMainTab === 'installations' && (
+          <TabErrorBoundary name="Installationen">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Installationen...</span></div>}>
             <InstallationsDashboard />
           </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Kommunikation Main Tab */}
         {activeMainTab === 'communication' && (
+          <TabErrorBoundary name="Kommunikation">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Kommunikation...</span></div>}>
             <CommunicationDashboard />
           </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Admin Main Tab */}
         {activeMainTab === 'admin' && canAccessTab('admin') && (
+          <TabErrorBoundary name="Admin">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Admin...</span></div>}>
             <AdminPanel />
           </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Programmatic Dashboard */}
         {activeMainTab === 'programmatic' && (
+          <TabErrorBoundary name="Programmatic">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Programmatic...</span></div>}>
             <ProgrammaticDashboard />
           </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Hardware Dashboard (includes Datenqualität as sub-tab) */}
         {activeMainTab === 'hardware' && (
+          <TabErrorBoundary name="Hardware">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Hardware...</span></div>}>
             <HardwareDashboard comparisonData={comparisonData} rawData={rawData} />
           </Suspense>
+          </TabErrorBoundary>
         )}
 
         {/* Acquisition Pipeline */}
