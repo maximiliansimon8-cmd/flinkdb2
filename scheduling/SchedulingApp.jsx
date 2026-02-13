@@ -505,6 +505,8 @@ export default function SchedulingApp() {
     return null;
   });
   const [activeTab, setActiveTab] = useState('dashboard');
+  // Cross-tab navigation context: pass location info when switching to detail tab
+  const [detailContext, setDetailContext] = useState(null);
 
   const isLoggedIn = !!user;
   const remainingMs = useSessionTimer(isLoggedIn);
@@ -529,7 +531,14 @@ export default function SchedulingApp() {
   }, []);
 
   const handleTabChange = useCallback((tabId) => {
+    if (tabId !== 'details') setDetailContext(null);
     setActiveTab(tabId);
+  }, []);
+
+  // Navigate to detail tab with a specific location pre-selected
+  const navigateToDetail = useCallback((locationId, locationName) => {
+    setDetailContext({ locationId, locationName });
+    setActiveTab('details');
   }, []);
 
   // Not logged in: show login screen
@@ -549,7 +558,14 @@ export default function SchedulingApp() {
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
         <ErrorBoundary key={activeTab}>
           <Suspense fallback={<LoadingSpinner />}>
-            <ActiveComponent />
+            <ActiveComponent
+              onNavigateToDetail={navigateToDetail}
+              {...(activeTab === 'details' && detailContext ? {
+                initialLocationId: detailContext.locationId,
+                initialLocationName: detailContext.locationName,
+                key: `details-${detailContext.locationId}`,
+              } : {})}
+            />
           </Suspense>
         </ErrorBoundary>
       </main>

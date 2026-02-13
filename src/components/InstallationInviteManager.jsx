@@ -251,7 +251,7 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting }) 
 }
 
 // ── Main Component ──
-export default function InstallationInviteManager() {
+export default function InstallationInviteManager({ onNavigateToDetail }) {
   const [acquisitionData, setAcquisitionData] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -643,10 +643,16 @@ export default function InstallationInviteManager() {
                         />
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-gray-900 text-sm truncate max-w-[200px]">{s.locationName || '—'}</div>
-                        <div className="text-xs text-gray-400 truncate">
-                          {s.street} {s.streetNumber}{s.postalCode ? `, ${s.postalCode}` : ''}
-                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onNavigateToDetail?.(s.id, s.locationName); }}
+                          className="text-left group"
+                          title="Details anzeigen"
+                        >
+                          <div className="font-medium text-gray-900 text-sm truncate max-w-[200px] group-hover:text-orange-600 transition-colors">{s.locationName || '—'}</div>
+                          <div className="text-xs text-gray-400 truncate">
+                            {s.street} {s.streetNumber}{s.postalCode ? `, ${s.postalCode}` : ''}
+                          </div>
+                        </button>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5 text-sm text-gray-700">

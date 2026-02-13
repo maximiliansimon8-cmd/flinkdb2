@@ -270,7 +270,7 @@ function PhoneBookingModal({ onClose, onSuccess, routes }) {
 }
 
 /* ── Main Component ───────────────────────────────────────── */
-export default function InstallationBookingsDashboard() {
+export default function InstallationBookingsDashboard({ onNavigateToDetail }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCity, setFilterCity] = useState('');
@@ -484,8 +484,14 @@ export default function InstallationBookingsDashboard() {
                 {filtered.map(b => (
                   <tr key={b.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900 text-sm">{b.location_name || '—'}</div>
-                      {b.jet_id && <div className="text-xs text-gray-400">{b.jet_id}</div>}
+                      <button
+                        onClick={() => onNavigateToDetail?.(b.akquise_airtable_id || b.id, b.location_name)}
+                        className="text-left group"
+                        title="Details anzeigen"
+                      >
+                        <div className="font-medium text-gray-900 text-sm group-hover:text-orange-600 transition-colors">{b.location_name || '—'}</div>
+                        {b.jet_id && <div className="text-xs text-gray-400">{b.jet_id}</div>}
+                      </button>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5 text-sm text-gray-700">

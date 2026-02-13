@@ -28,9 +28,10 @@ const STATUS_CONFIG = {
 const STATUS_FILTERS = [
   { value: '',             label: 'Alle' },
   { value: 'bereit',       label: 'Aufbau bereit' },
-  { value: 'gewonnen',     label: 'Gewonnen' },
+  { value: 'gewonnen',     label: 'Gewonnen (In Prüfung)' },
   { value: 'gebucht',      label: 'Termin gebucht' },
   { value: 'installiert',  label: 'Installiert' },
+  { value: 'abgebrochen',  label: 'Abgebrochen' },
 ];
 
 /* =================================================================
@@ -123,8 +124,9 @@ function getImageUrl(img) {
 
 function getThumbnailUrl(img) {
   if (typeof img === 'string') return img;
-  if (img?.thumbnails?.small?.url) return img.thumbnails.small.url;
+  // Use large thumbnail for clear previews (small is too blurry)
   if (img?.thumbnails?.large?.url) return img.thumbnails.large.url;
+  if (img?.thumbnails?.full?.url) return img.thumbnails.full.url;
   if (img?.url) return img.url;
   return null;
 }
@@ -976,7 +978,7 @@ function StatCard({ label, value }) {
    MAIN COMPONENT: LocationDetailTab
    ================================================================= */
 
-export default function LocationDetailTab() {
+export default function LocationDetailTab({ initialLocationId, initialLocationName }) {
   // Data state
   const [locations, setLocations] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -986,7 +988,7 @@ export default function LocationDetailTab() {
   const [error, setError] = useState(null);
 
   // Filters
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialLocationName || '');
   const [filterCity, setFilterCity] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
@@ -1113,6 +1115,21 @@ export default function LocationDetailTab() {
   useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
+
+  // Auto-select location when navigated from another tab
+  useEffect(() => {
+    if (initialLocationId && locations.length > 0) {
+      const target = locations.find(l =>
+        l.id === initialLocationId ||
+        l.airtable_id === initialLocationId ||
+        l.booking_id === initialLocationId ||
+        (l.location_name || '').toLowerCase() === (initialLocationName || '').toLowerCase()
+      );
+      if (target) {
+        handleSelect(target);
+      }
+    }
+  }, [initialLocationId, locations.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* -- Selection ------------------------------------------------------- */
 

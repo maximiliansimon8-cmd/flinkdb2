@@ -49,7 +49,7 @@ function KPICard({ icon: Icon, label, value, sublabel, trend, color = 'text-gray
   );
 }
 
-export default function InstallationExecutiveDashboard() {
+export default function InstallationExecutiveDashboard({ onNavigateToDetail }) {
   const [bookings, setBookings] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [acquisitionData, setAcquisitionData] = useState([]);
