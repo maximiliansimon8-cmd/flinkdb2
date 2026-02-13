@@ -131,12 +131,16 @@ export default async (request, context) => {
         });
       }
 
+      // Default time slots extended to cover 08:00–22:00 in 2h intervals
+      const defaultSlots = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
+      // Ensure time_slots is stored as a proper JSON array (not double-encoded)
+      const slotsValue = time_slots || defaultSlots;
       const row = {
         city,
         schedule_date,
         installer_team: installer_team || null,
-        max_capacity: max_capacity || 4,
-        time_slots: JSON.stringify(time_slots || ['09:00', '11:00', '14:00', '16:00']),
+        max_capacity: max_capacity || 8,
+        time_slots: Array.isArray(slotsValue) ? JSON.stringify(slotsValue) : slotsValue,
         status: 'open',
         notes: notes || null,
         airtable_id: airtable_id || null,
@@ -172,7 +176,12 @@ export default async (request, context) => {
       const updates = {};
       for (const key of allowed) {
         if (body[key] !== undefined) {
-          updates[key] = key === 'time_slots' ? JSON.stringify(body[key]) : body[key];
+          if (key === 'time_slots') {
+            // Ensure proper JSON encoding (not double-encoded)
+            updates[key] = Array.isArray(body[key]) ? JSON.stringify(body[key]) : body[key];
+          } else {
+            updates[key] = body[key];
+          }
         }
       }
 

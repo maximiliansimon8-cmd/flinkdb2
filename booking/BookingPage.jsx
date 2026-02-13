@@ -45,17 +45,198 @@ function LieferandoLogo({ className = '' }) {
   );
 }
 
+/* ── i18n translations ────────────────────────────────────── */
+const LANGS = {
+  de: { flag: '🇩🇪', label: 'Deutsch' },
+  en: { flag: '🇬🇧', label: 'English' },
+  tr: { flag: '🇹🇷', label: 'Türkçe' },
+  ar: { flag: '🇸🇦', label: 'العربية' },
+};
+
+const T = {
+  de: {
+    stepDate: 'Datum', stepTime: 'Uhrzeit', stepInfo: 'Info', stepBook: 'Buchen',
+    loading: 'Verfügbare Termine werden geladen...',
+    noSlots: 'Keine Termine verfügbar', expired: 'Link abgelaufen',
+    invalidLink: 'Ungültiger Link', connectionError: 'Verbindungsfehler',
+    hello: 'Hallo', selectDate: 'Termin auswählen',
+    selectDateDesc: 'Wählen Sie einen Installationstermin für Ihr Liefernado Display.',
+    availableDays: 'Verfügbare Tage', slotsAvail: 'Zeitfenster verfügbar', free: 'frei',
+    noSlotsMsg: 'Momentan sind keine Termine verfügbar.',
+    otherDate: 'Anderes Datum wählen', selectTime: 'Wählen Sie eine Uhrzeit für die Installation.',
+    slotGone: 'Dieses Zeitfenster ist leider nicht mehr verfügbar.',
+    otherTime: 'Andere Uhrzeit wählen',
+    howItWorks: 'So funktioniert die Installation',
+    readInfo: 'Bitte lesen Sie diese Informationen, damit am Installationstag alles reibungslos abläuft.',
+    theDisplay: 'Das Display',
+    displayDesc: 'Wir installieren ein 55-Zoll Digital-Display im Hochformat (ca. 125 × 75 cm) mit Standfuß in Ihrem Schaufenster. Das Display verfügt über ein eigenes 5G-Modul — Sie benötigen kein WLAN oder Internet.',
+    placement: 'Platzierung im Schaufenster',
+    placementDesc: 'Das Display wird mittig im Schaufenster auf Augenhöhe (ca. 1,60 m) positioniert, mit 3–5 cm Abstand zur Scheibe. Bitte stellen Sie sicher, dass der Bereich frei ist — keine Aufkleber, Poster oder Hindernisse vor dem Display.',
+    power: 'Strom: 6–24 Uhr durchgehend',
+    powerDesc: 'Das Display muss täglich von 6:00 bis 24:00 Uhr mit Strom versorgt sein. Es wird eine freie Steckdose innerhalb von 2 Metern benötigt. Wichtig: Kein Mehrfachstecker, und die Steckdose darf nicht an einem Lichtschalter hängen.',
+    process: 'Ablauf vor Ort',
+    processDesc: 'Unser Installationsteam kommt zum vereinbarten Zeitpunkt. Die Installation dauert ca. 30–60 Minuten. Das Team bringt alles mit — Display, Standfuß und SIM-Karte. Bitte stellen Sie sicher, dass jemand vor Ort ist.',
+    checklist: 'Checkliste für den Installationstag:',
+    check1: 'Schaufenster frei (mind. 125 × 75 cm, keine Aufkleber/Poster)',
+    check2: 'Freie Steckdose innerhalb von 2m (6–24 Uhr Strom, nicht am Lichtschalter)',
+    check3: 'Ebener Boden für den Standfuß',
+    check4: 'Ansprechpartner vor Ort',
+    understood: 'Verstanden — weiter zur Bestätigung',
+    back: 'Zurück',
+    confirmTitle: 'Termin bestätigen',
+    confirmDesc: 'Bitte prüfen Sie die Details und bestätigen Sie den Termin.',
+    notesLabel: 'Anmerkungen', optional: '(optional)',
+    notesPlaceholder: 'z.B. Zugang über Hintereingang, Parkplatz vorhanden...',
+    bookNow: 'Termin verbindlich buchen', booking: 'Wird gebucht...',
+    bookFailed: 'Buchung fehlgeschlagen.',
+    doneTitle: 'Termin gebucht!',
+    thanksMsg: 'Ihr Installationstermin wurde erfolgreich gebucht.',
+    thanks: 'Vielen Dank',
+    whatsappConfirm: 'Sie erhalten in Kürze eine Bestätigung per WhatsApp.',
+    teamContact: 'Unser Team meldet sich am Installationstag bei Ihnen.',
+    location: 'Standort',
+  },
+  en: {
+    stepDate: 'Date', stepTime: 'Time', stepInfo: 'Info', stepBook: 'Book',
+    loading: 'Loading available dates...',
+    noSlots: 'No appointments available', expired: 'Link expired',
+    invalidLink: 'Invalid link', connectionError: 'Connection error',
+    hello: 'Hello', selectDate: 'Select appointment',
+    selectDateDesc: 'Choose an installation date for your Liefernado display.',
+    availableDays: 'Available days', slotsAvail: 'time slots available', free: 'free',
+    noSlotsMsg: 'No appointments are currently available.',
+    otherDate: 'Choose another date', selectTime: 'Choose a time for the installation.',
+    slotGone: 'This time slot is no longer available.',
+    otherTime: 'Choose another time',
+    howItWorks: 'How the installation works',
+    readInfo: 'Please read this information so everything runs smoothly on installation day.',
+    theDisplay: 'The display',
+    displayDesc: 'We install a 55-inch portrait digital display (approx. 125 × 75 cm) with a stand in your shop window. The display has its own 5G module — no WiFi or internet needed.',
+    placement: 'Shop window placement',
+    placementDesc: 'The display is placed centrally in the shop window at eye level (approx. 1.60 m), with 3–5 cm distance from the glass. Please make sure the area is clear — no stickers, posters or obstacles.',
+    power: 'Power: 6 AM – midnight continuously',
+    powerDesc: 'The display must be powered daily from 6:00 AM to midnight. A free power outlet within 2 meters is needed. Important: No power strips, and the outlet must not be on a light switch.',
+    process: 'On-site procedure',
+    processDesc: 'Our installation team arrives at the agreed time. Installation takes approx. 30–60 minutes. The team brings everything — display, stand and SIM card. Please ensure someone is on-site.',
+    checklist: 'Checklist for installation day:',
+    check1: 'Shop window clear (min. 125 × 75 cm, no stickers/posters)',
+    check2: 'Free power outlet within 2m (6 AM–midnight, not on light switch)',
+    check3: 'Level floor for the stand',
+    check4: 'Contact person on-site',
+    understood: 'Understood — continue to confirmation',
+    back: 'Back',
+    confirmTitle: 'Confirm appointment',
+    confirmDesc: 'Please review the details and confirm the appointment.',
+    notesLabel: 'Notes', optional: '(optional)',
+    notesPlaceholder: 'e.g. Access via back entrance, parking available...',
+    bookNow: 'Book appointment', booking: 'Booking...',
+    bookFailed: 'Booking failed.',
+    doneTitle: 'Appointment booked!',
+    thanksMsg: 'Your installation appointment has been successfully booked.',
+    thanks: 'Thank you',
+    whatsappConfirm: 'You will receive a confirmation via WhatsApp shortly.',
+    teamContact: 'Our team will contact you on installation day.',
+    location: 'Location',
+  },
+  tr: {
+    stepDate: 'Tarih', stepTime: 'Saat', stepInfo: 'Bilgi', stepBook: 'Rezerve',
+    loading: 'Mevcut randevular yükleniyor...',
+    noSlots: 'Randevu mevcut değil', expired: 'Link süresi dolmuş',
+    invalidLink: 'Geçersiz link', connectionError: 'Bağlantı hatası',
+    hello: 'Merhaba', selectDate: 'Randevu seçin',
+    selectDateDesc: 'Liefernado ekranınız için bir kurulum tarihi seçin.',
+    availableDays: 'Mevcut günler', slotsAvail: 'zaman dilimi mevcut', free: 'boş',
+    noSlotsMsg: 'Şu anda mevcut randevu bulunmamaktadır.',
+    otherDate: 'Başka bir tarih seçin', selectTime: 'Kurulum için bir saat seçin.',
+    slotGone: 'Bu zaman dilimi artık mevcut değil.',
+    otherTime: 'Başka bir saat seçin',
+    howItWorks: 'Kurulum nasıl yapılır',
+    readInfo: 'Kurulum gününde her şeyin sorunsuz ilerlemesi için bu bilgileri okuyun.',
+    theDisplay: 'Ekran',
+    displayDesc: 'Vitrin camınıza standlı 55 inç dikey dijital ekran (yakl. 125 × 75 cm) kuruyoruz. Ekranın kendi 5G modülü var — WiFi veya internet gerekmez.',
+    placement: 'Vitrin yerleşimi',
+    placementDesc: 'Ekran vitrinde göz hizasında (yakl. 1,60 m) ortaya, camdan 3–5 cm mesafeyle yerleştirilir. Alanın boş olduğundan emin olun — etiket, poster veya engel olmamalı.',
+    power: 'Elektrik: 06:00–24:00 kesintisiz',
+    powerDesc: 'Ekranın günlük 06:00–24:00 arası elektrikle beslenmesi gerekir. 2 metre içinde boş bir priz gereklidir. Önemli: Çoklu priz kullanmayın ve priz bir ışık anahtarına bağlı olmamalı.',
+    process: 'Yerinde süreç',
+    processDesc: 'Kurulum ekibimiz belirlenen saatte gelir. Kurulum yakl. 30–60 dakika sürer. Ekip her şeyi getirir — ekran, stand ve SIM kart. Lütfen yerinde biri olduğundan emin olun.',
+    checklist: 'Kurulum günü kontrol listesi:',
+    check1: 'Vitrin boş (min. 125 × 75 cm, etiket/poster yok)',
+    check2: '2m içinde boş priz (06–24 saat elektrik, ışık anahtarında değil)',
+    check3: 'Stand için düz zemin',
+    check4: 'Yerinde yetkili kişi',
+    understood: 'Anladım — onaya devam et',
+    back: 'Geri',
+    confirmTitle: 'Randevuyu onayla',
+    confirmDesc: 'Lütfen detayları kontrol edip randevuyu onaylayın.',
+    notesLabel: 'Notlar', optional: '(isteğe bağlı)',
+    notesPlaceholder: 'örn. Arka girişten erişim, otopark mevcut...',
+    bookNow: 'Randevuyu kesin olarak ayırt', booking: 'Kaydediliyor...',
+    bookFailed: 'Rezervasyon başarısız.',
+    doneTitle: 'Randevu alındı!',
+    thanksMsg: 'Kurulum randevunuz başarıyla kaydedildi.',
+    thanks: 'Teşekkürler',
+    whatsappConfirm: 'Kısa süre içinde WhatsApp ile onay alacaksınız.',
+    teamContact: 'Ekibimiz kurulum günü sizinle iletişime geçecek.',
+    location: 'Konum',
+  },
+  ar: {
+    stepDate: 'التاريخ', stepTime: 'الوقت', stepInfo: 'معلومات', stepBook: 'حجز',
+    loading: '...جاري تحميل المواعيد المتاحة',
+    noSlots: 'لا توجد مواعيد متاحة', expired: 'الرابط منتهي الصلاحية',
+    invalidLink: 'رابط غير صالح', connectionError: 'خطأ في الاتصال',
+    hello: 'مرحبا', selectDate: 'اختر موعد',
+    selectDateDesc: 'اختر موعد تركيب شاشة ليفراندو الخاصة بك.',
+    availableDays: 'الأيام المتاحة', slotsAvail: 'فترات زمنية متاحة', free: 'متاح',
+    noSlotsMsg: 'لا توجد مواعيد متاحة حالياً.',
+    otherDate: 'اختر تاريخاً آخر', selectTime: 'اختر وقتاً للتركيب.',
+    slotGone: 'هذا الموعد لم يعد متاحاً.',
+    otherTime: 'اختر وقتاً آخر',
+    howItWorks: 'كيف يتم التركيب',
+    readInfo: 'يرجى قراءة هذه المعلومات لضمان سير عملية التركيب بسلاسة.',
+    theDisplay: 'الشاشة',
+    displayDesc: 'نقوم بتركيب شاشة رقمية عمودية 55 بوصة (حوالي 125 × 75 سم) مع حامل في واجهة متجرك. الشاشة مزودة بوحدة 5G خاصة بها — لا حاجة لشبكة WiFi أو إنترنت.',
+    placement: 'موضع الواجهة',
+    placementDesc: 'يتم وضع الشاشة في منتصف الواجهة على مستوى العين (حوالي 1.60 م)، على بعد 3-5 سم من الزجاج. يرجى التأكد من خلو المنطقة — بدون ملصقات أو ملصقات أو عوائق.',
+    power: 'الكهرباء: 6 صباحاً حتى منتصف الليل',
+    powerDesc: 'يجب تزويد الشاشة بالكهرباء يومياً من الساعة 6 صباحاً حتى منتصف الليل. يلزم مقبس كهربائي حر في نطاق 2 متر. مهم: بدون مشترك كهربائي، والمقبس لا يجب أن يكون على مفتاح إضاءة.',
+    process: 'إجراءات الموقع',
+    processDesc: 'يصل فريق التركيب في الوقت المتفق عليه. يستغرق التركيب حوالي 30-60 دقيقة. الفريق يحضر كل شيء — الشاشة والحامل وبطاقة SIM. يرجى التأكد من وجود شخص في الموقع.',
+    checklist: ':قائمة مراجعة يوم التركيب',
+    check1: 'واجهة فارغة (125 × 75 سم على الأقل، بدون ملصقات)',
+    check2: 'مقبس كهربائي حر في نطاق 2 متر (كهرباء 6-24 ساعة)',
+    check3: 'أرضية مستوية للحامل',
+    check4: 'شخص مسؤول في الموقع',
+    understood: 'فهمت — المتابعة للتأكيد',
+    back: 'رجوع',
+    confirmTitle: 'تأكيد الموعد',
+    confirmDesc: 'يرجى مراجعة التفاصيل وتأكيد الموعد.',
+    notesLabel: 'ملاحظات', optional: '(اختياري)',
+    notesPlaceholder: 'مثل: الدخول من الباب الخلفي، موقف سيارات متوفر...',
+    bookNow: 'حجز الموعد نهائياً', booking: '...جاري الحجز',
+    bookFailed: 'فشل الحجز.',
+    doneTitle: '!تم حجز الموعد',
+    thanksMsg: 'تم حجز موعد التركيب بنجاح.',
+    thanks: 'شكراً',
+    whatsappConfirm: 'ستتلقى تأكيداً عبر واتساب قريباً.',
+    teamContact: 'سيتواصل فريقنا معك في يوم التركيب.',
+    location: 'الموقع',
+  },
+};
+
 /* ── helpers ──────────────────────────────────────────────── */
-function formatDateDE(dateStr) {
+function formatDateLocale(dateStr, lang = 'de') {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('de-DE', {
+  const locale = lang === 'ar' ? 'ar-SA' : lang === 'tr' ? 'tr-TR' : lang === 'en' ? 'en-GB' : 'de-DE';
+  return d.toLocaleDateString(locale, {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
 }
 
-function formatDateShort(dateStr) {
+function formatDateShortLocale(dateStr, lang = 'de') {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' });
+  const locale = lang === 'ar' ? 'ar-SA' : lang === 'tr' ? 'tr-TR' : lang === 'en' ? 'en-GB' : 'de-DE';
+  return d.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 function endTime(start) {
@@ -64,11 +245,29 @@ function endTime(start) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
+/* ── Language selector ───────────────────────────────────── */
+function LanguageSelector({ lang, setLang }) {
+  return (
+    <div className="flex items-center gap-1">
+      {Object.entries(LANGS).map(([code, { flag }]) => (
+        <button key={code}
+          onClick={() => setLang(code)}
+          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
+            lang === code ? 'bg-orange-100 ring-2 ring-orange-400 scale-110' : 'hover:bg-gray-100'
+          }`}
+          title={LANGS[code].label}>
+          {flag}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /* ── steps ────────────────────────────────────────────────── */
 const STEP = { LOADING: 0, DATE: 1, TIME: 2, INFO: 2.5, CONFIRM: 3, DONE: 4, ERROR: -1 };
 
 /* ── Info Section Component ───────────────────────────────── */
-function InstallInfoSection({ onContinue, onBack }) {
+function InstallInfoSection({ onContinue, onBack, t = T.de }) {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-5">
@@ -80,13 +279,13 @@ function InstallInfoSection({ onContinue, onBack }) {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Andere Uhrzeit wählen
+          {t.otherTime}
         </button>
         <h2 className="text-lg font-bold" style={{ color: BRAND.text }}>
-          So funktioniert die Installation
+          {t.howItWorks}
         </h2>
         <p className="text-sm mt-1" style={{ color: BRAND.textLight }}>
-          Bitte lesen Sie diese Informationen, damit am Installationstag alles reibungslos abläuft.
+          {t.readInfo}
         </p>
       </div>
 
@@ -101,9 +300,9 @@ function InstallInfoSection({ onContinue, onBack }) {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: BRAND.text }}>Das Display</p>
+            <p className="text-sm font-semibold" style={{ color: BRAND.text }}>{t.theDisplay}</p>
             <p className="text-sm mt-0.5" style={{ color: BRAND.textLight }}>
-              Wir installieren ein <strong>55-Zoll Digital-Display im Hochformat</strong> (ca. 125 × 75 cm) mit Standfuß in Ihrem Schaufenster. Das Display verfügt über ein <strong>eigenes 5G-Modul</strong> — Sie benötigen kein WLAN oder Internet.
+              {t.displayDesc}
             </p>
           </div>
         </div>
@@ -119,9 +318,9 @@ function InstallInfoSection({ onContinue, onBack }) {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: BRAND.text }}>Platzierung im Schaufenster</p>
+            <p className="text-sm font-semibold" style={{ color: BRAND.text }}>{t.placement}</p>
             <p className="text-sm mt-0.5" style={{ color: BRAND.textLight }}>
-              Das Display wird mittig im Schaufenster auf <strong>Augenhöhe (ca. 1,60 m)</strong> positioniert, mit <strong>3–5 cm Abstand zur Scheibe</strong>. Bitte stellen Sie sicher, dass der Bereich frei ist — keine Aufkleber, Poster oder Hindernisse vor dem Display.
+              {t.placementDesc}
             </p>
           </div>
         </div>
@@ -135,9 +334,9 @@ function InstallInfoSection({ onContinue, onBack }) {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: BRAND.text }}>Strom: 6–24 Uhr durchgehend</p>
+            <p className="text-sm font-semibold" style={{ color: BRAND.text }}>{t.power}</p>
             <p className="text-sm mt-0.5" style={{ color: BRAND.textLight }}>
-              Das Display muss <strong>täglich von 6:00 bis 24:00 Uhr mit Strom versorgt</strong> sein. Es wird eine <strong>freie Steckdose innerhalb von 2 Metern</strong> benötigt. <strong>Wichtig:</strong> Kein Mehrfachstecker, und die Steckdose darf <strong>nicht an einem Lichtschalter</strong> hängen.
+              {t.powerDesc}
             </p>
           </div>
         </div>
@@ -151,9 +350,9 @@ function InstallInfoSection({ onContinue, onBack }) {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: BRAND.text }}>Ablauf vor Ort</p>
+            <p className="text-sm font-semibold" style={{ color: BRAND.text }}>{t.process}</p>
             <p className="text-sm mt-0.5" style={{ color: BRAND.textLight }}>
-              Unser Installationsteam kommt zum vereinbarten Zeitpunkt. Die Installation dauert ca. <strong>30–60 Minuten</strong>. Das Team bringt alles mit — Display, Standfuß und SIM-Karte. Bitte stellen Sie sicher, dass jemand vor Ort ist.
+              {t.processDesc}
             </p>
           </div>
         </div>
@@ -161,14 +360,9 @@ function InstallInfoSection({ onContinue, onBack }) {
 
       {/* Checklist */}
       <div className="rounded-2xl p-4 border" style={{ backgroundColor: BRAND.orangeLight, borderColor: BRAND.orangeMedium }}>
-        <p className="text-sm font-semibold mb-2" style={{ color: BRAND.orangeDark }}>Checkliste für den Installationstag:</p>
+        <p className="text-sm font-semibold mb-2" style={{ color: BRAND.orangeDark }}>{t.checklist}</p>
         <ul className="space-y-1.5">
-          {[
-            'Schaufenster frei (mind. 125 × 75 cm, keine Aufkleber/Poster)',
-            'Freie Steckdose innerhalb von 2m (6–24 Uhr Strom, nicht am Lichtschalter)',
-            'Ebener Boden für den Standfuß',
-            'Ansprechpartner vor Ort',
-          ].map((item, i) => (
+          {[t.check1, t.check2, t.check3, t.check4].map((item, i) => (
             <li key={i} className="flex items-center gap-2 text-sm" style={{ color: BRAND.orangeDark }}>
               <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
@@ -185,7 +379,7 @@ function InstallInfoSection({ onContinue, onBack }) {
         className="w-full py-4 rounded-xl font-semibold text-white text-base transition-all active:scale-[0.98] shadow-lg"
         style={{ backgroundColor: BRAND.orange, boxShadow: '0 4px 14px rgba(255, 128, 0, 0.3)' }}
       >
-        Verstanden — weiter zur Bestätigung
+        {t.understood}
       </button>
     </div>
   );
@@ -195,6 +389,9 @@ function InstallInfoSection({ onContinue, onBack }) {
 export default function BookingPage() {
   const [step, setStep] = useState(STEP.LOADING);
   const [error, setError] = useState(null);
+  const [lang, setLang] = useState('de');
+  const t = T[lang] || T.de;
+  const isRtl = lang === 'ar';
 
   // data from API
   const [locationName, setLocationName] = useState('');
@@ -316,19 +513,20 @@ export default function BookingPage() {
 
   /* ── step labels for progress indicator ─────────────────── */
   const stepLabels = [
-    { label: 'Datum', s: STEP.DATE },
-    { label: 'Uhrzeit', s: STEP.TIME },
-    { label: 'Info', s: STEP.INFO },
-    { label: 'Buchen', s: STEP.CONFIRM },
+    { label: t.stepDate, s: STEP.DATE },
+    { label: t.stepTime, s: STEP.TIME },
+    { label: t.stepInfo, s: STEP.INFO },
+    { label: t.stepBook, s: STEP.CONFIRM },
   ];
 
   /* ── render ─────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen" style={{ backgroundColor: BRAND.bg }}>
+    <div className="min-h-screen" style={{ backgroundColor: BRAND.bg }} dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Header */}
       <header className="border-b px-4 py-3" style={{ backgroundColor: BRAND.white, borderColor: BRAND.orangeMedium }}>
-        <div className="max-w-lg mx-auto flex items-center gap-3">
+        <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
           <LieferandoLogo className="h-12 w-auto" />
+          <LanguageSelector lang={lang} setLang={setLang} />
         </div>
       </header>
 
@@ -365,7 +563,7 @@ export default function BookingPage() {
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-10 h-10 border-4 rounded-full animate-spin"
               style={{ borderColor: BRAND.orangeMedium, borderTopColor: BRAND.orange }} />
-            <p className="mt-4 text-sm" style={{ color: BRAND.textLight }}>Verfügbare Termine werden geladen...</p>
+            <p className="mt-4 text-sm" style={{ color: BRAND.textLight }}>{t.loading}</p>
           </div>
         )}
 
@@ -381,18 +579,18 @@ export default function BookingPage() {
             </div>
             {error.type === 'no_slots' && (
               <>
-                <h2 className="text-lg font-semibold mb-2" style={{ color: BRAND.text }}>Keine Termine verfügbar</h2>
-                {locationName && <p className="text-sm mb-1" style={{ color: BRAND.textLight }}>Standort: {locationName}</p>}
+                <h2 className="text-lg font-semibold mb-2" style={{ color: BRAND.text }}>{t.noSlots}</h2>
+                {locationName && <p className="text-sm mb-1" style={{ color: BRAND.textLight }}>{t.location}: {locationName}</p>}
               </>
             )}
             {error.type === 'expired' && (
-              <h2 className="text-lg font-semibold mb-2" style={{ color: BRAND.text }}>Link abgelaufen</h2>
+              <h2 className="text-lg font-semibold mb-2" style={{ color: BRAND.text }}>{t.expired}</h2>
             )}
             {error.type === 'invalid_token' && (
-              <h2 className="text-lg font-semibold mb-2" style={{ color: BRAND.text }}>Ungültiger Link</h2>
+              <h2 className="text-lg font-semibold mb-2" style={{ color: BRAND.text }}>{t.invalidLink}</h2>
             )}
             {error.type === 'network' && (
-              <h2 className="text-lg font-semibold mb-2" style={{ color: BRAND.text }}>Verbindungsfehler</h2>
+              <h2 className="text-lg font-semibold mb-2" style={{ color: BRAND.text }}>{t.connectionError}</h2>
             )}
             <p className="text-sm" style={{ color: BRAND.textLight }}>{error.message}</p>
           </div>
@@ -403,10 +601,10 @@ export default function BookingPage() {
           <div className="space-y-4">
             <div className="bg-white rounded-2xl shadow-sm border p-5" style={{ borderColor: '#FED7AA' }}>
               <h2 className="text-xl font-bold mb-1" style={{ color: BRAND.text }}>
-                {contactName ? `Hallo ${contactName},` : 'Termin auswählen'}
+                {contactName ? `${t.hello} ${contactName},` : t.selectDate}
               </h2>
               <p className="text-sm mb-1" style={{ color: BRAND.textLight }}>
-                Wählen Sie einen Installationstermin für Ihr Liefernado Display.
+                {t.selectDateDesc}
               </p>
               {locationName && (
                 <p className="text-sm font-medium" style={{ color: BRAND.orange }}>{locationName} — {city}</p>
@@ -414,7 +612,7 @@ export default function BookingPage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold px-1" style={{ color: BRAND.textLight }}>Verfügbare Tage</h3>
+              <h3 className="text-sm font-semibold px-1" style={{ color: BRAND.textLight }}>{t.availableDays}</h3>
               {availableDates.map(d => (
                 <button
                   key={d.date}
@@ -427,15 +625,15 @@ export default function BookingPage() {
                   }}
                 >
                   <div className="text-left">
-                    <p className="font-semibold" style={{ color: BRAND.text }}>{formatDateShort(d.date)}</p>
+                    <p className="font-semibold" style={{ color: BRAND.text }}>{formatDateShortLocale(d.date, lang)}</p>
                     <p className="text-xs mt-0.5" style={{ color: BRAND.textLight }}>
-                      {d.slots.filter(s => s.available !== false).length} Zeitfenster verfügbar
+                      {d.slots.filter(s => s.available !== false).length} {t.slotsAvail}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium px-2 py-1 rounded-full"
                       style={{ color: BRAND.orange, backgroundColor: BRAND.orangeLight }}>
-                      {d.slots.filter(s => s.available !== false).length} frei
+                      {d.slots.filter(s => s.available !== false).length} {t.free}
                     </span>
                     <svg className="w-5 h-5" style={{ color: BRAND.textMuted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -448,7 +646,7 @@ export default function BookingPage() {
             {availableDates.length === 0 && (
               <div className="rounded-xl p-4 text-center border"
                 style={{ backgroundColor: BRAND.yellowLight, borderColor: '#FDE68A' }}>
-                <p className="text-sm" style={{ color: '#92400E' }}>Momentan sind keine Termine verfügbar.</p>
+                <p className="text-sm" style={{ color: '#92400E' }}>{t.noSlotsMsg}</p>
               </div>
             )}
           </div>
@@ -466,10 +664,10 @@ export default function BookingPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Anderes Datum wählen
+                {t.otherDate}
               </button>
-              <h2 className="text-lg font-bold" style={{ color: BRAND.text }}>{formatDateDE(selectedDate)}</h2>
-              <p className="text-sm" style={{ color: BRAND.textLight }}>Wählen Sie eine Uhrzeit für die Installation.</p>
+              <h2 className="text-lg font-bold" style={{ color: BRAND.text }}>{formatDateLocale(selectedDate, lang)}</h2>
+              <p className="text-sm" style={{ color: BRAND.textLight }}>{t.selectTime}</p>
             </div>
 
             {error?.type === 'slot_gone' && (
@@ -504,6 +702,7 @@ export default function BookingPage() {
           <InstallInfoSection
             onContinue={() => setStep(STEP.CONFIRM)}
             onBack={() => { setStep(STEP.TIME); setSelectedTime(null); }}
+            t={t}
           />
         )}
 
@@ -519,10 +718,10 @@ export default function BookingPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Zurück
+                {t.back}
               </button>
-              <h2 className="text-lg font-bold" style={{ color: BRAND.text }}>Termin bestätigen</h2>
-              <p className="text-sm mb-4" style={{ color: BRAND.textLight }}>Bitte prüfen Sie die Details und bestätigen Sie den Termin.</p>
+              <h2 className="text-lg font-bold" style={{ color: BRAND.text }}>{t.confirmTitle}</h2>
+              <p className="text-sm mb-4" style={{ color: BRAND.textLight }}>{t.confirmDesc}</p>
 
               <div className="rounded-xl p-4 space-y-2" style={{ backgroundColor: BRAND.orangeLight }}>
                 <div className="flex items-center gap-3">
@@ -534,7 +733,7 @@ export default function BookingPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-bold" style={{ color: BRAND.text }}>{formatDateDE(selectedDate)}</p>
+                    <p className="text-sm font-bold" style={{ color: BRAND.text }}>{formatDateLocale(selectedDate, lang)}</p>
                     <p className="text-sm" style={{ color: BRAND.textLight }}>{selectedTime} – {endTime(selectedTime)} Uhr</p>
                   </div>
                 </div>
@@ -561,12 +760,12 @@ export default function BookingPage() {
             {/* Notes */}
             <div className="bg-white rounded-2xl shadow-sm border p-5" style={{ borderColor: '#FED7AA' }}>
               <label className="block text-sm font-medium mb-2" style={{ color: BRAND.textLight }}>
-                Anmerkungen <span style={{ color: BRAND.textMuted }}>(optional)</span>
+                {t.notesLabel} <span style={{ color: BRAND.textMuted }}>{t.optional}</span>
               </label>
               <textarea
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
-                placeholder="z.B. Zugang über Hintereingang, Parkplatz vorhanden..."
+                placeholder={t.notesPlaceholder}
                 rows={3}
                 className="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 resize-none"
                 style={{ borderColor: '#E5E7EB', focusRingColor: BRAND.orange }}
@@ -587,10 +786,10 @@ export default function BookingPage() {
               {submitting ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Wird gebucht...
+                  {t.booking}
                 </span>
               ) : (
-                'Termin verbindlich buchen'
+                t.bookNow
               )}
             </button>
 
@@ -613,9 +812,9 @@ export default function BookingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold mb-2" style={{ color: BRAND.text }}>Termin gebucht!</h2>
+              <h2 className="text-xl font-bold mb-2" style={{ color: BRAND.text }}>{t.doneTitle}</h2>
               <p className="text-sm mb-4" style={{ color: BRAND.textLight }}>
-                {contactName ? `Vielen Dank, ${contactName}!` : 'Vielen Dank!'} Ihr Installationstermin wurde erfolgreich gebucht.
+                {contactName ? `${t.thanks}, ${contactName}!` : `${t.thanks}!`} {t.thanksMsg}
               </p>
 
               <div className="rounded-xl p-4 space-y-2 text-left" style={{ backgroundColor: BRAND.greenLight }}>
@@ -627,7 +826,7 @@ export default function BookingPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-bold" style={{ color: BRAND.text }}>{formatDateDE(bookingResult.date)}</p>
+                    <p className="text-sm font-bold" style={{ color: BRAND.text }}>{formatDateLocale(bookingResult.date, lang)}</p>
                     <p className="text-sm" style={{ color: BRAND.textLight }}>
                       {bookingResult.time} – {bookingResult.endTime || endTime(bookingResult.time)} Uhr
                     </p>
@@ -654,8 +853,8 @@ export default function BookingPage() {
               </div>
 
               <div className="mt-5 p-4 rounded-xl text-sm" style={{ backgroundColor: BRAND.orangeLight, color: BRAND.orangeDark }}>
-                <p className="font-medium">Sie erhalten in Kürze eine Bestätigung per WhatsApp.</p>
-                <p className="mt-1">Unser Team meldet sich am Installationstag bei Ihnen.</p>
+                <p className="font-medium">{t.whatsappConfirm}</p>
+                <p className="mt-1">{t.teamContact}</p>
               </div>
             </div>
           </div>

@@ -125,7 +125,22 @@ export default async (request, context) => {
       );
 
       const bookedTimes = (bookedResult.data || []).map(b => b.booked_time);
-      const timeSlots = Array.isArray(route.time_slots) ? route.time_slots : JSON.parse(route.time_slots || '[]');
+
+      // Robust time_slots parsing (handles double-encoded JSON strings)
+      let timeSlots = [];
+      try {
+        if (Array.isArray(route.time_slots)) {
+          timeSlots = route.time_slots;
+        } else if (typeof route.time_slots === 'string') {
+          let parsed = JSON.parse(route.time_slots);
+          // Handle double-encoded: if parsed result is still a string, parse again
+          if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+          timeSlots = Array.isArray(parsed) ? parsed : [];
+        }
+      } catch (e) {
+        console.error(`[install-booker-slots] Failed to parse time_slots for route ${route.id}:`, e.message);
+        timeSlots = [];
+      }
 
       // Count bookings per time slot
       const slots = timeSlots.map(time => {

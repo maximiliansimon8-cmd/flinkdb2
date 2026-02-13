@@ -13,8 +13,10 @@ import { logApiCall } from './shared/apiLogger.js';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
 const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 const AKQUISE_TABLE = 'tblqFMBAeKQ1NbSI8';
+const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
 
 /** Supabase REST helper */
 async function supabaseRequest(path, options = {}) {
@@ -199,6 +201,96 @@ export default async (request, context) => {
         }
       }
 
+      // ── Storno → Auto-Task for "Installation Disponent" ──
+      if (updateResult.ok && (newStatus === 'cancelled' || newStatus === 'no_show') && AIRTABLE_TOKEN) {
+        try {
+          const taskTitle = newStatus === 'cancelled'
+            ? `Stornierung nachfassen: ${currentBooking.location_name || currentBooking.city}`
+            : `No-Show nachfassen: ${currentBooking.location_name || currentBooking.city}`;
+
+          const taskDescription = [
+            newStatus === 'cancelled'
+              ? `Der Installationstermin für "${currentBooking.location_name || 'Unbekannt'}" in ${currentBooking.city} wurde storniert.`
+              : `Der Standort "${currentBooking.location_name || 'Unbekannt'}" in ${currentBooking.city} ist nicht zum Termin erschienen.`,
+            '',
+            `Bitte anrufen und neuen Termin vereinbaren.`,
+            '',
+            `Kontakt: ${currentBooking.contact_name || '—'}`,
+            `Telefon: ${currentBooking.contact_phone || '—'}`,
+            `JET-ID: ${currentBooking.jet_id || '—'}`,
+            currentBooking.booked_date ? `Ursprünglicher Termin: ${currentBooking.booked_date} ${currentBooking.booked_time || ''} Uhr` : '',
+            notes ? `Notiz: ${notes}` : '',
+          ].filter(Boolean).join('\n');
+
+          const dueDate = new Date();
+          dueDate.setDate(dueDate.getDate() + 1); // Follow-up next business day
+
+          const taskFields = {
+            'Task Title': taskTitle,
+            'Description': taskDescription,
+            'Status': 'New',
+            'Priority': newStatus === 'no_show' ? 'Urgent' : 'High',
+            'Due Date': dueDate.toISOString().split('T')[0],
+          };
+
+          // Link to Akquise/Location if available
+          if (currentBooking.akquise_airtable_id) {
+            taskFields['Locations'] = [currentBooking.akquise_airtable_id];
+          }
+
+          await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TASKS_TABLE}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ records: [{ fields: taskFields }] }),
+          });
+
+          console.log(`[install-booker-status] Auto-task created for ${newStatus}: ${taskTitle}`);
+        } catch (e) {
+          console.error('[install-booker-status] Auto-task creation failed:', e.message);
+        }
+      }
+
+      // ── Cancel/No-Show → WhatsApp notification ──
+      if (updateResult.ok && (newStatus === 'cancelled' || newStatus === 'no_show') && SUPERCHAT_API_KEY && currentBooking.contact_phone) {
+        try {
+          const cancelText = newStatus === 'cancelled'
+            ? [
+                `Hallo ${currentBooking.contact_name || 'Standortinhaber/in'},`,
+                '',
+                `Ihr Installationstermin${currentBooking.booked_date ? ` am ${new Date(currentBooking.booked_date).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}` : ''} wurde storniert.`,
+                '',
+                `Wir melden uns in Kürze bei Ihnen, um einen neuen Termin zu vereinbaren.`,
+                '',
+                `Bei Fragen antworten Sie einfach auf diese Nachricht.`,
+                '',
+                `Ihr JET Germany Team`,
+              ].join('\n')
+            : null; // No WhatsApp for no_show (internal handling)
+
+          if (cancelText) {
+            await fetch('https://api.superchat.com/v1.0/messages', {
+              method: 'POST',
+              headers: {
+                'X-API-KEY': SUPERCHAT_API_KEY,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify({
+                contactHandle: currentBooking.contact_phone,
+                channelType: 'whats_app',
+                body: cancelText,
+              }),
+            });
+            console.log(`[install-booker-status] WhatsApp cancel notification sent to ${currentBooking.contact_phone}`);
+          }
+        } catch (e) {
+          console.error('[install-booker-status] WhatsApp cancel notification failed:', e.message);
+        }
+      }
+
       logApiCall({
         functionName: 'install-booker-status',
         service: 'supabase',
@@ -211,6 +303,126 @@ export default async (request, context) => {
 
       return new Response(JSON.stringify(updateResult.data), {
         status: updateResult.status,
+        headers: { 'Content-Type': 'application/json', ...cors },
+      });
+    }
+
+    // ── POST: Manual/Phone Booking (create booking without invite flow) ──
+    if (request.method === 'POST') {
+      const body = await request.json();
+      const { akquiseAirtableId, locationName, city, contactName, contactPhone, jetId, bookedDate, bookedTime, notes, bookingSource } = body;
+
+      if (!city || !bookedDate || !bookedTime) {
+        return new Response(JSON.stringify({ error: 'city, bookedDate, and bookedTime are required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
+
+      // Calculate end time (90 minutes)
+      const [h, m] = bookedTime.split(':').map(Number);
+      const endMin = m + 90;
+      const endTime = `${String(h + Math.floor(endMin / 60)).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`;
+
+      // Find matching route for this city+date
+      const routeResult = await supabaseRequest(
+        `install_routen?city=eq.${encodeURIComponent(city)}&schedule_date=eq.${bookedDate}&status=eq.open&select=id&limit=1`
+      );
+      const routeId = routeResult.data?.[0]?.id || null;
+
+      // Create the booking directly as "booked"
+      const bookingToken = crypto.randomUUID();
+      const bookingResult = await supabaseRequest('install_bookings', {
+        method: 'POST',
+        body: JSON.stringify({
+          booking_token: bookingToken,
+          akquise_airtable_id: akquiseAirtableId || null,
+          location_name: locationName || '',
+          city,
+          contact_name: contactName || '',
+          contact_phone: contactPhone || '',
+          jet_id: jetId || '',
+          booked_date: bookedDate,
+          booked_time: bookedTime,
+          booked_end_time: endTime,
+          route_id: routeId,
+          status: 'booked',
+          booking_source: bookingSource || 'phone',
+          booked_at: new Date().toISOString(),
+          notes: notes || null,
+        }),
+      });
+
+      if (!bookingResult.ok) {
+        return new Response(JSON.stringify({ error: 'Failed to create booking', details: bookingResult.data }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
+
+      // Create Airtable Installationen record
+      let terminAirtableId = null;
+      if (AIRTABLE_TOKEN) {
+        try {
+          const installFields = {
+            'Installationsstart': `${bookedDate}T${bookedTime}:00.000Z`,
+            'Status Installation': 'Termin gebucht',
+            'Aufbau Datum': bookedDate,
+            'Allgemeine Bemerkungen': [
+              `Telefonische Buchung via Dashboard`,
+              `Zeitfenster: ${bookedTime} – ${endTime} Uhr`,
+              notes ? `Anmerkung: ${notes}` : '',
+            ].filter(Boolean).join('\n'),
+          };
+          if (akquiseAirtableId) {
+            installFields['Akquise'] = [akquiseAirtableId];
+          }
+          const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/tblKznpAOAMvEfX8u`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ records: [{ fields: installFields }] }),
+          });
+          const terminData = await terminRes.json();
+          terminAirtableId = terminData.records?.[0]?.id;
+          if (terminAirtableId) {
+            await supabaseRequest(`install_bookings?id=eq.${bookingResult.data[0].id}`, {
+              method: 'PATCH', body: JSON.stringify({ termin_airtable_id: terminAirtableId }),
+            });
+          }
+        } catch (e) {
+          console.error('[install-booker-status] Airtable Installationen create failed:', e.message);
+        }
+      }
+
+      // Update Akquise Booking Status
+      if (AIRTABLE_TOKEN && akquiseAirtableId) {
+        try {
+          await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${akquiseAirtableId}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields: { 'Booking Status': 'booked' } }),
+          });
+        } catch (e) {
+          console.error('[install-booker-status] Airtable Akquise update failed:', e.message);
+        }
+      }
+
+      logApiCall({
+        functionName: 'install-booker-status',
+        service: 'supabase',
+        method: 'POST',
+        endpoint: 'install_bookings (manual)',
+        durationMs: Date.now() - apiStart,
+        statusCode: 201,
+        success: true,
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        booking: bookingResult.data[0],
+        terminAirtableId,
+      }), {
+        status: 201,
         headers: { 'Content-Type': 'application/json', ...cors },
       });
     }
