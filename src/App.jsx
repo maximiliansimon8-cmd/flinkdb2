@@ -567,21 +567,19 @@ function App() {
     return null;
   }, [parsedRows, rawData, rangeStart, rangeEnd, dataEarliest, globalFirstSeen]);
 
-  // Filter displays: mark stammdaten-confirmed deinstalled displays as inactive
-  // This prevents inflated city counts (e.g. Köln showing 104 instead of real active count)
-  const effectiveDisplays = useMemo(() => {
-    if (!rawData?.displays) return [];
-    const deinstalledIds = comparisonData?.airtable?.deinstalledIds;
-    if (!deinstalledIds || deinstalledIds.size === 0) return rawData.displays;
-    return rawData.displays.map(d =>
-      deinstalledIds.has(d.displayId) ? { ...d, isActive: false } : d
-    );
-  }, [rawData?.displays, comparisonData?.airtable?.deinstalledIds]);
-
   const kpis = useMemo(() => {
     if (!rawData || !rawData.latestTimestamp) return null;
-    return computeKPIs(effectiveDisplays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
-  }, [effectiveDisplays, rawData, globalFirstSeen, rangeStart]);
+    // Cross-reference with stammdaten: mark confirmed-deinstalled displays as inactive
+    // This prevents inflated city counts (e.g. Köln showing 104 instead of real active count)
+    const deinstalledIds = comparisonData?.airtable?.deinstalledIds;
+    let displays = rawData.displays;
+    if (deinstalledIds && deinstalledIds.size > 0) {
+      displays = rawData.displays.map(d =>
+        deinstalledIds.has(d.displayId) ? { ...d, isActive: false } : d
+      );
+    }
+    return computeKPIs(displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
+  }, [rawData, globalFirstSeen, rangeStart, comparisonData?.airtable?.deinstalledIds]);
 
   const distribution = useMemo(() => {
     if (!rawData) return [];
