@@ -73,7 +73,12 @@ CREATE TRIGGER trg_bookings_updated_at
   BEFORE UPDATE ON install_bookings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- 4. RLS Policies (service role bypasses RLS, anon can read bookings by token)
+-- 4. GRANT permissions for PostgREST roles (required for API access!)
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON install_routen TO anon, authenticated, service_role;
+GRANT ALL ON install_bookings TO anon, authenticated, service_role;
+
+-- 5. RLS Policies (service role bypasses RLS, anon can read bookings by token)
 ALTER TABLE install_routen ENABLE ROW LEVEL SECURITY;
 ALTER TABLE install_bookings ENABLE ROW LEVEL SECURITY;
 
@@ -83,6 +88,9 @@ CREATE POLICY "Service role full access routen" ON install_routen
 
 CREATE POLICY "Service role full access bookings" ON install_bookings
   FOR ALL USING (true) WITH CHECK (true);
+
+-- 6. Reload PostgREST schema cache
+NOTIFY pgrst, 'reload schema';
 
 -- ============================================
 -- 5. New user group: Terminierung (Scheduling)

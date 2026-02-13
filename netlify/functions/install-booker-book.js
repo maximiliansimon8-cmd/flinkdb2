@@ -16,6 +16,7 @@ const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 const AKQUISE_TABLE = 'tblqFMBAeKQ1NbSI8';
+const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
 
 const PUBLIC_CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -158,29 +159,35 @@ export default async (request, context) => {
       throw new Error('Failed to update booking');
     }
 
-    // 4. Create Airtable record in Installations_Termine
+    // 4. Create Airtable record in existing Installationen table
     let terminAirtableId = null;
     if (AIRTABLE_TOKEN) {
       try {
-        const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/Installations_Termine`, {
+        const installFields = {
+          'Installationsstart': `${date}T${time}:00.000Z`,
+          'Status Installation': 'Termin gebucht',
+          'Aufbau Datum': date,
+          'Installationsart': 'Wandmontage',
+          'Allgemeine Bemerkungen': [
+            `Selbst-Buchung via Install Date Booker`,
+            `Zeitfenster: ${time} – ${endTime} Uhr`,
+            route.installer_team ? `Team: ${route.installer_team}` : '',
+            notes ? `Anmerkung Standort: ${notes}` : '',
+          ].filter(Boolean).join('\n'),
+        };
+
+        // Link to Akquise record if we have one
+        if (booking.akquise_airtable_id) {
+          installFields['Akquise'] = [booking.akquise_airtable_id];
+        }
+
+        const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${INSTALLATIONEN_TABLE}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            records: [{
-              fields: {
-                'Start': `${date}T${time}:00.000Z`,
-                'Ende': `${date}T${endTime}:00.000Z`,
-                'Status': 'scheduled',
-                'Booking Source': 'self_booking',
-                'Booking Token': token,
-                'Installer Team': route.installer_team || '',
-                'Internal Notes': notes || '',
-              },
-            }],
-          }),
+          body: JSON.stringify({ records: [{ fields: installFields }] }),
         });
         const terminData = await terminRes.json();
         terminAirtableId = terminData.records?.[0]?.id;
@@ -193,7 +200,7 @@ export default async (request, context) => {
           });
         }
       } catch (e) {
-        console.error('[install-booker-book] Airtable Installations_Termine create failed:', e.message);
+        console.error('[install-booker-book] Airtable Installationen create failed:', e.message);
       }
     }
 

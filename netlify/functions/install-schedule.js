@@ -147,27 +147,7 @@ export default async (request, context) => {
         body: JSON.stringify(row),
       });
 
-      // Bidirectional: if created from dashboard (no airtable_id), also write to Airtable
-      if (result.ok && !airtable_id && AIRTABLE_TOKEN) {
-        try {
-          const atResult = await airtableWrite('Install_Routen', 'POST', null, {
-            City: city,
-            Datum: schedule_date,
-            'Installer Team': installer_team || '',
-            'Max Capacity': max_capacity || 4,
-            Notes: notes || '',
-          });
-          // Update Supabase with the Airtable record ID
-          if (atResult.records?.[0]?.id && result.data?.[0]?.id) {
-            await supabaseRequest(`install_routen?id=eq.${result.data[0].id}`, {
-              method: 'PATCH',
-              body: JSON.stringify({ airtable_id: atResult.records[0].id }),
-            });
-          }
-        } catch (e) {
-          console.error('[install-schedule] Airtable write failed:', e.message);
-        }
-      }
+      // NOTE: Airtable Install_Routen sync disabled — routes managed only in Supabase for now
 
       logApiCall({
         functionName: 'install-schedule',
@@ -201,24 +181,7 @@ export default async (request, context) => {
         body: JSON.stringify(updates),
       });
 
-      // Bidirectional: sync to Airtable if the route has an airtable_id
-      if (result.ok && result.data?.[0]?.airtable_id && AIRTABLE_TOKEN) {
-        try {
-          const fieldMap = {
-            city: 'City', schedule_date: 'Datum', installer_team: 'Installer Team',
-            max_capacity: 'Max Capacity', status: 'Status', notes: 'Notes',
-          };
-          const atFields = {};
-          for (const [key, val] of Object.entries(updates)) {
-            if (fieldMap[key]) atFields[fieldMap[key]] = val;
-          }
-          if (Object.keys(atFields).length > 0) {
-            await airtableWrite('Install_Routen', 'PATCH', result.data[0].airtable_id, atFields);
-          }
-        } catch (e) {
-          console.error('[install-schedule] Airtable sync failed:', e.message);
-        }
-      }
+      // NOTE: Airtable Install_Routen sync disabled — routes managed only in Supabase for now
 
       logApiCall({
         functionName: 'install-schedule',
@@ -245,17 +208,7 @@ export default async (request, context) => {
         method: 'DELETE',
       });
 
-      // Also delete from Airtable if linked
-      if (result.ok && existing.data?.[0]?.airtable_id && AIRTABLE_TOKEN) {
-        try {
-          await fetch(
-            `https://api.airtable.com/v0/${AIRTABLE_BASE}/Install_Routen/${existing.data[0].airtable_id}`,
-            { method: 'DELETE', headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` } }
-          );
-        } catch (e) {
-          console.error('[install-schedule] Airtable delete failed:', e.message);
-        }
-      }
+      // NOTE: Airtable Install_Routen sync disabled — routes managed only in Supabase for now
 
       logApiCall({
         functionName: 'install-schedule',

@@ -148,29 +148,29 @@ export default async (request, context) => {
         body: JSON.stringify(updates),
       });
 
-      // Sync status to Airtable Installations_Termine
+      // Sync status to Airtable Installationen table (tblKznpAOAMvEfX8u)
       if (updateResult.ok && currentBooking.termin_airtable_id && AIRTABLE_TOKEN) {
         try {
           const atStatusMap = {
-            confirmed: 'confirmed',
-            cancelled: 'cancelled',
-            completed: 'completed',
-            no_show: 'no_show',
+            confirmed: 'Termin bestätigt',
+            cancelled: 'Abgebrochen',
+            completed: 'Abgeschlossen',
+            no_show: 'Abgebrochen - Vorort',
           };
           if (atStatusMap[newStatus]) {
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/Installations_Termine/${currentBooking.termin_airtable_id}`, {
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/tblKznpAOAMvEfX8u/${currentBooking.termin_airtable_id}`, {
               method: 'PATCH',
               headers: {
                 'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                fields: { 'Status': atStatusMap[newStatus] },
+                fields: { 'Status Installation': atStatusMap[newStatus] },
               }),
             });
           }
         } catch (e) {
-          console.error('[install-booker-status] Airtable Termin update failed:', e.message);
+          console.error('[install-booker-status] Airtable Installationen update failed:', e.message);
         }
       }
 
