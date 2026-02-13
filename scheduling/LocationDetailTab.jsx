@@ -16,22 +16,22 @@ import { supabase } from '../src/utils/authService.js';
 const API_DETAIL = '/api/install-booker/detail';
 
 const STATUS_CONFIG = {
+  pipeline:     { label: 'Pipeline',       color: 'bg-amber-100 text-amber-700 border-amber-200' },
   bereit:       { label: 'Aufbau bereit',  color: 'bg-green-100 text-green-700 border-green-200' },
   gebucht:      { label: 'Termin gebucht', color: 'bg-blue-100 text-blue-700 border-blue-200' },
   installiert:  { label: 'Installiert',    color: 'bg-purple-100 text-purple-700 border-purple-200' },
   storniert:    { label: 'Storniert',      color: 'bg-red-100 text-red-700 border-red-200' },
   in_pruefung:  { label: 'In Prüfung',    color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-  gewonnen:     { label: 'Gewonnen',       color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
   abgebrochen:  { label: 'Abgebrochen',    color: 'bg-gray-100 text-gray-600 border-gray-200' },
 };
 
 const STATUS_FILTERS = [
-  { value: '',             label: 'Alle' },
+  { value: 'pipeline',     label: 'Pipeline' },
   { value: 'bereit',       label: 'Aufbau bereit' },
-  { value: 'gewonnen',     label: 'Gewonnen (In Prüfung)' },
   { value: 'gebucht',      label: 'Termin gebucht' },
   { value: 'installiert',  label: 'Installiert' },
   { value: 'abgebrochen',  label: 'Abgebrochen' },
+  { value: '',             label: 'Alle' },
 ];
 
 /* =================================================================
@@ -78,10 +78,12 @@ function normalizeStatus(raw, loc) {
   const s = raw.toLowerCase().trim();
 
   // Won / Signed with Accepted approval → Aufbau bereit
+  // Won / Signed with In review → Pipeline (waiting for approval)
   if (s === 'won / signed' || s === 'won/signed') {
     if (approvalStatus === 'accepted') return 'bereit';
     if (approvalStatus === 'rejected') return 'abgebrochen';
-    return 'gewonnen'; // Won but not yet approved
+    if (approvalStatus === 'in review') return 'pipeline';
+    return 'pipeline'; // Won but not yet approved (Info required, empty, etc.)
   }
 
   // Legacy status values (for compatibility)
@@ -91,7 +93,7 @@ function normalizeStatus(raw, loc) {
   if (s === 'ready for install' || s === 'freigegeben' || s === 'bereit') return 'bereit';
   if (s === 'gewonnen' || s === 'signed' || s === 'won' || s === 'approved') {
     if (approvalStatus === 'accepted') return 'bereit';
-    return 'gewonnen';
+    return 'pipeline';
   }
 
   return 'in_pruefung';
@@ -283,8 +285,8 @@ function StatusBadge({ status, location, size = 'sm' }) {
   const iconSize = size === 'lg' ? 14 : 11;
   return (
     <span className={`inline-flex items-center gap-1 rounded-full font-medium border ${cfg.color} ${sizeClasses}`}>
+      {norm === 'pipeline' && <ShieldCheck size={iconSize} />}
       {norm === 'bereit' && <CheckCircle size={iconSize} />}
-      {norm === 'gewonnen' && <ShieldCheck size={iconSize} />}
       {norm === 'gebucht' && <Calendar size={iconSize} />}
       {norm === 'installiert' && <Zap size={iconSize} />}
       {norm === 'storniert' && <XCircle size={iconSize} />}
@@ -990,7 +992,7 @@ export default function LocationDetailTab({ initialLocationId, initialLocationNa
   // Filters
   const [search, setSearch] = useState(initialLocationName || '');
   const [filterCity, setFilterCity] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatus, setFilterStatus] = useState('pipeline');
 
   // Mobile detail view
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
@@ -1184,8 +1186,8 @@ export default function LocationDetailTab({ initialLocationId, initialLocationNa
     const statuses = locations.map(l => normalizeStatus(l.status || l.lead_status, l));
     return {
       total: locations.length,
+      pipeline: statuses.filter(s => s === 'pipeline').length,
       bereit: statuses.filter(s => s === 'bereit').length,
-      gewonnen: statuses.filter(s => s === 'gewonnen').length,
       gebucht: statuses.filter(s => s === 'gebucht').length,
       installiert: statuses.filter(s => s === 'installiert').length,
       abgebrochen: statuses.filter(s => s === 'abgebrochen').length,
@@ -1216,32 +1218,26 @@ export default function LocationDetailTab({ initialLocationId, initialLocationNa
       </div>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1">
-            <Building2 size={14} /> Gesamt
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-white rounded-xl border border-amber-200 p-4">
+          <div className="flex items-center gap-2 text-amber-600 text-xs font-medium mb-1">
+            <ShieldCheck size={14} /> Pipeline
           </div>
-          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+          <div className="text-2xl font-bold text-amber-600">{stats.pipeline}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-white rounded-xl border border-green-200 p-4">
           <div className="flex items-center gap-2 text-green-600 text-xs font-medium mb-1">
             <CheckCircle size={14} /> Aufbau bereit
           </div>
           <div className="text-2xl font-bold text-green-600">{stats.bereit}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center gap-2 text-emerald-600 text-xs font-medium mb-1">
-            <ShieldCheck size={14} /> Gewonnen
-          </div>
-          <div className="text-2xl font-bold text-emerald-600">{stats.gewonnen}</div>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-white rounded-xl border border-blue-200 p-4">
           <div className="flex items-center gap-2 text-blue-600 text-xs font-medium mb-1">
             <Calendar size={14} /> Termin gebucht
           </div>
           <div className="text-2xl font-bold text-blue-600">{stats.gebucht}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-white rounded-xl border border-purple-200 p-4">
           <div className="flex items-center gap-2 text-purple-600 text-xs font-medium mb-1">
             <Zap size={14} /> Installiert
           </div>
