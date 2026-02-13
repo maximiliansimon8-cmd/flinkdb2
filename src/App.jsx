@@ -569,17 +569,8 @@ function App() {
 
   const kpis = useMemo(() => {
     if (!rawData || !rawData.latestTimestamp) return null;
-    // Cross-reference with stammdaten: mark confirmed-deinstalled displays as inactive
-    // This prevents inflated city counts (e.g. Köln showing 104 instead of real active count)
-    const deinstalledIds = comparisonData?.airtable?.deinstalledIds;
-    let displays = rawData.displays;
-    if (deinstalledIds && deinstalledIds.size > 0) {
-      displays = rawData.displays.map(d =>
-        deinstalledIds.has(d.displayId) ? { ...d, isActive: false } : d
-      );
-    }
-    return computeKPIs(displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
-  }, [rawData, globalFirstSeen, rangeStart, comparisonData?.airtable?.deinstalledIds]);
+    return computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
+  }, [rawData, globalFirstSeen, rangeStart]);
 
   const distribution = useMemo(() => {
     if (!rawData) return [];
