@@ -556,6 +556,16 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
   const hwMismatches = useMemo(() => {
     const issues = [];
 
+    // Origin mapping: Supabase table → original upstream source
+    const ORIGINS = {
+      hardware_ops:      'Airtable: OPS_Player_inventory',
+      hardware_sim:      'Airtable: SIM_card_inventory',
+      hardware_displays: 'Airtable: display_inventory',
+      chg_approvals:     'Airtable: CHG Approval',
+      bank_leasing:      'CSV-Import: Bank TESMA',
+      airtable_displays: 'Airtable: Live Display Locations',
+    };
+
     // ═══ Build lookup maps ═══
     const chgByJetId = new Map();
     for (const chg of (leaseData.chg || [])) {
@@ -976,6 +986,12 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
           });
         }
       }
+    }
+
+    // Post-process: add origin (upstream source) to each issue
+    for (const iss of issues) {
+      iss.origin1 = ORIGINS[iss.source1] || iss.source1;
+      iss.origin2 = ORIGINS[iss.source2] || iss.source2;
     }
 
     return issues;
@@ -2072,18 +2088,20 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
                                     </span>
                                   </td>
                                   <td className="px-3 py-2">
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col gap-0.5">
                                       <span className="text-slate-600 font-medium">{m.sourceLabel1}</span>
                                       <span className="font-mono text-slate-400 text-[10px]">{m.source1}.{m.field1}</span>
+                                      <span className="text-[9px] text-slate-300 italic">{m.origin1}</span>
                                     </div>
                                   </td>
                                   <td className="px-3 py-2 font-mono text-red-600 font-medium max-w-[160px] truncate" title={m.value1}>
                                     {m.value1 || '\u2013'}
                                   </td>
                                   <td className="px-3 py-2">
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col gap-0.5">
                                       <span className="text-slate-600 font-medium">{m.sourceLabel2}</span>
                                       <span className="font-mono text-slate-400 text-[10px]">{m.source2}.{m.field2}</span>
+                                      <span className="text-[9px] text-slate-300 italic">{m.origin2}</span>
                                     </div>
                                   </td>
                                   <td className="px-3 py-2 font-mono text-red-600 font-medium max-w-[160px] truncate" title={m.value2}>
