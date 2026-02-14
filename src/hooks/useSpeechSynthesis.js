@@ -1,10 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { processForVoice } from '../utils/voiceResponseProcessor';
 
 /**
- * useSpeechSynthesis — Text-to-Speech Hook
+ * useSpeechSynthesis — Text-to-Speech Hook (V2)
  *
  * Uses the Web Speech Synthesis API to speak text aloud.
  * Designed for the mobile JET Agent conversational experience.
+ *
+ * V2 additions:
+ * - External speechRate / voiceName controls (from useVoiceSettings)
+ * - Voice response processing (strips markdown, converts bullets, truncates)
+ * - Available voices list for settings UI
+ * - Haptic feedback on start/end
+ * - onStart callback for conversation mode coordination
  *
  * Key iOS/Mobile workaround: speechSynthesis.speak() must be triggered
  * from a user gesture at least once before it works programmatically.
@@ -13,36 +21,31 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 
-function stripMarkdown(text) {
-  if (!text) return '';
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/^[-*]\s+/gm, '')
-    .replace(/^#{1,6}\s+/gm, '')
-    // Remove emoji sequences at line starts (common in agent responses)
-    .replace(/^[⚡💚📈🚨📋🔍✅❌⚠️🎯📊💡🔧📌]+\s*/gm, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
-export default function useSpeechSynthesis({ onEnd } = {}) {
+export default function useSpeechSynthesis({
+  onEnd,
+  onStart,
+  speechRate = 1.0,
+  voiceName = '',
+} = {}) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isWarmedUp, setIsWarmedUp] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState([]);
   const voiceRef = useRef(null);
   const onEndRef = useRef(onEnd);
+  const onStartRef = useRef(onStart);
   const utteranceRef = useRef(null);
   const cancelledRef = useRef(false);
+  const speechRateRef = useRef(speechRate);
 
   const isSupported = !!synth;
 
-  useEffect(() => {
-    onEndRef.current = onEnd;
-  }, [onEnd]);
+  // Keep refs up to date
+  useEffect(() => { onEndRef.current = onEnd; }, [onEnd]);
+  useEffect(() => { onStartRef.current = onStart; }, [onStart]);
+  useEffect(() => { speechRateRef.current = speechRate; }, [speechRate]);
 
-  // Find best German voice
+  // Find best German voice, update when voiceName changes
   useEffect(() => {
     if (!synth) return;
 
@@ -50,20 +53,36 @@ export default function useSpeechSynthesis({ onEnd } = {}) {
       const voices = synth.getVoices();
       if (!voices.length) return;
 
-      const deDE = voices.filter((v) => v.lang === 'de-DE');
-      const deLang = voices.filter((v) => v.lang.startsWith('de'));
+      // Build available German voices list for settings UI
+      const germanVoices = voices.filter(v => v.lang.startsWith('de'));
+      setAvailableVoices(germanVoices.map(v => ({
+        name: v.name,
+        lang: v.lang,
+        isDefault: v.default,
+      })));
 
-      // On iOS, prefer "Anna" (built-in German). On Android/Chrome, prefer non-Google.
+      const deDE = voices.filter(v => v.lang === 'de-DE');
+      const deLang = voices.filter(v => v.lang.startsWith('de'));
+
+      // If specific voice requested, try to find it
+      if (voiceName) {
+        const requested = voices.find(v => v.name === voiceName);
+        if (requested) {
+          voiceRef.current = requested;
+          return;
+        }
+      }
+
+      // Auto-pick: iOS prefers "Anna", others prefer neural/premium
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
       let preferred;
       if (isIOS) {
-        preferred = deDE.find((v) => v.name.includes('Anna')) || deDE[0];
+        preferred = deDE.find(v => v.name.includes('Anna')) || deDE[0];
       } else {
-        // Prefer premium/neural voices, then any de-DE
         preferred =
-          deDE.find((v) => v.name.includes('Neural') || v.name.includes('Wavenet')) ||
-          deDE.find((v) => !v.name.includes('Google')) ||
+          deDE.find(v => v.name.includes('Neural') || v.name.includes('Wavenet')) ||
+          deDE.find(v => !v.name.includes('Google')) ||
           deDE[0];
       }
 
@@ -72,26 +91,24 @@ export default function useSpeechSynthesis({ onEnd } = {}) {
 
     pickVoice();
     synth.addEventListener('voiceschanged', pickVoice);
-    // Some browsers need a manual trigger too
     setTimeout(pickVoice, 500);
     return () => synth.removeEventListener('voiceschanged', pickVoice);
-  }, []);
+  }, [voiceName]);
 
   /**
    * warmUp — Must be called from a user gesture (click/tap) to unlock
-   * speechSynthesis on iOS Safari. Call this on the first mic button tap.
+   * speechSynthesis on iOS Safari.
    */
   const warmUp = useCallback(() => {
     if (!synth || isWarmedUp) return;
 
-    // Speak an empty/silent utterance to unlock the API
     const utterance = new SpeechSynthesisUtterance(' ');
     utterance.lang = 'de-DE';
-    utterance.volume = 0.01; // Nearly silent
-    utterance.rate = 10; // Speak fast to be imperceptible
+    utterance.volume = 0.01;
+    utterance.rate = 10;
 
     utterance.onend = () => setIsWarmedUp(true);
-    utterance.onerror = () => setIsWarmedUp(true); // Still mark as tried
+    utterance.onerror = () => setIsWarmedUp(true);
 
     try {
       synth.speak(utterance);
@@ -101,26 +118,36 @@ export default function useSpeechSynthesis({ onEnd } = {}) {
     }
   }, [isWarmedUp]);
 
+  /**
+   * Trigger haptic feedback if available.
+   */
+  const haptic = useCallback((pattern) => {
+    try {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    } catch {
+      // Not available — silently ignore
+    }
+  }, []);
+
   const speak = useCallback(
     (text) => {
       if (!synth || !text || isMuted) {
-        // If muted, still fire onEnd so conversation loop continues
         if (isMuted) onEndRef.current?.();
         return;
       }
 
-      // Cancel anything currently speaking
       cancelledRef.current = false;
       synth.cancel();
 
-      const cleaned = stripMarkdown(text);
-      if (!cleaned) {
+      // Process the text for voice output
+      const { spokenText } = processForVoice(text);
+      if (!spokenText) {
         onEndRef.current?.();
         return;
       }
 
-      // Split on sentence boundaries, then group into chunks
-      const sentences = cleaned.match(/[^.!?\n]+[.!?\n]*/g) || [cleaned];
+      // Split on sentence boundaries, then group into chunks (max 250 chars)
+      const sentences = spokenText.match(/[^.!?\n]+[.!?\n]*/g) || [spokenText];
       const chunks = [];
       let current = '';
       for (const sentence of sentences) {
@@ -134,20 +161,25 @@ export default function useSpeechSynthesis({ onEnd } = {}) {
       if (current.trim()) chunks.push(current.trim());
 
       setIsSpeaking(true);
+      haptic(50); // Single pulse: AI starts speaking
+      onStartRef.current?.();
+
       let chunkIndex = 0;
 
       function speakNext() {
-        // Check if cancelled between chunks
         if (cancelledRef.current || chunkIndex >= chunks.length) {
           setIsSpeaking(false);
-          if (!cancelledRef.current) onEndRef.current?.();
+          if (!cancelledRef.current) {
+            haptic([30, 50, 30]); // Double pulse: AI done, ready to listen
+            onEndRef.current?.();
+          }
           return;
         }
 
         const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
         utterance.lang = 'de-DE';
-        utterance.rate = 1.05;
-        utterance.pitch = 1.0;
+        utterance.rate = speechRateRef.current;
+        utterance.pitch = 0.97; // Slightly lower for professional tone
         utterance.volume = 1.0;
 
         if (voiceRef.current) {
@@ -156,12 +188,10 @@ export default function useSpeechSynthesis({ onEnd } = {}) {
 
         utterance.onend = () => {
           chunkIndex++;
-          // Small gap between chunks for natural pacing
           setTimeout(speakNext, 50);
         };
 
         utterance.onerror = (e) => {
-          // 'interrupted' is normal when cancel() is called
           if (e.error !== 'interrupted') {
             console.warn('TTS error:', e.error);
           }
@@ -182,7 +212,7 @@ export default function useSpeechSynthesis({ onEnd } = {}) {
 
       speakNext();
     },
-    [isMuted]
+    [isMuted, haptic]
   );
 
   const cancel = useCallback(() => {
@@ -228,6 +258,7 @@ export default function useSpeechSynthesis({ onEnd } = {}) {
     isMuted,
     isSupported,
     isWarmedUp,
+    availableVoices,
     speak,
     cancel,
     toggleMute,

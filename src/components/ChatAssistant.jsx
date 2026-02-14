@@ -8,6 +8,8 @@ import {
   Bug,
   Lightbulb,
   Square,
+  RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 import useIsMobile from '../hooks/useIsMobile';
 import useChatEngine from '../hooks/useChatEngine';
@@ -267,9 +269,16 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
 
 /* ─── Main Component ───────────────────────────────────────────────── */
 
-export default function ChatAssistant({ rawData, kpis, comparisonData, currentUser }) {
+export default function ChatAssistant({ rawData, kpis, comparisonData, currentUser, forceOpen, onClose }) {
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Support external open/close (for mobile bottom nav J.E.T. tab)
+  useEffect(() => {
+    if (forceOpen != null) {
+      setIsOpen(forceOpen);
+    }
+  }, [forceOpen]);
 
   // Shared chat engine — all logic lives in the hook
   const engine = useChatEngine({ rawData, kpis, comparisonData, currentUser, isOpen });
@@ -293,6 +302,9 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
     handleTaskConfirm,
     handleTaskDiscard,
     cancelStream,
+    lastUsedModel,
+    lastError,
+    retryLastMessage,
   } = engine;
 
   /* ── Focus textarea when desktop panel opens ── */
@@ -304,30 +316,32 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
 
   return (
     <>
-      {/* ── Floating Toggle Button ── */}
-      <button
-        onClick={() => setIsOpen(prev => !prev)}
-        className={`
-          fixed bottom-6 right-6 z-40
-          ${isMobile ? 'w-16 h-16' : 'w-14 h-14'}
-          bg-gradient-to-br from-blue-500 to-blue-600
-          text-white rounded-full shadow-lg
-          flex items-center justify-center
-          hover:scale-105 hover:shadow-xl
-          active:scale-95
-          transition-all duration-200 ease-out
-          cursor-pointer
-          ${isOpen ? 'opacity-0 pointer-events-none scale-90' : 'opacity-100 scale-100'}
-        `}
-        aria-label="J.E.T. öffnen"
-      >
-        <MessageSquare size={isMobile ? 28 : 24} />
-      </button>
+      {/* ── Floating Toggle Button (hidden on mobile when using bottom nav) ── */}
+      {!(isMobile && forceOpen != null) && (
+        <button
+          onClick={() => setIsOpen(prev => !prev)}
+          className={`
+            fixed bottom-6 right-6 z-40
+            ${isMobile ? 'w-16 h-16' : 'w-14 h-14'}
+            bg-gradient-to-br from-blue-500 to-blue-600
+            text-white rounded-full shadow-lg
+            flex items-center justify-center
+            hover:scale-105 hover:shadow-xl
+            active:scale-95
+            transition-all duration-200 ease-out
+            cursor-pointer
+            ${isOpen ? 'opacity-0 pointer-events-none scale-90' : 'opacity-100 scale-100'}
+          `}
+          aria-label="J.E.T. oeffnen"
+        >
+          <MessageSquare size={isMobile ? 28 : 24} />
+        </button>
+      )}
 
       {/* ── Mobile: Fullscreen Agent View ── */}
       {isMobile && isOpen && (
         <MobileAgentView
-          onClose={() => setIsOpen(false)}
+          onClose={() => { setIsOpen(false); onClose?.(); }}
           engine={engine}
         />
       )}
@@ -404,11 +418,30 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                     px-4 py-3 text-sm leading-relaxed
                     ${msg.role === 'user'
                       ? 'bg-blue-600 text-white rounded-2xl rounded-br-sm max-w-[85%] ml-auto'
+                      : msg.isError
+                      ? 'bg-red-900/30 text-red-200 border border-red-700/40 rounded-2xl rounded-bl-sm max-w-[85%]'
                       : 'bg-slate-800/80 text-slate-200 border border-slate-700/40 rounded-2xl rounded-bl-sm max-w-[85%]'}
                   `}
                 >
                   {msg.role === 'assistant' && msg.content === '' && isStreaming ? (
                     <BouncingDots />
+                  ) : msg.role === 'assistant' && msg.isError ? (
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle size={14} className="text-red-400 mt-0.5 shrink-0" />
+                        <div className="space-y-1">{renderMarkdown(msg.content)}</div>
+                      </div>
+                      {lastError?.canRetry && (
+                        <button
+                          onClick={retryLastMessage}
+                          disabled={isStreaming}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          <RotateCcw size={12} />
+                          Erneut versuchen
+                        </button>
+                      )}
+                    </div>
                   ) : msg.role === 'assistant' ? (
                     <div className="space-y-1">{renderMarkdown(msg.content)}</div>
                   ) : (
@@ -439,6 +472,13 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
 
             <div ref={messagesEndRef} />
           </div>
+
+          {/* ── Model info footer ── */}
+          {lastUsedModel && (
+            <div className="px-4 py-1 text-[10px] text-slate-600 text-center border-t border-slate-800/30">
+              Modell: {lastUsedModel}
+            </div>
+          )}
 
           {/* ── Input Area ── */}
           <div className="border-t border-slate-700/50 px-4 py-3 shrink-0">

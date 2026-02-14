@@ -239,13 +239,110 @@ STIL:
 - Keine Floskeln, keine Einleitungen, kein Filler
 - NICHT proaktiv andere Themen ansprechen`;
 
-/* ─── Chat mode: stream from Anthropic ─── */
+/* ─── Model fallback chain ─── */
+const MODEL_CHAIN = [
+  'claude-haiku-4-5-20251001',
+  'claude-3-5-haiku-20241022',
+  'claude-sonnet-4-5-20250929',
+];
+
+/* ─── Retry config for transient errors ─── */
+const TRANSIENT_STATUS_CODES = new Set([429, 500, 502, 503]);
+const MAX_RETRIES = 2;
+const RETRY_DELAYS_MS = [1000, 3000];
+
+/**
+ * Parse an Anthropic error response body to extract the error type and message.
+ */
+function parseAnthropicError(status, bodyText) {
+  try {
+    const parsed = JSON.parse(bodyText);
+    return {
+      type: parsed.error?.type || 'unknown_error',
+      message: parsed.error?.message || bodyText.substring(0, 300),
+    };
+  } catch {
+    return { type: 'parse_error', message: bodyText.substring(0, 300) };
+  }
+}
+
+/**
+ * Check if an error indicates the model is not found / not available.
+ */
+function isModelNotFoundError(status, errorType, errorMessage) {
+  if (status === 404) return true;
+  if (errorType === 'not_found_error') return true;
+  if (errorType === 'invalid_request_error' && /model/i.test(errorMessage)) return true;
+  return false;
+}
+
+/**
+ * Build a human-readable German error message from Anthropic error details.
+ */
+function buildErrorMessage(status, errorType, errorMessage) {
+  if (status === 401) return `KI-Service Authentifizierung fehlgeschlagen. (${errorType})`;
+  if (status === 403) return `KI-Service Zugriff verweigert. (${errorType})`;
+  if (status === 404) return `KI-Modell nicht gefunden. (${errorMessage})`;
+  if (status === 429) return 'Zu viele Anfragen. Bitte kurz warten.';
+  if (status === 400) return `Ungültige Anfrage: ${errorMessage}`;
+  if (status === 529) return 'Anthropic API überlastet. Bitte kurz warten.';
+  if (status >= 500) return `KI-Service temporär nicht erreichbar (${status}).`;
+  return `KI-Fehler: ${errorType} — ${errorMessage}`;
+}
+
+/**
+ * Make a single Anthropic API call (streaming).
+ * Returns { ok, response, status, errorType, errorMessage, model }
+ */
+async function callAnthropic(apiKey, model, messages, maxTokens = 2048) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      system: SYSTEM_PROMPT,
+      messages,
+      stream: true,
+    }),
+  });
+
+  if (res.ok) {
+    return { ok: true, response: res, status: 200, errorType: null, errorMessage: null, model };
+  }
+
+  const bodyText = await res.text().catch(() => '');
+  const { type, message } = parseAnthropicError(res.status, bodyText);
+  console.error(`[chat-proxy] Anthropic error (model=${model}): ${res.status} ${type} — ${message}`);
+
+  return {
+    ok: false,
+    response: null,
+    status: res.status,
+    errorType: type,
+    errorMessage: message,
+    model,
+  };
+}
+
+/**
+ * Sleep for a given number of milliseconds.
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/* ─── Chat mode: stream from Anthropic (with fallback + retry) ─── */
 async function handleChat(body, origin) {
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
   if (!ANTHROPIC_API_KEY) {
     console.error('[chat-proxy] ANTHROPIC_API_KEY not configured');
     return new Response(
-      JSON.stringify({ error: 'Chat-Assistent nicht konfiguriert.' }),
+      JSON.stringify({ error: 'Chat-Assistent nicht konfiguriert. API-Key fehlt in den Netlify-Einstellungen.', errorCode: 'NO_API_KEY' }),
       { status: 503, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
     );
   }
@@ -284,91 +381,144 @@ async function handleChat(body, origin) {
   }
   messages.push({ role: 'user', content: userContent });
 
-  // Call Anthropic Messages API with streaming
   const apiStart = Date.now();
-  const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20250514',
-      max_tokens: 2048,
-      system: SYSTEM_PROMPT,
-      messages,
-      stream: true,
-    }),
-  });
+  let lastError = null;
+  let usedModel = null;
 
-  // Handle Anthropic error responses
-  if (!anthropicRes.ok) {
-    const status = anthropicRes.status;
-    if (status === 429) {
-      logApiCall({
-        functionName: 'chat-proxy',
-        service: 'anthropic',
-        method: 'POST',
-        endpoint: '/v1/messages',
-        durationMs: Date.now() - apiStart,
-        statusCode: 429,
-        success: false,
-        errorMessage: 'Rate limited (429)',
-        userId: body.userId || null,
-      });
-      return new Response(
-        JSON.stringify({ error: 'Zu viele Anfragen. Bitte kurz warten.' }),
-        { status: 429, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
-      );
+  // Try each model in the fallback chain
+  for (let modelIdx = 0; modelIdx < MODEL_CHAIN.length; modelIdx++) {
+    const model = MODEL_CHAIN[modelIdx];
+
+    // Retry loop for transient errors on each model
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const result = await callAnthropic(ANTHROPIC_API_KEY, model, messages);
+
+      if (result.ok) {
+        usedModel = model;
+        const wasFallback = modelIdx > 0;
+        if (wasFallback) {
+          console.log(`[chat-proxy] Fallback to model ${model} succeeded (primary was ${MODEL_CHAIN[0]})`);
+        }
+
+        // Log successful stream initiation
+        logApiCall({
+          functionName: 'chat-proxy',
+          service: 'anthropic',
+          method: 'STREAM',
+          endpoint: '/v1/messages',
+          durationMs: Date.now() - apiStart,
+          statusCode: 200,
+          success: true,
+          userId: body.userId || null,
+          metadata: { model: usedModel, maxTokens: 2048, fallback: wasFallback, attempt },
+        });
+
+        // Inject model info as first SSE event, then stream the rest
+        const modelInfoEvent = `data: ${JSON.stringify({ type: 'model_info', model: usedModel, fallback: wasFallback })}\n\n`;
+        const encoder = new TextEncoder();
+        const modelInfoChunk = encoder.encode(modelInfoEvent);
+
+        // Create a ReadableStream that first emits model info, then pipes the API body
+        const combinedStream = new ReadableStream({
+          async start(controller) {
+            controller.enqueue(modelInfoChunk);
+            const reader = result.response.body.getReader();
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                controller.enqueue(value);
+              }
+            } catch (err) {
+              console.error('[chat-proxy] Stream read error:', err.message);
+            } finally {
+              controller.close();
+            }
+          },
+        });
+
+        return new Response(combinedStream, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+            ...corsHeaders(origin),
+          },
+        });
+      }
+
+      // Error path
+      lastError = result;
+
+      // If model not found, skip retries and try next model in chain
+      if (isModelNotFoundError(result.status, result.errorType, result.errorMessage)) {
+        console.warn(`[chat-proxy] Model ${model} not found, trying next in fallback chain...`);
+        break; // break retry loop, continue model loop
+      }
+
+      // If auth error (401/403), no point retrying or trying other models
+      if (result.status === 401 || result.status === 403) {
+        logApiCall({
+          functionName: 'chat-proxy',
+          service: 'anthropic',
+          method: 'POST',
+          endpoint: '/v1/messages',
+          durationMs: Date.now() - apiStart,
+          statusCode: result.status,
+          success: false,
+          errorMessage: `${result.errorType}: ${result.errorMessage}`,
+          userId: body.userId || null,
+          metadata: { model },
+        });
+        const errorMsg = buildErrorMessage(result.status, result.errorType, result.errorMessage);
+        return new Response(
+          JSON.stringify({ error: errorMsg, errorCode: 'AUTH_ERROR', details: result.errorType }),
+          { status: result.status, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
+        );
+      }
+
+      // If transient error and we have retries left, wait and retry
+      if (TRANSIENT_STATUS_CODES.has(result.status) && attempt < MAX_RETRIES) {
+        const delay = RETRY_DELAYS_MS[attempt] || 3000;
+        console.log(`[chat-proxy] Transient error ${result.status} on ${model}, retry ${attempt + 1}/${MAX_RETRIES} after ${delay}ms...`);
+        await sleep(delay);
+        continue;
+      }
+
+      // Non-retryable, non-model-not-found error: try next model
+      break;
     }
-    const errText = await anthropicRes.text().catch(() => '');
-    console.error('[chat-proxy] Anthropic error:', status, errText.substring(0, 500));
-    // Return more specific error for debugging
-    let errorMsg = 'Fehler bei der Verarbeitung.';
-    if (status === 401) errorMsg = 'KI-Service Authentifizierung fehlgeschlagen.';
-    else if (status === 403) errorMsg = 'KI-Service Zugriff verweigert.';
-    else if (status === 400) errorMsg = 'Ungültige Anfrage an den KI-Service.';
-    logApiCall({
-      functionName: 'chat-proxy',
-      service: 'anthropic',
-      method: 'POST',
-      endpoint: '/v1/messages',
-      durationMs: Date.now() - apiStart,
-      statusCode: status,
-      success: false,
-      errorMessage: errorMsg,
-      userId: body.userId || null,
-    });
-    return new Response(
-      JSON.stringify({ error: errorMsg }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
-    );
   }
 
-  // Log successful stream initiation
+  // All models and retries exhausted
+  const finalStatus = lastError?.status || 500;
+  const finalErrorType = lastError?.errorType || 'unknown';
+  const finalErrorMsg = lastError?.errorMessage || 'Alle KI-Modelle nicht erreichbar.';
+
   logApiCall({
     functionName: 'chat-proxy',
     service: 'anthropic',
-    method: 'STREAM',
+    method: 'POST',
     endpoint: '/v1/messages',
     durationMs: Date.now() - apiStart,
-    statusCode: 200,
-    success: true,
+    statusCode: finalStatus,
+    success: false,
+    errorMessage: `All models failed. Last: ${finalErrorType}: ${finalErrorMsg}`,
     userId: body.userId || null,
-    metadata: { model: 'claude-haiku-4-5-20250514', maxTokens: 1024 },
+    metadata: { triedModels: MODEL_CHAIN, lastModel: lastError?.model },
   });
 
-  // Stream the SSE response through to the client
-  return new Response(anthropicRes.body, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-      ...corsHeaders(origin),
-    },
-  });
+  const userErrorMsg = buildErrorMessage(finalStatus, finalErrorType, finalErrorMsg);
+  return new Response(
+    JSON.stringify({
+      error: userErrorMsg,
+      errorCode: 'ALL_MODELS_FAILED',
+      details: finalErrorType,
+      triedModels: MODEL_CHAIN,
+    }),
+    { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
+  );
 }
 
 /* ─── Feedback mode: save to Supabase ─── */
@@ -610,6 +760,74 @@ async function handleMemoryLoad(body, origin) {
   }
 }
 
+/* ─── Health check: test API key and model availability ─── */
+async function handleHealth(origin) {
+  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+  const jsonHeaders = { 'Content-Type': 'application/json', ...corsHeaders(origin) };
+
+  if (!ANTHROPIC_API_KEY) {
+    return new Response(
+      JSON.stringify({
+        status: 'error',
+        error: 'ANTHROPIC_API_KEY not configured',
+        keyConfigured: false,
+        primaryModel: MODEL_CHAIN[0],
+        fallbackModels: MODEL_CHAIN.slice(1),
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: jsonHeaders }
+    );
+  }
+
+  // Test with a minimal non-streaming request to validate API key + model
+  const results = [];
+  for (const model of MODEL_CHAIN) {
+    try {
+      const start = Date.now();
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 5,
+          messages: [{ role: 'user', content: 'Hi' }],
+        }),
+      });
+      const durationMs = Date.now() - start;
+
+      if (res.ok) {
+        results.push({ model, status: 'ok', durationMs });
+      } else {
+        const bodyText = await res.text().catch(() => '');
+        const { type, message } = parseAnthropicError(res.status, bodyText);
+        results.push({ model, status: 'error', httpStatus: res.status, errorType: type, errorMessage: message, durationMs });
+      }
+    } catch (err) {
+      results.push({ model, status: 'error', errorType: 'network', errorMessage: err.message });
+    }
+  }
+
+  const anyOk = results.some(r => r.status === 'ok');
+  const firstOk = results.find(r => r.status === 'ok');
+
+  return new Response(
+    JSON.stringify({
+      status: anyOk ? 'ok' : 'error',
+      keyConfigured: true,
+      activeModel: firstOk?.model || null,
+      primaryModel: MODEL_CHAIN[0],
+      fallbackModels: MODEL_CHAIN.slice(1),
+      modelResults: results,
+      timestamp: new Date().toISOString(),
+    }),
+    { status: 200, headers: jsonHeaders }
+  );
+}
+
 /* ─── Main handler ─── */
 export default async (request, context) => {
   // Handle CORS preflight
@@ -621,14 +839,27 @@ export default async (request, context) => {
   const origin = getAllowedOrigin(request);
   if (!origin) return forbiddenResponse();
 
+  const jsonHeaders = { 'Content-Type': 'application/json', ...corsHeaders(origin) };
+
+  // Handle GET requests (health check)
+  if (request.method === 'GET') {
+    const url = new URL(request.url);
+    const mode = url.searchParams.get('mode');
+    if (mode === 'health') {
+      return await handleHealth(origin);
+    }
+    return new Response(
+      JSON.stringify({ error: 'GET only supports mode=health. Use POST for chat/feedback/memory.' }),
+      { status: 400, headers: jsonHeaders }
+    );
+  }
+
   // Rate limiting (chat is expensive — 20/min per IP)
   const clientIP = getClientIP(request);
   const limit = checkRateLimit(`chat-proxy:${clientIP}`, 20, 60_000);
   if (!limit.allowed) {
     return rateLimitResponse(limit.retryAfterMs, origin);
   }
-
-  const jsonHeaders = { 'Content-Type': 'application/json', ...corsHeaders(origin) };
 
   // Only accept POST
   if (request.method !== 'POST') {

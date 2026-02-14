@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   ArrowLeft,
   Send,
@@ -11,18 +11,37 @@ import {
   Volume2,
   VolumeX,
   Square,
+  Settings,
+  X,
+  Phone,
+  PhoneOff,
+  RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 import useSpeechRecognition from '../hooks/useSpeechRecognition';
 import useSpeechSynthesis from '../hooks/useSpeechSynthesis';
+import useVoiceSettings from '../hooks/useVoiceSettings';
+import { parseVoiceCommand } from '../utils/voiceResponseProcessor';
 
 /* ─── Quick Action Definitions ─────────────────────────────────────── */
 
 const QUICK_ACTIONS = [
-  { label: '\u{26A1} Briefing', message: 'Gib mir ein Briefing: Netzwerk-Status, kritische Themen, Akquise-Pipeline und offene Risks — alles was ich jetzt wissen muss.' },
-  { label: '\u{1F49A} Health Check', message: 'Analysiere die aktuelle Health Rate: Trend, Haupttreiber für Ausfälle, welche Städte performen schlecht, und was wir dagegen tun sollten.' },
+  { label: '\u{26A1} Briefing', message: 'Gib mir ein Briefing: Netzwerk-Status, kritische Themen, Akquise-Pipeline und offene Risks \u2014 alles was ich jetzt wissen muss.' },
+  { label: '\u{1F49A} Health Check', message: 'Analysiere die aktuelle Health Rate: Trend, Haupttreiber f\u00fcr Ausf\u00e4lle, welche St\u00e4dte performen schlecht, und was wir dagegen tun sollten.' },
   { label: '\u{1F4C8} Pipeline', message: 'Akquise-Pipeline Review: Wie viele neue Standorte letzte 7 und 30 Tage, Conversion-Rate, Bottlenecks, und Storno-Rate.' },
-  { label: '\u{1F6A8} Risiken', message: 'Zeig mir alle aktuellen Risiken: Langzeit-Offlines, überfällige Tasks, kritische Standorte und was wir priorisieren sollten.' },
-  { label: '\u{2795} Task', message: 'Ich möchte einen neuen Task anlegen.' },
+  { label: '\u{1F6A8} Risiken', message: 'Zeig mir alle aktuellen Risiken: Langzeit-Offlines, \u00fcberf\u00e4llige Tasks, kritische Standorte und was wir priorisieren sollten.' },
+  { label: '\u{2795} Task', message: 'Ich m\u00f6chte einen neuen Task anlegen.' },
+];
+
+/* ─── Voice Quick Prompts ──────────────────────────────────────────── */
+
+const VOICE_PROMPTS = [
+  { label: 'Was steht heute an?', message: 'Was steht heute an? Gib mir einen kurzen \u00dcberblick.' },
+  { label: 'Status Berlin', message: 'Wie ist der aktuelle Status in Berlin?' },
+  { label: 'Offene Tasks', message: 'Welche offenen Tasks gibt es?' },
+  { label: 'Health Rate Trend', message: 'Wie entwickelt sich die Health Rate?' },
+  { label: 'Letzte Installationen', message: 'Was waren die letzten Installationen?' },
+  { label: 'Hardware-Probleme', message: 'Gibt es aktuelle Hardware-Probleme?' },
 ];
 
 /* ─── Simple Markdown Renderer ─────────────────────────────────────── */
@@ -145,6 +164,38 @@ function BouncingDots() {
   );
 }
 
+/* ─── Voice Waveform Visualization ─────────────────────────────────── */
+
+function VoiceWaveform({ volumeLevel, color = 'blue', barCount = 5 }) {
+  const bars = useMemo(() => {
+    const result = [];
+    for (let i = 0; i < barCount; i++) {
+      // Create a natural-looking distribution: center bars taller
+      const centerWeight = 1 - Math.abs(i - (barCount - 1) / 2) / ((barCount - 1) / 2);
+      const height = Math.max(8, (volumeLevel * 40 + 8) * (0.4 + centerWeight * 0.6));
+      result.push(height);
+    }
+    return result;
+  }, [volumeLevel, barCount]);
+
+  const barColor = color === 'blue' ? 'bg-blue-400' : 'bg-emerald-400';
+
+  return (
+    <div className="flex items-center justify-center gap-1 h-12">
+      {bars.map((h, i) => (
+        <div
+          key={i}
+          className={`w-1 rounded-full ${barColor} transition-all duration-100 ease-out`}
+          style={{
+            height: `${h}px`,
+            animationDelay: `${i * 80}ms`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /* ─── Feedback Card ────────────────────────────────────────────────── */
 
 function FeedbackCard({ feedback, onConfirm, onDiscard }) {
@@ -195,7 +246,7 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
   return (
     <div className="mx-1 my-2 rounded-xl border border-slate-700/60 bg-slate-800/90 backdrop-blur-sm overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/40">
-        <span className="text-blue-400 shrink-0 text-lg">📋</span>
+        <span className="text-blue-400 shrink-0 text-lg">{'\u{1F4CB}'}</span>
         <span className="text-base font-medium text-slate-200">Neuer Task</span>
         {task.priority && (
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ml-auto ${
@@ -229,7 +280,7 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
           )}
           {task.dueDate && (
             <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">
-              Fällig: {task.dueDate}
+              F\u00e4llig: {task.dueDate}
             </span>
           )}
         </div>
@@ -259,6 +310,280 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
   );
 }
 
+/* ─── Voice Settings Panel ─────────────────────────────────────────── */
+
+function VoiceSettingsPanel({ settings, onClose }) {
+  const {
+    speechRate,
+    autoConversation,
+    voiceName,
+    setSpeechRate,
+    setAutoConversation,
+    setVoiceName,
+    SPEED_OPTIONS,
+  } = settings;
+
+  // Get available voices from TTS
+  const [voices, setVoices] = useState([]);
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    function loadVoices() {
+      const all = synth.getVoices();
+      setVoices(all.filter(v => v.lang.startsWith('de')));
+    }
+    loadVoices();
+    synth.addEventListener('voiceschanged', loadVoices);
+    return () => synth.removeEventListener('voiceschanged', loadVoices);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/60 flex items-end justify-center animate-fade-in" onClick={onClose}>
+      <div
+        className="w-full max-w-lg bg-slate-800 rounded-t-2xl border-t border-slate-700/60 p-6 space-y-5 animate-slide-up-full"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-slate-100">Sprach-Einstellungen</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 cursor-pointer">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Speech Speed */}
+        <div>
+          <label className="text-sm text-slate-400 mb-2 block">Sprechgeschwindigkeit</label>
+          <div className="flex gap-2">
+            {SPEED_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setSpeechRate(opt.value)}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                  speechRate === opt.value
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-700/60 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Auto Conversation */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-200">Auto-Gespr\u00e4chsmodus</p>
+            <p className="text-xs text-slate-500">Nach AI-Antwort automatisch zuh\u00f6ren</p>
+          </div>
+          <button
+            onClick={() => setAutoConversation(!autoConversation)}
+            className={`w-12 h-7 rounded-full transition-colors cursor-pointer relative ${
+              autoConversation ? 'bg-blue-600' : 'bg-slate-600'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${
+                autoConversation ? 'translate-x-5.5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Voice Selection */}
+        {voices.length > 1 && (
+          <div>
+            <label className="text-sm text-slate-400 mb-2 block">Stimme</label>
+            <div className="space-y-1 max-h-32 overflow-y-auto rounded-xl bg-slate-900/50 p-2">
+              <button
+                onClick={() => setVoiceName('')}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors ${
+                  !voiceName ? 'bg-blue-600/20 text-blue-300' : 'text-slate-400 hover:bg-slate-700/50'
+                }`}
+              >
+                Automatisch (beste Stimme)
+              </button>
+              {voices.map(v => (
+                <button
+                  key={v.name}
+                  onClick={() => setVoiceName(v.name)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors ${
+                    voiceName === v.name ? 'bg-blue-600/20 text-blue-300' : 'text-slate-400 hover:bg-slate-700/50'
+                  }`}
+                >
+                  {v.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Conversation Mode Overlay ────────────────────────────────────── */
+
+function ConversationOverlay({
+  conversationState, // 'listening' | 'thinking' | 'speaking' | 'idle' | 'silencePrompt'
+  interimText,
+  volumeLevel,
+  lastAIResponse,
+  onEndConversation,
+  onResume,
+  isStreaming,
+}) {
+  const stateConfig = {
+    listening: {
+      label: 'Ich h\u00f6re zu...',
+      color: 'emerald',
+      bgClass: 'bg-slate-900/95',
+    },
+    thinking: {
+      label: 'Denke nach...',
+      color: 'amber',
+      bgClass: 'bg-slate-900/97',
+    },
+    speaking: {
+      label: 'Spreche...',
+      color: 'blue',
+      bgClass: 'bg-slate-900/93',
+    },
+    idle: {
+      label: 'Bereit',
+      color: 'slate',
+      bgClass: 'bg-slate-900/95',
+    },
+    silencePrompt: {
+      label: 'Noch da?',
+      color: 'amber',
+      bgClass: 'bg-slate-900/95',
+    },
+  };
+
+  const config = stateConfig[conversationState] || stateConfig.idle;
+
+  const statusColorMap = {
+    emerald: 'text-emerald-400',
+    amber: 'text-amber-400',
+    blue: 'text-blue-400',
+    slate: 'text-slate-400',
+  };
+
+  const ringColorMap = {
+    emerald: 'ring-emerald-500/40',
+    amber: 'ring-amber-500/40',
+    blue: 'ring-blue-500/40',
+    slate: 'ring-slate-500/40',
+  };
+
+  const pulseColorMap = {
+    emerald: 'animate-conversation-pulse-green',
+    amber: 'animate-conversation-pulse-amber',
+    blue: 'animate-conversation-pulse-blue',
+    slate: '',
+  };
+
+  return (
+    <div className={`fixed inset-0 z-[55] ${config.bgClass} flex flex-col items-center justify-center transition-colors duration-500`}>
+      {/* Top bar: end conversation button */}
+      <div className="absolute top-0 left-0 right-0 h-14 flex items-center justify-between px-4 safe-top">
+        <button
+          onClick={onEndConversation}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 active:bg-red-500/40 transition-colors cursor-pointer"
+        >
+          <PhoneOff size={16} />
+          <span className="text-sm font-medium">Gespr\u00e4ch beenden</span>
+        </button>
+      </div>
+
+      {/* Center: Large mic button with ring */}
+      <div className="flex flex-col items-center gap-6">
+        {/* Animated ring around mic */}
+        <div className={`relative w-24 h-24 flex items-center justify-center`}>
+          {/* Outer pulsing ring */}
+          <div
+            className={`absolute inset-0 rounded-full ring-4 ${ringColorMap[config.color]} ${pulseColorMap[config.color]}`}
+            style={{
+              transform: `scale(${1 + volumeLevel * 0.3})`,
+              transition: 'transform 100ms ease-out',
+            }}
+          />
+          {/* Inner button */}
+          <div
+            className={`w-20 h-20 rounded-full flex items-center justify-center z-10 transition-colors duration-300 ${
+              conversationState === 'listening'
+                ? 'bg-emerald-500'
+                : conversationState === 'speaking'
+                ? 'bg-blue-500'
+                : conversationState === 'thinking'
+                ? 'bg-amber-500'
+                : 'bg-slate-600'
+            }`}
+          >
+            {conversationState === 'thinking' ? (
+              <Loader2 size={32} className="text-white animate-spin" />
+            ) : conversationState === 'speaking' ? (
+              <Volume2 size={32} className="text-white" />
+            ) : (
+              <Mic size={32} className="text-white" />
+            )}
+          </div>
+        </div>
+
+        {/* Waveform */}
+        {(conversationState === 'listening' || conversationState === 'speaking') && (
+          <VoiceWaveform
+            volumeLevel={conversationState === 'listening' ? volumeLevel : 0.3 + Math.random() * 0.3}
+            color={conversationState === 'listening' ? 'green' : 'blue'}
+            barCount={7}
+          />
+        )}
+
+        {/* Status text */}
+        <p className={`text-lg font-medium ${statusColorMap[config.color]} transition-colors duration-300`}>
+          {config.label}
+        </p>
+
+        {/* Interim transcript while user speaks */}
+        {conversationState === 'listening' && interimText && (
+          <div className="max-w-[80%] px-4 py-2 rounded-xl bg-slate-800/60 border border-slate-700/40">
+            <p className="text-sm text-slate-300 italic text-center">{interimText}</p>
+          </div>
+        )}
+
+        {/* Last AI response text (shown while speaking) */}
+        {conversationState === 'speaking' && lastAIResponse && (
+          <div className="max-w-[85%] max-h-32 overflow-y-auto px-4 py-3 rounded-xl bg-slate-800/40 border border-slate-700/30">
+            <p className="text-sm text-slate-400 leading-relaxed line-clamp-4">{lastAIResponse}</p>
+          </div>
+        )}
+
+        {/* Silence prompt */}
+        {conversationState === 'silencePrompt' && (
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-sm text-slate-400">Sag etwas oder tippe um fortzufahren</p>
+            <button
+              onClick={onResume}
+              className="px-6 py-2.5 rounded-full bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 active:bg-blue-700 transition-colors cursor-pointer"
+            >
+              Weiter zuh\u00f6ren
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom: streaming indicator */}
+      {isStreaming && conversationState === 'thinking' && (
+        <div className="absolute bottom-24 safe-bottom">
+          <BouncingDots />
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Main Component ───────────────────────────────────────────────── */
 
 export default function MobileAgentView({ onClose, engine }) {
@@ -282,95 +607,186 @@ export default function MobileAgentView({ onClose, engine }) {
     resizeTextarea,
     isDataLoaded,
     cancelStream,
+    lastUsedModel,
+    lastError,
+    retryLastMessage,
   } = engine;
 
   const autoSendTimerRef = useRef(null);
   const [interimText, setInterimText] = useState('');
-  const [voiceMode, setVoiceMode] = useState(false); // true = continuous conversation mode
+  const [conversationMode, setConversationMode] = useState(false);
+  const [conversationState, setConversationState] = useState('idle'); // 'listening' | 'thinking' | 'speaking' | 'idle' | 'silencePrompt'
+  const [showSettings, setShowSettings] = useState(false);
+  const [lastAIResponse, setLastAIResponse] = useState('');
   const prevStreamingRef = useRef(false);
-  const prevMessagesLenRef = useRef(messages.length);
+
+  /* ── Voice Settings ── */
+  const voiceSettings = useVoiceSettings();
+  const { speechRate, autoConversation, voiceName } = voiceSettings;
 
   /* ── Text-to-Speech ── */
   const {
     isSpeaking,
     isMuted,
     isSupported: ttsSupported,
+    availableVoices,
     speak,
     cancel: cancelSpeech,
     toggleMute,
     warmUp: warmUpTTS,
   } = useSpeechSynthesis({
+    speechRate,
+    voiceName,
+    onStart: useCallback(() => {
+      if (conversationMode) {
+        setConversationState('speaking');
+      }
+    }, [conversationMode]),
     onEnd: useCallback(() => {
-      // After agent finishes speaking, auto-listen if in voice mode
-      if (voiceMode) {
-        // Small delay so the mic doesn't pick up residual audio
+      if (conversationMode && autoConversation) {
+        // After agent finishes speaking, auto-listen
         setTimeout(() => {
+          setConversationState('listening');
           startListeningRef.current?.();
         }, 400);
+      } else if (conversationMode) {
+        setConversationState('idle');
       }
-    }, [voiceMode]),
+    }, [conversationMode, autoConversation]),
   });
 
   /* ── Speech Recognition ── */
-  const { isListening, isSupported: sttSupported, toggleListening, stopListening, startListening } =
-    useSpeechRecognition({
-      onResult: useCallback(
-        (transcript, isFinal) => {
-          if (isFinal) {
-            setInterimText('');
-            setInputValue(transcript);
+  const {
+    isListening,
+    isSupported: sttSupported,
+    toggleListening,
+    stopListening,
+    startListening,
+    volumeLevel,
+  } = useSpeechRecognition({
+    onResult: useCallback(
+      (transcript, isFinal) => {
+        if (isFinal) {
+          setInterimText('');
 
-            // Auto-send after 800ms delay
-            if (autoSendTimerRef.current) clearTimeout(autoSendTimerRef.current);
-            autoSendTimerRef.current = setTimeout(() => {
-              handleSend(transcript);
-              autoSendTimerRef.current = null;
-            }, 800);
-          } else {
-            setInterimText(transcript);
+          // Check for voice commands first
+          const command = parseVoiceCommand(transcript);
+          if (command.isCommand) {
+            if (command.action === 'stop') {
+              // Exit conversation mode
+              setConversationMode(false);
+              setConversationState('idle');
+              stopListeningRef.current?.();
+              return;
+            }
+            // For other commands, send as regular message (AI handles context)
           }
-        },
-        [setInputValue, handleSend]
-      ),
-      onError: useCallback(() => {
-        setInterimText('');
-      }, []),
-    });
 
-  // Ref for startListening to avoid stale closure in TTS onEnd
+          setInputValue(transcript);
+
+          // In conversation mode, send immediately
+          if (conversationMode) {
+            setConversationState('thinking');
+            handleSend(transcript);
+            return;
+          }
+
+          // In regular mode, auto-send after 800ms delay
+          if (autoSendTimerRef.current) clearTimeout(autoSendTimerRef.current);
+          autoSendTimerRef.current = setTimeout(() => {
+            handleSend(transcript);
+            autoSendTimerRef.current = null;
+          }, 800);
+        } else {
+          setInterimText(transcript);
+        }
+      },
+      [setInputValue, handleSend, conversationMode]
+    ),
+    onError: useCallback(() => {
+      setInterimText('');
+      if (conversationMode) {
+        setConversationState('idle');
+      }
+    }, [conversationMode]),
+    onSilenceTimeout: useCallback(() => {
+      if (conversationMode) {
+        setConversationState('silencePrompt');
+      }
+    }, [conversationMode]),
+    silenceTimeoutMs: 8000,
+  });
+
+  // Refs for stable references in callbacks
   const startListeningRef = useRef(startListening);
-  useEffect(() => {
-    startListeningRef.current = startListening;
-  }, [startListening]);
+  const stopListeningRef = useRef(stopListening);
+  useEffect(() => { startListeningRef.current = startListening; }, [startListening]);
+  useEffect(() => { stopListeningRef.current = stopListening; }, [stopListening]);
 
-  const isSupported = sttSupported; // backwards compat for mic button
+  const isSupported = sttSupported;
 
   /* ── Auto-speak when agent finishes streaming ── */
   useEffect(() => {
     const wasStreaming = prevStreamingRef.current;
     prevStreamingRef.current = isStreaming;
 
-    // Detect: streaming just ended (was true, now false) and there's a new message
     if (wasStreaming && !isStreaming && messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.role === 'assistant' && lastMsg.content && !isMuted) {
+        setLastAIResponse(lastMsg.content);
         speak(lastMsg.content);
+      } else if (conversationMode) {
+        // No content to speak, go back to listening
+        setConversationState('idle');
       }
     }
-  }, [isStreaming, messages, speak, isMuted]);
+  }, [isStreaming, messages, speak, isMuted, conversationMode]);
 
-  /* ── Mic button handler — also activates voice mode ── */
+  /* ── Track conversation state based on streaming ── */
+  useEffect(() => {
+    if (conversationMode && isStreaming) {
+      setConversationState('thinking');
+    }
+  }, [conversationMode, isStreaming]);
+
+  /* ── Update conversation state when listening changes ── */
+  useEffect(() => {
+    if (conversationMode && isListening) {
+      setConversationState('listening');
+    }
+  }, [conversationMode, isListening]);
+
+  /* ── Enter Conversation Mode ── */
+  const enterConversationMode = useCallback(() => {
+    warmUpTTS();
+    setConversationMode(true);
+    setConversationState('listening');
+    if (isSpeaking) cancelSpeech();
+    startListening();
+  }, [warmUpTTS, startListening, isSpeaking, cancelSpeech]);
+
+  /* ── Exit Conversation Mode ── */
+  const exitConversationMode = useCallback(() => {
+    setConversationMode(false);
+    setConversationState('idle');
+    stopListening();
+    cancelSpeech();
+  }, [stopListening, cancelSpeech]);
+
+  /* ── Resume from silence prompt ── */
+  const resumeListening = useCallback(() => {
+    setConversationState('listening');
+    startListening();
+  }, [startListening]);
+
+  /* ── Mic button handler (non-conversation mode) ── */
   const handleMicToggle = useCallback(() => {
-    // Warm up TTS on first user gesture (required for iOS Safari)
     warmUpTTS();
 
     if (isListening) {
       stopListening();
-      setVoiceMode(false);
     } else {
-      // Cancel TTS if agent is speaking, then start listening
       if (isSpeaking) cancelSpeech();
-      setVoiceMode(true);
       toggleListening();
     }
   }, [isListening, stopListening, toggleListening, isSpeaking, cancelSpeech, warmUpTTS]);
@@ -423,21 +839,42 @@ export default function MobileAgentView({ onClose, engine }) {
   const placeholder = interimText
     ? interimText
     : isListening
-    ? 'Ich höre zu...'
+    ? 'Ich h\u00f6re zu...'
     : 'Nachricht eingeben...';
 
   return (
     <div
       className="fixed inset-0 z-50 bg-slate-900 text-slate-100 flex flex-col animate-slide-up-full safe-top safe-bottom"
-      onClick={warmUpTTS} /* Warm up TTS on any tap — needed for iOS */
+      onClick={warmUpTTS}
     >
+
+      {/* ── Conversation Mode Overlay ── */}
+      {conversationMode && (
+        <ConversationOverlay
+          conversationState={conversationState}
+          interimText={interimText}
+          volumeLevel={volumeLevel}
+          lastAIResponse={lastAIResponse}
+          onEndConversation={exitConversationMode}
+          onResume={resumeListening}
+          isStreaming={isStreaming}
+        />
+      )}
+
+      {/* ── Voice Settings Panel ── */}
+      {showSettings && (
+        <VoiceSettingsPanel
+          settings={{ ...voiceSettings, availableVoices }}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between h-14 px-4 bg-slate-800/80 border-b border-slate-700/50 shrink-0">
         <button
           onClick={onClose}
           className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-slate-100 active:bg-slate-700/50 transition-colors cursor-pointer"
-          aria-label="Zurück"
+          aria-label="Zur\u00fcck"
         >
           <ArrowLeft size={22} />
         </button>
@@ -449,13 +886,22 @@ export default function MobileAgentView({ onClose, engine }) {
 
         <div className="flex items-center gap-1">
           {/* Speaking indicator */}
-          {isSpeaking && (
+          {isSpeaking && !conversationMode && (
             <div className="flex items-center gap-0.5 mr-1" title="Spricht...">
               <span className="w-1 h-3 bg-blue-400 rounded-full animate-pulse" />
               <span className="w-1 h-4 bg-blue-400 rounded-full animate-pulse [animation-delay:150ms]" />
               <span className="w-1 h-2.5 bg-blue-400 rounded-full animate-pulse [animation-delay:300ms]" />
             </div>
           )}
+
+          {/* Settings gear */}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+            aria-label="Sprach-Einstellungen"
+          >
+            <Settings size={18} />
+          </button>
 
           {/* Mute/unmute button */}
           {ttsSupported && (
@@ -482,27 +928,29 @@ export default function MobileAgentView({ onClose, engine }) {
         </div>
       </div>
 
-      {/* ── Quick Actions ── */}
-      <div className="flex gap-2 px-4 py-2.5 overflow-x-auto border-b border-slate-800/50 shrink-0 scrollbar-none snap-x snap-mandatory">
-        {QUICK_ACTIONS.map((action) => (
-          <button
-            key={action.label}
-            onClick={() => handleSend(action.message)}
-            disabled={isStreaming}
-            className="
-              whitespace-nowrap text-xs px-4 py-2 rounded-full snap-start
-              bg-slate-800/70 text-slate-300
-              border border-slate-700/40
-              hover:bg-slate-700/70 hover:text-slate-100 hover:border-slate-600/50
-              active:bg-slate-700/90
-              disabled:opacity-40 disabled:cursor-not-allowed
-              transition-colors cursor-pointer shrink-0
-            "
-          >
-            {action.label}
-          </button>
-        ))}
-      </div>
+      {/* ── Quick Actions (text mode) ── */}
+      {!conversationMode && (
+        <div className="flex gap-2 px-4 py-2.5 overflow-x-auto border-b border-slate-800/50 shrink-0 scrollbar-none snap-x snap-mandatory">
+          {QUICK_ACTIONS.map((action) => (
+            <button
+              key={action.label}
+              onClick={() => handleSend(action.message)}
+              disabled={isStreaming}
+              className="
+                whitespace-nowrap text-xs px-4 py-2 rounded-full snap-start
+                bg-slate-800/70 text-slate-300
+                border border-slate-700/40
+                hover:bg-slate-700/70 hover:text-slate-100 hover:border-slate-600/50
+                active:bg-slate-700/90
+                disabled:opacity-40 disabled:cursor-not-allowed
+                transition-colors cursor-pointer shrink-0
+              "
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Messages Area ── */}
       <div
@@ -519,11 +967,30 @@ export default function MobileAgentView({ onClose, engine }) {
                 px-4 py-3 text-base leading-relaxed
                 ${msg.role === 'user'
                   ? 'bg-blue-600 text-white rounded-2xl rounded-br-sm max-w-[90%] ml-auto'
+                  : msg.isError
+                  ? 'bg-red-900/30 text-red-200 border border-red-700/40 rounded-2xl rounded-bl-sm max-w-[90%]'
                   : 'bg-slate-800/80 text-slate-200 border border-slate-700/40 rounded-2xl rounded-bl-sm max-w-[90%]'}
               `}
             >
               {msg.role === 'assistant' && msg.content === '' && isStreaming ? (
                 <BouncingDots />
+              ) : msg.role === 'assistant' && msg.isError ? (
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle size={16} className="text-red-400 mt-0.5 shrink-0" />
+                    <div className="space-y-1">{renderMarkdown(msg.content)}</div>
+                  </div>
+                  {lastError?.canRetry && (
+                    <button
+                      onClick={retryLastMessage}
+                      disabled={isStreaming}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 active:bg-amber-500/30 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      <RotateCcw size={14} />
+                      Erneut versuchen
+                    </button>
+                  )}
+                </div>
               ) : msg.role === 'assistant' ? (
                 <div className="space-y-1">{renderMarkdown(msg.content)}</div>
               ) : (
@@ -555,9 +1022,56 @@ export default function MobileAgentView({ onClose, engine }) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* ── Model info footer ── */}
+      {lastUsedModel && !conversationMode && (
+        <div className="px-4 py-1 text-[10px] text-slate-600 text-center border-t border-slate-800/30">
+          Modell: {lastUsedModel}
+        </div>
+      )}
+
+      {/* ── Voice Quick Prompts (shown when idle, not in conversation mode) ── */}
+      {!conversationMode && !isStreaming && !isListening && messages.length <= 2 && (
+        <div className="px-4 pb-2 shrink-0">
+          <p className="text-xs text-slate-500 mb-2">Schnellaktionen per Sprache:</p>
+          <div className="flex flex-wrap gap-2">
+            {VOICE_PROMPTS.map((prompt) => (
+              <button
+                key={prompt.label}
+                onClick={() => handleSend(prompt.message)}
+                className="text-xs px-3 py-1.5 rounded-full bg-slate-800/50 text-slate-400 border border-slate-700/30 hover:bg-slate-700/50 hover:text-slate-200 active:bg-slate-700 transition-colors cursor-pointer"
+              >
+                {prompt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Input Area ── */}
       <div className="border-t border-slate-700/50 px-4 py-3 shrink-0 safe-bottom">
         <div className="flex items-end gap-2">
+          {/* Conversation mode button */}
+          {isSupported && !conversationMode && (
+            <button
+              onClick={enterConversationMode}
+              disabled={isStreaming}
+              className="
+                w-12 h-12 shrink-0 rounded-full
+                flex items-center justify-center
+                bg-gradient-to-br from-emerald-500 to-emerald-600
+                text-white
+                hover:from-emerald-400 hover:to-emerald-500
+                active:from-emerald-600 active:to-emerald-700
+                disabled:opacity-40 disabled:cursor-not-allowed
+                transition-all cursor-pointer
+              "
+              aria-label="Gespr\u00e4chsmodus starten"
+              title="Gespr\u00e4chsmodus"
+            >
+              <Phone size={20} />
+            </button>
+          )}
+
           {/* Textarea */}
           <textarea
             ref={textareaRef}
@@ -580,8 +1094,8 @@ export default function MobileAgentView({ onClose, engine }) {
             style={{ maxHeight: '120px' }}
           />
 
-          {/* Mic button — hidden if speech not supported */}
-          {isSupported && (
+          {/* Mic button (regular mode) */}
+          {isSupported && !conversationMode && (
             <button
               onClick={handleMicToggle}
               disabled={isStreaming}
@@ -592,7 +1106,7 @@ export default function MobileAgentView({ onClose, engine }) {
                 disabled:opacity-40 disabled:cursor-not-allowed
                 ${isListening
                   ? 'bg-red-500 text-white animate-voice-pulse'
-                  : voiceMode && isSpeaking
+                  : isSpeaking
                   ? 'bg-blue-500/60 text-white ring-2 ring-blue-400/40'
                   : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 active:from-blue-600 active:to-blue-700'}
               `}
@@ -636,6 +1150,18 @@ export default function MobileAgentView({ onClose, engine }) {
             </button>
           )}
         </div>
+
+        {/* Speed indicator */}
+        {speechRate !== 1.0 && (
+          <div className="mt-1.5 flex justify-center">
+            <button
+              onClick={voiceSettings.cycleSpeechRate}
+              className="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+            >
+              Geschwindigkeit: {speechRate}x
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

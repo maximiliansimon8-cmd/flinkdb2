@@ -79,6 +79,9 @@ const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
 const AkquiseApp = lazy(() => import('./components/AkquiseApp'));
 const InstallationsDashboard = lazy(() => import('./components/InstallationsDashboard'));
 const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'));
+const MobileDashboard = lazy(() => import('./components/MobileDashboard'));
+const MobileDisplayCards = lazy(() => import('./components/MobileDisplayCards'));
+import MobileBottomNav from './components/MobileBottomNav';
 import { fetchVenuePerformance } from './utils/vistarService';
 import useIsMobile from './hooks/useIsMobile';
 
@@ -210,9 +213,35 @@ function App() {
   const [globalSearch, setGlobalSearch] = useState('');
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
 
-  /* ─── Mobile Akquise App Overlay ─── */
+  /* ─── Mobile UI State ─── */
   const isMobile = useIsMobile(768);
   const [showAkquiseApp, setShowAkquiseApp] = useState(false);
+  const [mobileTab, setMobileTab] = useState('mobile-home');
+  const [mobileDisplayFilter, setMobileDisplayFilter] = useState(null);
+  const [showMobileChat, setShowMobileChat] = useState(false);
+
+  // Mobile navigation handler — supports deep-linking to filtered views
+  const handleMobileNavigate = useCallback((tab, filter) => {
+    if (navigator.vibrate) navigator.vibrate(8);
+    setMobileTab(tab);
+    if (filter) setMobileDisplayFilter(filter);
+    else setMobileDisplayFilter(null);
+    // If navigating to chat
+    if (tab === 'mobile-jet') {
+      setShowMobileChat(true);
+    }
+  }, []);
+
+  // Mobile bottom nav handler
+  const handleMobileTabChange = useCallback((tab) => {
+    setMobileTab(tab);
+    setMobileDisplayFilter(null);
+    if (tab === 'mobile-jet') {
+      setShowMobileChat(true);
+    } else {
+      setShowMobileChat(false);
+    }
+  }, []);
   const globalSearchRef = useRef(null);
 
   // Webhook URL for alert automation (persisted in localStorage)
@@ -1208,6 +1237,151 @@ function App() {
           onClose={() => setActiveMainTab('overview')}
         />
       </Suspense>
+    );
+  }
+
+  /* ─── Mobile Layout ─── */
+  if (isMobile) {
+    // Compute badges for bottom nav
+    const mobileBadges = {};
+    const offlineCount = (kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0);
+    if (offlineCount > 0) mobileBadges['mobile-displays'] = offlineCount;
+
+    // Hardware defects
+    const defectCount = comparisonData?.airtable?.locationMap
+      ? [...comparisonData.airtable.locationMap.values()].filter(l =>
+          l.status && /defect|defekt/i.test(l.status)
+        ).length
+      : 0;
+    if (defectCount > 0) mobileBadges['mobile-hardware'] = defectCount;
+
+    // J.E.T. badge (always show dot to indicate it's there)
+    mobileBadges['mobile-jet'] = true;
+
+    return (
+      <div className="min-h-screen flex flex-col mobile-app-container">
+        {/* Mobile Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Suspense fallback={
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            </div>
+          }>
+            {/* Home */}
+            {mobileTab === 'mobile-home' && (
+              <MobileDashboard
+                kpis={kpis}
+                rawData={rawData}
+                comparisonData={comparisonData}
+                comparisonKPIs={comparisonKPIs}
+                onNavigate={handleMobileNavigate}
+                onSelectDisplay={setSelectedDisplay}
+                onRefresh={() => loadData(true)}
+                isRefreshing={loading}
+              />
+            )}
+
+            {/* Displays */}
+            {mobileTab === 'mobile-displays' && (
+              <MobileDisplayCards
+                displays={rawData.displays}
+                onSelectDisplay={setSelectedDisplay}
+                comparisonData={comparisonData}
+                initialFilter={mobileDisplayFilter}
+              />
+            )}
+
+            {/* Rollout (Akquise + Installations + Tasks) */}
+            {mobileTab === 'mobile-rollout' && (
+              <div className="flex-1 overflow-y-auto pb-24">
+                {mobileDisplayFilter === 'tasks' ? (
+                  <TaskDashboard />
+                ) : (
+                  <>
+                    <AcquisitionDashboard onOpenAkquiseApp={() => setShowAkquiseApp(true)} />
+                    <div className="mt-4">
+                      <InstallationsDashboard />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Hardware */}
+            {mobileTab === 'mobile-hardware' && (
+              <div className="flex-1 overflow-y-auto pb-24">
+                <HardwareDashboard comparisonData={comparisonData} rawData={rawData} />
+              </div>
+            )}
+
+            {/* J.E.T. Chat — handled via ChatAssistant overlay */}
+            {mobileTab === 'mobile-jet' && (
+              <div className="flex-1" />
+            )}
+          </Suspense>
+        </div>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav
+          activeTab={mobileTab}
+          onTabChange={handleMobileTabChange}
+          badges={mobileBadges}
+        />
+
+        {/* AI Chat Assistant — opens as overlay on mobile when J.E.T. tab is active */}
+        <Suspense fallback={null}>
+          <ChatAssistant
+            rawData={rawData}
+            kpis={kpis}
+            comparisonData={comparisonData}
+            currentUser={currentUser}
+            forceOpen={showMobileChat}
+            onClose={() => { setShowMobileChat(false); setMobileTab('mobile-home'); }}
+          />
+        </Suspense>
+
+        {/* Display Detail Modal */}
+        {selectedDisplay && (
+          <Suspense fallback={<div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-white" /></div>}>
+            <DisplayDetail
+              display={selectedDisplay}
+              onClose={() => setSelectedDisplay(null)}
+            />
+          </Suspense>
+        )}
+
+        {/* Session Timeout Warning Banner */}
+        {sessionWarning && (
+          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-xl bg-amber-50/95 backdrop-blur-xl border border-amber-200/60 shadow-lg animate-fade-in">
+            <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-amber-800">Session laeuft ab</p>
+            </div>
+            <button
+              onClick={() => { touchSession(); setSessionWarning(false); }}
+              className="ml-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 text-white active:bg-amber-600 transition-colors"
+            >
+              Verlaengern
+            </button>
+          </div>
+        )}
+
+        {/* Mobile Akquise App Overlay */}
+        {showAkquiseApp && (
+          <Suspense fallback={
+            <div className="fixed inset-0 z-[10000] bg-[#F2F2F7] flex items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" />
+            </div>
+          }>
+            <AkquiseApp onClose={() => setShowAkquiseApp(false)} />
+          </Suspense>
+        )}
+
+        {/* Password Change Modal */}
+        {showPasswordModal && (
+          <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
+        )}
+      </div>
     );
   }
 

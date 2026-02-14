@@ -31,6 +31,9 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
   const [deinstalls, setDeinstalls] = useState([]);
   const [memories, setMemories] = useState([]);
   const [memoriesLoaded, setMemoriesLoaded] = useState(false);
+  const [lastUsedModel, setLastUsedModel] = useState(null);
+  const [lastError, setLastError] = useState(null); // { message, errorCode, canRetry, lastMessage }
+  const [consecutiveErrors, setConsecutiveErrors] = useState(0);
 
   /* ── Refs ── */
   const messagesEndRef = useRef(null);
@@ -235,8 +238,17 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || 'Fehler bei der Verarbeitung');
+        const errorCode = err.errorCode || 'UNKNOWN';
+        const canRetry = !['AUTH_ERROR', 'NO_API_KEY'].includes(errorCode);
+        const errorMsg = err.error || 'Fehler bei der Verarbeitung';
+        setLastError({ message: errorMsg, errorCode, canRetry, lastMessage: userMsg });
+        setConsecutiveErrors(prev => prev + 1);
+        throw new Error(errorMsg);
       }
+
+      // Clear error state on successful response
+      setLastError(null);
+      setConsecutiveErrors(0);
 
       // Add empty assistant message, then stream into it
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
@@ -262,6 +274,11 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
             if (data === '[DONE]') continue;
             try {
               const parsed = JSON.parse(data);
+              // Capture model info event
+              if (parsed.type === 'model_info') {
+                setLastUsedModel(parsed.model || null);
+                continue;
+              }
               if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
                 fullText += parsed.delta.text;
                 setMessages(prev => {
@@ -363,11 +380,20 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
       if (error.name === 'AbortError') {
         // Stream was cancelled by user — keep partial text, just stop streaming
       } else {
+        // Build a user-friendly error message
+        let displayMsg = error.message || 'Verbindungsfehler. Bitte versuche es erneut.';
+
+        // If we have persistent failures, suggest checking the API key
+        if (consecutiveErrors >= 2) {
+          displayMsg += '\n\nKI-Service nicht erreichbar. Bitte pruefe den API-Key in den Netlify-Einstellungen.';
+        }
+
         setMessages(prev => [
           ...prev,
           {
             role: 'assistant',
-            content: `\u26A0\uFE0F ${error.message || 'Verbindungsfehler. Bitte versuche es erneut.'}`,
+            content: displayMsg,
+            isError: true,
           },
         ]);
       }
@@ -375,7 +401,7 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
       abortControllerRef.current = null;
       setIsStreaming(false);
     }
-  }, [isStreaming, rawData, kpis, comparisonData, messages, tasks, acquisition, memories, currentUser]);
+  }, [isStreaming, rawData, kpis, comparisonData, messages, tasks, acquisition, memories, currentUser, consecutiveErrors]);
 
   /* ── Cancel streaming ── */
   const cancelStream = useCallback(() => {
@@ -383,6 +409,23 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
       abortControllerRef.current.abort();
     }
   }, []);
+
+  /* ── Retry last failed message ── */
+  const retryLastMessage = useCallback(() => {
+    if (!lastError?.lastMessage) return;
+    const msg = lastError.lastMessage;
+    setLastError(null);
+    // Remove the last error message from the conversation
+    setMessages(prev => {
+      const cleaned = [...prev];
+      if (cleaned.length > 0 && cleaned[cleaned.length - 1].isError) {
+        cleaned.pop();
+      }
+      return cleaned;
+    });
+    // Re-send (need slight delay so state updates propagate)
+    setTimeout(() => handleSend(msg), 50);
+  }, [lastError, handleSend]);
 
   /* ── Feedback handlers ── */
   const handleFeedbackConfirm = useCallback(async () => {
@@ -512,5 +555,9 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
     handleTaskDiscard,
     resizeTextarea,
     cancelStream,
+    lastUsedModel,
+    lastError,
+    retryLastMessage,
+    consecutiveErrors,
   };
 }
