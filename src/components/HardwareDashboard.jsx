@@ -18,6 +18,8 @@ import {
   fetchAllDeinstalls,
   fetchAllDisplayLocations,
   fetchAllInstallationen,
+  fetchAllSimInventory,
+  fetchAllDisplayInventory,
 } from '../utils/airtableService';
 
 /* ──────────────────────── STATUS COLORS ──────────────────────── */
@@ -95,6 +97,8 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
   const [deinstalls, setDeinstalls] = useState([]);
   const [displayLocations, setDisplayLocations] = useState([]);
   const [installationen, setInstallationen] = useState([]);
+  const [simInventory, setSimInventory] = useState([]);
+  const [displayInventory, setDisplayInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -118,13 +122,15 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
     if (isRefresh) setRefreshing(true); else setLoading(true);
 
     try {
-      const [ops, lease, sw, deinst, dispLoc, inst] = await Promise.all([
+      const [ops, lease, sw, deinst, dispLoc, inst, sims, dispInv] = await Promise.all([
         fetchAllOpsInventory(),
         fetchAllLeasingData(),
         fetchAllSwaps().catch(() => []),
         fetchAllDeinstalls().catch(() => []),
         fetchAllDisplayLocations().catch(() => []),
         fetchAllInstallationen().catch(() => []),
+        fetchAllSimInventory().catch(() => []),
+        fetchAllDisplayInventory().catch(() => []),
       ]);
       setOpsData(ops || []);
       setLeaseData(lease || { chg: [], bank: [] });
@@ -132,6 +138,8 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
       setDeinstalls(deinst || []);
       setDisplayLocations(dispLoc || []);
       setInstallationen(inst || []);
+      setSimInventory(sims || []);
+      setDisplayInventory(dispInv || []);
     } catch (err) {
       console.error('[HardwareDashboard] Load error:', err);
     } finally {
@@ -544,22 +552,38 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
     return events;
   }, [installationen, swaps, deinstalls]);
 
-  /* ─── Hardware SN Mismatch Detection (across all locations) ─── */
+  /* ─── Hardware Cross-System Mismatch Detection (all locations) ─── */
   const hwMismatches = useMemo(() => {
     const issues = [];
 
-    // Build lookup maps for leasing data
+    // ═══ Build lookup maps ═══
     const chgByJetId = new Map();
     for (const chg of (leaseData.chg || [])) {
-      if (chg.jetIdLocation) {
-        chgByJetId.set(chg.jetIdLocation, chg);
-      }
+      if (chg.jetIdLocation) chgByJetId.set(chg.jetIdLocation, chg);
     }
     const bankBySn = new Map();
+    const bankByAssetId = new Map();
+    const bankByOrder = new Map();
     for (const bank of (leaseData.bank || [])) {
-      if (bank.serialNumber) {
-        bankBySn.set(bank.serialNumber, bank);
-      }
+      if (bank.serialNumber) bankBySn.set(bank.serialNumber, bank);
+      if (bank.assetId) bankByAssetId.set(bank.assetId, bank);
+      if (bank.orderNumber) bankByOrder.set(bank.orderNumber, bank);
+    }
+
+    // SIM inventory lookup by record ID and by SIM-ID
+    const simById = new Map();
+    const simBySimId = new Map();
+    for (const sim of simInventory) {
+      simById.set(sim.id, sim);
+      if (sim.simId) simBySimId.set(sim.simId, sim);
+    }
+
+    // Display inventory lookup by record ID and by serial number
+    const displayById = new Map();
+    const displayBySn = new Map();
+    for (const disp of displayInventory) {
+      displayById.set(disp.id, disp);
+      if (disp.displaySerialNumber) displayBySn.set(disp.displaySerialNumber, disp);
     }
 
     // Group enriched OPS by displayLocationId (only those with a location)
@@ -576,12 +600,10 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
     // Build display location navori lookup
     const locationNavoriMap = new Map();
     for (const loc of displayLocations) {
-      if (loc.navoriVenueId) {
-        locationNavoriMap.set(loc.id, loc.navoriVenueId);
-      }
+      if (loc.navoriVenueId) locationNavoriMap.set(loc.id, loc.navoriVenueId);
     }
 
-    // Iterate over each location's OPS records
+    // ═══ Iterate over each location's OPS records ═══
     for (const [locId, locationOps] of opsByLocation) {
       const loc = locationMap.get(locId);
       if (!loc) continue;
@@ -595,10 +617,12 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
         const hwDisplaySn = ops.displaySn || '';
         const hwOpsSn = ops.opsSn || '';
         const opsNavoriId = ops.navoriVenueId || '';
+        const isActive = (ops.status || '').toLowerCase() === 'active';
 
         // Get CHG record for this JET ID
         const chg = jetId ? chgByJetId.get(jetId) : null;
         const chgDisplaySn = chg?.displaySn || '';
+        const chgAssetId = chg?.assetId || '';
 
         // Get Bank record for this display SN
         const bank = hwDisplaySn ? bankBySn.get(hwDisplaySn) : null;
@@ -607,7 +631,20 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
         // Also try bank match by OPS SN (some bank records use OPS SN)
         const bankByOpsSn = hwOpsSn ? bankBySn.get(hwOpsSn) : null;
 
-        // ── 1) CHG Display-SN ≠ Hardware Display-SN
+        // Try bank match by JET ID (order_number can match JET ID)
+        const bankByJet = jetId ? bankByOrder.get(jetId) : null;
+
+        // Get linked SIM record
+        const linkedSim = ops.simRecordId ? simById.get(ops.simRecordId) : null;
+
+        // Get linked Display record
+        const linkedDisplay = ops.displayRecordId ? displayById.get(ops.displayRecordId) : null;
+
+        // ════════════════════════════════════════════════════
+        // DISPLAY-SN CROSS-CHECKS
+        // ════════════════════════════════════════════════════
+
+        // ── 1) CHG Display-SN ≠ OPS Display-SN
         if (chgDisplaySn && hwDisplaySn && chgDisplaySn !== hwDisplaySn) {
           issues.push({
             locationId: locId, locationName, city, jetId,
@@ -624,7 +661,7 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
           });
         }
 
-        // ── 2) Bank Serial ≠ Hardware Display-SN
+        // ── 2) Bank Serial ≠ OPS Display-SN
         if (bank && bankSerial && hwDisplaySn && bankSerial !== hwDisplaySn) {
           issues.push({
             locationId: locId, locationName, city, jetId,
@@ -658,7 +695,199 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
           });
         }
 
-        // ── 4) Navori Venue ID: Display-Tabelle ≠ OPS-Tabelle
+        // ── 4) OPS Display-SN ≠ Display Inventory SN (linked record)
+        if (linkedDisplay && linkedDisplay.displaySerialNumber && hwDisplaySn
+            && linkedDisplay.displaySerialNumber !== hwDisplaySn) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'Display-SN',
+            source1: 'hardware_ops',
+            field1: 'display_sn',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: hwDisplaySn,
+            source2: 'hardware_displays',
+            field2: 'display_serial_number',
+            sourceLabel2: 'Display Inventory (Airtable)',
+            value2: linkedDisplay.displaySerialNumber,
+          });
+        }
+
+        // ════════════════════════════════════════════════════
+        // SIM-ID CROSS-CHECKS
+        // ════════════════════════════════════════════════════
+
+        // ── 5) OPS SIM-ID ≠ SIM Inventory SIM-ID (linked record)
+        if (linkedSim && linkedSim.simId && ops.simId
+            && linkedSim.simId !== ops.simId) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'SIM-ID',
+            source1: 'hardware_ops',
+            field1: 'sim_id',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: ops.simId,
+            source2: 'hardware_sim',
+            field2: 'sim_id',
+            sourceLabel2: 'SIM Inventory (Airtable)',
+            value2: linkedSim.simId,
+          });
+        }
+
+        // ── 6) OPS aktiv, hat SIM-Link, aber SIM-Record existiert nicht
+        if (isActive && ops.simRecordId && !linkedSim) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'SIM-Zuordnung',
+            source1: 'hardware_ops',
+            field1: 'sim_record_id',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: `Link: ${ops.simRecordId.substring(0, 12)}...`,
+            source2: 'hardware_sim',
+            field2: 'id',
+            sourceLabel2: 'SIM Inventory (Airtable)',
+            value2: '(nicht gefunden)',
+          });
+        }
+
+        // ── 7) OPS aktiv, aber keine SIM-ID zugeordnet
+        if (isActive && !ops.simId && ops.displayLocationId) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'Fehlende SIM',
+            source1: 'hardware_ops',
+            field1: 'sim_id',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: '(leer)',
+            source2: 'hardware_ops',
+            field2: 'status',
+            sourceLabel2: 'OPS Status',
+            value2: 'active — ohne SIM',
+          });
+        }
+
+        // ── 8) SIM-Record zeigt auf anderen OPS (Rückverweis-Check)
+        if (linkedSim && linkedSim.opsRecordId && linkedSim.opsRecordId !== ops.id) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'SIM-Zuordnung',
+            source1: 'hardware_ops',
+            field1: 'id → sim_record_id',
+            sourceLabel1: 'OPS → SIM Link',
+            value1: `OPS-${ops.opsNr}`,
+            source2: 'hardware_sim',
+            field2: 'ops_record_id',
+            sourceLabel2: 'SIM → OPS Rückverweis',
+            value2: `zeigt auf anderes OPS`,
+          });
+        }
+
+        // ════════════════════════════════════════════════════
+        // DISPLAY LINKAGE CROSS-CHECKS
+        // ════════════════════════════════════════════════════
+
+        // ── 9) OPS aktiv, hat Display-Link, aber Display-Record existiert nicht
+        if (isActive && ops.displayRecordId && !linkedDisplay) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'Display-Zuordnung',
+            source1: 'hardware_ops',
+            field1: 'display_record_id',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: `Link: ${ops.displayRecordId.substring(0, 12)}...`,
+            source2: 'hardware_displays',
+            field2: 'id',
+            sourceLabel2: 'Display Inventory (Airtable)',
+            value2: '(nicht gefunden)',
+          });
+        }
+
+        // ── 10) Display-Record zeigt auf anderen OPS (Rückverweis-Check)
+        if (linkedDisplay && linkedDisplay.opsRecordId && linkedDisplay.opsRecordId !== ops.id) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'Display-Zuordnung',
+            source1: 'hardware_ops',
+            field1: 'id → display_record_id',
+            sourceLabel1: 'OPS → Display Link',
+            value1: `OPS-${ops.opsNr}`,
+            source2: 'hardware_displays',
+            field2: 'ops_record_id',
+            sourceLabel2: 'Display → OPS Rückverweis',
+            value2: `zeigt auf anderes OPS`,
+          });
+        }
+
+        // ════════════════════════════════════════════════════
+        // JET-ID & ASSET-ID CROSS-CHECKS
+        // ════════════════════════════════════════════════════
+
+        // ── 11) CHG Asset-ID ≠ Bank Asset-ID (gleicher Standort)
+        if (chgAssetId && bank) {
+          const bankAssetId = bank.assetId || '';
+          if (bankAssetId && chgAssetId !== bankAssetId) {
+            issues.push({
+              locationId: locId, locationName, city, jetId,
+              opsNr: ops.opsNr || '',
+              type: 'Asset-ID',
+              source1: 'chg_approvals',
+              field1: 'asset_id',
+              sourceLabel1: 'CHG Leasing',
+              value1: chgAssetId,
+              source2: 'bank_leasing',
+              field2: 'asset_id',
+              sourceLabel2: 'Bank TESMA Leasing',
+              value2: bankAssetId,
+            });
+          }
+        }
+
+        // ── 12) Bank order_number (JET-ID) ≠ Location JET-ID
+        if (bank && bank.orderNumber && jetId && bank.orderNumber !== jetId) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'JET-ID',
+            source1: 'airtable_displays',
+            field1: 'jet_id',
+            sourceLabel1: 'Display Locations (Airtable)',
+            value1: jetId,
+            source2: 'bank_leasing',
+            field2: 'order_number',
+            sourceLabel2: 'Bank TESMA Leasing',
+            value2: bank.orderNumber,
+          });
+        }
+
+        // ── 13) Bank matched by JET-ID has different Display-SN
+        if (bankByJet && hwDisplaySn && bankByJet.serialNumber
+            && bankByJet.serialNumber !== hwDisplaySn && bankByJet !== bank) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'JET-ID → SN',
+            source1: 'hardware_ops',
+            field1: 'display_sn',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: hwDisplaySn,
+            source2: 'bank_leasing',
+            field2: `serial_number (via order_number=${jetId})`,
+            sourceLabel2: 'Bank TESMA (per JET-ID)',
+            value2: bankByJet.serialNumber,
+          });
+        }
+
+        // ════════════════════════════════════════════════════
+        // NAVORI VENUE-ID CHECKS
+        // ════════════════════════════════════════════════════
+
+        // ── 14) Navori Venue ID: Display-Tabelle ≠ OPS-Tabelle
         if (locationNavoriId && opsNavoriId && locationNavoriId !== opsNavoriId) {
           issues.push({
             locationId: locId, locationName, city, jetId,
@@ -675,7 +904,7 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
           });
         }
 
-        // ── 5) OPS hat Location-Zuordnung, aber Location hat keinen Navori Eintrag
+        // ── 15) OPS hat Navori-ID, aber Location nicht
         if (opsNavoriId && !locationNavoriId && ops.displayLocationId) {
           issues.push({
             locationId: locId, locationName, city, jetId,
@@ -692,8 +921,12 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
           });
         }
 
-        // ── 6) OPS aktiv, aber kein CHG-Leasing vorhanden
-        if (hwDisplaySn && (ops.status || '').toLowerCase() === 'active' && jetId && !chg) {
+        // ════════════════════════════════════════════════════
+        // FEHLENDE DATEN CHECKS
+        // ════════════════════════════════════════════════════
+
+        // ── 16) OPS aktiv, aber kein CHG-Leasing vorhanden
+        if (hwDisplaySn && isActive && jetId && !chg) {
           issues.push({
             locationId: locId, locationName, city, jetId,
             opsNr: ops.opsNr || '',
@@ -709,8 +942,8 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
           });
         }
 
-        // ── 7) OPS aktiv, aber kein Bank-Leasing vorhanden
-        if (hwDisplaySn && (ops.status || '').toLowerCase() === 'active' && !bank && !bankByOpsSn) {
+        // ── 17) OPS aktiv, aber kein Bank-Leasing vorhanden
+        if (hwDisplaySn && isActive && !bank && !bankByOpsSn) {
           issues.push({
             locationId: locId, locationName, city, jetId,
             opsNr: ops.opsNr || '',
@@ -726,8 +959,8 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
           });
         }
 
-        // ── 8) Display-SN leer obwohl OPS aktiv
-        if (!hwDisplaySn && (ops.status || '').toLowerCase() === 'active') {
+        // ── 18) Display-SN leer obwohl OPS aktiv
+        if (!hwDisplaySn && isActive) {
           issues.push({
             locationId: locId, locationName, city, jetId,
             opsNr: ops.opsNr || '',
@@ -746,11 +979,12 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
     }
 
     return issues;
-  }, [enrichedOps, leaseData, displayLocations, locationMap]);
+  }, [enrichedOps, leaseData, displayLocations, locationMap, simInventory, displayInventory]);
 
   /* ─── Fehler tab state ─── */
   const [fehlerSearch, setFehlerSearch] = useState('');
   const [fehlerTypeFilter, setFehlerTypeFilter] = useState('');
+  const [expandedLocations, setExpandedLocations] = useState(new Set());
 
   const fehlerStats = useMemo(() => {
     const byType = {};
@@ -785,6 +1019,30 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
     }
     return result;
   }, [hwMismatches, fehlerTypeFilter, fehlerSearch]);
+
+  /* ─── Group mismatches by location ─── */
+  const groupedByLocation = useMemo(() => {
+    const groups = new Map();
+    for (const m of filteredMismatches) {
+      const key = m.locationId || 'unknown';
+      if (!groups.has(key)) {
+        groups.set(key, {
+          locationId: m.locationId,
+          locationName: m.locationName,
+          city: m.city,
+          jetId: m.jetId,
+          issues: [],
+          typeSet: new Set(),
+        });
+      }
+      const group = groups.get(key);
+      group.issues.push(m);
+      group.typeSet.add(m.type);
+    }
+    // Convert to sorted array (most errors first)
+    return Array.from(groups.values())
+      .sort((a, b) => b.issues.length - a.issues.length);
+  }, [filteredMismatches]);
 
   /* ─── Filtered Completeness Rows ─── */
   const filteredCompletenessRows = useMemo(() => {
@@ -1617,10 +1875,20 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
             {fehlerStats.types.map(type => {
               const typeColor = type === 'Display-SN' ? '#f59e0b'
                 : type === 'Navori Venue-ID' ? '#8b5cf6'
+                : type === 'SIM-ID' ? '#06b6d4'
+                : type === 'SIM-Zuordnung' ? '#0891b2'
+                : type === 'Display-Zuordnung' ? '#a855f7'
+                : type === 'Asset-ID' ? '#ec4899'
+                : type === 'JET-ID' ? '#6366f1'
+                : type === 'JET-ID → SN' ? '#4f46e5'
                 : type.includes('Fehlend') ? '#f97316'
                 : '#3b82f6';
               const typeIcon = type === 'Display-SN' ? Monitor
                 : type === 'Navori Venue-ID' ? Database
+                : type.includes('SIM') ? Wifi
+                : type.includes('Display-Zuordnung') ? Monitor
+                : type.includes('Asset') ? CreditCard
+                : type.includes('JET') ? Landmark
                 : type.includes('Leasing') ? CreditCard
                 : type.includes('SN') ? Hash
                 : AlertTriangle;
@@ -1681,94 +1949,155 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
             </div>
           </div>
 
-          {/* Mismatch Table */}
+          {/* Grouped Mismatch List by Location */}
           <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200/40">
-              <h3 className="text-sm font-semibold text-slate-700">Hardware-Abweichungen</h3>
-              <p className="text-xs text-slate-500">
-                Seriennummern-Abgleich zwischen OPS-Inventory, CHG Leasing, Bank Leasing und Display-Tabelle
-              </p>
+            <div className="px-4 py-3 border-b border-slate-200/40 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700">Hardware-Abweichungen pro Standort</h3>
+                <p className="text-xs text-slate-500">
+                  Cross-System: Display-SN, SIM-ID, JET-ID, Asset-ID, Venue-ID — gruppiert nach Location
+                </p>
+              </div>
+              {groupedByLocation.length > 0 && (
+                <button
+                  onClick={() => {
+                    if (expandedLocations.size === groupedByLocation.length) {
+                      setExpandedLocations(new Set());
+                    } else {
+                      setExpandedLocations(new Set(groupedByLocation.map(g => g.locationId)));
+                    }
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                >
+                  {expandedLocations.size === groupedByLocation.length ? 'Alle zuklappen' : 'Alle aufklappen'}
+                </button>
+              )}
             </div>
 
-            {filteredMismatches.length === 0 ? (
+            {groupedByLocation.length === 0 ? (
               <div className="px-4 py-12 text-center">
                 <CheckCircle2 size={32} className="text-emerald-400 mx-auto mb-3" />
                 <div className="text-sm font-medium text-emerald-600">Keine Abweichungen gefunden</div>
                 <div className="text-xs text-slate-500 mt-1">Alle Hardware-Daten sind konsistent</div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200/40">
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Standort</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">OPS-Nr</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Fehlertyp</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Quelle 1 (DB → Feld)</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Wert 1</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Quelle 2 (DB → Feld)</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Wert 2</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredMismatches.slice(0, 200).map((m, idx) => (
-                      <tr key={`${m.locationId}-${m.type}-${m.source1}-${idx}`} className="border-b border-slate-100/60 hover:bg-red-50/30 transition-colors">
-                        <td className="px-3 py-2.5">
-                          <div className="flex flex-col">
-                            <span className="text-slate-700 font-medium max-w-[200px] truncate" title={m.locationName}>
-                              {m.locationName || '\u2013'}
+              <div className="divide-y divide-slate-100/60">
+                {groupedByLocation.map((group) => {
+                  const isExpanded = expandedLocations.has(group.locationId);
+                  const typeCounts = {};
+                  for (const iss of group.issues) {
+                    typeCounts[iss.type] = (typeCounts[iss.type] || 0) + 1;
+                  }
+                  const getBadgeClass = (type) =>
+                    type === 'Display-SN' ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : type === 'Navori Venue-ID' ? 'bg-violet-50 text-violet-700 border-violet-200'
+                    : type === 'SIM-ID' || type === 'SIM-Zuordnung' || type === 'Fehlende SIM' ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                    : type === 'Display-Zuordnung' ? 'bg-purple-50 text-purple-700 border-purple-200'
+                    : type === 'Asset-ID' ? 'bg-pink-50 text-pink-700 border-pink-200'
+                    : type.includes('JET-ID') ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                    : type.includes('Fehlend') ? 'bg-orange-50 text-orange-700 border-orange-200'
+                    : 'bg-blue-50 text-blue-700 border-blue-200';
+
+                  return (
+                    <div key={group.locationId}>
+                      {/* Location Header Row — always visible */}
+                      <button
+                        onClick={() => {
+                          setExpandedLocations(prev => {
+                            const next = new Set(prev);
+                            if (next.has(group.locationId)) next.delete(group.locationId);
+                            else next.add(group.locationId);
+                            return next;
+                          });
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50/60 transition-colors text-left"
+                      >
+                        {/* Expand/Collapse icon */}
+                        <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`}>
+                          <ChevronDown size={14} className="text-slate-400" />
+                        </div>
+
+                        {/* Error count badge */}
+                        <div className="w-7 h-7 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-red-600">{group.issues.length}</span>
+                        </div>
+
+                        {/* Location info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-slate-800 truncate">{group.locationName || '\u2013'}</span>
+                            {group.city && (
+                              <span className="text-xs text-slate-400 flex-shrink-0">{group.city}</span>
+                            )}
+                          </div>
+                          {group.jetId && (
+                            <span className="text-xs font-mono text-slate-400">{group.jetId}</span>
+                          )}
+                        </div>
+
+                        {/* Type summary badges */}
+                        <div className="flex flex-wrap gap-1 justify-end max-w-[400px]">
+                          {Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
+                            <span
+                              key={type}
+                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${getBadgeClass(type)}`}
+                            >
+                              {type} {count > 1 ? `\u00d7${count}` : ''}
                             </span>
-                            <div className="flex items-center gap-2">
-                              {m.jetId && (
-                                <span className="text-xs font-mono text-slate-500">{m.jetId}</span>
-                              )}
-                              {m.city && (
-                                <span className="text-xs text-slate-400">{m.city}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2.5 font-mono text-slate-600">{m.opsNr || '\u2013'}</td>
-                        <td className="px-3 py-2.5">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            m.type === 'Display-SN'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                              : m.type === 'Navori Venue-ID'
-                                ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                                : m.type.includes('Fehlend')
-                                  ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                                  : 'bg-blue-50 text-blue-700 border border-blue-200'
-                          }`}>
-                            {m.type}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <div className="flex flex-col">
-                            <span className="text-xs text-slate-600 font-medium">{m.sourceLabel1}</span>
-                            <span className="text-xs font-mono text-slate-400">{m.source1}.{m.field1}</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2.5 font-mono text-red-700 font-medium text-xs max-w-[180px] truncate" title={m.value1}>
-                          {m.value1 || '\u2013'}
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <div className="flex flex-col">
-                            <span className="text-xs text-slate-600 font-medium">{m.sourceLabel2}</span>
-                            <span className="text-xs font-mono text-slate-400">{m.source2}.{m.field2}</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2.5 font-mono text-red-700 font-medium text-xs max-w-[180px] truncate" title={m.value2}>
-                          {m.value2 || '\u2013'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {filteredMismatches.length > 200 && (
-                  <div className="px-4 py-2.5 text-center text-xs text-slate-500 border-t border-slate-200/40">
-                    Zeige 200 von {filteredMismatches.length} Fehlern
-                  </div>
-                )}
+                          ))}
+                        </div>
+                      </button>
+
+                      {/* Expanded detail rows */}
+                      {isExpanded && (
+                        <div className="bg-slate-50/40 border-t border-slate-100/60">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="border-b border-slate-200/30">
+                                <th className="text-left px-4 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider w-16">OPS</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Fehlertyp</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Quelle 1</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Wert 1</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Quelle 2</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Wert 2</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {group.issues.map((m, idx) => (
+                                <tr key={`${m.type}-${m.source1}-${idx}`} className="border-b border-slate-100/40 hover:bg-white/60 transition-colors">
+                                  <td className="px-4 py-2 font-mono text-slate-500">{m.opsNr || '\u2013'}</td>
+                                  <td className="px-3 py-2">
+                                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${getBadgeClass(m.type)}`}>
+                                      {m.type}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <div className="flex flex-col">
+                                      <span className="text-slate-600 font-medium">{m.sourceLabel1}</span>
+                                      <span className="font-mono text-slate-400 text-[10px]">{m.source1}.{m.field1}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 font-mono text-red-600 font-medium max-w-[160px] truncate" title={m.value1}>
+                                    {m.value1 || '\u2013'}
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <div className="flex flex-col">
+                                      <span className="text-slate-600 font-medium">{m.sourceLabel2}</span>
+                                      <span className="font-mono text-slate-400 text-[10px]">{m.source2}.{m.field2}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 font-mono text-red-600 font-medium max-w-[160px] truncate" title={m.value2}>
+                                    {m.value2 || '\u2013'}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

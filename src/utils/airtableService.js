@@ -914,6 +914,74 @@ function mapDisplayFromSupabase(row) {
   };
 }
 
+/**
+ * Fetch ALL SIM inventory (for Hardware Dashboard cross-checks).
+ * Cached for 1 minute.
+ */
+export async function fetchAllSimInventory() {
+  if (cache.allSim && cache.allSimTimestamp && Date.now() - cache.allSimTimestamp < CACHE_TTL) {
+    return cache.allSim;
+  }
+  try {
+    let allRows = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from('hardware_sim')
+        .select('*')
+        .range(from, from + pageSize - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+    }
+    const sims = allRows.map(mapSimFromSupabase);
+    cache.allSim = sims;
+    cache.allSimTimestamp = Date.now();
+    console.log(`[fetchAllSimInventory] Loaded ${sims.length} SIM cards from Supabase`);
+    return sims;
+  } catch (err) {
+    console.error('[fetchAllSimInventory] Error:', err);
+    return cache.allSim || [];
+  }
+}
+
+/**
+ * Fetch ALL Display inventory (for Hardware Dashboard cross-checks).
+ * Cached for 1 minute.
+ */
+export async function fetchAllDisplayInventory() {
+  if (cache.allDisplayInv && cache.allDisplayInvTimestamp && Date.now() - cache.allDisplayInvTimestamp < CACHE_TTL) {
+    return cache.allDisplayInv;
+  }
+  try {
+    let allRows = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from('hardware_displays')
+        .select('*')
+        .range(from, from + pageSize - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+    }
+    const displays = allRows.map(mapDisplayFromSupabase);
+    cache.allDisplayInv = displays;
+    cache.allDisplayInvTimestamp = Date.now();
+    console.log(`[fetchAllDisplayInventory] Loaded ${displays.length} displays from Supabase`);
+    return displays;
+  } catch (err) {
+    console.error('[fetchAllDisplayInventory] Error:', err);
+    return cache.allDisplayInv || [];
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════
  *  LEASING – READ (CHG Approval + Bank TESMA)
  * ═══════════════════════════════════════════════════════════ */
