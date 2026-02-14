@@ -13,75 +13,15 @@
 
 import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
+import { AIRTABLE_BASE, TABLES, FETCH_FIELDS } from './shared/airtableFields.js';
+import { transformAkquiseDetail } from './shared/airtableMappers.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const BOOKER_API_KEY = process.env.BOOKER_API_KEY;
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const AKQUISE_TABLE = 'tblqFMBAeKQ1NbSI8';
-
-/** All Airtable fields we want to fetch from the Akquise table */
-const AKQUISE_FIELDS = [
-  'Akquise ID',
-  'Lead_Status',
-  'Location Name_new',
-  'City',
-  'Street',
-  'Street Number',
-  'Postal Code',
-  'JET_ID',
-  'Contact Person',
-  'Contact Email',
-  'Contact Phone',
-  'Mount Type',
-  'Schaufenster einsehbar',
-  'Hindernisse vorhanden',
-  'Hindernisse Beschreibung',
-  'Fensterbreite ausreichend',
-  'Steckdose mit Strom 6-22 Uhr?',
-  'Akquise Kommentar',
-  'Akquise Kommentar (from Acquisition Update)',
-  'Kommentar aus Installationen',
-  'frequency_approval_comment',
-  'frequency_approval (previous FAW Check)',
-  'install_approval',
-  'approval_status',
-  'ready_for_installation',
-  'Vertrag (PDF)',
-  'Vertrag PDF vorhanden',
-  'Vertragsnummer',
-  'Vertragspartner',
-  'Vertragsbeginn',
-  'Laufzeit',
-  'Unterschriftsdatum',
-  'images_akquise',
-  'FAW_data_attachment',
-  'Installationsprotokoll (from Installationen)',
-  'Akquisition Partner Name (from Team)',
-  'Submitted By',
-  'Submitted At',
-  'Acquisition Date',
-  '# dVAC / Woche 100% SoV',
-  'dVAC / Month',
-  'dVAC per Day',
-  'Latitude',
-  'Longitude',
-  'Koordinaten (from JET ID)',
-  'Streetview Link (from JET ID)',
-  'Aufbau Datum',
-  'Integrator (Installation)',
-  'display_name (from Displays)',
-  'DO-ID (from Installationen)',
-  'Live since (from Displays)',
-  'Installations Status',
-  'Display Location Status',
-  'Abbruchgrund',
-  'Exclude Reason',
-  'Akquise Storno',
-  'Post‑Install Storno',
-  'Post‑Install Storno Grund',
-];
+const AKQUISE_TABLE = TABLES.ACQUISITION;
+const AKQUISE_FIELDS = FETCH_FIELDS.acquisitionDetail;
 
 /** Supabase REST helper */
 async function supabaseRequest(path, options = {}) {
@@ -132,88 +72,8 @@ async function authenticateUser(request) {
   }
 }
 
-/** Safely unwrap Airtable lookup fields (arrays → first element) */
-function unwrap(value) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-/** Transform raw Airtable record into our normalized response shape */
-function transformAkquiseRecord(record) {
-  const f = record.fields || {};
-  return {
-    id: record.id,
-    akquiseId: unwrap(f['Akquise ID']),
-    locationName: unwrap(f['Location Name_new']),
-    city: unwrap(f['City']),
-    street: unwrap(f['Street']),
-    streetNumber: unwrap(f['Street Number']),
-    postalCode: unwrap(f['Postal Code']),
-    jetId: unwrap(f['JET_ID']),
-
-    contactPerson: unwrap(f['Contact Person']),
-    contactPhone: unwrap(f['Contact Phone']),
-    contactEmail: unwrap(f['Contact Email']),
-
-    leadStatus: unwrap(f['Lead_Status']),
-    frequencyApproval: unwrap(f['frequency_approval (previous FAW Check)']),
-    installApproval: unwrap(f['install_approval']),
-    approvalStatus: unwrap(f['approval_status']),
-    readyForInstallation: unwrap(f['ready_for_installation']),
-
-    mountType: unwrap(f['Mount Type']),
-    schaufenster: unwrap(f['Schaufenster einsehbar']),
-    hindernisse: unwrap(f['Hindernisse vorhanden']),
-    hindernisseBeschreibung: unwrap(f['Hindernisse Beschreibung']),
-    fensterbreiteAusreichend: unwrap(f['Fensterbreite ausreichend']),
-    steckdoseMitStrom: unwrap(f['Steckdose mit Strom 6-22 Uhr?']),
-
-    akquiseKommentar: unwrap(f['Akquise Kommentar']),
-    akquiseKommentarUpdate: unwrap(f['Akquise Kommentar (from Acquisition Update)']),
-    kommentarAusInstallationen: unwrap(f['Kommentar aus Installationen']),
-    frequencyApprovalComment: unwrap(f['frequency_approval_comment']),
-
-    vertragPdfVorhanden: unwrap(f['Vertrag PDF vorhanden']),
-    vertragsnummer: unwrap(f['Vertragsnummer']),
-    vertragspartner: unwrap(f['Vertragspartner']),
-    vertragsbeginn: unwrap(f['Vertragsbeginn']),
-    laufzeit: unwrap(f['Laufzeit']),
-    unterschriftsdatum: unwrap(f['Unterschriftsdatum']),
-
-    acquisitionPartner: unwrap(f['Akquisition Partner Name (from Team)']),
-    submittedBy: unwrap(f['Submitted By']),
-    submittedAt: unwrap(f['Submitted At']),
-    acquisitionDate: unwrap(f['Acquisition Date']),
-
-    dvacWeek: unwrap(f['# dVAC / Woche 100% SoV']),
-    dvacMonth: unwrap(f['dVAC / Month']),
-    dvacPerDay: unwrap(f['dVAC per Day']),
-
-    // Attachment fields — keep as full arrays (not unwrapped)
-    images: f['images_akquise'] || [],
-    vertragPdf: f['Vertrag (PDF)'] || [],
-    fawDataAttachment: f['FAW_data_attachment'] || [],
-    installationsprotokoll: f['Installationsprotokoll (from Installationen)'] || [],
-
-    streetviewLink: unwrap(f['Streetview Link (from JET ID)']),
-    latitude: unwrap(f['Latitude']),
-    longitude: unwrap(f['Longitude']),
-    coordinates: unwrap(f['Koordinaten (from JET ID)']),
-
-    installationsDatum: unwrap(f['Aufbau Datum']),
-    integratorName: unwrap(f['Integrator (Installation)']),
-    displayName: unwrap(f['display_name (from Displays)']),
-    doId: unwrap(f['DO-ID (from Installationen)']),
-    liveSince: unwrap(f['Live since (from Displays)']),
-
-    installationsStatus: unwrap(f['Installations Status']),
-    displayLocationStatus: unwrap(f['Display Location Status']),
-    abbruchgrund: unwrap(f['Abbruchgrund']),
-    excludeReason: unwrap(f['Exclude Reason']),
-    akquiseStorno: unwrap(f['Akquise Storno']),
-    postInstallStorno: unwrap(f['Post‑Install Storno']),
-    postInstallStornoGrund: f['Post‑Install Storno Grund'] || [],
-  };
-}
+/** Transform raw Airtable record — uses shared transformAkquiseDetail */
+const transformAkquiseRecord = transformAkquiseDetail;
 
 /** Build Airtable fields query param string */
 function buildFieldsParams() {

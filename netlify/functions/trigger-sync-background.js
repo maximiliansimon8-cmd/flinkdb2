@@ -11,6 +11,11 @@ import { logApiCall, logApiCalls, estimateAirtableCost } from './shared/apiLogge
 import {
   AIRTABLE_BASE, TABLES, FETCH_FIELDS, SHEET_CSV_URL,
 } from './shared/airtableFields.js';
+import {
+  mapStammdaten, mapDisplay, mapTask, mapAcquisition, mapDaynScreen,
+  mapInstallation, mapOpsInventory, mapSimInventory, mapDisplayInventory,
+  mapChgApproval, mapHardwareSwap, mapDeinstall, mapCommunication,
+} from './shared/airtableMappers.js';
 
 // Local aliases for backward compat
 const STAMMDATEN_TABLE = TABLES.STAMMDATEN;
@@ -137,289 +142,10 @@ async function upsertToSupabase(supabaseUrl, serviceKey, table, rows) {
   return upserted;
 }
 
-function mapDisplay(rec) {
-  const f = rec.fields;
-  const first = (field) => {
-    const v = f[field];
-    return Array.isArray(v) ? (v[0] || null) : (v || null);
-  };
-  return {
-    id: rec.id, airtable_id: rec.id,
-    display_id: f['Display ID'] || null,
-    display_table_id: f['Display Table ID'] || null,
-    display_name: f['display_name'] || null,
-    online_status: f['Online Status '] || null,         // trailing space!
-    live_since: f['Live since'] || null,
-    deinstall_date: f['deinstall_date'] || null,
-    screen_type: f['Screen Type'] || null,
-    screen_size: f['Screen Size '] || null,              // trailing space!
-    navori_venue_id: first('Navori Venue ID (from Installationen)'),
-    location_name: first('Location Name'),
-    city: first('City'),
-    street: first('Street'),
-    street_number: first('Street Number'),
-    postal_code: first('Postal Code'),
-    jet_id: first('JET ID (from JET ID)'),
-    sov_partner_ad: f['SoV Partner Ad'] || null,
-    created_at: f['Created'] || null,
-    updated_at: new Date().toISOString(),
-  };
-}
+/* ═══════════════════════════════════════════════
+   MAPPER FUNCTIONS: imported from shared/airtableMappers.js
+   ═══════════════════════════════════════════════ */
 
-function mapDaynScreen(rec) {
-  const f = rec.fields;
-  const zipVal = f['zip_code'];
-  const zip = (zipVal && typeof zipVal === 'object') ? zipVal.value : (zipVal || null);
-  const streetVal = f['Street with Number'];
-  const street = (streetVal && typeof streetVal === 'object') ? streetVal.value : (streetVal || null);
-  return {
-    id: rec.id,
-    airtable_id: rec.id,
-    dayn_screen_id: f['Dayn_Screen_ID'] || null,
-    do_screen_id: f['DO_Screen_ID'] || null,
-    screen_status: f['Screen Status'] || null,
-    network: 'dayn',
-    location_name: f['location_name'] || null,
-    address: street || f['address'] || null,
-    city: f['city'] || null,
-    region: f['region'] || null,
-    country: f['country'] || 'GER',
-    zip_code: zip,
-    venue_type: f['venue type'] || null,
-    floor_cpm: f['floor CPM'] != null ? Number(f['floor CPM']) : null,
-    screen_width_px: f['screen width (px)'] != null ? Number(f['screen width (px)']) : null,
-    screen_height_px: f['screen height (px)'] != null ? Number(f['screen height (px)']) : null,
-    latitude: f['latitude'] != null ? Number(f['latitude']) : null,
-    longitude: f['longitude'] != null ? Number(f['longitude']) : null,
-    screen_inch: f['Screen_Inch'] || null,
-    screen_type: f['Screen_Type'] || null,
-    max_video_length: f['Maximun video spot lenth (seconds)'] || null,
-    min_video_length: f['Minimum video spot lenth (seconds)'] || null,
-    static_duration: f['static duration (in seconds)'] || null,
-    static_supported: f['static_supported (can your screens run images JPG/PNG)'] === 'TRUE' ? true : f['static_supported (can your screens run images JPG/PNG)'] === 'FALSE' ? false : null,
-    video_supported: f['video_supported (can your screens run video?)'] === 'TRUE' ? true : f['video_supported (can your screens run video?)'] === 'FALSE' ? false : null,
-    dvac_week: f['# dVAC / Woche 100% SoV'] != null ? Number(f['# dVAC / Woche 100% SoV']) : null,
-    dvac_month: f['dVAC / Month'] != null ? Number(f['dVAC / Month']) : null,
-    dvac_day: f['dVAC per Day'] != null ? Number(f['dVAC per Day']) : null,
-    impressions_per_spot: f['Impressions per Spot'] != null ? Number(f['Impressions per Spot']) : null,
-    install_year: f['install_year'] || null,
-    updated_at: new Date().toISOString(),
-  };
-}
-
-function mapAcquisition(rec) {
-  const f = rec.fields;
-  const lookupFirst = (field) => Array.isArray(f[field]) ? f[field][0] || null : (f[field] || null);
-  const lookupArray = (field) => Array.isArray(f[field]) ? f[field].filter(Boolean) : [];
-  return {
-    id: rec.id, airtable_id: rec.id,
-    akquise_id: f['Akquise ID'] || null,
-    lead_status: f['Lead_Status'] || null,
-    frequency_approval: f['frequency_approval (previous FAW Check)'] || null,
-    install_approval: f['install_approval'] || null,
-    approval_status: f['approval_status'] || null,
-    acquisition_date: f['Acquisition Date'] || null,
-    installations_status: lookupArray('Installations Status'),
-    display_location_status: lookupArray('Display Location Status'),
-    city: lookupArray('City'),
-    location_name: lookupFirst('Location Name_new'),
-    street: lookupFirst('Street'),
-    street_number: lookupFirst('Street Number'),
-    postal_code: lookupFirst('Postal Code'),
-    jet_id: lookupFirst('JET_ID'),
-    contact_person: lookupFirst('Contact Person'),
-    contact_email: lookupFirst('Contact Email'),
-    contact_phone: lookupFirst('Contact Phone'),
-    acquisition_partner: lookupFirst('Akquisition Partner Name (from Team)'),
-    dvac_week: f['# dVAC / Woche 100% SoV'] || null,
-    schaufenster: f['Schaufenster einsehbar'] || null,
-    hindernisse: f['Hindernisse vorhanden'] || null,
-    mount_type: f['Mount Type'] || null,
-    submitted_by: f['Submitted By'] || null,
-    submitted_at: f['Submitted At'] || null,
-    vertrag_vorhanden: f['Vertrag PDF vorhanden'] || null,
-    akquise_storno: f['Akquise Storno'] || false,
-    post_install_storno: f['Post\u2011Install Storno'] || false,
-    post_install_storno_grund: Array.isArray(f['Post\u2011Install Storno Grund']) ? f['Post\u2011Install Storno Grund'] : [],
-    ready_for_installation: f['ready_for_installation'] || false,
-    created_at: f['Created'] || null,
-    updated_at: new Date().toISOString(),
-  };
-}
-
-function mapStammdaten(rec) {
-  const f = rec.fields;
-  const jetId = Array.isArray(f['JET ID']) ? f['JET ID'][0] : (f['JET ID'] || null);
-  return {
-    id: rec.id, airtable_id: rec.id, jet_id: jetId,
-    display_ids: Array.isArray(f['Display ID']) ? f['Display ID'] : [],
-    location_name: f['Location Name'] || null,
-    contact_person: f['Contact Person'] || null,
-    contact_email: f['Contact Email'] || null,
-    contact_phone: f['Contact Phone'] || null,
-    location_email: f['Location Email'] || null,
-    location_phone: f['Location Phone'] || null,
-    legal_entity: f['Legal Entity'] || null,
-    street: f['Street'] || null,
-    street_number: f['Street Number'] || null,
-    postal_code: f['Postal Code'] || null,
-    city: f['City'] || null,
-    lead_status: Array.isArray(f['Lead Status  (from Akquise)']) ? f['Lead Status  (from Akquise)'] : [],
-    display_status: f['Status'] || null,
-    updated_at: new Date().toISOString(),
-  };
-}
-
-function mapTask(rec) {
-  const f = rec.fields;
-  const assigned = Array.isArray(f['Assigned'])
-    ? f['Assigned'].map(a => typeof a === 'object' ? a.name : a).filter(Boolean)
-    : [];
-  return {
-    id: rec.id, airtable_id: rec.id,
-    title: f['Task Title'] || null,
-    task_type: f['Company (from Partner)'] || f['Partner'] || f['Task Type'] || [],
-    task_type_select: Array.isArray(f['Task Type']) ? f['Task Type'] : (f['Task Type'] ? [f['Task Type']] : []),
-    status: f['Status'] || null,
-    priority: f['Priority'] || null,
-    due_date: f['Due Date'] || null,
-    description: f['Description'] || null,
-    created_time: f['Created time'] || null,
-    responsible_user: f['Responsible User']?.name || f['Responsible User'] || null,
-    assigned,
-    created_by: f['Created by']?.name || f['Created by'] || null,
-    display_ids: f['Display ID (from Displays )'] || [],
-    location_names: f['Location Name (from Locations)'] || [],
-    overdue: f['Overdue'] || null,
-    completed_date: f['completed_task_date'] || null,
-    completed_by: f['completed_task_by']?.name || f['completed_task_by'] || null,
-    online_status: f['Online Status  (from Displays )'] || [],
-    live_since: f['Live since (from Displays )'] || [],
-    installation_status: f['Status Installation (from Installation)'] || [],
-    integrator: f['Integrator (from Installation)'] || [],
-    install_date: f['Aufbau Datum (from Installation)'] || [],
-    display_serial_number: f['Display Serial Number (from Installation)'] || [],
-    install_remarks: f['Allgemeine Bemerkungen (from Installation)'] || [],
-    install_type: f['Installationsart (from Installation)'] || [],
-    external_visibility: f['external_visiblity'] || false,
-    nacharbeit_kommentar: f['Kommentar Nacharbeit'] || null,
-    superchat: f['Superchat'] || false,
-    status_changed_by: f['Status changed by']?.name || f['Status changed by'] || null,
-    status_changed_date: f['Status changed date'] || null,
-    jet_ids: f['JET ID (from Locations)'] || [],
-    cities: f['City (from Locations)'] || [],
-    attachments: Array.isArray(f['Attachments'])
-      ? f['Attachments'].map(att => ({
-          url: att.url || '', filename: att.filename || '',
-          size: att.size || 0, type: att.type || '', id: att.id || '',
-          thumbnails: att.thumbnails || null,
-        }))
-      : [],
-    updated_at: new Date().toISOString(),
-  };
-}
-
-function mapInstallation(rec) {
-  const f = rec.fields;
-  const integrator = Array.isArray(f['Company (from Integrator)'])
-    ? f['Company (from Integrator)'].join(', ')
-    : (f['Company (from Integrator)'] || null);
-  const technicians = Array.isArray(f['Name (from Technikers)'])
-    ? f['Name (from Technikers)'] : [];
-  const protocol = Array.isArray(f['Installationsprotokoll']) && f['Installationsprotokoll'][0]
-    ? f['Installationsprotokoll'][0] : null;
-  const displayIds = Array.isArray(f['Display Table ID (from Link to Display ID )'])
-    ? f['Display Table ID (from Link to Display ID )'] : [];
-  return {
-    id: rec.id, airtable_id: rec.id,
-    display_ids: displayIds,
-    install_date: f['Aufbau Datum'] || null,
-    status: f['Status Installation'] || null,
-    installation_type: f['Installationsart'] || null,
-    integrator, technicians,
-    protocol_url: protocol?.url || null,
-    protocol_filename: protocol?.filename || null,
-    screen_type: f['Screen Art'] || null,
-    screen_size: f['Screen Size'] || null,
-    ops_nr: f['OPS Nr'] || null,
-    sim_id: f['SIM-ID'] || null,
-    install_start: f['Installationsstart'] || null,
-    install_end: f['Installationsabschluss'] || null,
-    remarks: f['Allgemeine Bemerkungen'] || null,
-    partner_name: f['Abnahme Partner (Name)'] || null,
-    updated_at: new Date().toISOString(),
-  };
-}
-
-function mapHardwareSwap(rec) {
-  const f = rec.fields;
-  const locationRecords = Array.isArray(f['Live Display Location']) ? f['Live Display Location'] : [];
-  const swapType = Array.isArray(f['Tausch-Typ']) ? f['Tausch-Typ'] : (f['Tausch-Typ'] ? [f['Tausch-Typ']] : []);
-  const oldHw = Array.isArray(f['ALTE Hardware']) ? f['ALTE Hardware'] : [];
-  const newHw = Array.isArray(f['NEUE Hardware']) ? f['NEUE Hardware'] : [];
-  const partnerRecords = Array.isArray(f['Partner']) ? f['Partner'] : [];
-  const locationNames = Array.isArray(f['Location Name (from Live Display Location)'])
-    ? f['Location Name (from Live Display Location)'] : [];
-  const cities = Array.isArray(f['City (from Live Display Location)'])
-    ? f['City (from Live Display Location)'] : [];
-  return {
-    id: rec.id,
-    swap_id: f['Tausch-ID'] ? String(f['Tausch-ID']) : null,
-    display_location_id: locationRecords[0] || null,
-    swap_type: swapType, swap_date: f['Tausch-Datum'] || null,
-    swap_reason: f['Tausch-Grund'] || null,
-    partner_id: partnerRecords[0] || null, technician: f['Techniker'] || null,
-    old_hardware_ids: oldHw, new_hardware_ids: newHw,
-    defect_description: f['Defekt-Beschreibung'] || null,
-    status: f['Status'] || null,
-    location_name: locationNames[0] || null, city: cities[0] || null,
-    updated_at: new Date().toISOString(),
-  };
-}
-
-function mapDeinstall(rec) {
-  const f = rec.fields;
-  const locationRecords = Array.isArray(f['Live Display Location']) ? f['Live Display Location'] : [];
-  const opsRecords = Array.isArray(f['OPS-Nr / Hardware-Set']) ? f['OPS-Nr / Hardware-Set'] : [];
-  const partnerRecords = Array.isArray(f['Partner']) ? f['Partner'] : [];
-  const locationNames = Array.isArray(f['Location Name (from Live Display Location)'])
-    ? f['Location Name (from Live Display Location)'] : [];
-  const cities = Array.isArray(f['City (from Live Display Location)'])
-    ? f['City (from Live Display Location)'] : [];
-  return {
-    id: rec.id,
-    deinstall_id: f['Deinstallations-ID'] ? String(f['Deinstallations-ID']) : null,
-    display_location_id: locationRecords[0] || null,
-    ops_record_id: opsRecords[0] || null,
-    deinstall_date: f['Deinstallationsdatum'] || null,
-    reason: f['Grund'] || null,
-    partner_id: partnerRecords[0] || null, technician: f['Techniker'] || null,
-    hardware_condition: f['Hardware-Zustand'] || null,
-    condition_description: f['Zustandsbeschreibung'] || null,
-    status: f['Status'] || null,
-    location_name: locationNames[0] || null, city: cities[0] || null,
-    updated_at: new Date().toISOString(),
-  };
-}
-
-function mapCommunication(rec) {
-  const f = rec.fields;
-  return {
-    id: rec.id, airtable_id: rec.id,
-    channel: f['Channel'] || null, direction: f['Direction'] || null,
-    subject: f['Subject'] || null, message: f['Message'] || null,
-    timestamp: f['Timestamp'] || null, status: f['Status'] || null,
-    recipient_name: f['Recipient Name'] || null,
-    recipient_contact: f['Recipient Contact'] || null,
-    sender: f['Sender'] || null, external_id: f['External ID'] || null,
-    location_ids: f['Location'] || [],
-    location_names: f['Location Name (from Location)'] || [],
-    display_ids: f['Display ID (from Location)'] || [],
-    jet_ids: f['JET ID (from Location)'] || [],
-    related_task: f['Related Task'] || [],
-    updated_at: new Date().toISOString(),
-  };
-}
 
 function parseGermanDateToISO(str) {
   if (!str || typeof str !== 'string') return null;
@@ -487,26 +213,7 @@ async function syncDaynScreens(token, supabaseUrl, serviceKey) {
 
 async function syncOps(token, supabaseUrl, serviceKey) {
   const records = await fetchAllAirtable(token, OPS_INVENTORY_TABLE, FETCH_FIELDS.opsInventory);
-  const rows = records.map(rec => {
-    const f = rec.fields;
-    const simIds = Array.isArray(f['SimID (from SimID)']) ? f['SimID (from SimID)'] : [];
-    const displaySns = Array.isArray(f['display_serial_number (from display_inventory)']) ? f['display_serial_number (from display_inventory)'] : [];
-    const onlineStatus = Array.isArray(f['Online Status  (from Live Display Locations)']) ? f['Online Status  (from Live Display Locations)'] : [];
-    const simRecs = Array.isArray(f['SimID']) ? f['SimID'] : [];
-    const dispRecs = Array.isArray(f['display_inventory']) ? f['display_inventory'] : [];
-    const locRecs = Array.isArray(f['Live Display Locations']) ? f['Live Display Locations'] : [];
-    const partRecs = Array.isArray(f['Partner']) ? f['Partner'] : [];
-    return {
-      id: rec.id, ops_nr: f['OpsNr.'] || null, status: f['status'] || null,
-      ops_sn: f['OPS-SN'] || null, hardware_type: f['ops_hardware_type'] || null,
-      navori_venue_id: f['navori_venueID'] || null,
-      sim_record_id: simRecs[0] || null, sim_id: simIds[0] || null,
-      display_record_id: dispRecs[0] || null, display_sn: displaySns[0] || null,
-      display_location_id: locRecs[0] || null, location_online_status: onlineStatus[0] || null,
-      partner_id: partRecs[0] || null, note: f['note'] || null,
-      updated_at: new Date().toISOString(),
-    };
-  });
+  const rows = records.map(mapOpsInventory);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_ops', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_ops', records.map(r => r.id), 'id');
   console.log(`[trigger-sync] OPS: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
@@ -515,11 +222,7 @@ async function syncOps(token, supabaseUrl, serviceKey) {
 
 async function syncSim(token, supabaseUrl, serviceKey) {
   const records = await fetchAllAirtable(token, SIM_INVENTORY_TABLE, FETCH_FIELDS.simInventory);
-  const rows = records.map(rec => {
-    const f = rec.fields;
-    const opsRecs = Array.isArray(f['OPS_Player_inventory 2']) ? f['OPS_Player_inventory 2'] : [];
-    return { id: rec.id, sim_id: f['SimID'] ? String(f['SimID']) : null, activate_date: f['activate_date'] || null, ops_record_id: opsRecs[0] || null, status: f['status'] || null, updated_at: new Date().toISOString() };
-  });
+  const rows = records.map(mapSimInventory);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_sim', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_sim', records.map(r => r.id), 'id');
   console.log(`[trigger-sync] SIM: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
@@ -528,11 +231,7 @@ async function syncSim(token, supabaseUrl, serviceKey) {
 
 async function syncDisplayInventory(token, supabaseUrl, serviceKey) {
   const records = await fetchAllAirtable(token, DISPLAY_INVENTORY_TABLE, FETCH_FIELDS.displayInventory);
-  const rows = records.map(rec => {
-    const f = rec.fields;
-    const opsRecs = Array.isArray(f['OPS_Player_inventory']) ? f['OPS_Player_inventory'] : [];
-    return { id: rec.id, display_serial_number: f['display_serial_number'] ? String(f['display_serial_number']) : null, location: f['location'] || null, ops_record_id: opsRecs[0] || null, status: f['status'] || null, updated_at: new Date().toISOString() };
-  });
+  const rows = records.map(mapDisplayInventory);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_displays', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_displays', records.map(r => r.id), 'id');
   console.log(`[trigger-sync] Display Inv: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
@@ -541,33 +240,8 @@ async function syncDisplayInventory(token, supabaseUrl, serviceKey) {
 
 async function syncChg(token, supabaseUrl, serviceKey) {
   const records = await fetchAllAirtable(token, CHG_APPROVAL_TABLE, FETCH_FIELDS.chgApproval);
-  // CHG Approval table only contains records for leased displays (not all 313).
-  // 44 records is expected if only ~44 locations have active leasing agreements.
-  // No filter is applied — this fetches ALL records from the CHG table.
   console.log(`[trigger-sync] CHG: Fetched ${records.length} records from Airtable table ${CHG_APPROVAL_TABLE}`);
-  const rows = records.map(rec => {
-    const f = rec.fields;
-    const instRecs = Array.isArray(f['Installation']) ? f['Installation'] : [];
-    return {
-      id: rec.id, jet_id_location: f['JET ID Location'] || null,
-      asset_id: f['Asset ID'] || null, display_sn: f['Display SN'] || null,
-      integrator_invoice_no: f['Integrator Invoice No'] || null,
-      chg_certificate: f['Installation certificate at the bank (CHG)'] || null,
-      invoice_date: f['Invoice date'] || null,
-      rental_start: f['Rental start date at the bank'] || null,
-      rental_end: f['Rental end date at the bank'] || null,
-      payment_released_on: f['Payment released on'] || null,
-      payment_released_by: f['Payment released by'] || null,
-      status: f['Status'] || null, installation_id: instRecs[0] || null,
-      inspection_status: Array.isArray(f['Inspection Status']) ? f['Inspection Status'] : [],
-      display_id: Array.isArray(f['DisplayID']) ? f['DisplayID'] : [],
-      location_name: Array.isArray(f['Location Name']) ? f['Location Name'] : [],
-      city: Array.isArray(f['City']) ? f['City'] : [],
-      address: Array.isArray(f['Address']) ? f['Address'] : [],
-      created_at: f['created'] || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-  });
+  const rows = records.map(mapChgApproval);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'chg_approvals', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'chg_approvals', records.map(r => r.id), 'id');
   console.log(`[trigger-sync] CHG: ${records.length} → ${upserted} upserted, ${deleted} orphans`);

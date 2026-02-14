@@ -121,7 +121,7 @@ export const TASK_FIELDS = {
   CITY_LOOKUP:              'City (from Locations)',
 };
 
-/** Acquisition_DB fields */
+/** Acquisition_DB fields (used for sync) */
 export const ACQUISITION_FIELDS = {
   AKQUISE_ID:               'Akquise ID',
   LEAD_STATUS:              'Lead_Status',
@@ -153,6 +153,52 @@ export const ACQUISITION_FIELDS = {
   POST_INSTALL_STORNO_GRUND: 'Post\u2011Install Storno Grund', // ⚠️ U+2011!
   READY_FOR_INSTALLATION:   'ready_for_installation',
   CREATED:                  'Created',
+};
+
+/**
+ * Acquisition_DB DETAIL fields (superset of ACQUISITION_FIELDS)
+ * Used by install-booker-detail.js for the full record view with
+ * photos, PDFs, comments, coordinates, and installation lookups.
+ */
+export const ACQUISITION_DETAIL_FIELDS = {
+  ...ACQUISITION_FIELDS,
+  // Location details
+  HINDERNISSE_BESCHREIBUNG: 'Hindernisse Beschreibung',
+  FENSTERBREITE:            'Fensterbreite ausreichend',
+  STECKDOSE:                'Steckdose mit Strom 6-22 Uhr?',
+  // Comments
+  AKQUISE_KOMMENTAR:        'Akquise Kommentar',
+  AKQUISE_KOMMENTAR_UPDATE: 'Akquise Kommentar (from Acquisition Update)',
+  KOMMENTAR_INSTALLATIONEN: 'Kommentar aus Installationen',
+  FREQUENCY_APPROVAL_COMMENT: 'frequency_approval_comment',
+  // Contract
+  VERTRAG_PDF:              'Vertrag (PDF)',
+  VERTRAGSNUMMER:           'Vertragsnummer',
+  VERTRAGSPARTNER:          'Vertragspartner',
+  VERTRAGSBEGINN:           'Vertragsbeginn',
+  LAUFZEIT:                 'Laufzeit',
+  UNTERSCHRIFTSDATUM:       'Unterschriftsdatum',
+  // Attachments
+  IMAGES:                   'images_akquise',
+  FAW_DATA_ATTACHMENT:      'FAW_data_attachment',
+  INSTALL_PROTOKOLL_LOOKUP: 'Installationsprotokoll (from Installationen)',
+  // dVAC
+  DVAC_MONTH:               'dVAC / Month',
+  DVAC_DAY:                 'dVAC per Day',
+  // Geo
+  LATITUDE:                 'Latitude',
+  LONGITUDE:                'Longitude',
+  COORDINATES_LOOKUP:       'Koordinaten (from JET ID)',
+  STREETVIEW_LOOKUP:        'Streetview Link (from JET ID)',
+  // Installation lookups
+  AUFBAU_DATUM:             'Aufbau Datum',
+  INTEGRATOR_LOOKUP:        'Integrator (Installation)',
+  DISPLAY_NAME_LOOKUP:      'display_name (from Displays)',
+  DO_ID_LOOKUP:             'DO-ID (from Installationen)',
+  LIVE_SINCE_LOOKUP:        'Live since (from Displays)',
+  // Cancellation
+  ABBRUCHGRUND:             'Abbruchgrund',
+  EXCLUDE_REASON:           'Exclude Reason',
 };
 
 /** Installationen fields */
@@ -323,6 +369,7 @@ export const FETCH_FIELDS = {
   displays: Object.values(DISPLAY_FIELDS),
   tasks: Object.values(TASK_FIELDS),
   acquisition: Object.values(ACQUISITION_FIELDS),
+  acquisitionDetail: Object.values(ACQUISITION_DETAIL_FIELDS),
   installationen: Object.values(INSTALLATION_FIELDS),
   daynScreens: Object.values(DAYN_FIELDS),
   opsInventory: Object.values(OPS_FIELDS),
