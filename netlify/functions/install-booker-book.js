@@ -9,6 +9,10 @@
  */
 
 import { logApiCall } from './shared/apiLogger.js';
+import {
+  checkRateLimit, getClientIP, rateLimitResponse,
+  sanitizeString,
+} from './shared/security.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -60,16 +64,45 @@ export default async (request, context) => {
     });
   }
 
+  // Rate limiting — public endpoint, stricter limit
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`install-book:${clientIP}`, 10, 60_000);
+  if (!limit.allowed) {
+    const retryAfterSec = Math.ceil(limit.retryAfterMs / 1000);
+    return new Response(
+      JSON.stringify({ error: 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.' }),
+      { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': String(retryAfterSec), ...PUBLIC_CORS } }
+    );
+  }
+
   const apiStart = Date.now();
 
   try {
     const body = await request.json();
-    const { token, date, time, notes } = body;
+    const { token, date, time, notes: rawNotes } = body;
+    const notes = rawNotes ? sanitizeString(rawNotes, 500) : null;
 
     if (!token || !date || !time) {
       return new Response(JSON.stringify({ error: 'token, date, and time are required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+      });
+    }
+
+    // Validate input formats
+    if (typeof token !== 'string' || token.length > 100) {
+      return new Response(JSON.stringify({ error: 'Ungültiges Token-Format' }), {
+        status: 400, headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+      });
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return new Response(JSON.stringify({ error: 'Ungültiges Datumsformat (YYYY-MM-DD erwartet)' }), {
+        status: 400, headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+      });
+    }
+    if (!/^\d{2}:\d{2}$/.test(time)) {
+      return new Response(JSON.stringify({ error: 'Ungültiges Zeitformat (HH:MM erwartet)' }), {
+        status: 400, headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
       });
     }
 
@@ -302,7 +335,7 @@ export default async (request, context) => {
       error: err.message,
     });
 
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: 'Buchung fehlgeschlagen. Bitte versuchen Sie es erneut.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
     });

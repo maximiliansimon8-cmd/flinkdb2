@@ -11,7 +11,11 @@
  *   DELETE /api/install-schedule/:id      → Delete route
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  sanitizeString, isValidUUID,
+} from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -77,6 +81,13 @@ export default async (request, context) => {
 
   const auth = authenticate(request);
   if (!auth) return forbiddenResponse();
+
+  // Rate limiting
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`install-schedule:${clientIP}`, 60, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, auth.origin === '*' ? undefined : auth.origin);
+  }
 
   const cors = corsHeaders(auth.origin === '*' ? undefined : auth.origin);
   const url = new URL(request.url);
@@ -252,7 +263,8 @@ export default async (request, context) => {
       error: err.message,
     });
 
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error('[install-schedule] Error:', err.message);
+    return new Response(JSON.stringify({ error: 'Schedule-Anfrage fehlgeschlagen' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...cors },
     });

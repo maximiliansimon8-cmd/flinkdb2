@@ -249,10 +249,10 @@ function App() {
   }
 
   /**
-   * Load heartbeat data from Supabase (OPTIMIZED: only last 90 days + globalFirstSeen).
+   * Load heartbeat data from Supabase (OPTIMIZED: only last 365 days + globalFirstSeen).
    * Instead of loading ALL 170K rows, we:
    * 1. Fetch globalFirstSeen from the display_first_seen view (~350 rows)
-   * 2. Fetch last 90 days of heartbeats (~30-45K rows)
+   * 2. Fetch last 365 days of heartbeats
    * Falls back to Google Sheets CSV proxy if Supabase has no data.
    */
   const loadData = useCallback(async (forceRefresh = false) => {
@@ -296,9 +296,9 @@ function App() {
       let cutoffISO = null;
       if (!maxTsResult.error && maxTsResult.data && maxTsResult.data.length > 0 && maxTsResult.data[0].timestamp_parsed) {
         const latestDate = new Date(maxTsResult.data[0].timestamp_parsed);
-        const cutoff = new Date(latestDate.getTime() - 90 * 24 * 60 * 60 * 1000);
+        const cutoff = new Date(latestDate.getTime() - 365 * 24 * 60 * 60 * 1000);
         cutoffISO = cutoff.toISOString();
-        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (90 days before ${maxTsResult.data[0].timestamp_parsed})`);
+        console.log(`[loadData] Loading heartbeats since ${cutoffISO} (365 days before ${maxTsResult.data[0].timestamp_parsed})`);
       }
 
       // Step 3: Fetch only recent heartbeat data (paginated, 1000 per page)
@@ -779,6 +779,8 @@ function App() {
       if (diffDays <= 30) return '30 Tage';
       if (diffDays <= 60) return '60 Tage';
       if (diffDays <= 90) return '90 Tage';
+      if (diffDays <= 180) return '180 Tage';
+      if (diffDays <= 365) return '365 Tage';
       return `${diffDays} Tage`;
     }
     const fmtD = (d) =>

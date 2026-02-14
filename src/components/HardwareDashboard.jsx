@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 const DataQualityDashboard = React.lazy(() => import('./DataQualityDashboard'));
+import HardwareComponentDetail from './HardwareComponentDetail';
 import {
   fetchAllOpsInventory,
   fetchAllLeasingData,
@@ -109,6 +110,7 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
   const [expandedOps, setExpandedOps] = useState(null);
   const [showEditWarning, setShowEditWarning] = useState(false);
   const [mietscheinFilter, setMietscheinFilter] = useState('');
+  const [selectedHwComponent, setSelectedHwComponent] = useState(null);
   const OPS_PAGE_SIZE = 50;
 
   /* Load data */
@@ -605,68 +607,139 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
         // Also try bank match by OPS SN (some bank records use OPS SN)
         const bankByOpsSn = hwOpsSn ? bankBySn.get(hwOpsSn) : null;
 
-        // Check: CHG Display-SN != Hardware Display-SN
+        // ── 1) CHG Display-SN ≠ Hardware Display-SN
         if (chgDisplaySn && hwDisplaySn && chgDisplaySn !== hwDisplaySn) {
           issues.push({
-            locationId: locId,
-            locationName,
-            city,
-            jetId,
+            locationId: locId, locationName, city, jetId,
             opsNr: ops.opsNr || '',
             type: 'Display-SN',
-            source1: 'Hardware (OPS)',
+            source1: 'hardware_ops',
+            field1: 'display_sn',
+            sourceLabel1: 'OPS Inventory (Airtable)',
             value1: hwDisplaySn,
-            source2: 'CHG Leasing',
+            source2: 'chg_approvals',
+            field2: 'display_sn',
+            sourceLabel2: 'CHG Leasing',
             value2: chgDisplaySn,
           });
         }
 
-        // Check: Bank Serial != Hardware Display-SN (only if bank was matched via display SN)
+        // ── 2) Bank Serial ≠ Hardware Display-SN
         if (bank && bankSerial && hwDisplaySn && bankSerial !== hwDisplaySn) {
           issues.push({
-            locationId: locId,
-            locationName,
-            city,
-            jetId,
+            locationId: locId, locationName, city, jetId,
             opsNr: ops.opsNr || '',
             type: 'Display-SN',
-            source1: 'Hardware (OPS)',
+            source1: 'hardware_ops',
+            field1: 'display_sn',
+            sourceLabel1: 'OPS Inventory (Airtable)',
             value1: hwDisplaySn,
-            source2: 'Bank Leasing',
+            source2: 'bank_leasing',
+            field2: 'serial_number',
+            sourceLabel2: 'Bank TESMA Leasing',
             value2: bankSerial,
           });
         }
 
-        // Check: CHG Display-SN != Bank Serial
+        // ── 3) CHG Display-SN ≠ Bank Serial
         if (chgDisplaySn && bankSerial && chgDisplaySn !== bankSerial) {
-          // Only if both exist and don't match
           issues.push({
-            locationId: locId,
-            locationName,
-            city,
-            jetId,
+            locationId: locId, locationName, city, jetId,
             opsNr: ops.opsNr || '',
             type: 'Display-SN',
-            source1: 'CHG Leasing',
+            source1: 'chg_approvals',
+            field1: 'display_sn',
+            sourceLabel1: 'CHG Leasing',
             value1: chgDisplaySn,
-            source2: 'Bank Leasing',
+            source2: 'bank_leasing',
+            field2: 'serial_number',
+            sourceLabel2: 'Bank TESMA Leasing',
             value2: bankSerial,
           });
         }
 
-        // Check: Navori Venue ID mismatch (Display-Tabelle vs OPS-Tabelle)
+        // ── 4) Navori Venue ID: Display-Tabelle ≠ OPS-Tabelle
         if (locationNavoriId && opsNavoriId && locationNavoriId !== opsNavoriId) {
           issues.push({
-            locationId: locId,
-            locationName,
-            city,
-            jetId,
+            locationId: locId, locationName, city, jetId,
             opsNr: ops.opsNr || '',
             type: 'Navori Venue-ID',
-            source1: 'Display-Tabelle',
+            source1: 'airtable_displays',
+            field1: 'navori_venue_id',
+            sourceLabel1: 'Display Locations (Airtable)',
             value1: locationNavoriId,
-            source2: 'OPS-Tabelle',
+            source2: 'hardware_ops',
+            field2: 'navori_venue_id',
+            sourceLabel2: 'OPS Inventory (Airtable)',
             value2: opsNavoriId,
+          });
+        }
+
+        // ── 5) OPS hat Location-Zuordnung, aber Location hat keinen Navori Eintrag
+        if (opsNavoriId && !locationNavoriId && ops.displayLocationId) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'Fehlende Venue-ID',
+            source1: 'hardware_ops',
+            field1: 'navori_venue_id',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: opsNavoriId,
+            source2: 'airtable_displays',
+            field2: 'navori_venue_id',
+            sourceLabel2: 'Display Locations (Airtable)',
+            value2: '(leer)',
+          });
+        }
+
+        // ── 6) OPS aktiv, aber kein CHG-Leasing vorhanden
+        if (hwDisplaySn && (ops.status || '').toLowerCase() === 'active' && jetId && !chg) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'Fehlendes Leasing',
+            source1: 'hardware_ops',
+            field1: 'status = active',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: `OPS-${ops.opsNr || '?'} aktiv`,
+            source2: 'chg_approvals',
+            field2: 'jet_id_location',
+            sourceLabel2: 'CHG Leasing',
+            value2: '(kein Eintrag)',
+          });
+        }
+
+        // ── 7) OPS aktiv, aber kein Bank-Leasing vorhanden
+        if (hwDisplaySn && (ops.status || '').toLowerCase() === 'active' && !bank && !bankByOpsSn) {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'Fehlendes Leasing',
+            source1: 'hardware_ops',
+            field1: 'status = active, display_sn',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: `SN: ${hwDisplaySn}`,
+            source2: 'bank_leasing',
+            field2: 'serial_number',
+            sourceLabel2: 'Bank TESMA Leasing',
+            value2: '(kein Eintrag)',
+          });
+        }
+
+        // ── 8) Display-SN leer obwohl OPS aktiv
+        if (!hwDisplaySn && (ops.status || '').toLowerCase() === 'active') {
+          issues.push({
+            locationId: locId, locationName, city, jetId,
+            opsNr: ops.opsNr || '',
+            type: 'Fehlende SN',
+            source1: 'hardware_ops',
+            field1: 'display_sn',
+            sourceLabel1: 'OPS Inventory (Airtable)',
+            value1: '(leer)',
+            source2: 'hardware_ops',
+            field2: 'status',
+            sourceLabel2: 'OPS Status',
+            value2: 'active',
           });
         }
       }
@@ -1541,15 +1614,26 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
               color="#ef4444"
               subtitle={`${fehlerStats.locationsAffected} Standorte betroffen`}
             />
-            {fehlerStats.types.map(type => (
-              <KpiCard
-                key={type}
-                label={type}
-                value={fehlerStats.byType[type]}
-                icon={type === 'Display-SN' ? Monitor : type === 'Navori Venue-ID' ? Database : Cpu}
-                color={type === 'Display-SN' ? '#f59e0b' : type === 'Navori Venue-ID' ? '#8b5cf6' : '#3b82f6'}
-              />
-            ))}
+            {fehlerStats.types.map(type => {
+              const typeColor = type === 'Display-SN' ? '#f59e0b'
+                : type === 'Navori Venue-ID' ? '#8b5cf6'
+                : type.includes('Fehlend') ? '#f97316'
+                : '#3b82f6';
+              const typeIcon = type === 'Display-SN' ? Monitor
+                : type === 'Navori Venue-ID' ? Database
+                : type.includes('Leasing') ? CreditCard
+                : type.includes('SN') ? Hash
+                : AlertTriangle;
+              return (
+                <KpiCard
+                  key={type}
+                  label={type}
+                  value={fehlerStats.byType[type]}
+                  icon={typeIcon}
+                  color={typeColor}
+                />
+              );
+            })}
             <KpiCard
               label="Standorte"
               value={fehlerStats.locationsAffected}
@@ -1618,12 +1702,11 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
                   <thead>
                     <tr className="border-b border-slate-200/40">
                       <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Standort</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Stadt</th>
                       <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">OPS-Nr</th>
                       <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Fehlertyp</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Quelle 1</th>
+                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Quelle 1 (DB → Feld)</th>
                       <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Wert 1</th>
-                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Quelle 2</th>
+                      <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Quelle 2 (DB → Feld)</th>
                       <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Wert 2</th>
                     </tr>
                   </thead>
@@ -1632,15 +1715,19 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
                       <tr key={`${m.locationId}-${m.type}-${m.source1}-${idx}`} className="border-b border-slate-100/60 hover:bg-red-50/30 transition-colors">
                         <td className="px-3 py-2.5">
                           <div className="flex flex-col">
-                            <span className="text-slate-700 font-medium max-w-[180px] truncate" title={m.locationName}>
+                            <span className="text-slate-700 font-medium max-w-[200px] truncate" title={m.locationName}>
                               {m.locationName || '\u2013'}
                             </span>
-                            {m.jetId && (
-                              <span className="text-xs font-mono text-slate-500">{m.jetId}</span>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {m.jetId && (
+                                <span className="text-xs font-mono text-slate-500">{m.jetId}</span>
+                              )}
+                              {m.city && (
+                                <span className="text-xs text-slate-400">{m.city}</span>
+                              )}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-3 py-2.5 text-slate-500">{m.city || '\u2013'}</td>
                         <td className="px-3 py-2.5 font-mono text-slate-600">{m.opsNr || '\u2013'}</td>
                         <td className="px-3 py-2.5">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -1648,17 +1735,29 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
                               ? 'bg-amber-50 text-amber-700 border border-amber-200'
                               : m.type === 'Navori Venue-ID'
                                 ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                                : 'bg-blue-50 text-blue-700 border border-blue-200'
+                                : m.type.includes('Fehlend')
+                                  ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                  : 'bg-blue-50 text-blue-700 border border-blue-200'
                           }`}>
                             {m.type}
                           </span>
                         </td>
-                        <td className="px-3 py-2.5 text-slate-500 text-xs">{m.source1}</td>
-                        <td className="px-3 py-2.5 font-mono text-red-700 font-medium text-xs max-w-[160px] truncate" title={m.value1}>
+                        <td className="px-3 py-2.5">
+                          <div className="flex flex-col">
+                            <span className="text-xs text-slate-600 font-medium">{m.sourceLabel1}</span>
+                            <span className="text-xs font-mono text-slate-400">{m.source1}.{m.field1}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5 font-mono text-red-700 font-medium text-xs max-w-[180px] truncate" title={m.value1}>
                           {m.value1 || '\u2013'}
                         </td>
-                        <td className="px-3 py-2.5 text-slate-500 text-xs">{m.source2}</td>
-                        <td className="px-3 py-2.5 font-mono text-red-700 font-medium text-xs max-w-[160px] truncate" title={m.value2}>
+                        <td className="px-3 py-2.5">
+                          <div className="flex flex-col">
+                            <span className="text-xs text-slate-600 font-medium">{m.sourceLabel2}</span>
+                            <span className="text-xs font-mono text-slate-400">{m.source2}.{m.field2}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5 font-mono text-red-700 font-medium text-xs max-w-[180px] truncate" title={m.value2}>
                           {m.value2 || '\u2013'}
                         </td>
                       </tr>

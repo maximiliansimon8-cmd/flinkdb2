@@ -25,6 +25,7 @@ import {
   Edit3,
   Trash2,
   X,
+  Phone,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -33,6 +34,7 @@ import {
 import { fetchAllTasks, createTask, updateTask, deleteTask } from '../utils/airtableService';
 import TaskCreateModal from './TaskCreateModal';
 import TaskEditModal from './TaskEditModal';
+import StimmcheckModal from './StimmcheckModal';
 
 /* ──────────────────────── constants ──────────────────────── */
 
@@ -95,6 +97,9 @@ export default function TaskDashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
+
+  // Stimmcheck modal
+  const [stimmcheckTask, setStimmcheckTask] = useState(null);
 
   // Success toast
   const [successMsg, setSuccessMsg] = useState(null);
@@ -1137,6 +1142,15 @@ export default function TaskDashboard() {
                             })}
                             <div className="ml-auto flex items-center gap-2">
                               <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setStimmcheckTask(task);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200/60 rounded-lg text-xs font-medium hover:bg-emerald-100 transition-colors"
+                              >
+                                <Phone size={10} /> Stimmcheck
+                              </button>
+                              <button
                                 onClick={(e) => { e.stopPropagation(); setEditingTask(task); }}
                                 className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#3b82f6]/10 text-[#3b82f6] rounded-lg text-xs font-medium hover:bg-[#3b82f6]/20 transition-colors"
                               >
@@ -1198,6 +1212,27 @@ export default function TaskDashboard() {
         onDelete={handleDeleteTask}
         task={editingTask}
         loading={modalLoading}
+      />
+      <StimmcheckModal
+        isOpen={!!stimmcheckTask}
+        onClose={() => setStimmcheckTask(null)}
+        locationName={
+          stimmcheckTask?.locationNames?.[0] ||
+          stimmcheckTask?.partner ||
+          stimmcheckTask?.title ||
+          ''
+        }
+        locationAddress={
+          stimmcheckTask?.displayIds?.[0]
+            ? `Display: ${stimmcheckTask.displayIds[0]}`
+            : ''
+        }
+        onSuccess={(entry) => {
+          setSuccessMsg(
+            `Stimmcheck geplant: ${entry.locationName} am ${new Date(entry.scheduledDate).toLocaleDateString('de-DE')} um ${entry.scheduledTime} Uhr`
+          );
+          setTimeout(() => setSuccessMsg(null), 5000);
+        }}
       />
     </div>
   );

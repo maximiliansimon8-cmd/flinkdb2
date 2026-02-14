@@ -393,16 +393,32 @@ async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys,
 //  HANDLER
 // ═══════════════════════════════════════════════
 
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+} from './shared/security.js';
+
 export default async (request) => {
   const startTime = Date.now();
 
+  if (request.method === 'OPTIONS') {
+    return handlePreflight(request);
+  }
+
+  // Origin check
+  const origin = getAllowedOrigin(request);
+  if (!origin) return forbiddenResponse();
+
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    ...corsHeaders(origin),
   };
 
-  if (request.method === 'OPTIONS') {
-    return new Response('', { status: 204, headers });
+  // Rate limiting — attachment sync is expensive
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`sync-attachments:${clientIP}`, 5, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
   }
 
   const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
@@ -410,7 +426,8 @@ export default async (request) => {
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!AIRTABLE_TOKEN || !SUPABASE_SERVICE_KEY) {
-    return new Response(JSON.stringify({ error: 'Missing env vars (AIRTABLE_TOKEN, SUPABASE_SERVICE_ROLE_KEY)' }), {
+    console.error('[sync-attachments] Missing required environment variables');
+    return new Response(JSON.stringify({ error: 'Server-Konfigurationsfehler' }), {
       status: 500, headers,
     });
   }
@@ -537,7 +554,7 @@ export default async (request) => {
 
     return new Response(JSON.stringify({
       success: false,
-      error: err.message,
+      error: 'Attachment-Sync fehlgeschlagen',
       duration_ms: Date.now() - startTime,
     }), { status: 500, headers });
   }

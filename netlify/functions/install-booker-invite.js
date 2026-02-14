@@ -11,7 +11,11 @@
  * Auth: API-Key header (x-api-key)
  */
 
-import { corsHeaders } from './shared/security.js';
+import {
+  corsHeaders,
+  checkRateLimit, getClientIP,
+  sanitizeString, isValidAirtableId,
+} from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -71,6 +75,16 @@ export default async (request, context) => {
     });
   }
 
+  // Rate limiting
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`install-invite:${clientIP}`, 20, 60_000);
+  if (!limit.allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests' }),
+      { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': String(Math.ceil(limit.retryAfterMs / 1000)) } }
+    );
+  }
+
   const apiStart = Date.now();
 
   try {
@@ -81,6 +95,13 @@ export default async (request, context) => {
       return new Response(JSON.stringify({ error: 'akquiseAirtableId, contactPhone, and city are required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate Airtable ID format
+    if (!isValidAirtableId(akquiseAirtableId)) {
+      return new Response(JSON.stringify({ error: 'Ungültiges Airtable-ID-Format' }), {
+        status: 400, headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -267,7 +288,8 @@ export default async (request, context) => {
       error: err.message,
     });
 
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error('[install-booker-invite] Error:', err.message);
+    return new Response(JSON.stringify({ error: 'Einladung fehlgeschlagen' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

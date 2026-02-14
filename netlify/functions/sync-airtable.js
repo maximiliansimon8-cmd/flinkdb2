@@ -66,30 +66,71 @@ async function fetchAllAirtable(token, tableId, fields) {
 
 /**
  * Upsert records to Supabase via REST API (in batches of 500).
+ * If a batch fails due to unknown/incompatible columns, automatically strips
+ * the offending column(s) and retries (up to 3 times per batch).
  */
 async function upsertToSupabase(supabaseUrl, serviceKey, table, rows) {
   const batchSize = 500;
   let upserted = 0;
+  const columnsToStrip = new Set();
 
   for (let i = 0; i < rows.length; i += batchSize) {
-    const batch = rows.slice(i, i + batchSize);
-    const res = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceKey}`,
-        'apikey': serviceKey,
-        'Prefer': 'resolution=merge-duplicates',
-      },
-      body: JSON.stringify(batch),
-    });
+    let batch = rows.slice(i, i + batchSize);
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error(`Supabase upsert error (${table}): ${res.status} ${errText.substring(0, 200)}`);
-    } else {
-      upserted += batch.length;
+    // Strip any columns that failed in previous batches
+    if (columnsToStrip.size > 0) {
+      batch = batch.map(row => {
+        const cleaned = { ...row };
+        columnsToStrip.forEach(col => delete cleaned[col]);
+        return cleaned;
+      });
     }
+
+    // Retry loop: handles multiple bad columns (one detected per attempt)
+    let success = false;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const res = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey': serviceKey,
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify(batch),
+      });
+
+      if (res.ok) {
+        upserted += batch.length;
+        success = true;
+        break;
+      }
+
+      const errText = await res.text();
+
+      // Detect "column X does not exist" or type mismatch errors
+      const colMatch = errText.match(/column\s+"?([^"]+)"?\s+(?:of relation|does not exist)/i) ||
+                        errText.match(/Could not find.*column\s+'([^']+)'/i);
+      if (colMatch && res.status === 400 && attempt < 3) {
+        const badCol = colMatch[1];
+        columnsToStrip.add(badCol);
+        console.warn(`[sync] Column "${badCol}" incompatible in "${table}" — stripping and retrying (attempt ${attempt + 2}). Run sql/fix-tasks-missing-columns.sql to fix permanently.`);
+        batch = batch.map(row => {
+          const cleaned = { ...row };
+          columnsToStrip.forEach(col => delete cleaned[col]);
+          return cleaned;
+        });
+        continue; // retry with stripped column
+      }
+
+      // Non-recoverable error
+      console.error(`Supabase upsert error (${table}): ${res.status} ${errText.substring(0, 300)}`);
+      break;
+    }
+  }
+
+  if (columnsToStrip.size > 0) {
+    console.warn(`[sync] Stripped columns from "${table}" upsert: ${[...columnsToStrip].join(', ')}`);
   }
 
   return upserted;
@@ -270,7 +311,8 @@ export default async (request) => {
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!AIRTABLE_TOKEN || !SUPABASE_SERVICE_KEY) {
-    return new Response(JSON.stringify({ error: 'Missing env vars' }), {
+    console.error('[sync-airtable] Missing required environment variables');
+    return new Response(JSON.stringify({ error: 'Server-Konfigurationsfehler' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -543,7 +585,7 @@ export default async (request) => {
 
     return new Response(JSON.stringify({
       success: false,
-      error: err.message,
+      error: 'Sync fehlgeschlagen',
       results,
     }), {
       status: 500,

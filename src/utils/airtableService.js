@@ -321,16 +321,28 @@ export async function fetchInstallationByDisplayId(displayId) {
       return null;
     }
 
+    // Build protocol attachment array
+    let protocol = data.protocol_url ? [{
+      url: data.protocol_url,
+      filename: data.protocol_filename || 'Protokoll.pdf',
+    }] : [];
+
+    // Resolve cached attachment URLs for the protocol (non-blocking, best-effort)
+    const airtableId = data.airtable_id || data.id;
+    if (protocol.length > 0 && airtableId) {
+      try {
+        protocol = await resolveAttachmentUrls(airtableId, 'Installationsprotokoll', protocol);
+      } catch { /* keep original URLs */ }
+    }
+
     const result = {
+      airtableId,
       installDate: data.install_date || null,
       status: data.status || '',
       installationType: data.installation_type || '',
       integrator: data.integrator || '',
       technicians: data.technicians || [],
-      protocol: data.protocol_url ? [{
-        url: data.protocol_url,
-        filename: data.protocol_filename || 'Protokoll.pdf',
-      }] : [],
+      protocol,
       screenType: data.screen_type || '',
       screenSize: data.screen_size || '',
       opsNr: data.ops_nr || '',
@@ -552,13 +564,6 @@ function syncTaskToSupabase(airtableRecord, partnerName) {
     overdue: f['Overdue'] || null,
     completed_date: f['completed_task_date'] || null,
     completed_by: f['completed_task_by'] || null,
-    attachments: Array.isArray(f['Attachments'])
-      ? f['Attachments'].map(att => ({
-          url: att.url || '', filename: att.filename || '',
-          size: att.size || 0, type: att.type || '',
-          id: att.id || '', thumbnails: att.thumbnails || null,
-        }))
-      : [],
     updated_at: new Date().toISOString(),
   }, { onConflict: 'airtable_id' })
     .then(() => console.log('[sync] Task synced to Supabase:', airtableRecord.id))
@@ -1185,6 +1190,7 @@ export async function fetchAllInstallationen() {
 function mapInstallationFromSupabase(row) {
   return {
     id: row.id,
+    airtableId: row.airtable_id || row.id,
     displayIds: row.display_ids || [],
     installDate: row.install_date || null,
     status: row.status || '',
@@ -1634,6 +1640,292 @@ export async function fetchHardwareMovementHistory(snType, snValue) {
   } catch (err) {
     console.error('[fetchHardwareMovementHistory] Error:', err);
     return [];
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+ *  HARDWARE COMPONENT DETAIL — Single-record lookups
+ * ═══════════════════════════════════════════════════════════ */
+
+/**
+ * Fetch a single OPS record by Supabase ID.
+ */
+export async function fetchOpsById(opsId) {
+  if (!opsId) return null;
+  try {
+    const { data, error } = await supabase.from('hardware_ops').select('*').eq('id', opsId).single();
+    if (error) throw error;
+    return data ? mapOpsFromSupabase(data) : null;
+  } catch (err) {
+    console.error('[fetchOpsById] Error:', err);
+    return null;
+  }
+}
+
+/**
+ * Fetch a single SIM record by Supabase ID.
+ */
+export async function fetchSimById(simId) {
+  if (!simId) return null;
+  try {
+    const { data, error } = await supabase.from('hardware_sim').select('*').eq('id', simId).single();
+    if (error) throw error;
+    return data ? mapSimFromSupabase(data) : null;
+  } catch (err) {
+    console.error('[fetchSimById] Error:', err);
+    return null;
+  }
+}
+
+/**
+ * Fetch a single Display record by Supabase ID.
+ */
+export async function fetchDisplayById(displayId) {
+  if (!displayId) return null;
+  try {
+    const { data, error } = await supabase.from('hardware_displays').select('*').eq('id', displayId).single();
+    if (error) throw error;
+    return data ? mapDisplayFromSupabase(data) : null;
+  } catch (err) {
+    console.error('[fetchDisplayById] Error:', err);
+    return null;
+  }
+}
+
+/**
+ * Fetch swaps involving a specific OPS ID (appears in old or new hardware).
+ */
+export async function fetchSwapsByOpsId(opsId) {
+  if (!opsId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('hardware_swaps')
+      .select('*')
+      .or(`old_hardware_ids.cs.{${opsId}},new_hardware_ids.cs.{${opsId}}`)
+      .order('swap_date', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapSwapFromSupabase);
+  } catch (err) {
+    console.error('[fetchSwapsByOpsId] Error:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch deinstalls for a specific OPS record ID.
+ */
+export async function fetchDeinstallsByOpsId(opsId) {
+  if (!opsId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('hardware_deinstalls')
+      .select('*')
+      .eq('ops_record_id', opsId)
+      .order('deinstall_date', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapDeinstallFromSupabase);
+  } catch (err) {
+    console.error('[fetchDeinstallsByOpsId] Error:', err);
+    return [];
+  }
+}
+
+/**
+ * Orchestration: Fetch the full lifecycle for any hardware component.
+ * Resolves OPS hub, related components, location, swaps, deinstalls, leasing.
+ *
+ * @param {'ops'|'sim'|'display'} componentType
+ * @param {string} componentId - Supabase record ID
+ * @returns {Promise<Object>} { component, opsRecord, relatedSims, relatedDisplays, location, swaps, deinstalls, leasing, timeline }
+ */
+export async function fetchComponentLifecycle(componentType, componentId) {
+  if (!componentId) return null;
+
+  try {
+    let component = null;
+    let opsRecord = null;
+
+    // 1. Fetch the component itself
+    if (componentType === 'ops') {
+      component = await fetchOpsById(componentId);
+      opsRecord = component;
+    } else if (componentType === 'sim') {
+      component = await fetchSimById(componentId);
+      // Resolve OPS via opsRecordId
+      if (component?.opsRecordId) {
+        opsRecord = await fetchOpsById(component.opsRecordId);
+      }
+    } else if (componentType === 'display') {
+      component = await fetchDisplayById(componentId);
+      // Resolve OPS via opsRecordId
+      if (component?.opsRecordId) {
+        opsRecord = await fetchOpsById(component.opsRecordId);
+      }
+    }
+
+    if (!component) return null;
+
+    const opsId = opsRecord?.id;
+
+    // 2. Fetch related components via OPS
+    let relatedSims = [];
+    let relatedDisplays = [];
+    if (opsId) {
+      const [simRes, dispRes] = await Promise.all([
+        supabase.from('hardware_sim').select('*').eq('ops_record_id', opsId),
+        supabase.from('hardware_displays').select('*').eq('ops_record_id', opsId),
+      ]);
+      relatedSims = (simRes.data || []).map(mapSimFromSupabase);
+      relatedDisplays = (dispRes.data || []).map(mapDisplayFromSupabase);
+    }
+
+    // 3. Fetch location via displayLocationId on OPS
+    let location = null;
+    if (opsRecord?.displayLocationId) {
+      const allLocations = await fetchAllDisplayLocations();
+      location = allLocations.find(l => l.id === opsRecord.displayLocationId) || null;
+    }
+
+    // 4. Fetch swaps + deinstalls for the OPS
+    let swaps = [];
+    let deinstalls = [];
+    if (opsId) {
+      [swaps, deinstalls] = await Promise.all([
+        fetchSwapsByOpsId(opsId),
+        fetchDeinstallsByOpsId(opsId),
+      ]);
+    }
+
+    // 5. Fetch leasing data
+    let leasing = null;
+    const jetId = location?.jetId;
+    const displaySn = opsRecord?.displaySn || relatedDisplays[0]?.displaySerialNumber;
+    if (jetId) {
+      leasing = await fetchLeaseByJetId(jetId);
+    } else if (displaySn) {
+      leasing = await fetchLeaseByDisplaySN(displaySn);
+    }
+
+    // 6. Build unified timeline
+    const timeline = [];
+
+    // SIM activation
+    for (const sim of relatedSims) {
+      if (sim.activateDate) {
+        timeline.push({
+          date: sim.activateDate,
+          type: 'sim_activation',
+          label: 'SIM aktiviert',
+          detail: `ICCID: ${sim.simIdImprecise ? '(ungenau)' : (sim.simId || '?')}`,
+        });
+      }
+    }
+
+    // Installation (if location has liveSince)
+    if (location?.liveSince) {
+      timeline.push({
+        date: location.liveSince,
+        type: 'installation',
+        label: 'Installation',
+        detail: `Standort: ${location.locationName || '?'} (${location.city || ''})`,
+      });
+    }
+
+    // Swaps
+    for (const swap of swaps) {
+      const isOld = (swap.oldHardwareIds || []).includes(opsId);
+      timeline.push({
+        date: swap.swapDate,
+        type: isOld ? 'swap_out' : 'swap_in',
+        label: isOld ? 'Ausgebaut (Tausch)' : 'Eingebaut (Tausch)',
+        detail: `${swap.swapReason || swap.swapType?.join(', ') || 'Tausch'} — ${swap.locationName || ''}`,
+      });
+    }
+
+    // Deinstalls
+    for (const deinst of deinstalls) {
+      timeline.push({
+        date: deinst.deinstallDate,
+        type: 'deinstall',
+        label: 'Deinstallation',
+        detail: `${deinst.reason || ''} — ${deinst.locationName || ''}`,
+      });
+    }
+
+    // Leasing start
+    const leaseStart = leasing?.chg?.rentalStart || leasing?.bank?.rentalStart;
+    if (leaseStart) {
+      timeline.push({
+        date: Array.isArray(leaseStart) ? leaseStart[0] : leaseStart,
+        type: 'leasing_start',
+        label: 'Leasing-Beginn',
+        detail: leasing?.bank?.rentalCertificate || leasing?.chg?.chgCertificate || '',
+      });
+    }
+
+    // Sort chronologically (newest first), nulls at end
+    timeline.sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(b.date) - new Date(a.date);
+    });
+
+    return {
+      component,
+      componentType,
+      opsRecord,
+      relatedSims,
+      relatedDisplays,
+      location,
+      swaps,
+      deinstalls,
+      leasing,
+      timeline,
+    };
+  } catch (err) {
+    console.error('[fetchComponentLifecycle] Error:', err);
+    return null;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+ *  ATTACHMENT CACHE – Resolve permanent Supabase Storage URLs
+ *  Airtable attachment URLs expire after ~2 hours; this helper
+ *  looks up cached permanent URLs from the attachment_cache table.
+ * ═══════════════════════════════════════════════════════════ */
+
+/**
+ * Resolve attachment URLs by checking the attachment_cache table.
+ * If a permanent Supabase Storage URL is cached, it replaces the
+ * expiring Airtable URL. Otherwise the original URL is kept.
+ *
+ * @param {string} recordId   - Airtable record ID (e.g. "recXYZ123")
+ * @param {string} fieldName  - Airtable field name (e.g. "images_akquise", "Installationsprotokoll")
+ * @param {Array}  attachments - Array of attachment objects [{url, filename, ...}]
+ * @returns {Promise<Array>}  Same array with urls replaced where cached
+ */
+export async function resolveAttachmentUrls(recordId, fieldName, attachments) {
+  if (!attachments?.length) return attachments;
+
+  try {
+    const { data: cached } = await supabase
+      .from('attachment_cache')
+      .select('original_filename, public_url')
+      .eq('airtable_record_id', recordId)
+      .eq('airtable_field', fieldName);
+
+    if (!cached?.length) return attachments;
+
+    const cacheMap = new Map(cached.map(c => [c.original_filename, c.public_url]));
+
+    return attachments.map(att => ({
+      ...att,
+      url: cacheMap.get(att.filename) || att.url,
+      cached: cacheMap.has(att.filename),
+    }));
+  } catch {
+    return attachments;
   }
 }
 

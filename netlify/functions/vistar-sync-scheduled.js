@@ -53,7 +53,7 @@ export default async () => {
   console.log('[vistar-sync-scheduled] Starting daily sync (90 days)...');
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.VISTAR_EMAIL) {
-    console.error('[vistar-sync-scheduled] Missing env vars');
+    console.error('[vistar-sync-scheduled] Missing required environment variables');
     return;
   }
 

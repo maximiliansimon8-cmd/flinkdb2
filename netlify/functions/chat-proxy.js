@@ -14,7 +14,11 @@
  *   SUPABASE_SERVICE_ROLE_KEY  – Supabase service role key (for feedback + memory)
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  sanitizeString, safeErrorResponse,
+} from './shared/security.js';
 import { logApiCall, estimateClaudeCost } from './shared/apiLogger.js';
 
 /* ─── System prompt (hardcoded) ─── */
@@ -239,8 +243,9 @@ STIL:
 async function handleChat(body, origin) {
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
   if (!ANTHROPIC_API_KEY) {
+    console.error('[chat-proxy] ANTHROPIC_API_KEY not configured');
     return new Response(
-      JSON.stringify({ error: 'Chat-Assistent nicht konfiguriert. ANTHROPIC_API_KEY fehlt.' }),
+      JSON.stringify({ error: 'Chat-Assistent nicht konfiguriert.' }),
       { status: 503, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
     );
   }
@@ -321,9 +326,9 @@ async function handleChat(body, origin) {
     console.error('[chat-proxy] Anthropic error:', status, errText);
     // Return more specific error for debugging
     let errorMsg = 'Fehler bei der Verarbeitung.';
-    if (status === 401) errorMsg = 'API-Key ungültig. Bitte prüfe den ANTHROPIC_API_KEY in Netlify.';
-    else if (status === 403) errorMsg = 'API-Zugriff verweigert. Key hat keine Berechtigung.';
-    else if (status === 400) errorMsg = 'Ungültige Anfrage an die KI-API.';
+    if (status === 401) errorMsg = 'KI-Service Authentifizierung fehlgeschlagen.';
+    else if (status === 403) errorMsg = 'KI-Service Zugriff verweigert.';
+    else if (status === 400) errorMsg = 'Ungültige Anfrage an den KI-Service.';
     logApiCall({
       functionName: 'chat-proxy',
       service: 'anthropic',
@@ -336,7 +341,7 @@ async function handleChat(body, origin) {
       userId: body.userId || null,
     });
     return new Response(
-      JSON.stringify({ error: errorMsg, debug: { status, detail: errText.substring(0, 200) } }),
+      JSON.stringify({ error: errorMsg }),
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
     );
   }
@@ -616,6 +621,13 @@ export default async (request, context) => {
   const origin = getAllowedOrigin(request);
   if (!origin) return forbiddenResponse();
 
+  // Rate limiting (chat is expensive — 20/min per IP)
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`chat-proxy:${clientIP}`, 20, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
+
   const jsonHeaders = { 'Content-Type': 'application/json', ...corsHeaders(origin) };
 
   // Only accept POST
@@ -646,14 +658,15 @@ export default async (request, context) => {
       return await handleMemoryLoad(body, origin);
     }
 
+    const safeMode = sanitizeString(String(mode || ''), 50);
     return new Response(
-      JSON.stringify({ error: `Ungültiger Modus: ${mode}. Erlaubt: chat, feedback, memory-save, memory-load.` }),
+      JSON.stringify({ error: `Ungültiger Modus. Erlaubt: chat, feedback, memory-save, memory-load.` }),
       { status: 400, headers: jsonHeaders }
     );
   } catch (err) {
-    console.error('[chat-proxy] Error:', err);
+    console.error('[chat-proxy] Error:', err.message);
     return new Response(
-      JSON.stringify({ error: `Chat proxy error: ${err.message}` }),
+      JSON.stringify({ error: 'Interner Serverfehler' }),
       { status: 500, headers: jsonHeaders }
     );
   }

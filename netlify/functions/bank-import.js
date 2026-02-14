@@ -13,7 +13,11 @@
  *   - SUPABASE_URL
  *   - SUPABASE_SERVICE_ROLE_KEY
  */
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  sanitizeString, safeErrorResponse,
+} from './shared/security.js';
 
 /**
  * Map incoming asset data to bank_leasing columns.
@@ -100,6 +104,13 @@ export default async (request) => {
   const origin = getAllowedOrigin(request);
   if (!origin) return forbiddenResponse();
 
+  // Rate limiting — bank import is an admin operation
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`bank-import:${clientIP}`, 10, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
+
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
@@ -111,10 +122,8 @@ export default async (request) => {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceKey) {
-    return new Response(JSON.stringify({ error: 'Missing Supabase config' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
-    });
+    console.error('[bank-import] Missing required environment variables');
+    return safeErrorResponse(500, 'Server-Konfigurationsfehler', origin);
   }
 
   let body;
@@ -130,6 +139,14 @@ export default async (request) => {
   const { assets } = body;
   if (!Array.isArray(assets) || assets.length === 0) {
     return new Response(JSON.stringify({ error: 'Body must contain "assets" array' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+    });
+  }
+
+  // Limit batch size to prevent abuse
+  if (assets.length > 5000) {
+    return new Response(JSON.stringify({ error: 'Maximal 5000 Assets pro Import' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
     });

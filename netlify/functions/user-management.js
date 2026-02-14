@@ -11,7 +11,11 @@
  * Environment: SUPABASE_SERVICE_ROLE_KEY
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  sanitizeString, isValidEmail, isValidUUID, safeErrorResponse,
+} from './shared/security.js';
 
 const SUPABASE_URL = 'https://hvgjdosdejnwkuyivnrq.supabase.co';
 
@@ -80,6 +84,13 @@ export default async function handler(request) {
   if (!origin) return forbiddenResponse();
   const headers = { ...corsHeaders(origin), 'Content-Type': 'application/json' };
 
+  // Rate limiting — user management is sensitive
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`user-mgmt:${clientIP}`, 30, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
+
   try {
     const url = new URL(request.url);
     const path = url.pathname.replace(/^\/api\/users\/?/, '').replace(/^\.netlify\/functions\/user-management\/?/, '');
@@ -99,9 +110,10 @@ export default async function handler(request) {
       return await handleResetPassword(body, headers);
     }
 
-    return new Response(JSON.stringify({ error: `Unknown endpoint: ${path}` }), { status: 404, headers });
+    return new Response(JSON.stringify({ error: 'Unbekannter Endpunkt' }), { status: 404, headers });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+    console.error('[user-management] Unhandled error:', err.message);
+    return new Response(JSON.stringify({ error: 'Interner Serverfehler' }), { status: 500, headers });
   }
 }
 
@@ -110,8 +122,13 @@ async function handleAddUser({ name, email, groupId, password }, headers) {
     return new Response(JSON.stringify({ error: 'Name und E-Mail erforderlich' }), { status: 400, headers });
   }
 
+  // Validate email format
+  if (!isValidEmail(email)) {
+    return new Response(JSON.stringify({ error: 'Ungültiges E-Mail-Format' }), { status: 400, headers });
+  }
+
   const cleanEmail = email.trim().toLowerCase();
-  const cleanName = name.trim();
+  const cleanName = sanitizeString(name.trim(), 200);
   const group = groupId || 'grp_operations';
   const pw = password || 'Dimension2025!'; // default password
 
@@ -145,7 +162,8 @@ async function handleAddUser({ name, email, groupId, password }, headers) {
     if (err.message.includes('already') || err.message.includes('duplicate') || err.message.includes('23505')) {
       return new Response(JSON.stringify({ error: 'E-Mail existiert bereits' }), { status: 409, headers });
     }
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+    console.error('[user-management] handleAddUser error:', err.message);
+    return new Response(JSON.stringify({ error: 'Fehler beim Erstellen des Benutzers' }), { status: 500, headers });
   }
 }
 
@@ -154,14 +172,23 @@ async function handleUpdateUser({ userId, groupId }, headers) {
     return new Response(JSON.stringify({ error: 'userId und groupId erforderlich' }), { status: 400, headers });
   }
 
+  // Validate userId is UUID format
+  if (!isValidUUID(userId)) {
+    return new Response(JSON.stringify({ error: 'Ungültiges userId-Format' }), { status: 400, headers });
+  }
+
+  // Sanitize groupId
+  const safeGroupId = sanitizeString(groupId, 50);
+
   try {
-    await supabaseAdmin(`app_users?id=eq.${userId}`, {
+    await supabaseAdmin(`app_users?id=eq.${encodeURIComponent(userId)}`, {
       method: 'PATCH',
-      body: JSON.stringify({ group_id: groupId }),
+      body: JSON.stringify({ group_id: safeGroupId }),
     });
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+    console.error('[user-management] handleUpdateUser error:', err.message);
+    return new Response(JSON.stringify({ error: 'Fehler beim Aktualisieren des Benutzers' }), { status: 500, headers });
   }
 }
 
@@ -170,15 +197,20 @@ async function handleDeleteUser({ userId }, headers) {
     return new Response(JSON.stringify({ error: 'userId erforderlich' }), { status: 400, headers });
   }
 
+  // Validate userId
+  if (!isValidUUID(userId)) {
+    return new Response(JSON.stringify({ error: 'Ungültiges userId-Format' }), { status: 400, headers });
+  }
+
   try {
     // Get user's auth_id first so we can also delete the auth user
-    const users = await supabaseAdmin(`app_users?id=eq.${userId}&select=auth_id,name,email`, {
+    const users = await supabaseAdmin(`app_users?id=eq.${encodeURIComponent(userId)}&select=auth_id,name,email`, {
       method: 'GET',
     });
     const user = Array.isArray(users) ? users[0] : null;
 
     // Delete app_users entry
-    await supabaseAdmin(`app_users?id=eq.${userId}`, {
+    await supabaseAdmin(`app_users?id=eq.${encodeURIComponent(userId)}`, {
       method: 'DELETE',
     });
 
@@ -193,7 +225,8 @@ async function handleDeleteUser({ userId }, headers) {
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+    console.error('[user-management] handleDeleteUser error:', err.message);
+    return new Response(JSON.stringify({ error: 'Fehler beim Löschen des Benutzers' }), { status: 500, headers });
   }
 }
 
@@ -202,9 +235,14 @@ async function handleResetPassword({ userId, newPassword }, headers) {
     return new Response(JSON.stringify({ error: 'userId erforderlich' }), { status: 400, headers });
   }
 
+  // Validate userId
+  if (!isValidUUID(userId)) {
+    return new Response(JSON.stringify({ error: 'Ungültiges userId-Format' }), { status: 400, headers });
+  }
+
   try {
     // Get auth_id
-    const users = await supabaseAdmin(`app_users?id=eq.${userId}&select=auth_id,email`, {
+    const users = await supabaseAdmin(`app_users?id=eq.${encodeURIComponent(userId)}&select=auth_id,email`, {
       method: 'GET',
     });
     const user = Array.isArray(users) ? users[0] : null;
@@ -220,8 +258,9 @@ async function handleResetPassword({ userId, newPassword }, headers) {
       body: JSON.stringify({ password: pw }),
     });
 
-    return new Response(JSON.stringify({ success: true, message: `Passwort zurückgesetzt für ${user.email}` }), { status: 200, headers });
+    return new Response(JSON.stringify({ success: true, message: 'Passwort erfolgreich zurückgesetzt' }), { status: 200, headers });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+    console.error('[user-management] handleResetPassword error:', err.message);
+    return new Response(JSON.stringify({ error: 'Fehler beim Zurücksetzen des Passworts' }), { status: 500, headers });
   }
 }

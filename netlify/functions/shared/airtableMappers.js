@@ -134,11 +134,15 @@ export function mapTask(rec) {
     // Task meta
     external_visibility: f[TF.EXTERNAL_VISIBILITY] || false,
     nacharbeit_kommentar: f[TF.NACHARBEIT_KOMMENTAR] || null,
-    superchat: f[TF.SUPERCHAT] || false,
+    // Superchat: Airtable stores as URL string, Supabase column may be BOOLEAN or TEXT.
+    // Cast to string so it works with TEXT column; cast to boolean-safe for BOOLEAN column.
+    superchat: f[TF.SUPERCHAT] ? String(f[TF.SUPERCHAT]) : null,
     status_changed_by: f[TF.STATUS_CHANGED_BY]?.name || f[TF.STATUS_CHANGED_BY] || null,
     status_changed_date: f[TF.STATUS_CHANGED_DATE] || null,
     jet_ids: f[TF.JET_ID_LOOKUP] || [],
     cities: f[TF.CITY_LOOKUP] || [],
+    // Attachments: JSONB column — must exist in Supabase tasks table.
+    // Run sql/fix-tasks-missing-columns.sql if this column is missing.
     attachments: Array.isArray(f[TF.ATTACHMENTS])
       ? f[TF.ATTACHMENTS].map(att => ({
           url: att.url || '', filename: att.filename || '',

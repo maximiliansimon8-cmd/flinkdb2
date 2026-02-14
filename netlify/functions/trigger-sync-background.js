@@ -120,25 +120,67 @@ async function insertToSupabase(supabaseUrl, serviceKey, table, rows) {
 async function upsertToSupabase(supabaseUrl, serviceKey, table, rows) {
   const batchSize = 500;
   let upserted = 0;
+  const columnsToStrip = new Set();
+
   for (let i = 0; i < rows.length; i += batchSize) {
-    const batch = rows.slice(i, i + batchSize);
-    const res = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceKey}`,
-        'apikey': serviceKey,
-        'Prefer': 'resolution=merge-duplicates',
-      },
-      body: JSON.stringify(batch),
-    });
-    if (!res.ok) {
+    let batch = rows.slice(i, i + batchSize);
+
+    // Strip any columns that failed in previous batches
+    if (columnsToStrip.size > 0) {
+      batch = batch.map(row => {
+        const cleaned = { ...row };
+        columnsToStrip.forEach(col => delete cleaned[col]);
+        return cleaned;
+      });
+    }
+
+    // Retry loop: handles multiple bad columns (one detected per attempt)
+    let success = false;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const res = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey': serviceKey,
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify(batch),
+      });
+
+      if (res.ok) {
+        upserted += batch.length;
+        success = true;
+        break;
+      }
+
       const errText = await res.text();
-      console.error(`Supabase upsert error (${table}): ${res.status} ${errText.substring(0, 200)}`);
-    } else {
-      upserted += batch.length;
+
+      // Detect "column X does not exist" or type mismatch errors
+      const colMatch = errText.match(/column\s+"?([^"]+)"?\s+(?:of relation|does not exist)/i) ||
+                        errText.match(/Could not find.*column\s+'([^']+)'/i);
+      if (colMatch && res.status === 400 && attempt < 3) {
+        const badCol = colMatch[1];
+        columnsToStrip.add(badCol);
+        console.warn(`[trigger-sync] Column "${badCol}" incompatible in "${table}" — stripping and retrying (attempt ${attempt + 2}). Run sql/fix-tasks-missing-columns.sql to fix permanently.`);
+        batch = batch.map(row => {
+          const cleaned = { ...row };
+          columnsToStrip.forEach(col => delete cleaned[col]);
+          return cleaned;
+        });
+        continue; // retry with stripped column
+      }
+
+      // Non-recoverable error
+      console.error(`Supabase upsert error (${table}): ${res.status} ${errText.substring(0, 300)}`);
+      break;
     }
   }
+
+  if (columnsToStrip.size > 0) {
+    console.warn(`[trigger-sync] Stripped columns from "${table}" upsert: ${[...columnsToStrip].join(', ')}`);
+  }
+
   return upserted;
 }
 
@@ -344,16 +386,32 @@ async function syncHeartbeats(supabaseUrl, serviceKey) {
 
 /* ─── Main Handler ─── */
 
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+} from './shared/security.js';
+
 export default async (request) => {
   const startTime = Date.now();
 
+  if (request.method === 'OPTIONS') {
+    return handlePreflight(request);
+  }
+
+  // Origin check
+  const origin = getAllowedOrigin(request);
+  if (!origin) return forbiddenResponse();
+
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    ...corsHeaders(origin),
   };
 
-  if (request.method === 'OPTIONS') {
-    return new Response('', { status: 204, headers });
+  // Rate limiting — sync is expensive, limit to 5/min per IP
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`trigger-sync:${clientIP}`, 5, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
   }
 
   const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
@@ -361,7 +419,8 @@ export default async (request) => {
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!AIRTABLE_TOKEN || !SUPABASE_SERVICE_KEY) {
-    return new Response(JSON.stringify({ error: 'Missing env vars' }), { status: 500, headers });
+    console.error('[trigger-sync] Missing required environment variables');
+    return new Response(JSON.stringify({ error: 'Server-Konfigurationsfehler' }), { status: 500, headers });
   }
 
   try {
@@ -483,7 +542,7 @@ export default async (request) => {
 
     return new Response(JSON.stringify({
       success: false,
-      error: err.message,
+      error: 'Sync fehlgeschlagen',
     }), { status: 500, headers });
   }
 };

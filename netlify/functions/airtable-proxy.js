@@ -6,7 +6,11 @@
  * Environment variable required: AIRTABLE_TOKEN (set in Netlify dashboard)
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  sanitizeString, safeErrorResponse,
+} from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
 export default async (request, context) => {
@@ -19,12 +23,17 @@ export default async (request, context) => {
   const origin = getAllowedOrigin(request);
   if (!origin) return forbiddenResponse();
 
+  // Rate limiting per IP
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`airtable-proxy:${clientIP}`, 120, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
+
   const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
   if (!AIRTABLE_TOKEN) {
-    return new Response(
-      JSON.stringify({ error: 'AIRTABLE_TOKEN not configured' }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
-    );
+    console.error('[airtable-proxy] AIRTABLE_TOKEN not configured');
+    return safeErrorResponse(500, 'Server-Konfigurationsfehler', origin);
   }
 
   try {
@@ -32,6 +41,12 @@ export default async (request, context) => {
     const pathAndQuery = url.pathname
       .replace(/^\/?\.netlify\/functions\/airtable-proxy\/?/, '')
       .replace(/^\/?api\/airtable\/?/, '') + url.search;
+
+    // Validate the path doesn't contain path traversal attempts
+    if (pathAndQuery.includes('..') || pathAndQuery.includes('//')) {
+      return safeErrorResponse(400, 'Ungültige Anfrage', origin);
+    }
+
     const airtableUrl = `https://api.airtable.com/v0/${pathAndQuery}`;
 
     const fetchOpts = {
@@ -44,6 +59,10 @@ export default async (request, context) => {
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       try {
         const body = await request.text();
+        // Limit body size (1MB max)
+        if (body && body.length > 1_048_576) {
+          return safeErrorResponse(413, 'Anfrage zu groß', origin);
+        }
         if (body) fetchOpts.body = body;
       } catch (_) { /* no body */ }
     }
@@ -80,10 +99,7 @@ export default async (request, context) => {
       success: false,
       errorMessage: err.message,
     });
-    return new Response(
-      JSON.stringify({ error: `Airtable proxy error: ${err.message}` }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
-    );
+    return safeErrorResponse(500, 'Airtable-Anfrage fehlgeschlagen', origin, err);
   }
 };
 

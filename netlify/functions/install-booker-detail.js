@@ -11,7 +11,11 @@
  * Auth: Supabase JWT (Authorization header) or BOOKER_API_KEY (x-api-key header)
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  sanitizeString, sanitizeForAirtableFormula,
+} from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 import { AIRTABLE_BASE, TABLES, FETCH_FIELDS } from './shared/airtableFields.js';
 import { transformAkquiseDetail } from './shared/airtableMappers.js';
@@ -140,6 +144,13 @@ export default async (request, context) => {
     });
   }
 
+  // Rate limiting
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`install-detail:${clientIP}`, 30, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
+
   // Authenticate — allow same-origin requests from our own domain
   // (CORS origin check above already ensures only allowed domains reach here)
   const auth = await authenticateUser(request);
@@ -236,8 +247,9 @@ export default async (request, context) => {
       if (AIRTABLE_TOKEN) {
         try {
           // Fetch all Won/Signed records for this city
+          const safeCity = sanitizeForAirtableFormula(city);
           const rawRecords = await fetchAkquiseRecords(
-            `AND({City}='${city.replace(/'/g, "\\'")}', {Lead_Status}='Won / Signed')`,
+            `AND({City}='${safeCity}', {Lead_Status}='Won / Signed')`,
             500
           );
           akquiseRecords = rawRecords.map(transformAkquiseRecord);
@@ -377,7 +389,8 @@ export default async (request, context) => {
       errorMessage: err.message,
     });
 
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error('[install-booker-detail] Error:', err.message);
+    return new Response(JSON.stringify({ error: 'Detailabfrage fehlgeschlagen' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...cors },
     });

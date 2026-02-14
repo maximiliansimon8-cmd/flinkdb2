@@ -245,8 +245,9 @@ export default async (request) => {
   const days = parseInt(url.searchParams.get('days') || '90', 10);
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[vistar-sync] SUPABASE_SERVICE_ROLE_KEY not configured');
     return new Response(
-      JSON.stringify({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' }),
+      JSON.stringify({ error: 'Server-Konfigurationsfehler' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -321,7 +322,7 @@ export default async (request) => {
     });
 
     return new Response(
-      JSON.stringify({ success: false, error: err.message }),
+      JSON.stringify({ success: false, error: 'Vistar-Sync fehlgeschlagen' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

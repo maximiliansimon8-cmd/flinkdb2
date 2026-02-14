@@ -7,7 +7,11 @@
  * PATCH /api/install-booker/status/{id}    → Update booking status (confirm, cancel, complete, no_show)
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  sanitizeString, isValidUUID,
+} from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -43,6 +47,13 @@ export default async (request, context) => {
   const cors = corsHeaders(origin);
   const url = new URL(request.url);
   const apiStart = Date.now();
+
+  // Rate limiting
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`install-status:${clientIP}`, 60, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
 
   // Extract booking ID from path
   const pathParts = url.pathname
@@ -444,7 +455,8 @@ export default async (request, context) => {
       error: err.message,
     });
 
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error('[install-booker-status] Error:', err.message);
+    return new Response(JSON.stringify({ error: 'Status-Anfrage fehlgeschlagen' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...cors },
     });

@@ -8,6 +8,7 @@
  */
 
 import { logApiCall } from './shared/apiLogger.js';
+import { checkRateLimit, getClientIP } from './shared/security.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -43,12 +44,30 @@ export default async (request, context) => {
     });
   }
 
+  // Rate limiting — public endpoint
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`install-slots:${clientIP}`, 30, 60_000);
+  if (!limit.allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.' }),
+      { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': String(Math.ceil(limit.retryAfterMs / 1000)), ...PUBLIC_CORS } }
+    );
+  }
+
   const apiStart = Date.now();
   const url = new URL(request.url);
   const token = url.searchParams.get('token');
 
   if (!token) {
     return new Response(JSON.stringify({ error: 'token parameter required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+    });
+  }
+
+  // Validate token format
+  if (typeof token !== 'string' || token.length > 100) {
+    return new Response(JSON.stringify({ error: 'Ungültiges Token-Format' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
     });
@@ -198,7 +217,8 @@ export default async (request, context) => {
       error: err.message,
     });
 
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error('[install-booker-slots] Error:', err.message);
+    return new Response(JSON.stringify({ error: 'Slot-Abfrage fehlgeschlagen' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
     });

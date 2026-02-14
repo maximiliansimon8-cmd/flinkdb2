@@ -4,7 +4,7 @@ import {
   ChevronDown, ChevronUp, Calendar, Phone, Mail, FileText, ExternalLink, Download,
   Info, Wrench, Paperclip,
 } from 'lucide-react';
-import { fetchAllStammdaten, fetchInstallationByDisplayId } from '../utils/airtableService';
+import { fetchAllStammdaten, fetchInstallationByDisplayId, resolveAttachmentUrls } from '../utils/airtableService';
 import { fetchAllUsers, getAllUsers } from '../utils/authService';
 
 const STATUS_OPTIONS = ['New', 'In Progress', 'Follow Up', 'On Hold', 'In Review', 'Completed'];
@@ -73,7 +73,14 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
       setInstallationData(null);
       setInstallationLoading(false);
       setShowInfoBox(false);
-      setExistingAttachments(task.attachments || []);
+      // Resolve cached attachment URLs (non-blocking)
+      const rawAttachments = task.attachments || [];
+      setExistingAttachments(rawAttachments);
+      if (rawAttachments.length > 0 && task.id) {
+        resolveAttachmentUrls(task.id, 'Attachments', rawAttachments)
+          .then((resolved) => setExistingAttachments(resolved))
+          .catch(() => { /* keep original URLs */ });
+      }
 
       // Load data sources (fetchAllUsers is async - loads from Supabase)
       fetchAllUsers()

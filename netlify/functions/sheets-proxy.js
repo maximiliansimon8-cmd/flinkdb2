@@ -5,7 +5,11 @@
  * Security: Origin validation, restricted CORS.
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  safeErrorResponse,
+} from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
 const SHEET_CSV_URL =
@@ -21,6 +25,13 @@ export default async (request, context) => {
   const origin = getAllowedOrigin(request);
   if (!origin) return forbiddenResponse();
 
+  // Rate limiting
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`sheets-proxy:${clientIP}`, 30, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
+
   try {
     const apiStart = Date.now();
     const response = await fetch(SHEET_CSV_URL, {
@@ -28,10 +39,8 @@ export default async (request, context) => {
     });
 
     if (!response.ok) {
-      return new Response(
-        JSON.stringify({ error: `Google Sheets returned ${response.status}` }),
-        { status: response.status, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
-      );
+      console.error(`[sheets-proxy] Google Sheets error: ${response.status}`);
+      return safeErrorResponse(502, 'Google Sheets nicht erreichbar', origin);
     }
 
     const csvData = await response.text();
@@ -65,10 +74,7 @@ export default async (request, context) => {
       success: false,
       errorMessage: err.message,
     });
-    return new Response(
-      JSON.stringify({ error: `Sheets proxy error: ${err.message}` }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
-    );
+    return safeErrorResponse(500, 'Sheets-Anfrage fehlgeschlagen', origin, err);
   }
 };
 

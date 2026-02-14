@@ -527,6 +527,12 @@ export default function AdminPanel() {
   const [feedbackTypeFilter, setFeedbackTypeFilter] = useState('all');
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('all');
 
+  // Attachment Sync state
+  const [syncRunning, setSyncRunning] = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
+  const [syncTableFilter, setSyncTableFilter] = useState('all');
+  const [syncError, setSyncError] = useState('');
+
   const currentUser = getCurrentUser();
 
   // Initial data load from server
@@ -817,6 +823,31 @@ export default function AdminPanel() {
     if (activeSection === 'api-usage') refreshApiUsage();
   }, [activeSection, refreshApiUsage]);
 
+  // ─── Attachment Sync Handler ───
+  const handleSyncAttachments = useCallback(async () => {
+    setSyncRunning(true);
+    setSyncResult(null);
+    setSyncError('');
+    try {
+      const params = new URLSearchParams();
+      if (syncTableFilter !== 'all') params.set('table', syncTableFilter);
+      const url = `/api/sync-attachments${params.toString() ? `?${params}` : ''}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Fehler: HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setSyncResult(data);
+      showToast(`${data.totals?.uploaded || 0} Attachments hochgeladen, ${data.totals?.alreadyCached || 0} bereits gecached`);
+    } catch (err) {
+      setSyncError(err.message || 'Unbekannter Fehler');
+      showToast(err.message || 'Sync fehlgeschlagen', 'error');
+    } finally {
+      setSyncRunning(false);
+    }
+  }, [syncTableFilter, showToast]);
+
   const apiStats = useMemo(() => {
     if (!apiUsageData.length) return { totalCalls: 0, byService: {}, byFunction: {}, errorCount: 0, totalCostCents: 0, totalTokensIn: 0, totalTokensOut: 0, avgDuration: 0 };
 
@@ -877,6 +908,7 @@ export default function AdminPanel() {
     { id: 'audit', label: 'Audit-Log', icon: FileText, count: auditLog.length },
     { id: 'feedback', label: 'Feedback', icon: Lightbulb, count: feedbackItems.length },
     { id: 'api-usage', label: 'API Usage', icon: Zap, count: apiStats.totalCalls },
+    { id: 'attachments', label: 'Attachments', icon: Server },
   ];
 
   return (
@@ -1969,6 +2001,194 @@ export default function AdminPanel() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════ ATTACHMENTS SYNC SECTION ═══════ */}
+      {activeSection === 'attachments' && (
+        <div className="space-y-5">
+          {/* Info Banner */}
+          <div className="glass-card rounded-xl p-5 border-l-4 border-l-blue-400">
+            <div className="flex items-start gap-3">
+              <Server size={18} className="text-blue-500 mt-0.5 shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 mb-1">Attachment Storage (Supabase)</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Airtable-Attachment-URLs laufen nach ca. 2 Stunden ab. Dieser Sync kopiert alle Anhänge
+                  (Fotos, PDFs, Verträge) in den permanenten Supabase Storage. Gecachte URLs werden
+                  automatisch im Dashboard verwendet.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="glass-card rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                Attachment-Sync starten
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-3 mb-4">
+              {/* Table filter */}
+              <div className="relative flex-1 max-w-xs">
+                <select
+                  value={syncTableFilter}
+                  onChange={(e) => setSyncTableFilter(e.target.value)}
+                  disabled={syncRunning}
+                  className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors disabled:opacity-50"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 10px center',
+                  }}
+                >
+                  <option value="all">Alle Tabellen</option>
+                  <option value="acquisition">Akquise (Fotos, Verträge, FAW)</option>
+                  <option value="installationen">Installationen (Protokolle)</option>
+                  <option value="tasks">Tasks (Anhänge)</option>
+                </select>
+              </div>
+
+              {/* Sync button */}
+              <button
+                onClick={handleSyncAttachments}
+                disabled={syncRunning}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  syncRunning
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'bg-[#3b82f6] text-white hover:bg-[#2563eb]'
+                }`}
+              >
+                {syncRunning ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    Synchronisiere...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw size={14} />
+                    Attachments synchronisieren
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Error */}
+            {syncError && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50/80 border border-red-200/60 text-xs text-red-600 mb-4">
+                <AlertCircle size={14} />
+                {syncError}
+              </div>
+            )}
+
+            {/* Results */}
+            {syncResult && (
+              <div className="space-y-4">
+                {/* Summary KPIs */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-emerald-50/60 border border-emerald-200/40 rounded-xl p-3 text-center">
+                    <div className="text-xl font-bold font-mono text-emerald-700">{syncResult.totals?.uploaded || 0}</div>
+                    <div className="text-[10px] font-medium text-emerald-600 uppercase tracking-wider mt-0.5">Hochgeladen</div>
+                  </div>
+                  <div className="bg-blue-50/60 border border-blue-200/40 rounded-xl p-3 text-center">
+                    <div className="text-xl font-bold font-mono text-blue-700">{syncResult.totals?.alreadyCached || 0}</div>
+                    <div className="text-[10px] font-medium text-blue-600 uppercase tracking-wider mt-0.5">Bereits gecached</div>
+                  </div>
+                  <div className="bg-slate-50/60 border border-slate-200/40 rounded-xl p-3 text-center">
+                    <div className="text-xl font-bold font-mono text-slate-700">{syncResult.totals?.attachmentsFound || 0}</div>
+                    <div className="text-[10px] font-medium text-slate-600 uppercase tracking-wider mt-0.5">Attachments gefunden</div>
+                  </div>
+                  <div className={`${(syncResult.totals?.errors || 0) > 0 ? 'bg-red-50/60 border-red-200/40' : 'bg-emerald-50/60 border-emerald-200/40'} border rounded-xl p-3 text-center`}>
+                    <div className={`text-xl font-bold font-mono ${(syncResult.totals?.errors || 0) > 0 ? 'text-red-700' : 'text-emerald-700'}`}>{syncResult.totals?.errors || 0}</div>
+                    <div className={`text-[10px] font-medium uppercase tracking-wider mt-0.5 ${(syncResult.totals?.errors || 0) > 0 ? 'text-red-600' : 'text-emerald-600'}`}>Fehler</div>
+                  </div>
+                </div>
+
+                {/* Duration + filter */}
+                <div className="flex items-center gap-3 text-xs text-slate-500 font-mono">
+                  <span>Dauer: {((syncResult.duration_ms || 0) / 1000).toFixed(1)}s</span>
+                  <span className="text-slate-300">|</span>
+                  <span>Filter: {syncResult.filter || 'all'}</span>
+                  <span className="text-slate-300">|</span>
+                  <span>Records: {syncResult.totals?.recordsFetched || 0}</span>
+                </div>
+
+                {/* Per-source breakdown */}
+                {syncResult.sources?.length > 0 && (
+                  <div className="glass-card rounded-xl overflow-hidden">
+                    <div className="px-4 py-2.5 border-b border-slate-200/60">
+                      <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Details pro Quelle</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-slate-500 uppercase tracking-wider font-medium border-b border-slate-100">
+                            <th className="px-4 py-2 text-left">Quelle</th>
+                            <th className="px-3 py-2 text-right">Records</th>
+                            <th className="px-3 py-2 text-right">Gefunden</th>
+                            <th className="px-3 py-2 text-right">Gecached</th>
+                            <th className="px-3 py-2 text-right">Hochgeladen</th>
+                            <th className="px-3 py-2 text-right">Fehler</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {syncResult.sources.map((src) => (
+                            <tr key={src.name} className="hover:bg-white/30 transition-colors">
+                              <td className="px-4 py-2 font-mono font-medium text-slate-700">{src.name}</td>
+                              <td className="px-3 py-2 font-mono text-slate-500 text-right">{src.records}</td>
+                              <td className="px-3 py-2 font-mono text-slate-500 text-right">{src.attachments}</td>
+                              <td className="px-3 py-2 font-mono text-blue-600 text-right">{src.cached}</td>
+                              <td className="px-3 py-2 font-mono text-emerald-600 text-right">{src.uploaded}</td>
+                              <td className={`px-3 py-2 font-mono text-right ${src.errors > 0 ? 'text-red-600 font-bold' : 'text-slate-400'}`}>{src.errors}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error details */}
+                {syncResult.sources?.some(s => s.error_details?.length > 0) && (
+                  <div className="glass-card rounded-xl p-4 border-l-4 border-l-red-400">
+                    <h4 className="text-xs font-semibold text-red-700 uppercase tracking-wider mb-2">Fehler-Details</h4>
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                      {syncResult.sources.flatMap(s => (s.error_details || []).map(e => (
+                        <div key={`${e.recordId}-${e.filename}`} className="text-xs font-mono text-red-600">
+                          <span className="text-red-400">{e.recordId}</span> / {e.filename}: {e.error}
+                        </div>
+                      )))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Setup Instructions */}
+          <div className="glass-card rounded-xl p-5 border-l-4 border-l-amber-400">
+            <div className="flex items-start gap-3">
+              <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+              <div>
+                <h4 className="text-xs font-semibold text-slate-800 mb-2">Voraussetzungen (einmalig)</h4>
+                <ol className="text-xs text-slate-600 space-y-1.5 list-decimal list-inside">
+                  <li>
+                    <span className="font-medium">attachment_cache</span> Tabelle in Supabase SQL Editor erstellen
+                    <span className="text-slate-400 ml-1">(siehe sql/add-attachment-cache.sql)</span>
+                  </li>
+                  <li>
+                    <span className="font-medium">attachments</span> Storage Bucket in Supabase Dashboard erstellen
+                    <span className="text-slate-400 ml-1">(Storage &rarr; New Bucket &rarr; &quot;attachments&quot; &rarr; Public: ON)</span>
+                  </li>
+                  <li>
+                    <span className="font-medium">SUPABASE_SERVICE_ROLE_KEY</span> als Netlify Environment Variable setzen
+                  </li>
+                </ol>
+              </div>
             </div>
           </div>
         </div>

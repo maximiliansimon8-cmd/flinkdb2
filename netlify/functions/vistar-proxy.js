@@ -10,7 +10,11 @@
  *   VISTAR_PASSWORD – API user password
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  safeErrorResponse,
+} from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
 /* ─── Session cache (in-memory, lives for the function instance) ─── */
@@ -75,6 +79,13 @@ export default async (request, context) => {
 
   const origin = getAllowedOrigin(request);
   if (!origin) return forbiddenResponse();
+
+  // Rate limiting
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`vistar-proxy:${clientIP}`, 30, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
 
   const jsonHeaders = { 'Content-Type': 'application/json', ...corsHeaders(origin) };
 
@@ -190,10 +201,7 @@ export default async (request, context) => {
       success: false,
       errorMessage: err.message,
     });
-    console.error('[vistar-proxy] Error:', err);
-    return new Response(
-      JSON.stringify({ error: `Vistar proxy error: ${err.message}` }),
-      { status: 500, headers: jsonHeaders }
-    );
+    console.error('[vistar-proxy] Error:', err.message);
+    return safeErrorResponse(500, 'Vistar-Anfrage fehlgeschlagen', origin, err);
   }
 };

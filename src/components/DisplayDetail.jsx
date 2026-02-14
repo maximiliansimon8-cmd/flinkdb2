@@ -77,6 +77,8 @@ import { hasPermission } from '../utils/authService';
 import { fetchSingleVenueReport } from '../utils/vistarService';
 import HardwareSwapModal from './HardwareSwapModal';
 import DeinstallModal from './DeinstallModal';
+import StimmcheckModal from './StimmcheckModal';
+import HardwareComponentDetail from './HardwareComponentDetail';
 
 function InfoRow({ icon: Icon, label, value, mono }) {
   return (
@@ -562,7 +564,7 @@ function buildLieferandoSearchUrl(stammdaten) {
   return `https://www.google.com/search?q=${encodeURIComponent(query)}&btnI=1`;
 }
 
-function ContactInfoPanel({ stammdaten, loading, airtableDisplay }) {
+function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }) {
   const canViewContacts = hasPermission('view_contacts');
 
   if (loading) {
@@ -638,6 +640,15 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay }) {
             </a>
           );
         })()}
+        {onStimmcheck && (
+          <button
+            onClick={onStimmcheck}
+            className="inline-flex items-center gap-1.5 text-xs font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200/60 hover:bg-emerald-100 transition-colors"
+          >
+            <Phone size={10} />
+            Stimmcheck planen
+          </button>
+        )}
         {!canViewContacts && (
           <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
             <Lock size={9} />
@@ -1118,7 +1129,7 @@ function InstallationPanel({ installation, loading }) {
 
 // ─── Hardware Set Panel ──────────────────────────────────────────────────────
 
-function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading, onShowHistory, leaseData, installation, airtableDisplay }) {
+function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading, onShowHistory, leaseData, installation, airtableDisplay, onSelectComponent }) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
@@ -1376,7 +1387,11 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* OPS Player */}
         {hardware.ops.map((ops, i) => (
-          <div key={ops.id || i} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3">
+          <div
+            key={ops.id || i}
+            className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-blue-200 transition-all"
+            onClick={() => onSelectComponent?.({ type: 'ops', id: ops.id })}
+          >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Cpu size={12} className="text-blue-500" />
@@ -1390,13 +1405,19 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
               {ops.hardwareType && <div className="text-xs"><span className="text-slate-500">Typ: </span><span className="text-slate-700">{ops.hardwareType}</span></div>}
             </div>
             {reassignmentForSn('opsSn', ops.opsSn)}
-            {historyButton('opsSn', ops.opsSn, `OPS ${ops.opsNr || ops.opsSn}`)}
+            <div onClick={(e) => e.stopPropagation()}>
+              {historyButton('opsSn', ops.opsSn, `OPS ${ops.opsNr || ops.opsSn}`)}
+            </div>
           </div>
         ))}
 
         {/* SIM Cards */}
         {hardware.sims.map((sim, i) => (
-          <div key={sim.id || i} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3">
+          <div
+            key={sim.id || i}
+            className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-green-200 transition-all"
+            onClick={() => onSelectComponent?.({ type: 'sim', id: sim.id })}
+          >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <CardSim size={12} className="text-green-500" />
@@ -1418,13 +1439,19 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
               {sim.activateDate && <div className="text-xs"><span className="text-slate-500">Aktiv seit: </span><span className="font-mono text-slate-700">{new Date(sim.activateDate).toLocaleDateString('de-DE')}</span></div>}
             </div>
             {sim.simId && !sim.simIdImprecise && reassignmentForSn('simId', sim.simId)}
-            {sim.simId && !sim.simIdImprecise && historyButton('simId', sim.simId, `SIM ${sim.simId.substring(0, 10)}...`)}
+            <div onClick={(e) => e.stopPropagation()}>
+              {sim.simId && !sim.simIdImprecise && historyButton('simId', sim.simId, `SIM ${sim.simId.substring(0, 10)}...`)}
+            </div>
           </div>
         ))}
 
         {/* Displays */}
         {hardware.displays.map((disp, i) => (
-          <div key={disp.id || i} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3">
+          <div
+            key={disp.id || i}
+            className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-purple-200 transition-all"
+            onClick={() => onSelectComponent?.({ type: 'display', id: disp.id })}
+          >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Monitor size={12} className="text-purple-500" />
@@ -1437,7 +1464,9 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
               {disp.location && <div className="text-xs"><span className="text-slate-500">Standort: </span><span className="text-slate-700">{disp.location}</span></div>}
             </div>
             {disp.displaySerialNumber && reassignmentForSn('displaySn', disp.displaySerialNumber)}
-            {disp.displaySerialNumber && historyButton('displaySn', disp.displaySerialNumber, `Display ${disp.displaySerialNumber}`)}
+            <div onClick={(e) => e.stopPropagation()}>
+              {disp.displaySerialNumber && historyButton('displaySn', disp.displaySerialNumber, `Display ${disp.displaySerialNumber}`)}
+            </div>
           </div>
         ))}
       </div>
@@ -2149,6 +2178,13 @@ function DisplayDetailInner({ display, onClose }) {
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [showDeinstallModal, setShowDeinstallModal] = useState(false);
 
+  // Hardware component detail modal
+  const [selectedHwComponent, setSelectedHwComponent] = useState(null);
+
+  // Stimmcheck modal
+  const [showStimmcheck, setShowStimmcheck] = useState(false);
+  const [stimmcheckSuccess, setStimmcheckSuccess] = useState(null);
+
   useEffect(() => {
     let cancelled = false;
     const displayId = display.displayId;
@@ -2495,10 +2531,27 @@ function DisplayDetailInner({ display, onClose }) {
           </div>
         </div>
 
+        {/* Stimmcheck success toast */}
+        {stimmcheckSuccess && (
+          <div className="mx-5 mt-3 flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200/60 rounded-xl animate-fade-in">
+            <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+            <span className="text-xs font-medium text-emerald-700">
+              Stimmcheck geplant: {stimmcheckSuccess.locationName} am{' '}
+              {new Date(stimmcheckSuccess.scheduledDate).toLocaleDateString('de-DE')} um {stimmcheckSuccess.scheduledTime} Uhr
+            </span>
+            <button
+              onClick={() => setStimmcheckSuccess(null)}
+              className="ml-auto text-emerald-400 hover:text-emerald-600 transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
         {/* Airtable: Contact Info */}
         {(stammdatenLoading || stammdaten) && (
           <div className="p-5 border-b border-slate-200/60">
-            <ContactInfoPanel stammdaten={stammdaten} loading={stammdatenLoading} airtableDisplay={airtableDisplay} />
+            <ContactInfoPanel stammdaten={stammdaten} loading={stammdatenLoading} airtableDisplay={airtableDisplay} onStimmcheck={() => setShowStimmcheck(true)} />
           </div>
         )}
 
@@ -2521,6 +2574,7 @@ function DisplayDetailInner({ display, onClose }) {
               leaseData={leaseData}
               installation={installation}
               airtableDisplay={airtableDisplay}
+              onSelectComponent={(comp) => setSelectedHwComponent(comp)}
             />
           </div>
         )}
@@ -2713,6 +2767,36 @@ function DisplayDetailInner({ display, onClose }) {
         snType={hwHistoryModal.snType}
         snValue={hwHistoryModal.snValue}
         label={hwHistoryModal.label}
+      />
+      {selectedHwComponent && (
+        <HardwareComponentDetail
+          componentType={selectedHwComponent.type}
+          componentId={selectedHwComponent.id}
+          onClose={() => setSelectedHwComponent(null)}
+          onSelectComponent={(comp) => setSelectedHwComponent(comp)}
+        />
+      )}
+      <StimmcheckModal
+        isOpen={showStimmcheck}
+        onClose={() => setShowStimmcheck(false)}
+        locationName={
+          stammdaten?.['Location Name'] ||
+          display.locationName ||
+          airtableDisplay?.locationName ||
+          ''
+        }
+        locationAddress={
+          [
+            stammdaten?.['Street'],
+            stammdaten?.['Street Number'],
+            stammdaten?.['Postal Code'],
+            stammdaten?.['City'],
+          ].filter(Boolean).join(' ') || ''
+        }
+        onSuccess={(entry) => {
+          setStimmcheckSuccess(entry);
+          setTimeout(() => setStimmcheckSuccess(null), 5000);
+        }}
       />
     </div>
   );

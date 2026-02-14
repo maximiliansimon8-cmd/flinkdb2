@@ -6,7 +6,11 @@
  * Environment variable required: SUPERCHAT_API_KEY (set in Netlify dashboard)
  */
 
-import { getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+  safeErrorResponse,
+} from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
 export default async (request, context) => {
@@ -19,12 +23,17 @@ export default async (request, context) => {
   const origin = getAllowedOrigin(request);
   if (!origin) return forbiddenResponse();
 
+  // Rate limiting
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`superchat-proxy:${clientIP}`, 60, 60_000);
+  if (!limit.allowed) {
+    return rateLimitResponse(limit.retryAfterMs, origin);
+  }
+
   const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
   if (!SUPERCHAT_API_KEY) {
-    return new Response(
-      JSON.stringify({ error: 'SUPERCHAT_API_KEY not configured' }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
-    );
+    console.error('[superchat-proxy] SUPERCHAT_API_KEY not configured');
+    return safeErrorResponse(500, 'Server-Konfigurationsfehler', origin);
   }
 
   try {
@@ -81,10 +90,7 @@ export default async (request, context) => {
       success: false,
       errorMessage: err.message,
     });
-    return new Response(
-      JSON.stringify({ error: `Superchat proxy error: ${err.message}` }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) } }
-    );
+    return safeErrorResponse(500, 'Superchat-Anfrage fehlgeschlagen', origin, err);
   }
 };
 
