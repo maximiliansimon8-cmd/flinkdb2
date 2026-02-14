@@ -2091,7 +2091,7 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
                                     <div className="flex flex-col gap-0.5">
                                       <span className="text-slate-600 font-medium">{m.sourceLabel1}</span>
                                       <span className="font-mono text-slate-400 text-[10px]">{m.source1}.{m.field1}</span>
-                                      <span className="text-[9px] text-slate-300 italic">{m.origin1}</span>
+                                      <span className="text-[10px] text-blue-400 font-medium">{m.origin1}</span>
                                     </div>
                                   </td>
                                   <td className="px-3 py-2 font-mono text-red-600 font-medium max-w-[160px] truncate" title={m.value1}>
@@ -2101,7 +2101,7 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
                                     <div className="flex flex-col gap-0.5">
                                       <span className="text-slate-600 font-medium">{m.sourceLabel2}</span>
                                       <span className="font-mono text-slate-400 text-[10px]">{m.source2}.{m.field2}</span>
-                                      <span className="text-[9px] text-slate-300 italic">{m.origin2}</span>
+                                      <span className="text-[10px] text-blue-400 font-medium">{m.origin2}</span>
                                     </div>
                                   </td>
                                   <td className="px-3 py-2 font-mono text-red-600 font-medium max-w-[160px] truncate" title={m.value2}>
