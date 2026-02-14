@@ -372,7 +372,7 @@ function ActivityCard({ activity, isLast }) {
               </div>
 
               {/* Description */}
-              <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">
+              <p className="text-sm text-slate-300 leading-relaxed line-clamp-3">
                 {activity.description}
               </p>
 
@@ -396,7 +396,7 @@ function ActivityCard({ activity, isLast }) {
             {/* Timestamp */}
             <div className="flex-shrink-0 text-right">
               <span
-                className="text-xs text-slate-500 font-medium whitespace-nowrap"
+                className="text-xs text-slate-400 font-medium whitespace-nowrap"
                 title={formatFullDate(activity.timestamp)}
               >
                 {relativeTime(activity.timestamp)}
@@ -416,7 +416,7 @@ function DateGroupHeader({ label }) {
   return (
     <div className="flex items-center gap-3 py-3">
       <div className="h-px flex-1 bg-slate-700/50" />
-      <span className="text-sm font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+      <span className="text-sm font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
         {label}
       </span>
       <div className="h-px flex-1 bg-slate-700/50" />
@@ -479,7 +479,7 @@ function SummaryStats({ activities }) {
           <div className={`text-3xl font-bold ${config.text}`}>
             {counts[type] || 0}
           </div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">
             {config.label}
           </div>
         </div>
@@ -619,7 +619,7 @@ export default function ActivityFeed({ rawData }) {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-slate-100">Aktivitäten</h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               {allActivities.length} Aktivitäten insgesamt
               {loadingTasks && ' — Lade Tasks...'}
             </p>
@@ -678,7 +678,7 @@ export default function ActivityFeed({ rawData }) {
 
         {/* Result count */}
         {(activeFilters.size > 0 || searchQuery) && (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             {filteredActivities.length} von {allActivities.length} Aktivitäten
           </p>
         )}
@@ -688,7 +688,7 @@ export default function ActivityFeed({ rawData }) {
       {loadingTasks && allActivities.length === 0 && (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
-          <span className="ml-2 text-base text-slate-500">Lade Aktivitäten...</span>
+          <span className="ml-2 text-base text-slate-400">Lade Aktivitäten...</span>
         </div>
       )}
 
@@ -698,10 +698,10 @@ export default function ActivityFeed({ rawData }) {
           <div className="w-16 h-16 rounded-2xl bg-slate-800/60 flex items-center justify-center mx-auto mb-4">
             <Activity size={24} className="text-slate-600" />
           </div>
-          <h3 className="text-base font-semibold text-slate-500 mb-1">
+          <h3 className="text-base font-semibold text-slate-400 mb-1">
             Keine Aktivitäten gefunden
           </h3>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             {searchQuery || activeFilters.size > 0
               ? 'Versuche andere Filter oder Suchbegriffe.'
               : 'Noch keine Aktivitäten vorhanden.'}

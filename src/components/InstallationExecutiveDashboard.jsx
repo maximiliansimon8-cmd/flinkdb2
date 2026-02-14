@@ -171,15 +171,26 @@ export default function InstallationExecutiveDashboard() {
       if (statuses.some(s => (s || '').toLowerCase().includes('installiert'))) return true;
       return (a.leadStatus || '').toLowerCase() === 'live';
     };
-    const isReady = (a) => {
+    // "Bereit für Aufbau" = readyForInstallation checked OR leadStatus contains "ready"
+    const isReadyForInstall = (a) => {
       if (a.readyForInstallation === true || a.readyForInstallation === 'checked' || a.readyForInstallation === 'true') return true;
       const ls = (a.leadStatus || '').toLowerCase();
+      return ls.includes('ready') || ls === 'ready for install';
+    };
+    // "Pipeline" = Approval in Review (won/signed but NOT yet accepted/ready)
+    const isInReview = (a) => {
+      const ls = (a.leadStatus || '').toLowerCase();
       const as = (a.approvalStatus || '').toLowerCase();
-      return ((ls === 'won / signed' || ls === 'won/signed') && as === 'accepted') || ls.includes('ready');
+      return (ls === 'won / signed' || ls === 'won/signed' || ls === 'approved')
+        && as !== 'accepted' && !isReadyForInstall(a);
     };
     const bookingIds = new Set(bookings.map(b => b.akquise_airtable_id).filter(Boolean));
-    const readyToInvite = acquisitionData.filter(a =>
-      !isStorno(a) && !isInstalled(a) && isReady(a) && !bookingIds.has(a.id)
+    const notStornNotInstalled = acquisitionData.filter(a => !isStorno(a) && !isInstalled(a));
+    const readyForInstallCount = notStornNotInstalled.filter(a =>
+      isReadyForInstall(a) && !bookingIds.has(a.id)
+    ).length;
+    const inReviewCount = notStornNotInstalled.filter(a =>
+      isInReview(a) && !bookingIds.has(a.id)
     ).length;
 
     // Week-over-week trend
@@ -195,7 +206,7 @@ export default function InstallationExecutiveDashboard() {
       pending, booked, confirmed, completed, cancelled, noShow,
       conversionInviteToBook, noShowRate, avgTimeToBook,
       capacityUtil, totalCapacity, bookedSlots, overdue,
-      readyToInvite, weekTrend,
+      readyForInstallCount, inReviewCount, weekTrend,
     };
   }, [bookings, routes, acquisitionData]);
 
@@ -264,10 +275,11 @@ export default function InstallationExecutiveDashboard() {
   // Funnel
   const funnelData = useMemo(() => {
     return [
-      { stage: 'Pipeline', value: kpis.readyToInvite, color: '#94a3b8' },
+      { stage: 'In Review', value: kpis.inReviewCount, color: '#94a3b8' },
+      { stage: 'Bereit f. Aufbau', value: kpis.readyForInstallCount, color: '#06b6d4' },
       { stage: 'Eingeladen', value: kpis.pending + kpis.booked + kpis.confirmed + kpis.completed, color: '#eab308' },
       { stage: 'Gebucht', value: kpis.booked + kpis.confirmed + kpis.completed, color: '#3b82f6' },
-      { stage: 'Bestaetigt', value: kpis.confirmed + kpis.completed, color: '#22c55e' },
+      { stage: 'Bestätigt', value: kpis.confirmed + kpis.completed, color: '#22c55e' },
       { stage: 'Installiert', value: kpis.completed, color: '#10b981' },
     ];
   }, [kpis]);
