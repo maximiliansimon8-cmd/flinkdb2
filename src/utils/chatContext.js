@@ -604,7 +604,7 @@ function buildRolloutSummary(installationen, deinstalls) {
 
   // ── Installationen ──
   const installs = installationen || [];
-  const totalInstalls = installs.length;
+  const totalTermine = installs.length;
 
   // Parse dates and filter by time periods
   const withDate = installs.map(i => {
@@ -612,6 +612,19 @@ function buildRolloutSummary(installationen, deinstalls) {
     return { ...i, _date: d && !isNaN(d.getTime()) ? d : null };
   });
 
+  // Helper: check if an installation was successful
+  const isSuccess = (i) => {
+    const s = (i.status || '').toLowerCase();
+    return s === 'installiert' || s === 'erfolgreich' || s === 'installed';
+  };
+
+  // Successful installations only (= "aufgebaut")
+  const successAll = withDate.filter(isSuccess);
+  const last7Success = successAll.filter(i => i._date && i._date >= sevenDaysAgo);
+  const last30Success = successAll.filter(i => i._date && i._date >= thirtyDaysAgo);
+  const last90Success = successAll.filter(i => i._date && i._date >= ninetyDaysAgo);
+
+  // All termine (for reference)
   const last7Installs = withDate.filter(i => i._date && i._date >= sevenDaysAgo);
   const last30Installs = withDate.filter(i => i._date && i._date >= thirtyDaysAgo);
   const last90Installs = withDate.filter(i => i._date && i._date >= ninetyDaysAgo);
@@ -700,12 +713,15 @@ function buildRolloutSummary(installationen, deinstalls) {
   }
 
   return {
-    hinweis: 'installationen = einzelne Installations-Termine/Versuche aus der Installationen-DB. deinstallationen = Abbau-Aufträge aus der Deinstallationen-DB. Jede Zeile = ein Termin.',
+    hinweis: 'erfolgreicheInstallationen = nur Status "Installiert"/"Erfolgreich". gesamtTermine = alle Termine inkl. Abbrüche. Für "wie viele aufgebaut?" immer erfolgreicheInstallationen nutzen!',
     installationen: {
-      total: totalInstalls,
-      letzte7Tage: last7Installs.length,
-      letzte30Tage: last30Installs.length,
-      letzte90Tage: last90Installs.length,
+      erfolgreicheInstallationen: successAll.length,
+      letzte7Tage: last7Success.length,
+      letzte30Tage: last30Success.length,
+      letzte90Tage: last90Success.length,
+      gesamtTermine: totalTermine,
+      gesamtTermine7Tage: last7Installs.length,
+      gesamtTermine30Tage: last30Installs.length,
       byStatus,
       topIntegrators,
       weeklyTrend,

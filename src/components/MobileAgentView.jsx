@@ -21,22 +21,22 @@ import {
 import useSpeechRecognition from '../hooks/useSpeechRecognition';
 import useSpeechSynthesis from '../hooks/useSpeechSynthesis';
 import useVoiceSettings from '../hooks/useVoiceSettings';
-import { parseVoiceCommand } from '../utils/voiceResponseProcessor';
+import { parseVoiceCommand, processForVoice } from '../utils/voiceResponseProcessor';
 
 /* ─── Quick Action Definitions ─────────────────────────────────────── */
 
 const QUICK_ACTIONS = [
   { label: '\u{26A1} Briefing', message: 'Gib mir ein Briefing: Netzwerk-Status, kritische Themen, Akquise-Pipeline und offene Risks \u2014 alles was ich jetzt wissen muss.' },
-  { label: '\u{1F49A} Health Check', message: 'Analysiere die aktuelle Health Rate: Trend, Haupttreiber f\u00fcr Ausf\u00e4lle, welche St\u00e4dte performen schlecht, und was wir dagegen tun sollten.' },
+  { label: '\u{1F49A} Health Check', message: 'Analysiere die aktuelle Health Rate: Trend, Haupttreiber für Ausfälle, welche Städte performen schlecht, und was wir dagegen tun sollten.' },
   { label: '\u{1F4C8} Pipeline', message: 'Akquise-Pipeline Review: Wie viele neue Standorte letzte 7 und 30 Tage, Conversion-Rate, Bottlenecks, und Storno-Rate.' },
-  { label: '\u{1F6A8} Risiken', message: 'Zeig mir alle aktuellen Risiken: Langzeit-Offlines, \u00fcberf\u00e4llige Tasks, kritische Standorte und was wir priorisieren sollten.' },
-  { label: '\u{2795} Task', message: 'Ich m\u00f6chte einen neuen Task anlegen.' },
+  { label: '\u{1F6A8} Risiken', message: 'Zeig mir alle aktuellen Risiken: Langzeit-Offlines, überfällige Tasks, kritische Standorte und was wir priorisieren sollten.' },
+  { label: '\u{2795} Task', message: 'Ich möchte einen neuen Task anlegen.' },
 ];
 
 /* ─── Voice Quick Prompts ──────────────────────────────────────────── */
 
 const VOICE_PROMPTS = [
-  { label: 'Was steht heute an?', message: 'Was steht heute an? Gib mir einen kurzen \u00dcberblick.' },
+  { label: 'Was steht heute an?', message: 'Was steht heute an? Gib mir einen kurzen Überblick.' },
   { label: 'Status Berlin', message: 'Wie ist der aktuelle Status in Berlin?' },
   { label: 'Offene Tasks', message: 'Welche offenen Tasks gibt es?' },
   { label: 'Health Rate Trend', message: 'Wie entwickelt sich die Health Rate?' },
@@ -280,7 +280,7 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
           )}
           {task.dueDate && (
             <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">
-              F\u00e4llig: {task.dueDate}
+              Fällig: {task.dueDate}
             </span>
           )}
         </div>
@@ -374,8 +374,8 @@ function VoiceSettingsPanel({ settings, onClose }) {
         {/* Auto Conversation */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-200">Auto-Gespr\u00e4chsmodus</p>
-            <p className="text-xs text-slate-500">Nach AI-Antwort automatisch zuh\u00f6ren</p>
+            <p className="text-sm font-medium text-slate-200">Auto-Gesprächsmodus</p>
+            <p className="text-xs text-slate-500">Nach AI-Antwort automatisch zuhören</p>
           </div>
           <button
             onClick={() => setAutoConversation(!autoConversation)}
@@ -436,7 +436,7 @@ function ConversationOverlay({
 }) {
   const stateConfig = {
     listening: {
-      label: 'Ich h\u00f6re zu...',
+      label: 'Ich höre zu...',
       color: 'emerald',
       bgClass: 'bg-slate-900/95',
     },
@@ -494,7 +494,7 @@ function ConversationOverlay({
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 active:bg-red-500/40 transition-colors cursor-pointer"
         >
           <PhoneOff size={16} />
-          <span className="text-sm font-medium">Gespr\u00e4ch beenden</span>
+          <span className="text-sm font-medium">Gespräch beenden</span>
         </button>
       </div>
 
@@ -553,10 +553,12 @@ function ConversationOverlay({
           </div>
         )}
 
-        {/* Last AI response text (shown while speaking) */}
+        {/* Last AI response text (shown while speaking) — markdown stripped */}
         {conversationState === 'speaking' && lastAIResponse && (
           <div className="max-w-[85%] max-h-32 overflow-y-auto px-4 py-3 rounded-xl bg-slate-800/40 border border-slate-700/30">
-            <p className="text-sm text-slate-400 leading-relaxed line-clamp-4">{lastAIResponse}</p>
+            <p className="text-sm text-slate-400 leading-relaxed line-clamp-4">
+              {processForVoice(lastAIResponse, { maxWords: 60 }).spokenText}
+            </p>
           </div>
         )}
 
@@ -568,7 +570,7 @@ function ConversationOverlay({
               onClick={onResume}
               className="px-6 py-2.5 rounded-full bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 active:bg-blue-700 transition-colors cursor-pointer"
             >
-              Weiter zuh\u00f6ren
+              Weiter zuhören
             </button>
           </div>
         )}
@@ -839,7 +841,7 @@ export default function MobileAgentView({ onClose, engine }) {
   const placeholder = interimText
     ? interimText
     : isListening
-    ? 'Ich h\u00f6re zu...'
+    ? 'Ich höre zu...'
     : 'Nachricht eingeben...';
 
   return (
@@ -874,7 +876,7 @@ export default function MobileAgentView({ onClose, engine }) {
         <button
           onClick={onClose}
           className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-slate-100 active:bg-slate-700/50 transition-colors cursor-pointer"
-          aria-label="Zur\u00fcck"
+          aria-label="Zurück"
         >
           <ArrowLeft size={22} />
         </button>
@@ -1065,8 +1067,8 @@ export default function MobileAgentView({ onClose, engine }) {
                 disabled:opacity-40 disabled:cursor-not-allowed
                 transition-all cursor-pointer
               "
-              aria-label="Gespr\u00e4chsmodus starten"
-              title="Gespr\u00e4chsmodus"
+              aria-label="Gesprächsmodus starten"
+              title="Gesprächsmodus"
             >
               <Phone size={20} />
             </button>

@@ -52,13 +52,14 @@ Diese Definitionen sind VERBINDLICH. Verwende sie IMMER korrekt:
 - Install-Rate = installed / (aktive Pipeline), NICHT installed / total!
 
 **Installationen (rollout.installationen):**
-- Jede Zeile = ein Installationstermin/Versuch
-- status "Installiert" = erfolgreich aufgebaut
-- status "Abgebrochen" = gescheiterter Termin
-- status "In Planung" = kommender Termin
-- Wenn User fragt "wie viele aufgebaut?" → nur "Installiert" Status zählen
-- Wenn User fragt "wie viele Termine?" → alle Termine (inkl. Abgebrochen, In Planung)
-- Wenn User nach Abbrüchen fragt → nur "Abgebrochen" Status
+- erfolgreicheInstallationen = NUR erfolgreich aufgebaute Displays (Status "Installiert"/"Erfolgreich")
+- gesamtTermine = ALLE Termine inkl. Abbrüche und Planung
+- letzte7Tage / letzte30Tage / letzte90Tage = nur ERFOLGREICHE Installationen im Zeitraum
+- gesamtTermine7Tage / gesamtTermine30Tage = alle Termine inkl. Abbrüche im Zeitraum
+- byStatus = Verteilung aller Termine nach Status
+- WICHTIG: Wenn User fragt "wie viele installiert/aufgebaut?" → IMMER erfolgreicheInstallationen verwenden, NIEMALS gesamtTermine!
+- Wenn User fragt "wie viele Termine?" → gesamtTermine verwenden
+- Abbrüche = gesamtTermine minus erfolgreicheInstallationen (oder aus byStatus ablesen)
 
 **Deinstallationen (rollout.deinstallationen):**
 - Jede Zeile = ein Abbau-Auftrag
@@ -111,9 +112,12 @@ Du bekommst bei jeder Nachricht aktuelle Dashboard-Daten als JSON:
   - last7Days, last30Days mit Lead-Status-Breakdown
   - **stornos**: Zeitliche Storno-Aufschlüsselung mit {gesamt, letzte7Tage, letzte30Tage, letzte30TageGruende (Grund → Count), letzte30TageByCity, letzte7Detail (location, city, type, reasons)}. NUTZE DIESE für Storno-Fragen wie "Wie viele Stornos diese Woche?" oder "Warum wurde abgebrochen?"
 - **rollout**: Installations- und Deinstallations-Daten aus den Ops-Tabellen:
-  - **installationen**: Echte Installationstermine (jede Zeile = ein Installationsversuch/Termin)
-    - total, letzte7Tage, letzte30Tage, letzte90Tage — Anzahl Installationen pro Zeitraum
-    - **byStatus**: Status-Verteilung aller Installationen (z.B. "Erfolgreich", "Abgebrochen", "Geplant")
+  - **installationen**: Echte Installationstermine
+    - erfolgreicheInstallationen — NUR erfolgreich aufgebaute (= Headline-Zahl für "wie viele installiert?")
+    - letzte7Tage, letzte30Tage, letzte90Tage — nur ERFOLGREICHE Installationen pro Zeitraum
+    - gesamtTermine — ALLE Termine inkl. Abbrüche (für "wie viele Termine?")
+    - gesamtTermine7Tage, gesamtTermine30Tage — alle Termine inkl. Abbrüche pro Zeitraum
+    - **byStatus**: Status-Verteilung ALLER Termine (z.B. "Installiert", "Abgebrochen", "Geplant")
     - **topIntegrators**: Top 10 Integratoren/Partner nach Installations-Anzahl (name, total, last30)
     - **weeklyTrend**: Wöchentliche Installations-Zahlen (KW → Count, letzte 12 Wochen)
     - **letzte7Detail**: Details der Installationen der letzten 7 Tage (date, status, integrator, type, displays)
@@ -156,7 +160,7 @@ WICHTIG — DATENINTERPRETATION:
 - "total" bei Akquise = Gesamtzahl aller für Akquise FREIGEGEBENEN Standorte (ALL-TIME). Das sind NICHT aktive Displays, sondern potenzielle Standorte in der Pipeline.
 - In byLeadStatus stehen die Lead-Status-Counts. "Gewonnen" = konvertierte/gewonnene Standorte. Davon sind nur die "abgerufen" (mit tatsächlicher Installation) wirklich live.
 - Für zeitbasierte Akquise-Fragen nutze "last7Days"/"last30Days". Für Storno-Fragen nutze acquisition.stornos (letzte7Tage, letzte30Tage, Gründe).
-- Für Installations-/Rollout-Fragen nutze rollout.installationen (letzte7Tage = "diese Woche aufgebaut", byStatus = erfolgreich/abgebrochen, topIntegrators = wer hat installiert). Für Deinstallations-Fragen nutze rollout.deinstallationen.
+- Für Installations-/Rollout-Fragen nutze rollout.installationen (erfolgreicheInstallationen = Gesamtzahl aufgebaut, letzte7Tage = "diese Woche aufgebaut" NUR erfolgreiche, gesamtTermine = alle Termine inkl. Abbrüche, byStatus = Status-Verteilung, topIntegrators = wer hat installiert). Für Deinstallations-Fragen nutze rollout.deinstallationen.
 - STADT-SPEZIFISCHE AKQUISE-FRAGEN: Nutze acquisition.byCityDetail[stadtName] für exakte Zahlen! Dort findest du total, active, signed, live, installed, storno, newLeads, byPLZ (PLZ-Breakdown), installMetrics (Install-Rate, Ø Tage). NIEMALS schätzen wenn die Daten da sind!
 - PLZ-FRAGEN: Nutze byCityDetail[stadt].byPLZ für stadt-spezifische PLZ-Daten oder byPLZOverview für die Top-20 PLZ netzwerkweit. Wenn User nach einem PLZ fragt, schaue in der passenden Stadt nach.
 - STADT-ALIASE: FFM=Frankfurt, HH=Hamburg, BER=Berlin, MUC=München, CGN=Köln, DUS=Düsseldorf. Wenn User "FFM" sagt, schaue unter "Frankfurt" nach!
