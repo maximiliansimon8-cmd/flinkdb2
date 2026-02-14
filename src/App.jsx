@@ -186,8 +186,9 @@ function App() {
       const raw = localStorage.getItem('jet_mobile_kpis');
       if (!raw) return null;
       const cached = JSON.parse(raw);
-      // 5 min cache TTL
-      if (Date.now() - cached._ts > 5 * 60 * 1000) return null;
+      // Accept cache up to 4 hours old for instant display on startup
+      // (fresh data will be fetched in background via loadData)
+      if (Date.now() - cached._ts > 4 * 60 * 60 * 1000) return null;
       return cached;
     } catch { return null; }
   });
@@ -300,25 +301,45 @@ function App() {
   const loadData = useCallback(async (forceRefresh = false) => {
     /* ═══ MOBILE FAST PATH ═══════════════════════════════════════
        On mobile: single Supabase RPC call (~2KB) instead of
-       loading 40K heartbeat rows. Result: < 500ms to interactive.
+       loading 40K heartbeat rows. Result: instant with cache,
+       < 500ms with fresh RPC call.
        ════════════════════════════════════════════════════════════ */
     if (isMobile) {
-      setLoading(true);
       setError(null);
-      try {
-        // 1. Use cached mobile KPIs if fresh (< 5 min) and not forced
-        if (!forceRefresh && mobileKPIs && mobileKPIs._ts && Date.now() - mobileKPIs._ts < 5 * 60 * 1000) {
+
+      // 1. If we have ANY cached data, show it instantly (no loading spinner)
+      const hasCachedData = mobileKPIs && mobileKPIs._ts;
+      if (hasCachedData && !forceRefresh) {
+        // Cache still fresh (< 5 min)? Don't even call RPC
+        if (Date.now() - mobileKPIs._ts < 5 * 60 * 1000) {
           setLoading(false);
           return;
         }
+        // Cache stale but exists → show it NOW, refresh in background
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
 
-        // 2. Single RPC call — all KPIs computed server-side
-        const { data, error: rpcError } = await supabase.rpc('get_mobile_kpis');
+      // 2. Single RPC call — all KPIs computed server-side
+      try {
+        const rpcPromise = supabase.rpc('get_mobile_kpis');
+        // Timeout after 8s to avoid endless spinner
+        const timeoutPromise = new Promise((_, rej) =>
+          setTimeout(() => rej(new Error('RPC timeout after 8s')), 8000)
+        );
 
-        if (rpcError) {
-          console.warn('[mobile] RPC failed, falling back to desktop path:', rpcError.message);
-          // Fall through to desktop path below
-        } else if (data) {
+        const { data, error: rpcError } = await Promise.race([rpcPromise, timeoutPromise]);
+
+        if (rpcError || !data) {
+          console.warn('[mobile] RPC failed:', rpcError?.message || 'no data returned');
+          // If we have stale cache, keep showing it — don't fall to desktop
+          if (hasCachedData) {
+            setLoading(false);
+            return;
+          }
+          // No cache at all → fall through to desktop path
+        } else {
           const kpiData = { ...data, _ts: Date.now() };
           setMobileKPIs(kpiData);
           try { localStorage.setItem('jet_mobile_kpis', JSON.stringify(kpiData)); } catch {}
@@ -326,9 +347,14 @@ function App() {
           return;
         }
       } catch (e) {
-        console.warn('[mobile] Fast-path error, falling back:', e.message);
+        console.warn('[mobile] Fast-path error:', e.message);
+        // If we have stale cache, keep showing it
+        if (hasCachedData) {
+          setLoading(false);
+          return;
+        }
       }
-      // If RPC fails, fall through to desktop loadData path
+      // Only fall through to desktop path if NO cached data at all
     }
 
     setLoading(true);
@@ -1317,8 +1343,8 @@ function App() {
             {mobileTab === 'mobile-home' && (
               <MobileDashboard
                 kpis={mk}
-                topOffline={mobileKPIs?.topOffline}
-                byCity={mobileKPIs?.byCity}
+                topOffline={mobileKPIs?.topOffline || []}
+                byCity={mobileKPIs?.byCity || {}}
                 onNavigate={handleMobileNavigate}
                 onSelectDisplay={setSelectedDisplay}
                 onRefresh={() => loadData(true)}
