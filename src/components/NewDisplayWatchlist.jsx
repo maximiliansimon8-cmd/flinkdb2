@@ -247,7 +247,7 @@ export default function NewDisplayWatchlist({
           <h3 className="text-sm font-medium text-slate-900">
             Neue Displays – Watchlist
           </h3>
-          <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+          <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
             {watchlist.length} displays (&le; 28 Tage)
           </span>
           {problemDisplays.length > 0 && (
@@ -291,15 +291,15 @@ export default function NewDisplayWatchlist({
               e.stopPropagation();
               setShowWebhookConfig(!showWebhookConfig);
             }}
-            className="p-1 rounded hover:bg-slate-50/80 text-slate-400 hover:text-slate-600 transition-colors"
+            className="p-1 rounded hover:bg-slate-50/80 text-slate-500 hover:text-slate-600 transition-colors"
             title="Webhook konfigurieren"
           >
             {webhookUrl ? <Bell size={14} /> : <BellOff size={14} />}
           </button>
           {expanded ? (
-            <ChevronUp size={14} className="text-slate-400" />
+            <ChevronUp size={14} className="text-slate-500" />
           ) : (
-            <ChevronDown size={14} className="text-slate-400" />
+            <ChevronDown size={14} className="text-slate-500" />
           )}
         </div>
       </div>
@@ -308,7 +308,7 @@ export default function NewDisplayWatchlist({
       {showWebhookConfig && (
         <div className="px-4 py-3 border-t border-slate-200/60 bg-slate-50/40">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400 flex-shrink-0">Webhook URL:</label>
+            <label className="text-xs text-slate-500 flex-shrink-0">Webhook URL:</label>
             <input
               type="url"
               value={webhookInput}
@@ -323,7 +323,7 @@ export default function NewDisplayWatchlist({
               Speichern
             </button>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1.5">
+          <p className="text-xs text-slate-500 mt-1.5">
             Verbinde mit n8n, Zapier, Make oder jedem Webhook-fähigen Dienst. Es wird ein JSON-Payload mit den Problem-Displays gesendet.
           </p>
         </div>
@@ -336,7 +336,7 @@ export default function NewDisplayWatchlist({
           {problemDisplays.length > 0 && (
             <div>
               <div className="px-4 py-2 bg-red-50/40 border-b border-slate-200/60">
-                <span className="text-[10px] font-medium text-[#ef4444] uppercase tracking-wider">
+                <span className="text-xs font-medium text-[#ef4444] uppercase tracking-wider">
                   Benötigt Aufmerksamkeit
                 </span>
               </div>
@@ -356,7 +356,7 @@ export default function NewDisplayWatchlist({
           {healthyDisplays.length > 0 && (
             <div>
               <div className="px-4 py-2 bg-green-50/40 border-b border-t border-slate-200/60">
-                <span className="text-[10px] font-medium text-[#22c55e] uppercase tracking-wider">
+                <span className="text-xs font-medium text-[#22c55e] uppercase tracking-wider">
                   Läuft stabil
                 </span>
               </div>
@@ -395,16 +395,16 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
             <span className="text-xs font-mono text-slate-900 truncate">
               {d.displayId}
             </span>
-            <span className="text-xs text-slate-400 truncate hidden md:inline">
+            <span className="text-xs text-slate-500 truncate hidden md:inline">
               {d.displayName || d.locationName}
             </span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[10px] text-slate-400 font-mono">
+            <span className="text-xs text-slate-500 font-mono">
               {d.city}
             </span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-500 bg-slate-100/80 px-1.5 py-0.5 rounded">
-              <Clock size={9} className="text-slate-400" />
+            <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-500 bg-slate-100/80 px-1.5 py-0.5 rounded">
+              <Clock size={9} className="text-slate-500" />
               {formatDate(d.firstSeen)} ({d.ageDays}d)
             </span>
           </div>
@@ -412,24 +412,24 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
       </div>
 
       {/* Metrics */}
-      <div className="flex items-center gap-4 flex-shrink-0 text-[10px] font-mono cursor-pointer" onClick={onClick}>
+      <div className="flex items-center gap-4 flex-shrink-0 text-xs font-mono cursor-pointer" onClick={onClick}>
         <div className="text-center hidden lg:block">
           <div className={d.uptimeRate < 70 ? 'text-[#ef4444]' : d.uptimeRate < 90 ? 'text-[#f59e0b]' : 'text-[#22c55e]'}>
             {d.uptimeRate}%
           </div>
-          <div className="text-slate-400">Uptime</div>
+          <div className="text-slate-500">Uptime</div>
         </div>
         <div className="text-center hidden lg:block">
           <div className={d.offlineEpisodes > 3 ? 'text-[#ef4444]' : 'text-slate-600'}>
             {d.offlineEpisodes}
           </div>
-          <div className="text-slate-400">Ausfälle</div>
+          <div className="text-slate-500">Ausfälle</div>
         </div>
         <div className="text-center">
           <div style={{ color: getStatusColor(d.status) }}>
             {d.offlineHours != null && d.offlineHours >= 24 ? formatDuration(d.offlineHours) : getStatusLabel(d.status)}
           </div>
-          <div className="text-slate-400">Aktuell</div>
+          <div className="text-slate-500">Aktuell</div>
         </div>
       </div>
 
@@ -440,7 +440,7 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
           if (!taskState) onCreateTask();
         }}
         disabled={!!taskState}
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-all flex-shrink-0 ${
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0 ${
           taskState === 'success'
             ? 'bg-green-50/60 text-green-600 border border-green-200/40'
             : taskState === 'error'

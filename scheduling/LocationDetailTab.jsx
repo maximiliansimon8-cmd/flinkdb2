@@ -314,7 +314,7 @@ function DetailSection({ title, icon: Icon, children, defaultOpen = true }) {
           {Icon && <Icon size={16} className="text-orange-500" />}
           <span className="text-sm font-semibold text-gray-800">{title}</span>
         </div>
-        {open ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+        {open ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
       </button>
       {open && (
         <div className="px-4 py-4">
@@ -418,7 +418,7 @@ function ImageGallery({ images }) {
 
   if (!images || images.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-8 text-gray-500">
         <Camera size={28} className="mb-2" />
         <p className="text-sm">Keine Fotos vorhanden</p>
       </div>
@@ -449,7 +449,7 @@ function ImageGallery({ images }) {
                 <Maximize2 size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                <p className="text-white text-[10px] truncate">{filename}</p>
+                <p className="text-white text-xs truncate">{filename}</p>
               </div>
             </button>
           );
@@ -489,7 +489,7 @@ function InfoRow({ label, value, icon: Icon, href, type, mono }) {
     );
   } else {
     valueEl = (
-      <span className={`${isEmpty ? 'text-gray-400 italic' : 'text-gray-900'} ${mono ? 'font-mono text-xs' : ''} break-all`}>
+      <span className={`${isEmpty ? 'text-gray-500 italic' : 'text-gray-900'} ${mono ? 'font-mono text-xs' : ''} break-all`}>
         {displayValue}
       </span>
     );
@@ -497,7 +497,7 @@ function InfoRow({ label, value, icon: Icon, href, type, mono }) {
 
   return (
     <div className="flex items-start gap-2 py-1.5">
-      {Icon && <Icon size={14} className="text-gray-400 mt-0.5 shrink-0" />}
+      {Icon && <Icon size={14} className="text-gray-500 mt-0.5 shrink-0" />}
       <div className="min-w-0">
         <div className="text-xs text-gray-500 font-medium">{label}</div>
         <div className="text-sm mt-0.5">{valueEl}</div>
@@ -521,7 +521,7 @@ function BoolIndicator({ label, value, description }) {
     ? <CheckCircle size={14} className="text-green-500" />
     : state === 'nein'
     ? <XCircle size={14} className="text-red-500" />
-    : <MinusCircle size={14} className="text-gray-400" />;
+    : <MinusCircle size={14} className="text-gray-500" />;
 
   return (
     <div className={`flex items-start gap-2.5 p-3 rounded-lg border ${colorClass}`}>
@@ -591,7 +591,7 @@ function CommentCard({ label, text, timestamp }) {
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{label}</span>
         {timestamp && (
-          <span className="text-[10px] text-gray-400">{formatDateTime(timestamp)}</span>
+          <span className="text-xs text-gray-500">{formatDateTime(timestamp)}</span>
         )}
       </div>
       <p className="text-sm text-gray-800 whitespace-pre-wrap">{text}</p>
@@ -625,7 +625,7 @@ function LocationCard({ location, isSelected, onClick }) {
           </div>
         ) : (
           <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-            <Building2 size={18} className="text-gray-400" />
+            <Building2 size={18} className="text-gray-500" />
           </div>
         )}
 
@@ -641,14 +641,14 @@ function LocationCard({ location, isSelected, onClick }) {
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             <StatusBadge status={location.status || location.lead_status} location={location} />
             {location.booked_date && (
-              <span className="inline-flex items-center gap-1 text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">
                 <Calendar size={9} />
                 {formatDate(location.booked_date)}
                 {location.booked_time && ` ${location.booked_time}`}
               </span>
             )}
             {hasImages && (
-              <span className="inline-flex items-center gap-1 text-[10px] text-gray-500">
+              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                 <Camera size={9} /> {location.images_akquise.length}
               </span>
             )}
@@ -677,7 +677,7 @@ function LocationDetail({ location, loading }) {
 
   if (!location) {
     return (
-      <div className="flex flex-col items-center justify-center h-full py-32 text-gray-400">
+      <div className="flex flex-col items-center justify-center h-full py-32 text-gray-500">
         <Building2 size={48} className="mb-3" />
         <p className="font-medium text-lg">Kein Standort ausgewaehlt</p>
         <p className="text-sm mt-1">Waehle einen Standort aus der Liste, um die Details anzuzeigen.</p>
@@ -875,7 +875,7 @@ function LocationDetail({ location, loading }) {
             </a>
           )}
           {!loc.vertrag_pdf && !loc.contract_pdf_url && !loc.faw_data_url && !loc.faw_download && (
-            <p className="text-sm text-gray-400 italic">Keine Dokumente vorhanden</p>
+            <p className="text-sm text-gray-500 italic">Keine Dokumente vorhanden</p>
           )}
         </div>
       </DetailSection>
@@ -910,7 +910,7 @@ function LocationDetail({ location, loading }) {
           {!loc.akquise_comment && !loc.akquise_kommentar && !loc.akquise_comment_updates &&
            !loc.akquise_kommentar_update && !loc.installation_comment && !loc.kommentar_installation &&
            !loc.frequency_approval_comment && !loc.frequency_check_comment && !loc.notes && !loc.phone_notes && (
-            <p className="text-sm text-gray-400 italic text-center py-4">Keine Kommentare vorhanden</p>
+            <p className="text-sm text-gray-500 italic text-center py-4">Keine Kommentare vorhanden</p>
           )}
         </div>
       </DetailSection>
@@ -969,7 +969,7 @@ function StatCard({ label, value }) {
   return (
     <div className="bg-gray-50 rounded-lg border border-gray-100 p-3 text-center">
       <div className="text-xs text-gray-500 font-medium mb-1">{label}</div>
-      <div className={`text-xl font-bold ${isEmpty ? 'text-gray-300' : 'text-gray-900'}`}>
+      <div className={`text-xl font-bold ${isEmpty ? 'text-gray-500' : 'text-gray-900'}`}>
         {displayValue}
       </div>
     </div>
@@ -1249,7 +1249,7 @@ export default function LocationDetailTab({ initialLocationId, initialLocationNa
       <div className="flex flex-wrap gap-3 items-center">
         {/* Search */}
         <div className="relative flex-1 min-w-[220px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             value={search}
@@ -1261,7 +1261,7 @@ export default function LocationDetailTab({ initialLocationId, initialLocationNa
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600"
             >
               <X size={14} />
             </button>
@@ -1310,12 +1310,12 @@ export default function LocationDetailTab({ initialLocationId, initialLocationNa
 
       {/* Main Content: List + Detail side by side */}
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-gray-400">
+        <div className="flex items-center justify-center h-64 text-gray-500">
           <Loader2 size={24} className="animate-spin mr-2" />
           <span className="text-sm">Standorte werden geladen...</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-400 bg-white rounded-xl border border-gray-200">
+        <div className="flex flex-col items-center justify-center h-64 text-gray-500 bg-white rounded-xl border border-gray-200">
           <Building2 size={36} className="mb-2" />
           <p className="font-medium text-base">Keine Standorte gefunden</p>
           <p className="text-sm mt-1">

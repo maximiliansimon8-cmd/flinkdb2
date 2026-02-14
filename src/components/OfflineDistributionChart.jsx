@@ -36,11 +36,11 @@ export default function OfflineDistributionChart({ distribution }) {
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
+              tick={{ fill: '#64748b', fontSize: 11 }}
               stroke="#e2e8f0"
             />
             <YAxis
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
+              tick={{ fill: '#64748b', fontSize: 11 }}
               stroke="#e2e8f0"
               allowDecimals={false}
             />

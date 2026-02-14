@@ -29,7 +29,7 @@ function KpiCard({ label, value, icon: Icon, color, subtitle, onClick, active })
         </div>
       </div>
       <div className="text-2xl font-bold text-slate-800 font-mono">{value}</div>
-      {subtitle && <div className="text-[10px] text-slate-400 mt-1">{subtitle}</div>}
+      {subtitle && <div className="text-xs text-slate-500 mt-1">{subtitle}</div>}
     </div>
   );
 }
@@ -49,12 +49,12 @@ function CategoryCard({ icon: Icon, color, title, count, total, description, onC
         </div>
         <div>
           <div className="text-sm font-semibold text-slate-700">{title}</div>
-          <div className="text-[10px] text-slate-400">{description}</div>
+          <div className="text-xs text-slate-500">{description}</div>
         </div>
       </div>
       <div className="flex items-end justify-between">
         <div className="text-3xl font-bold font-mono" style={{ color }}>{count}</div>
-        <div className="text-xs text-slate-400">{pct}% von {total}</div>
+        <div className="text-xs text-slate-500">{pct}% von {total}</div>
       </div>
     </div>
   );
@@ -226,7 +226,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
   if (!comparisonData || !rawData) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
         <span className="ml-2 text-sm text-slate-500">Warte auf Daten...</span>
       </div>
     );
@@ -265,7 +265,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800">Datenqualität</h2>
-            <p className="text-xs text-slate-400">Cross-System Abgleich: Airtable / Navori / Vistar / OPS</p>
+            <p className="text-xs text-slate-500">Cross-System Abgleich: Airtable / Navori / Vistar / OPS</p>
           </div>
         </div>
         <button
@@ -344,14 +344,14 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                 isActive
                   ? 'bg-white shadow-sm text-slate-800 border border-slate-200/60'
-                  : 'text-slate-400 hover:text-slate-600'
+                  : 'text-slate-500 hover:text-slate-600'
               }`}
             >
               <Icon size={13} />
               {tab.label}
               {tab.count != null && (
-                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-slate-100 text-slate-600' : 'bg-transparent text-slate-400'
+                <span className={`text-xs font-mono px-1.5 py-0.5 rounded-full ${
+                  isActive ? 'bg-slate-100 text-slate-600' : 'bg-transparent text-slate-500'
                 }`}>
                   {tab.count}
                 </span>
@@ -370,7 +370,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-slate-700">Gesamt-Datenqualität</h3>
-              <span className="text-xs font-mono text-slate-400">{analysis.matchedAll3.length} / {analysis.totalLive} vollständig</span>
+              <span className="text-xs font-mono text-slate-500">{analysis.matchedAll3.length} / {analysis.totalLive} vollständig</span>
             </div>
             <div className="h-6 bg-slate-100 rounded-full overflow-hidden flex mb-3">
               {analysis.totalLive > 0 && (
@@ -382,7 +382,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                 </>
               )}
             </div>
-            <div className="flex flex-wrap gap-4 text-[10px]">
+            <div className="flex flex-wrap gap-4 text-xs">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Vollständig ({analysis.matchedAll3.length})</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Fehlt überall ({analysis.missingInBoth.length})</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-300" /> Nur Vistar fehlt ({analysis.missingInVistar.length})</span>
@@ -414,14 +414,14 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                     } ${row.prio === 'KRITISCH' ? 'border-red-200 bg-red-50/50' : 'border-slate-200/60 bg-white/30'}`}
                   >
                     <span
-                      className="text-[9px] font-bold px-1.5 py-0.5 rounded-md shrink-0"
+                      className="text-xs font-bold px-1.5 py-0.5 rounded-md shrink-0"
                       style={{ backgroundColor: `${row.color}15`, color: row.color }}
                     >
                       {row.prio}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-medium text-slate-700 truncate">{row.label}</div>
-                      <div className="text-[10px] text-slate-400 truncate">{row.desc}</div>
+                      <div className="text-xs text-slate-500 truncate">{row.desc}</div>
                     </div>
                     <div className="text-lg font-bold font-mono shrink-0" style={{ color: row.color }}>{row.count}</div>
                   </div>
@@ -451,7 +451,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                     <span className="text-xs font-semibold text-slate-700">{src.name}</span>
                   </div>
                   <div className="text-lg font-bold font-mono text-slate-800">{src.count}</div>
-                  <div className="text-[10px] text-slate-400">{src.label}</div>
+                  <div className="text-xs text-slate-500">{src.label}</div>
                 </div>
               ))}
             </div>
@@ -606,8 +606,8 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
         <div className="space-y-4">
           {opsLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
-              <span className="ml-2 text-xs text-slate-400">Lade OPS-Daten...</span>
+              <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
+              <span className="ml-2 text-xs text-slate-500">Lade OPS-Daten...</span>
             </div>
           ) : (
             <>
@@ -645,7 +645,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                 <div className="bg-white/60 border border-slate-200/60 rounded-2xl p-12 text-center">
                   <CheckCircle2 size={32} className="text-emerald-400 mx-auto mb-3" />
                   <div className="text-sm font-medium text-slate-600">Keine OPS-Probleme gefunden</div>
-                  <div className="text-xs text-slate-400 mt-1">Alle aktiven OPS-Player sind korrekt zugeordnet</div>
+                  <div className="text-xs text-slate-500 mt-1">Alle aktiven OPS-Player sind korrekt zugeordnet</div>
                 </div>
               )}
             </>
@@ -675,13 +675,13 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
       {/* Header */}
       <div className="px-5 py-4 border-b border-slate-200/40">
         <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
-        {subtitle && <p className="text-[10px] text-slate-400 mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
       </div>
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200/40">
         <div className="relative flex-1 max-w-sm">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
             value={searchTerm}
@@ -690,22 +690,22 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
             className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
-        <span className="text-[10px] text-slate-400 font-mono">{filtered.length} Ergebnisse</span>
+        <span className="text-xs text-slate-500 font-mono">{filtered.length} Ergebnisse</span>
       </div>
 
       {/* Table */}
       {filtered.length === 0 ? (
         <div className="p-12 text-center">
           <CheckCircle2 size={28} className="text-emerald-400 mx-auto mb-2" />
-          <div className="text-xs text-slate-400">Keine Einträge</div>
+          <div className="text-xs text-slate-500">Keine Einträge</div>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200/40">
                 {columns.map((col) => (
-                  <th key={col.key} className="text-left px-4 py-2.5 text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                  <th key={col.key} className="text-left px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">
                     {col.label}
                   </th>
                 ))}
@@ -727,7 +727,7 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
             </tbody>
           </table>
           {filtered.length > 100 && (
-            <div className="px-4 py-2.5 text-center text-[10px] text-slate-400 border-t border-slate-200/40">
+            <div className="px-4 py-2.5 text-center text-xs text-slate-500 border-t border-slate-200/40">
               Zeige 100 von {filtered.length} Einträgen
             </div>
           )}
@@ -740,13 +740,13 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
 /* ──────────────────────── Status Badge ──────────────────────── */
 
 function StatusBadge({ status }) {
-  if (!status) return <span className="text-slate-300">–</span>;
+  if (!status) return <span className="text-slate-500">–</span>;
   const isLive = /live/i.test(status);
   const isDeinstalled = /deinstall/i.test(status);
   const color = isLive ? '#22c55e' : isDeinstalled ? '#f97316' : '#64748b';
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
       style={{ backgroundColor: `${color}15`, color, border: `1px solid ${color}33` }}
     >
       <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />

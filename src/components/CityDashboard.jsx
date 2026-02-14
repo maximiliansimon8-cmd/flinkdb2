@@ -36,8 +36,8 @@ function getStatusColor(status) {
     case 'warning': return 'text-amber-500';
     case 'critical': return 'text-red-500';
     case 'permanent_offline': return 'text-red-700';
-    case 'never_online': return 'text-slate-400';
-    default: return 'text-slate-400';
+    case 'never_online': return 'text-slate-500';
+    default: return 'text-slate-500';
   }
 }
 
@@ -62,28 +62,28 @@ function KPISummaryBar({ cities, avgHealth, goodCount, criticalCount }) {
       <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
         <div className="flex items-center gap-2 mb-1">
           <Building2 size={14} className="text-blue-500" />
-          <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Staedte</span>
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Staedte</span>
         </div>
         <div className="text-2xl font-mono font-bold text-slate-900">{cities}</div>
       </div>
       <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
         <div className="flex items-center gap-2 mb-1">
           <Activity size={14} className="text-blue-500" />
-          <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Avg. Health</span>
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Avg. Health</span>
         </div>
         <div className="text-2xl font-mono font-bold text-blue-600">{avgHealth}%</div>
       </div>
       <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
         <div className="flex items-center gap-2 mb-1">
           <ShieldCheck size={14} className="text-emerald-500" />
-          <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">&gt;90% Health</span>
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">&gt;90% Health</span>
         </div>
         <div className="text-2xl font-mono font-bold text-emerald-600">{goodCount}</div>
       </div>
       <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
         <div className="flex items-center gap-2 mb-1">
           <ShieldAlert size={14} className="text-red-500" />
-          <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">&lt;70% Health</span>
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">&lt;70% Health</span>
         </div>
         <div className="text-2xl font-mono font-bold text-red-500">{criticalCount}</div>
       </div>
@@ -115,9 +115,9 @@ function PodiumSection({ top3, bottom3 }) {
                   <span className="text-2xl mb-1">{medals[i]}</span>
                   <div className="text-sm font-semibold text-slate-800">{city.name}</div>
                   <div className={`text-lg font-mono font-bold ${colors.text}`}>{city.healthRate}%</div>
-                  <div className="text-[10px] font-mono text-slate-400">{city.total} Displays</div>
+                  <div className="text-xs font-mono text-slate-500">{city.total} Displays</div>
                   <div className={`${podiumHeights[i]} w-20 mt-2 rounded-t-xl ${colors.bg} opacity-20`} />
-                  <div className="text-[10px] font-mono font-bold text-slate-400 mt-1">{ranks[i]}</div>
+                  <div className="text-xs font-mono font-bold text-slate-500 mt-1">{ranks[i]}</div>
                 </div>
               );
             })}
@@ -142,7 +142,7 @@ function PodiumSection({ top3, bottom3 }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-slate-800 truncate">{city.name}</div>
-                    <div className="text-[10px] font-mono text-slate-400">{city.code} &middot; {city.total} Displays</div>
+                    <div className="text-xs font-mono text-slate-500">{city.code} &middot; {city.total} Displays</div>
                   </div>
                   <div className={`text-lg font-mono font-bold ${colors.text}`}>{city.healthRate}%</div>
                   <AlertTriangle size={14} className="text-red-400 shrink-0" />
@@ -150,7 +150,7 @@ function PodiumSection({ top3, bottom3 }) {
               );
             })}
             {bottom3.length === 0 && (
-              <div className="text-sm text-slate-400 text-center py-4">Alle Staedte sind gesund!</div>
+              <div className="text-sm text-slate-500 text-center py-4">Alle Staedte sind gesund!</div>
             )}
           </div>
         </div>
@@ -171,16 +171,16 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
         {/* Header: City Name + Health Rate */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2 min-w-0">
-            <MapPin size={14} className="text-slate-400 shrink-0" />
+            <MapPin size={14} className="text-slate-500 shrink-0" />
             <div className="min-w-0">
               <div className="text-sm font-semibold text-slate-900 truncate">{city.name}</div>
-              <div className="text-[10px] font-mono text-slate-400">{city.code}</div>
+              <div className="text-xs font-mono text-slate-500">{city.code}</div>
             </div>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             {trendIndicator === 'up' && <TrendingUp size={14} className="text-emerald-500" />}
             {trendIndicator === 'down' && <TrendingDown size={14} className="text-red-500" />}
-            {trendIndicator === 'stable' && <Minus size={14} className="text-slate-400" />}
+            {trendIndicator === 'stable' && <Minus size={14} className="text-slate-500" />}
             <div className={`text-2xl font-mono font-bold ${colors.text}`}>
               {city.healthRate}%
             </div>
@@ -202,9 +202,9 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
             <span className="text-xs font-mono font-semibold text-blue-600">{city.total} Displays</span>
           </div>
           {isExpanded ? (
-            <ChevronUp size={14} className="text-slate-400" />
+            <ChevronUp size={14} className="text-slate-500" />
           ) : (
-            <ChevronDown size={14} className="text-slate-400" />
+            <ChevronDown size={14} className="text-slate-500" />
           )}
         </div>
 
@@ -212,23 +212,23 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
         <div className="grid grid-cols-2 gap-x-3 gap-y-1">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-[10px] font-mono text-slate-500">Online</span>
-            <span className="text-[10px] font-mono font-bold text-emerald-600 ml-auto">{breakdown.online}</span>
+            <span className="text-xs font-mono text-slate-500">Online</span>
+            <span className="text-xs font-mono font-bold text-emerald-600 ml-auto">{breakdown.online}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <span className="text-[10px] font-mono text-slate-500">Warnung</span>
-            <span className="text-[10px] font-mono font-bold text-amber-500 ml-auto">{breakdown.warning}</span>
+            <span className="text-xs font-mono text-slate-500">Warnung</span>
+            <span className="text-xs font-mono font-bold text-amber-500 ml-auto">{breakdown.warning}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-red-500" />
-            <span className="text-[10px] font-mono text-slate-500">Kritisch</span>
-            <span className="text-[10px] font-mono font-bold text-red-500 ml-auto">{breakdown.critical}</span>
+            <span className="text-xs font-mono text-slate-500">Kritisch</span>
+            <span className="text-xs font-mono font-bold text-red-500 ml-auto">{breakdown.critical}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-red-800" />
-            <span className="text-[10px] font-mono text-slate-500">Perm. Off</span>
-            <span className="text-[10px] font-mono font-bold text-red-700 ml-auto">{breakdown.permanentOffline}</span>
+            <span className="text-xs font-mono text-slate-500">Perm. Off</span>
+            <span className="text-xs font-mono font-bold text-red-700 ml-auto">{breakdown.permanentOffline}</span>
           </div>
         </div>
       </div>
@@ -236,7 +236,7 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
       {/* Expanded: show display list */}
       {isExpanded && displays && displays.length > 0 && (
         <div className="border-t border-slate-200/60 px-4 py-3 bg-slate-50/40 rounded-b-2xl max-h-64 overflow-y-auto">
-          <div className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-2">
+          <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
             Displays in {city.name}
           </div>
           <div className="space-y-1">
@@ -264,11 +264,11 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
                         'bg-slate-300'
                       }`}
                     />
-                    <span className="text-[11px] text-slate-700 font-mono truncate">
+                    <span className="text-xs text-slate-700 font-mono truncate">
                       {d.displayId}
                     </span>
                   </div>
-                  <span className={`text-[10px] font-mono font-medium ${getStatusColor(d.status)}`}>
+                  <span className={`text-xs font-mono font-medium ${getStatusColor(d.status)}`}>
                     {getStatusLabel(d.status)}
                   </span>
                 </div>
@@ -424,7 +424,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
 
   if (!cityData || cityData.length === 0) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-400 text-sm">
+      <div className="flex items-center justify-center py-20 text-slate-500 text-sm">
         Keine Staedtedaten verfuegbar.
       </div>
     );
@@ -448,7 +448,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
         <div className="flex flex-col lg:flex-row lg:items-center gap-3">
           {/* Quick Filter Buttons */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <Filter size={14} className="text-slate-400 shrink-0" />
+            <Filter size={14} className="text-slate-500 shrink-0" />
             {filterButtons.map((fb) => (
               <button
                 key={fb.key}
@@ -461,7 +461,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
               >
                 {fb.label}
                 {fb.sublabel && <span className="ml-1 opacity-60">{fb.sublabel}</span>}
-                <span className={`ml-1.5 font-mono ${healthFilter === fb.key ? 'text-blue-100' : (fb.color || 'text-slate-400')}`}>
+                <span className={`ml-1.5 font-mono ${healthFilter === fb.key ? 'text-blue-100' : (fb.color || 'text-slate-500')}`}>
                   {fb.count}
                 </span>
               </button>
@@ -473,18 +473,18 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
 
           {/* Search */}
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Stadt suchen..."
-              className="pl-8 pr-8 py-1.5 w-full lg:w-48 rounded-lg border border-slate-200/60 bg-white/80 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all"
+              className="pl-8 pr-8 py-1.5 w-full lg:w-48 rounded-lg border border-slate-200/60 bg-white/80 text-xs text-slate-700 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
               >
                 <X size={12} />
               </button>
@@ -523,7 +523,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
                     >
                       <span>{opt.label}</span>
                       {sortBy === opt.key && (
-                        <span className="text-[10px] font-mono text-blue-400">
+                        <span className="text-xs font-mono text-blue-400">
                           {sortDir === 'desc' ? 'absteigend' : 'aufsteigend'}
                         </span>
                       )}
@@ -545,7 +545,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
         </div>
 
         {/* Result count */}
-        <div className="mt-2 text-[10px] font-mono text-slate-400">
+        <div className="mt-2 text-xs font-mono text-slate-500">
           {processedCities.length} von {cityData.length} Staedten
         </div>
       </div>
@@ -580,7 +580,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
 
       {/* Empty state after filtering */}
       {processedCities.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+        <div className="flex flex-col items-center justify-center py-12 text-slate-500">
           <Search size={32} className="mb-3 opacity-40" />
           <div className="text-sm font-medium">Keine Staedte gefunden</div>
           <div className="text-xs mt-1">Versuche einen anderen Filter oder Suchbegriff</div>

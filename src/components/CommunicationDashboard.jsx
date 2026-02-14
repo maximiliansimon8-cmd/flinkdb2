@@ -30,7 +30,7 @@ function KPICard({ label, value, icon: Icon, color }) {
   return (
     <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">
+        <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">
           {label}
         </span>
         <div
@@ -75,7 +75,7 @@ function ChannelBadge({ channel }) {
 function DirectionBadge({ direction }) {
   if (direction === 'Outbound') {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">
         <ArrowUpRight size={10} />
         Ausgehend
       </span>
@@ -83,7 +83,7 @@ function DirectionBadge({ direction }) {
   }
   if (direction === 'Inbound') {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-600">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">
         <ArrowDownLeft size={10} />
         Eingehend
       </span>
@@ -104,7 +104,7 @@ function StatusBadge({ status }) {
   };
   const c = config[status] || { bg: 'bg-slate-100 text-slate-600', label: status || '–' };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${c.bg}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${c.bg}`}>
       {c.label}
     </span>
   );
@@ -156,7 +156,7 @@ function CommRow({ comm }) {
             <h4 className="text-sm font-semibold text-slate-900 truncate">
               {comm.recipientName || comm.sender || 'Unbekannt'}
             </h4>
-            <span className="text-[10px] font-mono text-slate-400 flex-shrink-0 ml-2">
+            <span className="text-xs font-mono text-slate-500 flex-shrink-0 ml-2">
               {formatCommDate(comm.timestamp)}
             </span>
           </div>
@@ -168,7 +168,7 @@ function CommRow({ comm }) {
             <DirectionBadge direction={comm.direction} />
             {comm.status && <StatusBadge status={comm.status} />}
             {comm.locationNames?.length > 0 && (
-              <span className="text-[10px] text-slate-500 truncate max-w-[200px]">
+              <span className="text-xs text-slate-500 truncate max-w-[200px]">
                 📍 {comm.locationNames.join(', ')}
               </span>
             )}
@@ -182,32 +182,32 @@ function CommRow({ comm }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             {comm.recipientContact && (
               <div>
-                <span className="text-slate-400 font-medium">Kontakt:</span>{' '}
+                <span className="text-slate-500 font-medium">Kontakt:</span>{' '}
                 <span className="text-slate-700 font-mono">{comm.recipientContact}</span>
               </div>
             )}
             {comm.sender && (
               <div>
-                <span className="text-slate-400 font-medium">Absender:</span>{' '}
+                <span className="text-slate-500 font-medium">Absender:</span>{' '}
                 <span className="text-slate-700">{comm.sender}</span>
               </div>
             )}
             {comm.displayIds?.length > 0 && (
               <div>
-                <span className="text-slate-400 font-medium">Display IDs:</span>{' '}
+                <span className="text-slate-500 font-medium">Display IDs:</span>{' '}
                 <span className="text-slate-700 font-mono">{comm.displayIds.join(', ')}</span>
               </div>
             )}
             {comm.externalId && (
               <div>
-                <span className="text-slate-400 font-medium">External ID:</span>{' '}
+                <span className="text-slate-500 font-medium">External ID:</span>{' '}
                 <span className="text-slate-700 font-mono">{comm.externalId}</span>
               </div>
             )}
           </div>
           {comm.message && (
             <div className="mt-3 p-3 bg-white/60 rounded-xl border border-slate-200/40">
-              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider block mb-1">Nachricht</span>
+              <span className="text-xs text-slate-500 font-medium uppercase tracking-wider block mb-1">Nachricht</span>
               <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">{comm.message}</p>
             </div>
           )}
@@ -338,9 +338,9 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60">
           <div>
             <h2 className="text-base font-semibold text-slate-900">Neue Kommunikation</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">Nachricht an Standort protokollieren</p>
+            <p className="text-xs text-slate-500 mt-0.5">Nachricht an Standort protokollieren</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100/80 text-slate-400 hover:text-slate-600">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100/80 text-slate-500 hover:text-slate-600">
             <X size={16} />
           </button>
         </div>
@@ -350,14 +350,14 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
           {/* Channel & Direction */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Kanal</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">Kanal</label>
               <div className="flex flex-wrap gap-1.5">
                 {['WhatsApp', 'Email', 'SMS', 'Phone'].map((ch) => (
                   <button
                     key={ch}
                     type="button"
                     onClick={() => setChannel(ch)}
-                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all border ${
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                       channel === ch
                         ? 'bg-[#3b82f6]/10 border-[#3b82f6]/40 text-[#3b82f6]'
                         : 'bg-slate-50/80 border-slate-200/60 text-slate-500 hover:border-slate-300'
@@ -369,7 +369,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Richtung</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">Richtung</label>
               <div className="flex gap-1.5">
                 {[
                   { id: 'Outbound', label: 'Ausgehend', icon: ArrowUpRight },
@@ -379,7 +379,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
                     key={d.id}
                     type="button"
                     onClick={() => setDirection(d.id)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all border ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                       direction === d.id
                         ? 'bg-[#3b82f6]/10 border-[#3b82f6]/40 text-[#3b82f6]'
                         : 'bg-slate-50/80 border-slate-200/60 text-slate-500 hover:border-slate-300'
@@ -395,8 +395,8 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
 
           {/* Standort */}
           <div ref={locationDropdownRef} className="relative">
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              <MapPin size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">
+              <MapPin size={11} className="inline -mt-0.5 mr-1 text-slate-500" />
               Standort
             </label>
             {selectedLocation ? (
@@ -404,15 +404,15 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
                 <Building2 size={13} className="text-[#3b82f6] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-medium text-slate-900 truncate">{selectedLocation.name}</div>
-                  <div className="text-[10px] text-slate-400 font-mono truncate">{selectedLocation.city}</div>
+                  <div className="text-xs text-slate-500 font-mono truncate">{selectedLocation.city}</div>
                 </div>
-                <button type="button" onClick={() => setSelectedLocation(null)} className="p-1 rounded hover:bg-slate-100/60 text-slate-400 hover:text-slate-600">
+                <button type="button" onClick={() => setSelectedLocation(null)} className="p-1 rounded hover:bg-slate-100/60 text-slate-500 hover:text-slate-600">
                   <X size={12} />
                 </button>
               </div>
             ) : (
               <div className="relative">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
                   value={locationSearch}
@@ -427,7 +427,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
             {showLocationDropdown && !selectedLocation && (
               <div className="absolute z-20 left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
                 {filteredLocations.length === 0 ? (
-                  <div className="px-3 py-4 text-xs text-slate-400 text-center">{locationsLoading ? 'Laden...' : 'Nicht gefunden'}</div>
+                  <div className="px-3 py-4 text-xs text-slate-500 text-center">{locationsLoading ? 'Laden...' : 'Nicht gefunden'}</div>
                 ) : (
                   filteredLocations.map((loc) => (
                     <button
@@ -437,7 +437,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
                       className="w-full text-left px-3 py-2 hover:bg-slate-50/80 border-b border-slate-200/30 last:border-0"
                     >
                       <div className="text-xs font-medium text-slate-900 truncate">{loc.name}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">{loc.city}</div>
+                      <div className="text-xs text-slate-500 font-mono">{loc.city}</div>
                     </button>
                   ))
                 )}
@@ -448,7 +448,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
           {/* Empfänger & Kontakt */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Empfänger Name</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">Empfänger Name</label>
               <input
                 type="text"
                 value={recipientName}
@@ -458,7 +458,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Kontakt (Tel/Email)</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">Kontakt (Tel/Email)</label>
               <input
                 type="text"
                 value={recipientContact}
@@ -471,7 +471,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
 
           {/* Sender */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Absender</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">Absender</label>
             <select
               value={sender}
               onChange={(e) => setSender(e.target.value)}
@@ -485,7 +485,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
 
           {/* Subject */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Betreff</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">Betreff</label>
             <input
               type="text"
               value={subject}
@@ -497,7 +497,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
 
           {/* Message */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Nachricht</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">Nachricht</label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -621,7 +621,7 @@ export default function CommunicationDashboard() {
             <MessageSquare size={20} className="text-[#3b82f6]" />
             Kommunikation
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Kommunikationsprotokoll – Alle Nachrichten an Standorte
           </p>
         </div>
@@ -678,14 +678,14 @@ export default function CommunicationDashboard() {
         <div className="relative flex-1 w-full sm:max-w-sm">
           <Search
             size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Kontakt, Standort oder Display suchen..."
-            className="w-full pl-9 pr-3 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+            className="w-full pl-9 pr-3 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
           />
         </div>
 
@@ -737,7 +737,7 @@ export default function CommunicationDashboard() {
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 size={24} className="text-blue-500 animate-spin" />
-            <span className="ml-3 text-sm text-slate-400">
+            <span className="ml-3 text-sm text-slate-500">
               Kommunikationsdaten werden geladen...
             </span>
           </div>
@@ -755,14 +755,14 @@ export default function CommunicationDashboard() {
         ) : filteredComms.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-14 h-14 rounded-2xl bg-slate-100/80 flex items-center justify-center mb-4">
-              <MessageSquare size={28} className="text-slate-300" />
+              <MessageSquare size={28} className="text-slate-500" />
             </div>
             <p className="text-sm font-medium text-slate-500 mb-1">
               {search || channelFilter !== 'all' || directionFilter !== 'all'
                 ? 'Keine Ergebnisse gefunden'
                 : 'Noch keine Kommunikation vorhanden'}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               {search || channelFilter !== 'all' || directionFilter !== 'all'
                 ? 'Versuchen Sie andere Filter'
                 : 'Kommunikationsprotokolle werden in Airtable erfasst und automatisch synchronisiert'}
@@ -780,7 +780,7 @@ export default function CommunicationDashboard() {
       {/* ═══════ Total count ═══════ */}
       {!loading && !error && (
         <div className="text-center">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             {filteredComms.length} von {communications.length} Einträgen angezeigt
           </p>
         </div>

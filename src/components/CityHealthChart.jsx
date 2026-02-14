@@ -53,14 +53,14 @@ export default function CityHealthChart({ cityData }) {
             <XAxis
               type="number"
               domain={[0, 100]}
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
+              tick={{ fill: '#64748b', fontSize: 11 }}
               stroke="#e2e8f0"
               tickFormatter={(v) => `${v}%`}
             />
             <YAxis
               type="category"
               dataKey="code"
-              tick={{ fill: '#64748b', fontSize: 10 }}
+              tick={{ fill: '#64748b', fontSize: 11 }}
               stroke="#e2e8f0"
               width={40}
             />

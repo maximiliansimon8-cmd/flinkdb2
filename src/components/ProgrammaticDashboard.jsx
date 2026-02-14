@@ -129,7 +129,7 @@ function TrendBadge({ current, previous, suffix = '', inverted = false, isCurren
   const pctChange = ((current - previous) / previous) * 100;
   if (Math.abs(pctChange) < 0.5) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-[10px] font-mono text-slate-400">
+      <span className="inline-flex items-center gap-0.5 text-xs font-mono text-slate-500">
         <Minus size={10} />
         <span>±0%</span>
       </span>
@@ -141,7 +141,7 @@ function TrendBadge({ current, previous, suffix = '', inverted = false, isCurren
   const sign = pctChange > 0 ? '+' : '';
 
   return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-mono" style={{ color }}>
+    <span className="inline-flex items-center gap-0.5 text-xs font-mono" style={{ color }}>
       <Icon size={10} />
       <span>{sign}{pctChange.toFixed(1)}%</span>
     </span>
@@ -153,7 +153,7 @@ function KPICard({ label, value, subtitle, icon: Icon, color, trend }) {
   return (
     <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">
+        <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">
           {label}
         </span>
         <Icon size={16} style={{ color }} className="opacity-70" />
@@ -165,7 +165,7 @@ function KPICard({ label, value, subtitle, icon: Icon, color, trend }) {
         {trend}
       </div>
       {subtitle && (
-        <div className="text-slate-400 text-xs mt-1">{subtitle}</div>
+        <div className="text-slate-500 text-xs mt-1">{subtitle}</div>
       )}
     </div>
   );
@@ -176,7 +176,7 @@ function ChartTooltip({ active, payload, label, isCurrency }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-xl px-3 py-2 shadow-lg">
-      <div className="text-[10px] font-mono text-slate-400 mb-1">{label}</div>
+      <div className="text-xs font-mono text-slate-500 mb-1">{label}</div>
       {payload.map((item, i) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
@@ -467,20 +467,20 @@ export default function ProgrammaticDashboard() {
             <div>
               <h2 className="text-base font-bold text-slate-900">Programmatic Performance</h2>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-400 font-mono">Vistar SSP · Exchange + Direct</span>
+                <span className="text-xs text-slate-500 font-mono">Vistar SSP · Exchange + Direct</span>
                 {lastSyncTs && (
                   <>
                     <span className="text-slate-200">|</span>
-                    <span className="text-[10px] font-mono text-slate-400">
+                    <span className="text-xs font-mono text-slate-500">
                       Daten: {fmtDate(dateRange.start)} – {fmtDate(dateRange.end)}
                     </span>
                     <span className="text-slate-200">|</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400">
+                    <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-500">
                       <Clock size={9} className="opacity-60" />
                       Geladen: {timeAgo(lastSyncTs)}
                     </span>
                     {Date.now() - lastSyncTs > 3600000 && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-amber-500">
+                      <span className="inline-flex items-center gap-1 text-xs font-mono text-amber-500">
                         <AlertTriangle size={9} />
                         Daten evtl. veraltet
                       </span>
@@ -495,7 +495,7 @@ export default function ProgrammaticDashboard() {
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors disabled:opacity-40"
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-600 hover:bg-slate-50/60 transition-colors disabled:opacity-40"
             title="Daten neu laden"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -545,7 +545,7 @@ export default function ProgrammaticDashboard() {
                 onChange={(e) => setCustomStart(e.target.value)}
                 className="px-2 py-1 text-xs font-mono bg-slate-50/80 border border-slate-200/60 rounded-md text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
               />
-              <span className="text-[10px] text-slate-400">–</span>
+              <span className="text-xs text-slate-500">–</span>
               <input
                 type="date"
                 value={customEnd}
@@ -568,7 +568,7 @@ export default function ProgrammaticDashboard() {
       {loading && (
         <div className="flex items-center justify-center py-20">
           <Loader2 size={24} className="animate-spin text-violet-400" />
-          <span className="ml-3 text-sm text-slate-400">Programmatic-Daten laden...</span>
+          <span className="ml-3 text-sm text-slate-500">Programmatic-Daten laden...</span>
         </div>
       )}
 
@@ -583,9 +583,9 @@ export default function ProgrammaticDashboard() {
       {/* No Data Placeholder */}
       {!loading && !error && !hasData && (
         <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-10 text-center">
-          <BarChart3 size={32} className="mx-auto text-slate-300 mb-3" />
+          <BarChart3 size={32} className="mx-auto text-slate-500 mb-3" />
           <p className="text-sm font-medium text-slate-600 mb-1">Keine Programmatic-Daten verfügbar</p>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Vistar API-Zugangsdaten in Netlify konfigurieren und Sync ausführen.
           </p>
           <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-violet-50/60 border border-violet-200/40 rounded-lg text-xs font-mono text-violet-600">
@@ -611,7 +611,7 @@ export default function ProgrammaticDashboard() {
               />
             ) : (
               <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03] flex items-center justify-center">
-                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                <div className="flex items-center gap-1.5 text-slate-500 text-xs">
                   <Lock size={14} />
                   <span>Revenue</span>
                 </div>
@@ -643,7 +643,7 @@ export default function ProgrammaticDashboard() {
               />
             ) : (
               <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03] flex items-center justify-center">
-                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                <div className="flex items-center gap-1.5 text-slate-500 text-xs">
                   <Lock size={14} />
                   <span>eCPM</span>
                 </div>
@@ -686,13 +686,13 @@ export default function ProgrammaticDashboard() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
                       <XAxis
                         dataKey="label"
-                        tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                        tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
                         axisLine={false}
                         tickLine={false}
                         interval={Math.max(0, Math.floor(dailyData.length / 8) - 1)}
                       />
                       <YAxis
-                        tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                        tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(v) => `€${v}`}
@@ -716,7 +716,7 @@ export default function ProgrammaticDashboard() {
                     <div className="w-1 h-4 rounded-full bg-violet-500" />
                     <h3 className="text-sm font-medium text-slate-900">Revenue / Tag</h3>
                   </div>
-                  <div className="flex items-center justify-center py-16 text-slate-400 text-sm gap-2">
+                  <div className="flex items-center justify-center py-16 text-slate-500 text-sm gap-2">
                     <Lock size={16} />
                     <span>Umsatzdaten nur mit Berechtigung sichtbar</span>
                   </div>
@@ -740,13 +740,13 @@ export default function ProgrammaticDashboard() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
                     <XAxis
                       dataKey="label"
-                      tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                      tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
                       axisLine={false}
                       tickLine={false}
                       interval={Math.max(0, Math.floor(dailyData.length / 8) - 1)}
                     />
                     <YAxis
-                      tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                      tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
                       axisLine={false}
                       tickLine={false}
                       tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
@@ -779,13 +779,13 @@ export default function ProgrammaticDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} vertical={false} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                    tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
                     axisLine={false}
                     tickLine={false}
                     interval={Math.max(0, Math.floor(dailyData.length / 10) - 1)}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                    tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -808,7 +808,7 @@ export default function ProgrammaticDashboard() {
               <div className="flex items-center gap-2 p-5 pb-3">
                 <div className="w-1 h-4 rounded-full bg-violet-500" />
                 <h3 className="text-sm font-medium text-slate-900">Top Venues nach Revenue</h3>
-                <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+                <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
                   {topVenues.length}
                 </span>
               </div>
@@ -819,7 +819,7 @@ export default function ProgrammaticDashboard() {
                     key={venue.id}
                     className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-slate-50/60 transition-colors"
                   >
-                    <span className="w-5 text-[10px] font-mono text-slate-400 text-right">
+                    <span className="w-5 text-xs font-mono text-slate-500 text-right">
                       {i + 1}.
                     </span>
                     <div className="flex-1 min-w-0">
@@ -828,12 +828,12 @@ export default function ProgrammaticDashboard() {
                           {venue.doId}
                         </span>
                         {venue.locationName && (
-                          <span className="text-[10px] text-slate-500 truncate">
+                          <span className="text-xs text-slate-500 truncate">
                             {venue.locationName}
                           </span>
                         )}
                         {venue.city && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100/80 text-slate-400 flex-shrink-0">
+                          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-slate-100/80 text-slate-500 flex-shrink-0">
                             {venue.city}
                           </span>
                         )}
@@ -850,12 +850,12 @@ export default function ProgrammaticDashboard() {
                         <div className="text-xs font-mono font-medium text-violet-600">
                           {fmtCurrency(venue.revenue)}
                         </div>
-                        <div className="text-[10px] font-mono text-slate-400">
+                        <div className="text-xs font-mono text-slate-500">
                           {fmt(venue.impressions)} imp
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-[10px] font-mono text-slate-400">
+                        <div className="text-xs font-mono text-slate-500">
                           eCPM
                         </div>
                         <div className="text-xs font-mono font-medium text-amber-600">
@@ -874,7 +874,7 @@ export default function ProgrammaticDashboard() {
                 <div className="w-1 h-4 rounded-full bg-violet-500" />
                 <h3 className="text-sm font-medium text-slate-900">Top Venues nach Revenue</h3>
               </div>
-              <div className="flex items-center justify-center py-8 text-slate-400 text-sm gap-2">
+              <div className="flex items-center justify-center py-8 text-slate-500 text-sm gap-2">
                 <Lock size={16} />
                 <span>Umsatzdaten nur mit Berechtigung sichtbar</span>
               </div>
@@ -891,14 +891,14 @@ export default function ProgrammaticDashboard() {
                 <span className="text-xs font-mono text-amber-600 bg-amber-50/80 px-2 py-0.5 rounded">
                   {underperformers.length}
                 </span>
-                <span className="text-[10px] text-slate-400 ml-1">
+                <span className="text-xs text-slate-500 ml-1">
                   Aktiv aber &lt;30% des Ø Revenue/Tag
                 </span>
               </div>
 
               <div className="px-5 pb-2">
                 {/* Header */}
-                <div className="flex items-center gap-3 py-1.5 px-3 text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-100/60">
+                <div className="flex items-center gap-3 py-1.5 px-3 text-xs font-mono text-slate-500 uppercase tracking-wider border-b border-slate-100/60">
                   <span className="w-5">#</span>
                   <span className="flex-1">Venue</span>
                   <span className="w-16 text-right">Tage</span>
@@ -915,7 +915,7 @@ export default function ProgrammaticDashboard() {
                     key={venue.id}
                     className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-amber-50/40 transition-colors"
                   >
-                    <span className="w-5 text-[10px] font-mono text-slate-400 text-right">
+                    <span className="w-5 text-xs font-mono text-slate-500 text-right">
                       {i + 1}.
                     </span>
                     <div className="flex-1 min-w-0">
@@ -924,12 +924,12 @@ export default function ProgrammaticDashboard() {
                           {venue.doId}
                         </span>
                         {venue.locationName && (
-                          <span className="text-[10px] text-slate-500 truncate">
+                          <span className="text-xs text-slate-500 truncate">
                             {venue.locationName}
                           </span>
                         )}
                         {venue.city && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100/80 text-slate-400 flex-shrink-0">
+                          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-slate-100/80 text-slate-500 flex-shrink-0">
                             {venue.city}
                           </span>
                         )}

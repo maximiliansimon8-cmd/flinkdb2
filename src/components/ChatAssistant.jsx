@@ -171,7 +171,7 @@ function FeedbackCard({ feedback, onConfirm, onDiscard }) {
       <div className="px-4 py-3 space-y-1">
         <p className="text-sm font-medium text-slate-100">{feedback.title}</p>
         {feedback.description && (
-          <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">
+          <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
             {feedback.description}
           </p>
         )}
@@ -186,7 +186,7 @@ function FeedbackCard({ feedback, onConfirm, onDiscard }) {
         <div className="w-px bg-slate-700/40" />
         <button
           onClick={onDiscard}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-700/30 transition-colors cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-700/30 transition-colors cursor-pointer"
         >
           <span>&#10007;</span> Verwerfen
         </button>
@@ -204,12 +204,12 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
         <span className="text-blue-400 shrink-0 text-base">📋</span>
         <span className="text-sm font-medium text-slate-200">Neuer Task</span>
         {task.priority && (
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ml-auto ${
+          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto ${
             task.priority === 'High' || task.priority === 'Urgent'
               ? 'bg-red-500/20 text-red-300'
               : task.priority === 'Medium'
               ? 'bg-amber-500/20 text-amber-300'
-              : 'bg-slate-600/40 text-slate-400'
+              : 'bg-slate-600/40 text-slate-500'
           }`}>
             {task.priority}
           </span>
@@ -218,23 +218,23 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
       <div className="px-4 py-3 space-y-1.5">
         <p className="text-sm font-medium text-slate-100">{task.title}</p>
         {task.description && (
-          <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">
+          <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
             {task.description}
           </p>
         )}
         <div className="flex flex-wrap gap-2 mt-1">
           {task.partner && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">
+            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-500">
               Partner: {task.partner}
             </span>
           )}
           {task.status && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">
+            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-500">
               Status: {task.status}
             </span>
           )}
           {task.dueDate && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">
+            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-500">
               Fällig: {task.dueDate}
             </span>
           )}
@@ -256,7 +256,7 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
         <button
           onClick={onDiscard}
           disabled={isCreating}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-700/30 transition-colors cursor-pointer disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-700/30 transition-colors cursor-pointer disabled:opacity-50"
         >
           <span>&#10007;</span> Verwerfen
         </button>
@@ -361,7 +361,7 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-700/50 transition-colors cursor-pointer"
               aria-label="Chat schließen"
             >
               <X size={18} />
@@ -377,7 +377,7 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                 disabled={isStreaming}
                 className="
                   whitespace-nowrap text-xs px-3 py-1.5 rounded-full
-                  bg-slate-800/70 text-slate-300
+                  bg-slate-800/70 text-slate-500
                   border border-slate-700/40
                   hover:bg-slate-700/70 hover:text-slate-100 hover:border-slate-600/50
                   disabled:opacity-40 disabled:cursor-not-allowed

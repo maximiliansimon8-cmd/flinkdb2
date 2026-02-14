@@ -917,7 +917,7 @@ function App() {
               <h1 className="text-sm font-bold text-slate-900 tracking-wide">
                 JET GERMANY
               </h1>
-              <p className="text-[10px] text-slate-400 font-mono mt-1">
+              <p className="text-xs text-slate-500 font-mono mt-1">
                 Display Network Monitor
               </p>
             </div>
@@ -925,9 +925,9 @@ function App() {
             <div className="space-y-4">
               {/* Email / Username Field */}
               <div>
-                <label className="text-xs text-slate-400 block mb-1.5">E-Mail / Benutzername</label>
+                <label className="text-xs text-slate-500 block mb-1.5">E-Mail / Benutzername</label>
                 <div className="relative">
-                  <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type="text"
                     value={emailInput}
@@ -945,9 +945,9 @@ function App() {
 
               {/* Password Field */}
               <div>
-                <label className="text-xs text-slate-400 block mb-1.5">Passwort</label>
+                <label className="text-xs text-slate-500 block mb-1.5">Passwort</label>
                 <div className="relative">
-                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type="password"
                     value={passwordInput}
@@ -977,7 +977,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => { setShowResetForm(true); setResetEmail(emailInput); setResetStatus(''); }}
-                className="w-full text-[11px] text-slate-400 hover:text-[#3b82f6] transition-colors mt-2 font-mono"
+                className="w-full text-xs text-slate-500 hover:text-[#3b82f6] transition-colors mt-2 font-mono"
               >
                 Passwort vergessen?
               </button>
@@ -992,7 +992,7 @@ function App() {
                   <h2 className="text-sm font-bold text-slate-900">Passwort zurücksetzen</h2>
                   <button
                     onClick={() => setShowResetForm(false)}
-                    className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="p-1 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-600 transition-colors"
                   >
                     <X size={16} />
                   </button>
@@ -1004,7 +1004,7 @@ function App() {
                       <Mail size={18} className="text-[#22c55e]" />
                     </div>
                     <p className="text-sm text-slate-700 font-medium mb-1">E-Mail gesendet!</p>
-                    <p className="text-xs text-slate-400 font-mono leading-relaxed">
+                    <p className="text-xs text-slate-500 font-mono leading-relaxed">
                       Falls ein Account mit dieser E-Mail existiert, erhältst du einen Link zum Zurücksetzen deines Passworts.
                     </p>
                     <button
@@ -1016,11 +1016,11 @@ function App() {
                   </div>
                 ) : (
                   <form onSubmit={handlePasswordReset}>
-                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                    <p className="text-xs text-slate-500 mb-4 leading-relaxed">
                       Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen deines Passworts.
                     </p>
                     <div className="relative mb-4">
-                      <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                       <input
                         type="email"
                         value={resetEmail}
@@ -1093,7 +1093,7 @@ function App() {
             <h1 className="text-lg font-bold text-slate-900 tracking-wider mb-1">
               JET GERMANY
             </h1>
-            <p className="text-xs text-slate-400 font-mono tracking-widest uppercase">
+            <p className="text-xs text-slate-500 font-mono tracking-widest uppercase">
               Display Network Monitor
             </p>
           </div>
@@ -1110,7 +1110,7 @@ function App() {
           {/* Status text with bouncing dots */}
           <div className="animate-slide-up mt-4" style={{ animationDelay: '0.45s', opacity: 0 }}>
             <div className="flex items-center justify-center gap-1.5">
-              <span className="text-xs text-slate-400 font-mono">
+              <span className="text-xs text-slate-500 font-mono">
                 {loadProgress || 'Initialisiere'}
               </span>
               <span className="flex gap-0.5">
@@ -1125,19 +1125,19 @@ function App() {
           {cachedSnapshot && (
             <div className="animate-slide-up mt-6 w-64 mx-auto" style={{ animationDelay: '0.5s', opacity: 0 }}>
               <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-3 text-center">
-                <div className="text-[10px] font-mono text-slate-400 mb-1">Letzte bekannte Daten</div>
+                <div className="text-xs font-mono text-slate-500 mb-1">Letzte bekannte Daten</div>
                 <div className="flex items-center justify-center gap-3">
                   <div>
                     <div className="text-lg font-mono font-bold text-emerald-600">{cachedSnapshot.kpis?.healthRate}%</div>
-                    <div className="text-[9px] font-mono text-slate-400">Health Rate</div>
+                    <div className="text-xs font-mono text-slate-500">Health Rate</div>
                   </div>
                   <div className="w-px h-8 bg-slate-200" />
                   <div>
                     <div className="text-lg font-mono font-bold text-blue-600">{cachedSnapshot.displayCount}</div>
-                    <div className="text-[9px] font-mono text-slate-400">Displays</div>
+                    <div className="text-xs font-mono text-slate-500">Displays</div>
                   </div>
                 </div>
-                <div className="text-[9px] font-mono text-slate-300 mt-1">
+                <div className="text-xs font-mono text-slate-500 mt-1">
                   {cachedSnapshot.latestTimestamp ? `Stand: ${new Date(cachedSnapshot.latestTimestamp).toLocaleString('de-DE')}` : ''}
                 </div>
               </div>
@@ -1158,7 +1158,7 @@ function App() {
                 />
               ))}
             </div>
-            <p className="text-[10px] text-slate-300 font-mono mt-2">
+            <p className="text-xs text-slate-500 font-mono mt-2">
               powered by dimension outdoor
             </p>
           </div>
@@ -1177,7 +1177,7 @@ function App() {
           <div className="text-slate-900 text-sm font-medium mb-2">
             Fehler beim Laden
           </div>
-          <div className="text-slate-400 text-xs font-mono mb-4">{error || 'Ein unerwarteter Fehler ist aufgetreten.'}</div>
+          <div className="text-slate-500 text-xs font-mono mb-4">{error || 'Ein unerwarteter Fehler ist aufgetreten.'}</div>
           <button
             onClick={() => loadData(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg text-xs text-slate-600 hover:border-[#3b82f6] transition-colors"
@@ -1289,7 +1289,7 @@ function App() {
                   <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-wide truncate">
                     JET GERMANY
                   </h1>
-                  <p className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:block">
+                  <p className="text-xs text-slate-500 font-mono hidden sm:block">
                     Display Network Monitor
                   </p>
                 </div>
@@ -1300,7 +1300,7 @@ function App() {
             <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
               {/* API check + data points — desktop only */}
               <div className="text-right hidden lg:block">
-                <div className="text-xs text-slate-400 font-mono">
+                <div className="text-xs text-slate-500 font-mono">
                   Letzter API-Check
                 </div>
                 <div className="text-sm text-slate-600 font-mono">
@@ -1308,7 +1308,7 @@ function App() {
                 </div>
               </div>
               <div className="text-right hidden lg:block">
-                <div className="text-xs text-slate-400 font-mono">
+                <div className="text-xs text-slate-500 font-mono">
                   Datenpunkte
                 </div>
                 <div className="text-sm text-slate-600 font-mono">
@@ -1327,7 +1327,7 @@ function App() {
               {/* Refresh + Sync — larger touch targets on mobile */}
               <button
                 onClick={() => loadData(true)}
-                className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-slate-100/60 text-slate-400 hover:text-slate-900 transition-colors"
+                className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors"
                 title="Daten neu laden"
               >
                 <RefreshCw size={16} className="sm:w-[14px] sm:h-[14px]" />
@@ -1342,7 +1342,7 @@ function App() {
                       ? 'bg-emerald-50 text-emerald-500'
                       : syncResult && !syncResult.success
                         ? 'bg-red-50 text-red-500'
-                        : 'hover:bg-blue-50/60 text-slate-400 hover:text-blue-600'
+                        : 'hover:bg-blue-50/60 text-slate-500 hover:text-blue-600'
                 }`}
                 title={syncing ? 'Sync läuft...' : 'Airtable → Supabase Sync'}
               >
@@ -1370,7 +1370,7 @@ function App() {
                         {currentUser.name}
                       </div>
                       <div
-                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border"
+                        className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border"
                         style={{
                           color: userGroup?.color || '#64748b',
                           backgroundColor: (userGroup?.color || '#64748b') + '18',
@@ -1382,14 +1382,14 @@ function App() {
                     </div>
                     <button
                       onClick={() => setShowPasswordModal(true)}
-                      className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-amber-50/60 text-slate-400 hover:text-amber-600 transition-colors hidden sm:flex"
+                      className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-amber-50/60 text-slate-500 hover:text-amber-600 transition-colors hidden sm:flex"
                       title="Passwort ändern"
                     >
                       <Key size={14} />
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-red-50/60 text-slate-400 hover:text-red-500 transition-colors"
+                      className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-red-50/60 text-slate-500 hover:text-red-500 transition-colors"
                       title="Abmelden"
                     >
                       <LogOut size={16} className="sm:w-[14px] sm:h-[14px]" />
@@ -1424,7 +1424,7 @@ function App() {
                       className={`flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all border-b-[3px] whitespace-nowrap snap-start shrink-0 ${
                         isGroupActive
                           ? 'text-[#3b82f6] border-[#3b82f6] bg-white/30'
-                          : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-white/20'
+                          : 'text-slate-500 border-transparent hover:text-slate-600 hover:bg-white/20'
                       }`}
                     >
                       {g.group}
@@ -1440,17 +1440,17 @@ function App() {
               <div className="flex items-center gap-2 px-3 sm:px-0 py-1.5 sm:py-0">
               <div className="relative" ref={globalSearchRef}>
                 <div className="relative">
-                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type="text"
                     placeholder="Standort, JET-ID, Display-ID..."
                     value={globalSearch}
                     onChange={e => { setGlobalSearch(e.target.value); setGlobalSearchOpen(true); }}
                     onFocus={() => globalSearch.length >= 2 && setGlobalSearchOpen(true)}
-                    className="w-48 sm:w-64 pl-8 pr-3 py-1.5 text-xs font-mono bg-white/70 border border-slate-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 placeholder:text-slate-300"
+                    className="w-48 sm:w-64 pl-8 pr-3 py-1.5 text-xs font-mono bg-white/70 border border-slate-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 placeholder:text-slate-500"
                   />
                   {globalSearch && (
-                    <button onClick={() => { setGlobalSearch(''); setGlobalSearchOpen(false); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500">
+                    <button onClick={() => { setGlobalSearch(''); setGlobalSearchOpen(false); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-500">
                       <X size={12} />
                     </button>
                   )}
@@ -1478,29 +1478,29 @@ function App() {
                             {r.type === 'display' ? (
                               <Monitor size={14} className="text-blue-500" />
                             ) : (
-                              <MapPin size={14} className="text-slate-400" />
+                              <MapPin size={14} className="text-slate-500" />
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="text-xs font-medium text-slate-700 truncate">{r.label}</div>
-                            <div className="text-[10px] text-slate-400 font-mono truncate">{r.sublabel}</div>
+                            <div className="text-xs text-slate-500 font-mono truncate">{r.sublabel}</div>
                           </div>
                           <div className="flex-shrink-0">
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${r.type === 'display' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${r.type === 'display' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
                               {r.type === 'display' ? 'Live' : 'Stamm'}
                             </span>
                           </div>
                         </button>
                       ))}
                     </div>
-                    <div className="px-3 py-1.5 border-t border-slate-100 text-[10px] text-slate-400 text-center">
+                    <div className="px-3 py-1.5 border-t border-slate-100 text-xs text-slate-500 text-center">
                       {globalSearchResults.length} Ergebnisse
                     </div>
                   </div>
                 )}
                 {globalSearchOpen && globalSearch.length >= 2 && globalSearchResults.length === 0 && (
                   <div className="absolute top-full left-0 mt-1 w-80 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl z-50 p-4 text-center">
-                    <span className="text-xs text-slate-400">Keine Ergebnisse für "{globalSearch}"</span>
+                    <span className="text-xs text-slate-500">Keine Ergebnisse für "{globalSearch}"</span>
                   </div>
                 )}
               </div>
@@ -1527,10 +1527,10 @@ function App() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveMainTab(tab.id)}
-                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium transition-all whitespace-nowrap snap-start shrink-0 border-b-2 ${
+                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-medium transition-all whitespace-nowrap snap-start shrink-0 border-b-2 ${
                         isActive
                           ? 'text-[#3b82f6] border-[#3b82f6] bg-white/50'
-                          : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-white/30'
+                          : 'text-slate-500 border-transparent hover:text-slate-600 hover:bg-white/30'
                       }`}
                     >
                       <Icon size={12} className="sm:w-3.5 sm:h-3.5" />
@@ -1549,7 +1549,7 @@ function App() {
         {/* Overview */}
         {activeMainTab === 'overview' && (
           <TabErrorBoundary name="Overview">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Overview...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Overview...</span></div>}>
             <KPICards
               kpis={kpis}
               activeFilter={kpiFilter}
@@ -1567,13 +1567,13 @@ function App() {
                     <h3 className="text-sm font-medium text-slate-900">
                       {KPI_FILTER_LABELS[kpiFilter]}
                     </h3>
-                    <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+                    <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
                       {kpiFilteredDisplays.length}
                     </span>
                   </div>
                   <button
                     onClick={() => setKpiFilter(null)}
-                    className="p-1 rounded hover:bg-slate-100/60 text-slate-400 hover:text-slate-900 transition-colors"
+                    className="p-1 rounded hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -1590,7 +1590,17 @@ function App() {
             {!kpiFilter && (
               <>
                 {/* Visualizations first */}
-                <HealthTrendChart trendData={rawData.trendData} rangeLabel={rangeLabel} comparisonHealthRate={comparisonHealthRate} comparisonTrendData={comparisonTrendData} />
+                <HealthTrendChart
+                  trendData={rawData.trendData}
+                  rangeLabel={rangeLabel}
+                  comparisonHealthRate={comparisonHealthRate}
+                  comparisonTrendData={comparisonTrendData}
+                  rangeStart={rangeStart}
+                  rangeEnd={rangeEnd}
+                  dataEarliest={dataEarliest}
+                  dataLatest={dataLatest}
+                  onRangeChange={handleRangeChange}
+                />
 
                 <OverviewHealthPatterns trendData={rawData.snapshotTrendData || rawData.trendData} rangeLabel={rangeLabel} />
 
@@ -1621,7 +1631,7 @@ function App() {
         {/* Displays List */}
         {activeMainTab === 'displays-list' && (
           <TabErrorBoundary name="Displays">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Displays...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Displays...</span></div>}>
             <DisplayTable
               displays={rawData.displays}
               onSelectDisplay={setSelectedDisplay}
@@ -1635,7 +1645,7 @@ function App() {
         {/* Tasks Main Tab */}
         {activeMainTab === 'tasks' && (
           <TabErrorBoundary name="Tasks">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Tasks...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Tasks...</span></div>}>
             <TaskDashboard />
           </Suspense>
           </TabErrorBoundary>
@@ -1644,7 +1654,7 @@ function App() {
         {/* Installationen Main Tab */}
         {activeMainTab === 'installations' && (
           <TabErrorBoundary name="Installationen">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Installationen...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Installationen...</span></div>}>
             <InstallationsDashboard />
           </Suspense>
           </TabErrorBoundary>
@@ -1653,7 +1663,7 @@ function App() {
         {/* Kommunikation Main Tab */}
         {activeMainTab === 'communication' && (
           <TabErrorBoundary name="Kommunikation">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Kommunikation...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Kommunikation...</span></div>}>
             <CommunicationDashboard />
           </Suspense>
           </TabErrorBoundary>
@@ -1662,7 +1672,7 @@ function App() {
         {/* Admin Main Tab */}
         {activeMainTab === 'admin' && canAccessTab('admin') && (
           <TabErrorBoundary name="Admin">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Admin...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Admin...</span></div>}>
             <AdminPanel />
           </Suspense>
           </TabErrorBoundary>
@@ -1671,7 +1681,7 @@ function App() {
         {/* Programmatic Dashboard */}
         {activeMainTab === 'programmatic' && (
           <TabErrorBoundary name="Programmatic">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Programmatic...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Programmatic...</span></div>}>
             <ProgrammaticDashboard />
           </Suspense>
           </TabErrorBoundary>
@@ -1680,7 +1690,7 @@ function App() {
         {/* Hardware Dashboard (includes Datenqualität as sub-tab) */}
         {activeMainTab === 'hardware' && (
           <TabErrorBoundary name="Hardware">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Hardware...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Hardware...</span></div>}>
             <HardwareDashboard comparisonData={comparisonData} rawData={rawData} />
           </Suspense>
           </TabErrorBoundary>
@@ -1689,7 +1699,7 @@ function App() {
         {/* Acquisition Pipeline */}
         {activeMainTab === 'acquisition' && (
           <TabErrorBoundary name="Akquise">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Akquise...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Akquise...</span></div>}>
               <AcquisitionDashboard onOpenAkquiseApp={isMobile ? () => setShowAkquiseApp(true) : undefined} />
             </Suspense>
           </TabErrorBoundary>
@@ -1698,7 +1708,7 @@ function App() {
         {/* Display Map */}
         {activeMainTab === 'map' && (
           <TabErrorBoundary name="Karte">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Karte...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Karte...</span></div>}>
               <DisplayMap rawData={rawData} comparisonData={comparisonData} onSelectDisplay={setSelectedDisplay} />
             </Suspense>
           </TabErrorBoundary>
@@ -1707,7 +1717,7 @@ function App() {
         {/* Contact Directory */}
         {activeMainTab === 'contacts' && (
           <TabErrorBoundary name="Kontakte">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Kontakte...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Kontakte...</span></div>}>
               <ContactDirectory />
             </Suspense>
           </TabErrorBoundary>
@@ -1716,7 +1726,7 @@ function App() {
         {/* Cities */}
         {activeMainTab === 'cities' && (
           <TabErrorBoundary name="Staedte">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Staedte...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Staedte...</span></div>}>
               <CityDashboard
                 cityData={rawData.cityData}
                 displays={rawData.displays}
@@ -1730,7 +1740,7 @@ function App() {
         {/* Activity Feed */}
         {activeMainTab === 'activities' && (
           <TabErrorBoundary name="Aktivitäten">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /><span className="ml-2 text-sm text-slate-500">Lade Aktivitäten...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Aktivitäten...</span></div>}>
               <ActivityFeed rawData={rawData} />
             </Suspense>
           </TabErrorBoundary>
@@ -1738,7 +1748,7 @@ function App() {
 
         {/* Data summary footer */}
         <div className="text-center py-4">
-          <div className="text-[10px] text-slate-400 font-mono">
+          <div className="text-xs text-slate-500 font-mono">
             {rawData.totalParsedRows.toLocaleString('de-DE')} Datenpunkte •{' '}
             {rawData.displays.length} Displays erkannt •{' '}
             {rawData.trendData.length} Trend-Snapshots

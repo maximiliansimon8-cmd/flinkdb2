@@ -248,7 +248,7 @@ function LoginScreen({ onLogin }) {
                 E-Mail
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <input
                   id="email"
                   type="email"
@@ -259,7 +259,7 @@ function LoginScreen({ onLogin }) {
                   autoComplete="email"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm
                              focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500
-                             placeholder:text-gray-400 transition-colors"
+                             placeholder:text-gray-500 transition-colors"
                 />
               </div>
             </div>
@@ -273,7 +273,7 @@ function LoginScreen({ onLogin }) {
                 Passwort
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -284,12 +284,12 @@ function LoginScreen({ onLogin }) {
                   autoComplete="current-password"
                   className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm
                              focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500
-                             placeholder:text-gray-400 transition-colors"
+                             placeholder:text-gray-500 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -331,7 +331,7 @@ function LoginScreen({ onLogin }) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-400 mt-6">
+        <p className="text-center text-xs text-gray-500 mt-6">
           JET Germany &middot; Internes Tool
         </p>
       </div>
@@ -380,7 +380,7 @@ function Header({ user, remainingMs, onLogout }) {
               {user.name}
             </span>
             <span
-              className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide"
               style={{
                 backgroundColor: user.group?.color
                   ? `${user.group.color}18`

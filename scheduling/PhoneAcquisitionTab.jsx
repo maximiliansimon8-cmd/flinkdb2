@@ -155,7 +155,7 @@ function PhoneBookingModal({ booking, routes, onClose, onSuccess }) {
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg">
-            <X size={20} className="text-gray-400" />
+            <X size={20} className="text-gray-500" />
           </button>
         </div>
 
@@ -166,7 +166,7 @@ function PhoneBookingModal({ booking, routes, onClose, onSuccess }) {
               Verfügbare Routen ({booking.city})
             </label>
             {cityRoutes.length === 0 ? (
-              <div className="text-center py-6 text-gray-400">
+              <div className="text-center py-6 text-gray-500">
                 <Calendar size={24} className="mx-auto mb-2" />
                 <p className="text-sm">Keine offenen Routen für {booking.city}.</p>
               </div>
@@ -340,25 +340,25 @@ function ContactCard({ booking, onStatusChange, onPhoneBook, updatingId }) {
           <div className="mt-1.5 space-y-1">
             {booking.contact_name && (
               <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                <User size={13} className="text-gray-400 shrink-0" />
+                <User size={13} className="text-gray-500 shrink-0" />
                 <span className="truncate">{booking.contact_name}</span>
               </div>
             )}
             {booking.contact_phone && (
               <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                <Phone size={13} className="text-gray-400 shrink-0" />
+                <Phone size={13} className="text-gray-500 shrink-0" />
                 <span className="font-mono text-xs">{booking.contact_phone}</span>
               </div>
             )}
             <div className="flex items-center gap-1.5 text-sm text-gray-500">
-              <MapPin size={13} className="text-gray-400 shrink-0" />
+              <MapPin size={13} className="text-gray-500 shrink-0" />
               <span>{booking.city || '---'}</span>
             </div>
           </div>
 
           {/* WhatsApp sent date */}
           {booking.whatsapp_sent_at && (
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
               <MessageSquare size={11} />
               WhatsApp gesendet: {formatDateTime(booking.whatsapp_sent_at)}
             </div>
@@ -366,7 +366,7 @@ function ContactCard({ booking, onStatusChange, onPhoneBook, updatingId }) {
 
           {/* Last call info */}
           {booking.phone_call_at && (
-            <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
               <Clock size={11} />
               Letzter Anruf: {formatDateTime(booking.phone_call_at)}
             </div>
@@ -397,7 +397,7 @@ function ContactCard({ booking, onStatusChange, onPhoneBook, updatingId }) {
             <Phone size={14} /> Anrufen
           </a>
         ) : (
-          <span className="text-xs text-gray-400 italic">Keine Telefonnummer</span>
+          <span className="text-xs text-gray-500 italic">Keine Telefonnummer</span>
         )}
 
         {/* Status dropdown */}
@@ -618,7 +618,7 @@ export default function PhoneAcquisitionTab() {
       <div className="flex flex-wrap gap-3 items-center">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             value={search}
@@ -658,11 +658,11 @@ export default function PhoneAcquisitionTab() {
 
       {/* Contact List */}
       {loading ? (
-        <div className="flex items-center justify-center h-48 text-gray-400">
+        <div className="flex items-center justify-center h-48 text-gray-500">
           <Loader2 size={20} className="animate-spin mr-2" /> Kontakte werden geladen...
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-48 text-gray-400 bg-white rounded-xl border border-gray-200">
+        <div className="flex flex-col items-center justify-center h-48 text-gray-500 bg-white rounded-xl border border-gray-200">
           <Phone size={32} className="mb-2" />
           <p className="font-medium">Keine Kontakte gefunden</p>
           <p className="text-sm mt-1">
@@ -687,7 +687,7 @@ export default function PhoneAcquisitionTab() {
 
       {/* Result count */}
       {!loading && filtered.length > 0 && (
-        <div className="text-center text-xs text-gray-400">
+        <div className="text-center text-xs text-gray-500">
           {filtered.length} von {bookings.length} Kontakten angezeigt
         </div>
       )}

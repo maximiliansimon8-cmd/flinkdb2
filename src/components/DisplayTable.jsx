@@ -30,13 +30,13 @@ function StatusBadge({ status }) {
 function VistarBadge({ matched, revenue }) {
   if (!matched) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400 bg-slate-50/80 border border-slate-200/40">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono text-slate-500 bg-slate-50/80 border border-slate-200/40">
         –
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono text-violet-600 bg-violet-50/60 border border-violet-200/40">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono text-violet-600 bg-violet-50/60 border border-violet-200/40">
       <DollarSign size={9} />
       {revenue != null ? `€${revenue.toFixed(2)}` : '✓'}
     </span>
@@ -715,14 +715,14 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setActiveSourceTab(activeSourceTab === 'masterList' ? null : 'masterList')}
-                className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors ${activeSourceTab === 'masterList' ? 'bg-slate-700 text-white border-slate-700' : 'text-slate-500 hover:text-slate-700 bg-slate-50/60 border-slate-200/40'}`}
+                className={`text-xs font-mono px-2 py-0.5 rounded border transition-colors ${activeSourceTab === 'masterList' ? 'bg-slate-700 text-white border-slate-700' : 'text-slate-500 hover:text-slate-700 bg-slate-50/60 border-slate-200/40'}`}
               >
                 Alle Displays ({sourceComparison.master.total})
               </button>
               {activeSourceTab && (
                 <button
                   onClick={() => setActiveSourceTab(null)}
-                  className="text-[10px] font-mono text-red-400 hover:text-red-600 transition-colors px-2 py-0.5 rounded bg-red-50/60 border border-red-200/40"
+                  className="text-xs font-mono text-red-400 hover:text-red-600 transition-colors px-2 py-0.5 rounded bg-red-50/60 border border-red-200/40"
                 >
                   ✕
                 </button>
@@ -732,20 +732,20 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
 
           {/* ─── Network Overview Table ─── */}
           <div className="overflow-x-auto rounded-lg border border-slate-200/40">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead className="bg-slate-50/80">
                 <tr>
-                  <th className="text-left px-3 py-2 text-[10px] font-mono text-slate-400 uppercase">Quelle</th>
-                  <th className="text-center px-3 py-2 text-[10px] font-mono text-blue-500 uppercase">JET</th>
-                  <th className="text-center px-3 py-2 text-[10px] font-mono text-orange-500 uppercase">Dayn</th>
-                  <th className="text-center px-3 py-2 text-[10px] font-mono text-slate-500 uppercase">Aktiv</th>
+                  <th className="text-left px-3 py-2 text-xs font-mono text-slate-500 uppercase">Quelle</th>
+                  <th className="text-center px-3 py-2 text-xs font-mono text-blue-500 uppercase">JET</th>
+                  <th className="text-center px-3 py-2 text-xs font-mono text-orange-500 uppercase">Dayn</th>
+                  <th className="text-center px-3 py-2 text-xs font-mono text-slate-500 uppercase">Aktiv</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-t border-slate-100/60 hover:bg-blue-50/20 cursor-pointer" onClick={() => setActiveSourceTab(activeSourceTab === 'navori' ? null : 'navori')}>
                   <td className="px-3 py-2 font-mono font-medium text-blue-700 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500"></div>Navori</td>
                   <td className="px-3 py-2 font-mono text-center font-bold text-blue-700">{sourceComparison.navori.active}</td>
-                  <td className="px-3 py-2 font-mono text-center text-slate-300">–</td>
+                  <td className="px-3 py-2 font-mono text-center text-slate-500">–</td>
                   <td className="px-3 py-2 font-mono text-center font-bold">{sourceComparison.navori.active}</td>
                 </tr>
                 <tr className="border-t border-slate-100/60 hover:bg-emerald-50/20 cursor-pointer" onClick={() => setActiveSourceTab(activeSourceTab === 'airtable' ? null : 'airtable')}>
@@ -756,7 +756,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   <td className="px-3 py-2 font-mono text-center">
                     {sourceComparison.airtable.daynTotal > 0 ? (
                       <span className="font-bold text-orange-600">{sourceComparison.airtable.daynOnline}</span>
-                    ) : <span className="text-slate-300">–</span>}
+                    ) : <span className="text-slate-500">–</span>}
                   </td>
                   <td className="px-3 py-2 font-mono text-center font-bold">{sourceComparison.airtable.displayIds + sourceComparison.airtable.daynOnline}</td>
                 </tr>
@@ -770,7 +770,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   <tr className="border-t border-slate-100/60 hover:bg-amber-50/20">
                     <td className="px-3 py-2 font-mono font-medium text-amber-600 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-amber-500"></div>CHG/Bank</td>
                     <td className="px-3 py-2 font-mono text-center font-bold text-amber-600">{sourceComparison.chg.matchedActive}</td>
-                    <td className="px-3 py-2 font-mono text-center text-slate-300">–</td>
+                    <td className="px-3 py-2 font-mono text-center text-slate-500">–</td>
                     <td className="px-3 py-2 font-mono text-center font-bold">{sourceComparison.chg.total}</td>
                   </tr>
                 )}
@@ -800,14 +800,14 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                    <span className="text-[10px] font-mono text-red-500 uppercase tracking-wider font-medium">
+                    <span className="text-xs font-mono text-red-500 uppercase tracking-wider font-medium">
                       Deinstalliert / Inaktiv
                     </span>
                     <span className="text-xs font-mono font-bold text-red-600">
                       {sourceComparison.master.deinstalledTotal}
                     </span>
                   </div>
-                  <span className="text-[9px] font-mono text-slate-400">
+                  <span className="text-xs font-mono text-slate-500">
                     {sourceComparison.navori.deinstalled > 0 && `Navori: ${sourceComparison.navori.deinstalled}`}
                     {sourceComparison.navori.deinstalled > 0 && sourceComparison.airtable.deinstalled > 0 && ' · '}
                     {sourceComparison.airtable.deinstalled > 0 && `AT: ${sourceComparison.airtable.deinstalled}`}
@@ -820,29 +820,29 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
           {/* Completeness */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
             {sourceComparison.completeness && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-50/60 border border-emerald-200/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono bg-emerald-50/60 border border-emerald-200/40">
                 <Shield size={10} className="text-emerald-500" />
                 <span className="text-emerald-700 font-medium">Vollständigkeit:</span>
                 <span className={`font-bold ${sourceComparison.completeness.complete === sourceComparison.completeness.activeTotal ? 'text-emerald-600' : 'text-amber-600'}`}>
                   {sourceComparison.completeness.complete}/{sourceComparison.completeness.activeTotal}
                 </span>
-                <span className="text-slate-400">aktive in allen 3 Plattformen</span>
+                <span className="text-slate-500">aktive in allen 3 Plattformen</span>
               </span>
             )}
             {sourceComparison.chg && sourceComparison.chg.total > 0 && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-50/60 border border-amber-200/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono bg-amber-50/60 border border-amber-200/40">
                 <span className="text-amber-600 font-medium">CHG/Bank:</span>
                 <span className="font-bold text-amber-600">
                   {sourceComparison.chg.matchedActive}
                 </span>
-                <span className="text-slate-400">aktive mit Leasing-Vertrag</span>
-                <span className="text-slate-300">|</span>
-                <span className="text-slate-400">{sourceComparison.chg.total} SN gesamt</span>
+                <span className="text-slate-500">aktive mit Leasing-Vertrag</span>
+                <span className="text-slate-500">|</span>
+                <span className="text-slate-500">{sourceComparison.chg.total} SN gesamt</span>
               </span>
             )}
           </div>
 
-          <div className="text-[9px] font-mono text-slate-400 mt-1">
+          <div className="text-xs font-mono text-slate-500 mt-1">
             Nur aktive Displays gezählt · Klick auf Zeile = Detail-Liste
           </div>
 
@@ -869,24 +869,24 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
 
           {/* Legend for bar */}
           <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
-            <button onClick={() => setActiveSourceTab('all3')} className="flex items-center gap-1 text-[9px] font-mono text-slate-500 hover:text-slate-700">
+            <button onClick={() => setActiveSourceTab('all3')} className="flex items-center gap-1 text-xs font-mono text-slate-500 hover:text-slate-700">
               <div className="w-2 h-2 rounded-sm bg-emerald-500"></div>
               Alle 3 ({sourceComparison.overlap.inAll3})
             </button>
-            <button onClick={() => setActiveSourceTab('navoriVistar')} className="flex items-center gap-1 text-[9px] font-mono text-slate-500 hover:text-slate-700">
+            <button onClick={() => setActiveSourceTab('navoriVistar')} className="flex items-center gap-1 text-xs font-mono text-slate-500 hover:text-slate-700">
               <div className="w-2 h-2 rounded-sm bg-violet-400"></div>
               Navori+Vistar ({sourceComparison.overlap.inNavoriAndVistar})
             </button>
-            <button onClick={() => setActiveSourceTab('navoriAirtable')} className="flex items-center gap-1 text-[9px] font-mono text-slate-500 hover:text-slate-700">
+            <button onClick={() => setActiveSourceTab('navoriAirtable')} className="flex items-center gap-1 text-xs font-mono text-slate-500 hover:text-slate-700">
               <div className="w-2 h-2 rounded-sm bg-emerald-300"></div>
               Navori+Airtable ({sourceComparison.overlap.inNavoriAndAirtable})
             </button>
-            <button onClick={() => setActiveSourceTab('onlyNavori')} className="flex items-center gap-1 text-[9px] font-mono text-slate-500 hover:text-slate-700">
+            <button onClick={() => setActiveSourceTab('onlyNavori')} className="flex items-center gap-1 text-xs font-mono text-slate-500 hover:text-slate-700">
               <div className="w-2 h-2 rounded-sm bg-slate-300"></div>
               Nur Navori ({sourceComparison.overlap.onlyNavori})
             </button>
             {sourceComparison.overlap.airtableOnly > 0 && (
-              <button onClick={() => setActiveSourceTab('airtableOnly')} className="flex items-center gap-1 text-[9px] font-mono text-slate-500 hover:text-slate-700">
+              <button onClick={() => setActiveSourceTab('airtableOnly')} className="flex items-center gap-1 text-xs font-mono text-slate-500 hover:text-slate-700">
                 <div className="w-2 h-2 rounded-sm bg-amber-400"></div>
                 Nur Airtable ({sourceComparison.overlap.airtableOnly})
               </button>
@@ -908,7 +908,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span className="text-[10px] font-mono text-blue-600 uppercase tracking-wider font-medium">Navori Live ↔ Vistar · JET</span>
+                      <span className="text-xs font-mono text-blue-600 uppercase tracking-wider font-medium">Navori Live ↔ Vistar · JET</span>
                     </div>
                     <span className={`text-sm font-mono font-bold ${matchPct >= 90 ? 'text-emerald-600' : matchPct >= 70 ? 'text-amber-600' : 'text-red-600'}`}>
                       {matchPct}%
@@ -921,24 +921,24 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                     <div className="bg-violet-300 h-full" style={{ width: `${(nv.vistarOnly / Math.max(totalUnique, 1)) * 100}%` }} title={`${nv.vistarOnly} nur Vistar`} />
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-                    <span className="flex items-center gap-1 text-[10px] font-mono text-blue-600">
+                    <span className="flex items-center gap-1 text-xs font-mono text-blue-600">
                       <span className="w-2 h-2 rounded-sm bg-blue-500 inline-block"></span>
                       {nv.matched} matched
                     </span>
                     {nv.navoriOnly > 0 && (
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-indigo-500">
+                      <span className="flex items-center gap-1 text-xs font-mono text-indigo-500">
                         <span className="w-2 h-2 rounded-sm bg-indigo-300 inline-block"></span>
                         {nv.navoriOnly} nur Navori
                       </span>
                     )}
                     {nv.vistarOnly > 0 && (
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-violet-500">
+                      <span className="flex items-center gap-1 text-xs font-mono text-violet-500">
                         <span className="w-2 h-2 rounded-sm bg-violet-300 inline-block"></span>
                         {nv.vistarOnly} nur Vistar
                       </span>
                     )}
                   </div>
-                  <div className="mt-1.5 text-[9px] font-mono text-slate-400">
+                  <div className="mt-1.5 text-xs font-mono text-slate-500">
                     Navori: {nv.navoriTotal} aktiv · Vistar: {nv.vistarJetTotal} JET Venues
                   </div>
                 </button>
@@ -958,7 +958,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                      <span className="text-[10px] font-mono text-orange-600 uppercase tracking-wider font-medium">Dayn Screens ↔ Vistar</span>
+                      <span className="text-xs font-mono text-orange-600 uppercase tracking-wider font-medium">Dayn Screens ↔ Vistar</span>
                     </div>
                     <span className={`text-sm font-mono font-bold ${matchPct >= 90 ? 'text-emerald-600' : matchPct >= 70 ? 'text-amber-600' : 'text-red-600'}`}>
                       {matchPct}%
@@ -969,18 +969,18 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                     <div className="bg-orange-200 h-full" style={{ width: `${(dv.unmatched / Math.max(totalUnique, 1)) * 100}%` }} />
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-                    <span className="flex items-center gap-1 text-[10px] font-mono text-orange-600">
+                    <span className="flex items-center gap-1 text-xs font-mono text-orange-600">
                       <span className="w-2 h-2 rounded-sm bg-orange-500 inline-block"></span>
                       {dv.matched} matched
                     </span>
                     {dv.unmatched > 0 && (
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-orange-400">
+                      <span className="flex items-center gap-1 text-xs font-mono text-orange-400">
                         <span className="w-2 h-2 rounded-sm bg-orange-200 inline-block"></span>
                         {dv.unmatched} nicht gematcht
                       </span>
                     )}
                   </div>
-                  <div className="mt-1.5 text-[9px] font-mono text-slate-400">
+                  <div className="mt-1.5 text-xs font-mono text-slate-500">
                     {dv.online} online · {dv.total} gesamt{dv.offline > 0 && ` · ${dv.offline} offline (nicht gezählt)`}
                   </div>
                 </button>
@@ -1155,7 +1155,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                           <button
                             key={f.key}
                             onClick={() => setMasterListFilter(f.key)}
-                            className={`text-[9px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                            className={`text-xs font-mono px-1.5 py-0.5 rounded border transition-colors ${
                               masterListFilter === f.key
                                 ? 'bg-slate-700 text-white border-slate-700'
                                 : 'text-slate-500 hover:text-slate-700 bg-slate-50/60 border-slate-200/40'
@@ -1166,23 +1166,23 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                         ))}
                       </div>
                     )}
-                    <span className="text-[10px] font-mono text-slate-400">{detailList.length} Einträge</span>
+                    <span className="text-xs font-mono text-slate-500">{detailList.length} Einträge</span>
                   </div>
                 </div>
                 {detailList.length === 0 ? (
-                  <div className="p-4 text-center text-xs font-mono text-slate-400 bg-slate-50/40 rounded-lg border border-slate-200/40">
+                  <div className="p-4 text-center text-xs font-mono text-slate-500 bg-slate-50/40 rounded-lg border border-slate-200/40">
                     Keine Einträge für diesen Filter
                   </div>
                 ) : (
                 <div className="max-h-[400px] overflow-y-auto rounded-lg border border-slate-200/40">
-                  <table className="w-full text-xs">
+                  <table className="w-full text-sm">
                     <thead className="bg-slate-50/80 sticky top-0">
                       <tr>
-                        <th className="text-left px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase">#</th>
+                        <th className="text-left px-3 py-1.5 text-xs font-mono text-slate-500 uppercase">#</th>
                         {colLabels.map((label, i) => (
                           <th
                             key={i}
-                            className="text-left px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase cursor-pointer hover:text-slate-600 select-none"
+                            className="text-left px-3 py-1.5 text-xs font-mono text-slate-500 uppercase cursor-pointer hover:text-slate-600 select-none"
                             onClick={() => {
                               const col = columns[i];
                               if (detailSortField === col) {
@@ -1226,14 +1226,14 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                           : !item.isActiveDisplay && activeSourceTab === 'masterList' ? 'bg-slate-50/40 opacity-60'
                           : ''
                         }`}>
-                          <td className="px-3 py-1.5 text-slate-400 font-mono">{idx + 1}</td>
+                          <td className="px-3 py-1.5 text-slate-500 font-mono">{idx + 1}</td>
                           {columns.map((col, i) => (
                             <td key={i} className={`px-3 py-1.5 font-mono ${
                               col === 'source'
                                 ? '' // rendered as badge below
                               : col === 'matchGroup'
                                 ? item[col] === 'Alle 3' ? 'text-emerald-600 font-medium'
-                                : item[col] === 'Nur Navori' ? 'text-slate-400'
+                                : item[col] === 'Nur Navori' ? 'text-slate-500'
                                 : 'text-slate-600'
                               : col === 'inNavori' || col === 'inAirtable' || col === 'inChg' || col === 'matched'
                                 ? item[col] === '✓' ? 'text-emerald-500 font-bold' : 'text-red-400 font-bold'
@@ -1242,9 +1242,9 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                                   : /deinstall|offline|closed|entfernt|signed/i.test(item[col] || '') ? 'text-red-400'
                                   : 'text-slate-500'
                                 : 'text-slate-700'
-                            } ${col === 'locationName' || col === 'vistarVenueName' ? 'max-w-[200px] truncate' : ''} ${col === 'vistarVenueId' ? 'max-w-[120px] truncate text-[10px]' : ''}`}>
+                            } ${col === 'locationName' || col === 'vistarVenueName' ? 'max-w-[200px] truncate' : ''} ${col === 'vistarVenueId' ? 'max-w-[120px] truncate text-xs' : ''}`}>
                               {col === 'source' ? (
-                                <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold uppercase ${
                                   item[col] === 'both' ? 'bg-blue-100 text-blue-700'
                                   : item[col] === 'navori_only' ? 'bg-indigo-100 text-indigo-700'
                                   : item[col] === 'vistar_only' ? 'bg-violet-100 text-violet-700'
@@ -1253,42 +1253,42 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                                   {item[col] === 'both' ? 'Beide' : item[col] === 'navori_only' ? 'Nur Navori' : item[col] === 'vistar_only' ? 'Nur Vistar' : item[col] || '–'}
                                 </span>
                               ) : col === 'network' ? (
-                                <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold uppercase ${
                                   item[col] === 'JET' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
                                 }`}>{item[col]}</span>
                               ) : col === 'platformComplete' ? (
                                 item[col] ? (
-                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-700">
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-700">
                                     <CheckCircle2 size={10} />
                                     Komplett
                                   </span>
                                 ) : item.isActiveDisplay ? (
-                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700">
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">
                                     <AlertTriangle size={10} />
                                     Lücken
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] text-slate-300">–</span>
+                                  <span className="text-xs text-slate-500">–</span>
                                 )
                               ) : col === 'inNavori' || col === 'inAirtable' || col === 'inChg' ? (
                                 <span className={`font-bold ${item[col] === '✓' ? (col === 'inChg' ? 'text-amber-500' : 'text-emerald-500') : 'text-red-400'}`}>{item[col] === '✓' ? '✓' : '✗'}</span>
                               ) : col === 'airtableStatus' ? (
-                                <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${
                                   /online|aktiv|live/i.test(item[col] || '') ? 'bg-emerald-100 text-emerald-700'
                                   : /deinstall/i.test(item[col] || '') ? 'bg-red-100 text-red-600'
                                   : /offline/i.test(item[col] || '') ? 'bg-amber-100 text-amber-700'
                                   : 'bg-slate-100 text-slate-500'
                                 }`}>{item[col] || '–'}</span>
                               ) : col === 'deinstallDate' ? (
-                                <span className={`text-[10px] ${item[col] ? 'text-red-500 font-medium' : 'text-slate-300'}`}>
+                                <span className={`text-xs ${item[col] ? 'text-red-500 font-medium' : 'text-slate-500'}`}>
                                   {item[col] ? new Date(item[col]).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–'}
                                 </span>
                               ) : col === 'liveSince' ? (
-                                <span className="text-slate-500 text-[10px]">
+                                <span className="text-slate-500 text-xs">
                                   {item[col] ? new Date(item[col]).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–'}
                                 </span>
                               ) : col === 'navoriStatus' ? (
-                                <span className={`${item[col] === 'Aktiv' ? 'text-emerald-600' : item[col] === 'Inaktiv' ? 'text-amber-500' : 'text-slate-300'}`}>{item[col]}</span>
+                                <span className={`${item[col] === 'Aktiv' ? 'text-emerald-600' : item[col] === 'Inaktiv' ? 'text-amber-500' : 'text-slate-500'}`}>{item[col]}</span>
                               ) : col === 'inVistar' ? (
                                 <span className={`font-bold ${item[col] === '✓' ? 'text-emerald-500' : 'text-red-400'}`}>{item[col] === '✓' ? '✓' : '✗'}</span>
                               ) : (item[col] || '–')}
@@ -1300,7 +1300,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                     </tbody>
                   </table>
                   {detailList.length > 500 && (
-                    <div className="p-2 text-center text-[10px] font-mono text-slate-400 bg-slate-50/80">
+                    <div className="p-2 text-center text-xs font-mono text-slate-500 bg-slate-50/80">
                       ... und {detailList.length - 500} weitere
                     </div>
                   )}
@@ -1324,7 +1324,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
             <div className="relative flex-grow max-w-xs">
               <Search
                 size={14}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500"
               />
               <input
                 type="text"
@@ -1375,13 +1375,13 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
 
           <div className="flex items-center gap-3 flex-shrink-0">
             {hasVistar && vistarStats && (
-              <div className="flex items-center gap-1.5 text-[10px] font-mono">
+              <div className="flex items-center gap-1.5 text-xs font-mono">
                 <span className="text-violet-500">{vistarStats.matched} Vistar</span>
-                <span className="text-slate-300">|</span>
-                <span className="text-slate-400">{vistarStats.unmatched} fehlen</span>
+                <span className="text-slate-500">|</span>
+                <span className="text-slate-500">{vistarStats.unmatched} fehlen</span>
               </div>
             )}
-            <div className="text-xs text-slate-400 font-mono">
+            <div className="text-xs text-slate-500 font-mono">
               {filtered.length} Displays
             </div>
           </div>
@@ -1390,9 +1390,9 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200/60 text-slate-400">
+            <tr className="border-b border-slate-200/60 text-slate-500 text-xs">
               <th className="text-left px-4 py-2.5 font-medium">
                 <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-slate-600">
                   Status <SortIcon field="status" />
@@ -1413,36 +1413,36 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   Stadt <SortIcon field="cityCode" />
                 </button>
               </th>
-              <th className="text-left px-4 py-2.5 font-medium text-slate-400">
+              <th className="text-left px-4 py-2.5 font-medium text-slate-500">
                 Adresse
               </th>
-              <th className="text-left px-3 py-2.5 font-medium text-slate-400 text-[10px]">
+              <th className="text-left px-3 py-2.5 font-medium text-slate-500 text-xs">
                 Venue
               </th>
               <th className="text-left px-3 py-2.5 font-medium">
-                <button onClick={() => handleSort('floorCpm')} className="flex items-center gap-1 hover:text-slate-600 text-slate-400 text-[10px]">
+                <button onClick={() => handleSort('floorCpm')} className="flex items-center gap-1 hover:text-slate-600 text-slate-500 text-xs">
                   TKP € <SortIcon field="floorCpm" />
                 </button>
               </th>
               <th className="text-left px-3 py-2.5 font-medium">
-                <button onClick={() => handleSort('impressionsDay')} className="flex items-center gap-1 hover:text-slate-600 text-slate-400 text-[10px]">
+                <button onClick={() => handleSort('impressionsDay')} className="flex items-center gap-1 hover:text-slate-600 text-slate-500 text-xs">
                   Imp./Tag <SortIcon field="impressionsDay" />
                 </button>
               </th>
-              <th className="text-center px-2 py-2.5 font-medium text-[10px]" title="In Navori">
+              <th className="text-center px-2 py-2.5 font-medium text-xs" title="In Navori">
                 <span className="text-blue-400">Nav</span>
               </th>
-              <th className="text-center px-2 py-2.5 font-medium text-[10px]" title="In Airtable">
+              <th className="text-center px-2 py-2.5 font-medium text-xs" title="In Airtable">
                 <span className="text-emerald-400">AT</span>
               </th>
-              <th className="text-center px-2 py-2.5 font-medium text-[10px]" title="In Vistar">
+              <th className="text-center px-2 py-2.5 font-medium text-xs" title="In Vistar">
                 <span className="text-violet-400">Vis</span>
               </th>
-              <th className="text-center px-2 py-2.5 font-medium text-[10px]" title="CHG/Bank Leasing">
+              <th className="text-center px-2 py-2.5 font-medium text-xs" title="CHG/Bank Leasing">
                 <span className="text-amber-500">CHG</span>
               </th>
               <th className="text-center px-2 py-2.5 font-medium" title="Hardware-Swap am Standort">
-                <span className="flex items-center justify-center gap-1 text-slate-400">
+                <span className="flex items-center justify-center gap-1 text-slate-500">
                   <RefreshCw size={11} /> Swap
                 </span>
               </th>
@@ -1491,54 +1491,54 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                 <td className="px-4 py-2 font-mono text-slate-600">
                   {display.cityCode}
                 </td>
-                <td className="px-4 py-2 text-xs text-slate-500 font-mono max-w-[180px]">
+                <td className="px-4 py-2 text-sm text-slate-500 font-mono max-w-[180px]">
                   {display.geoAddress && (
                     <div className="truncate">{display.geoAddress}</div>
                   )}
                   {display.geoCityLine && (
-                    <div className="truncate text-slate-400">{display.geoCityLine}</div>
+                    <div className="truncate text-slate-500">{display.geoCityLine}</div>
                   )}
                   {display.geoLat && (
-                    <div className="text-[10px] text-slate-400">
+                    <div className="text-xs text-slate-500">
                       {display.geoLat.toFixed(4)}, {display.geoLng.toFixed(4)}
                     </div>
                   )}
                   {!display.geoAddress && !display.geoCityLine && !display.geoLat && (
-                    <span className="text-slate-300">&ndash;</span>
+                    <span className="text-slate-500">&ndash;</span>
                   )}
                 </td>
-                <td className="px-3 py-2 text-[10px] text-slate-500 max-w-[80px] truncate" title={display.venueType || ''}>
-                  {display.venueType || <span className="text-slate-300">&ndash;</span>}
+                <td className="px-3 py-2 text-sm text-slate-500 max-w-[80px] truncate" title={display.venueType || ''}>
+                  {display.venueType || <span className="text-slate-500">&ndash;</span>}
                 </td>
-                <td className="px-3 py-2 text-[10px] font-mono text-slate-600">
+                <td className="px-3 py-2 text-sm font-mono text-slate-600">
                   {display.floorCpm != null ? (
                     <span className="text-emerald-600">€{display.floorCpm.toFixed(2)}</span>
                   ) : (
-                    <span className="text-slate-300">&ndash;</span>
+                    <span className="text-slate-500">&ndash;</span>
                   )}
                 </td>
-                <td className="px-3 py-2 text-[10px] font-mono text-slate-600">
+                <td className="px-3 py-2 text-sm font-mono text-slate-600">
                   {display.impressionsDay != null ? (
                     <span className="text-blue-600">{display.impressionsDay.toLocaleString('de-DE')}</span>
                   ) : (
-                    <span className="text-slate-300">&ndash;</span>
+                    <span className="text-slate-500">&ndash;</span>
                   )}
                 </td>
                 <td className="px-2 py-2 text-center">
-                  <span className="text-blue-500 font-bold text-[10px]">✓</span>
+                  <span className="text-blue-500 font-bold text-xs">✓</span>
                 </td>
                 <td className="px-2 py-2 text-center">
-                  <span className={`font-bold text-[10px] ${display.airtableMatched ? 'text-emerald-500' : 'text-red-400'}`}>
+                  <span className={`font-bold text-xs ${display.airtableMatched ? 'text-emerald-500' : 'text-red-400'}`}>
                     {display.airtableMatched ? '✓' : '✗'}
                   </span>
                 </td>
                 <td className="px-2 py-2 text-center">
-                  <span className={`font-bold text-[10px] ${display.vistarMatched ? 'text-violet-500' : 'text-red-400'}`}>
+                  <span className={`font-bold text-xs ${display.vistarMatched ? 'text-violet-500' : 'text-red-400'}`}>
                     {display.vistarMatched ? '✓' : '✗'}
                   </span>
                 </td>
                 <td className="px-2 py-2 text-center">
-                  <span className={`font-bold text-[10px] ${display.chgMatched ? 'text-amber-500' : 'text-red-400'}`}>
+                  <span className={`font-bold text-xs ${display.chgMatched ? 'text-amber-500' : 'text-red-400'}`}>
                     {display.chgMatched ? '✓' : '✗'}
                   </span>
                 </td>
@@ -1555,7 +1555,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   {display.status === 'online' ? (
                     <span className="text-[#22c55e]">–</span>
                   ) : display.status === 'never_online' ? (
-                    <span className="text-slate-400">Nie</span>
+                    <span className="text-slate-500">Nie</span>
                   ) : display.offlineHours != null ? (
                     <span
                       className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-bold"
@@ -1567,7 +1567,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                       {formatDuration(display.offlineHours)}
                     </span>
                   ) : (
-                    <span className="text-slate-400">–</span>
+                    <span className="text-slate-500">–</span>
                   )}
                 </td>
                 {hasVistar && canViewRevenue && (
@@ -1577,7 +1577,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                         €{display.vistarRevenue.toFixed(2)}
                       </span>
                     ) : (
-                      <span className="text-slate-300">–</span>
+                      <span className="text-slate-500">–</span>
                     )}
                   </td>
                 )}
@@ -1588,11 +1588,11 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                         {fmtCompact(display.vistarImpressions)}
                       </span>
                     ) : (
-                      <span className="text-slate-300">–</span>
+                      <span className="text-slate-500">–</span>
                     )}
                   </td>
                 )}
-                <td className="px-4 py-2 font-mono text-slate-500 text-[10px]">
+                <td className="px-4 py-2 font-mono text-slate-500 text-sm">
                   {formatDateTime(display.heartbeat)}
                 </td>
               </tr>
@@ -1611,7 +1611,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
           >
             Zurück
           </button>
-          <span className="text-xs font-mono text-slate-400">
+          <span className="text-xs font-mono text-slate-500">
             Seite {page + 1} von {totalPages}
           </span>
           <button

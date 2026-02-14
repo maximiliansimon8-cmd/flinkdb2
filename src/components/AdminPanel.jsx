@@ -148,7 +148,7 @@ function AddUserModal({ onClose, onSave, groups }) {
             <UserPlus size={18} className="text-[#3b82f6]" />
             <h3 className="text-sm font-semibold text-slate-900">Neuer Benutzer</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100/60 text-slate-400 hover:text-slate-900 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -162,7 +162,7 @@ function AddUserModal({ onClose, onSave, groups }) {
           )}
 
           <div>
-            <label className="text-xs text-slate-400 block mb-1.5">Name</label>
+            <label className="text-xs text-slate-500 block mb-1.5">Name</label>
             <input
               type="text"
               value={form.name}
@@ -174,7 +174,7 @@ function AddUserModal({ onClose, onSave, groups }) {
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 block mb-1.5">E-Mail / Benutzername</label>
+            <label className="text-xs text-slate-500 block mb-1.5">E-Mail / Benutzername</label>
             <input
               type="text"
               value={form.email}
@@ -185,7 +185,7 @@ function AddUserModal({ onClose, onSave, groups }) {
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 block mb-1.5">Gruppe</label>
+            <label className="text-xs text-slate-500 block mb-1.5">Gruppe</label>
             <div className="relative">
               <select
                 value={form.groupId}
@@ -196,12 +196,12 @@ function AddUserModal({ onClose, onSave, groups }) {
                   <option key={g.id} value={g.id}>{g.name}</option>
                 ))}
               </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 block mb-1.5">Passwort</label>
+            <label className="text-xs text-slate-500 block mb-1.5">Passwort</label>
             <input
               type="text"
               value={form.password}
@@ -324,7 +324,7 @@ function GroupEditModal({ group, onClose, onSave }) {
               {isNew ? 'Neue Gruppe erstellen' : `Gruppe bearbeiten: ${group.name}`}
             </h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100/60 text-slate-400 hover:text-slate-900 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -340,7 +340,7 @@ function GroupEditModal({ group, onClose, onSave }) {
           {/* Name + Description */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-slate-400 block mb-1.5">Gruppenname</label>
+              <label className="text-xs text-slate-500 block mb-1.5">Gruppenname</label>
               <input
                 type="text"
                 value={form.name}
@@ -351,7 +351,7 @@ function GroupEditModal({ group, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="text-xs text-slate-400 block mb-1.5">Beschreibung</label>
+              <label className="text-xs text-slate-500 block mb-1.5">Beschreibung</label>
               <input
                 type="text"
                 value={form.description}
@@ -364,7 +364,7 @@ function GroupEditModal({ group, onClose, onSave }) {
 
           {/* Color Picker */}
           <div>
-            <label className="text-xs text-slate-400 block mb-2">
+            <label className="text-xs text-slate-500 block mb-2">
               <Palette size={12} className="inline mr-1" />
               Gruppenfarbe
             </label>
@@ -385,7 +385,7 @@ function GroupEditModal({ group, onClose, onSave }) {
 
           {/* Tabs */}
           <div>
-            <label className="text-xs text-slate-400 block mb-2">
+            <label className="text-xs text-slate-500 block mb-2">
               <Monitor size={12} className="inline mr-1" />
               Sichtbare Tabs
             </label>
@@ -406,11 +406,11 @@ function GroupEditModal({ group, onClose, onSave }) {
                         {isChecked ? (
                           <ToggleRight size={20} style={{ color: form.color }} />
                         ) : (
-                          <ToggleLeft size={20} className="text-slate-300" />
+                          <ToggleLeft size={20} className="text-slate-500" />
                         )}
                       </button>
-                      <TabIcon size={14} className={isChecked ? 'text-slate-700' : 'text-slate-300'} />
-                      <span className={`text-sm font-medium ${isChecked ? 'text-slate-900' : 'text-slate-400'}`}>
+                      <TabIcon size={14} className={isChecked ? 'text-slate-700' : 'text-slate-500'} />
+                      <span className={`text-sm font-medium ${isChecked ? 'text-slate-900' : 'text-slate-500'}`}>
                         {tab.label}
                       </span>
                     </label>
@@ -427,7 +427,7 @@ function GroupEditModal({ group, onClose, onSave }) {
                               className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
                                 subChecked
                                   ? 'border-blue-200 bg-blue-50/80 text-blue-700'
-                                  : 'border-slate-200/60 bg-slate-50/60 text-slate-400 hover:border-slate-300'
+                                  : 'border-slate-200/60 bg-slate-50/60 text-slate-500 hover:border-slate-300'
                               }`}
                             >
                               {sub.label}
@@ -444,14 +444,14 @@ function GroupEditModal({ group, onClose, onSave }) {
 
           {/* Actions */}
           <div>
-            <label className="text-xs text-slate-400 block mb-2">
+            <label className="text-xs text-slate-500 block mb-2">
               <Key size={12} className="inline mr-1" />
               Erlaubte Aktionen
             </label>
             <div className="space-y-3">
               {Object.entries(actionsByCategory).map(([category, actions]) => (
                 <div key={category} className="border border-slate-200/40 rounded-xl p-3">
-                  <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                     {category}
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -465,7 +465,7 @@ function GroupEditModal({ group, onClose, onSave }) {
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                             isActive
                               ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200'
-                              : 'bg-slate-50/60 text-slate-400 border-slate-200/60 hover:border-slate-300'
+                              : 'bg-slate-50/60 text-slate-500 border-slate-200/60 hover:border-slate-300'
                           }`}
                         >
                           {isActive && <Check size={10} className="inline mr-1" />}
@@ -901,7 +901,7 @@ export default function AdminPanel() {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900">Admin Panel</h2>
-            <p className="text-xs text-slate-400 font-mono">Benutzer- & Gruppenverwaltung</p>
+            <p className="text-xs text-slate-500 font-mono">Benutzer- & Gruppenverwaltung</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -938,13 +938,13 @@ export default function AdminPanel() {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${
                 isActive
                   ? 'bg-white/80 text-slate-900 shadow-sm border border-slate-200/60'
-                  : 'text-slate-400 hover:text-slate-600'
+                  : 'text-slate-500 hover:text-slate-600'
               }`}
             >
               <Icon size={16} />
               {sec.label}
               <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
-                isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-50/60 text-slate-400'
+                isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-50/60 text-slate-500'
               }`}>
                 {sec.count}
               </span>
@@ -971,7 +971,7 @@ export default function AdminPanel() {
                     </div>
                   </div>
                   <div className="text-xl font-bold font-mono text-slate-900">{g.count}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">{g.name}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{g.name}</div>
                 </div>
               );
             })}
@@ -983,12 +983,12 @@ export default function AdminPanel() {
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 rounded-full bg-[#3b82f6]" />
                 <h3 className="text-sm font-semibold text-slate-900">Benutzerverwaltung</h3>
-                <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+                <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
                   {filteredUsers.length}
                 </span>
               </div>
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -1003,11 +1003,11 @@ export default function AdminPanel() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200/40">
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Benutzer</th>
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">E-Mail</th>
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Gruppe</th>
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Letzter Login</th>
-                    <th className="text-right text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Aktionen</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Benutzer</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">E-Mail</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Gruppe</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Letzter Login</th>
+                    <th className="text-right text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Aktionen</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1034,10 +1034,10 @@ export default function AdminPanel() {
                               <div className="text-sm font-medium text-slate-900">
                                 {user.name}
                                 {isSelf && (
-                                  <span className="ml-2 text-[10px] font-mono text-slate-400">(Du)</span>
+                                  <span className="ml-2 text-xs font-mono text-slate-500">(Du)</span>
                                 )}
                               </div>
-                              <div className="text-[10px] font-mono text-slate-400">{user.id}</div>
+                              <div className="text-xs font-mono text-slate-500">{user.id}</div>
                             </div>
                           </div>
                         </td>
@@ -1063,21 +1063,21 @@ export default function AdminPanel() {
                               </select>
                               <button
                                 onClick={() => setEditingGroupId(null)}
-                                className="p-1 rounded hover:bg-slate-100/60 text-slate-400"
+                                className="p-1 rounded hover:bg-slate-100/60 text-slate-500"
                               >
                                 <X size={12} />
                               </button>
                             </div>
                           ) : (
                             userGroup ? <GroupBadge group={userGroup} /> : (
-                              <span className="text-xs text-slate-400">–</span>
+                              <span className="text-xs text-slate-500">–</span>
                             )
                           )}
                         </td>
 
                         {/* Last Login */}
                         <td className="px-5 py-3">
-                          <span className="text-xs font-mono text-slate-400">
+                          <span className="text-xs font-mono text-slate-500">
                             {user.lastLogin
                               ? new Date(user.lastLogin).toLocaleString('de-DE', {
                                   day: '2-digit',
@@ -1095,14 +1095,14 @@ export default function AdminPanel() {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => setEditingGroupId(isEditing ? null : user.id)}
-                              className="p-1.5 rounded-md hover:bg-blue-50/60 text-slate-400 hover:text-[#3b82f6] transition-colors"
+                              className="p-1.5 rounded-md hover:bg-blue-50/60 text-slate-500 hover:text-[#3b82f6] transition-colors"
                               title="Gruppe ändern"
                             >
                               <Edit3 size={14} />
                             </button>
                             <button
                               onClick={() => handleResetPassword(user.id, user.name)}
-                              className="p-1.5 rounded-md hover:bg-amber-50/60 text-slate-400 hover:text-amber-600 transition-colors"
+                              className="p-1.5 rounded-md hover:bg-amber-50/60 text-slate-500 hover:text-amber-600 transition-colors"
                               title="Passwort zurücksetzen"
                             >
                               <Key size={14} />
@@ -1111,13 +1111,13 @@ export default function AdminPanel() {
                               <div className="flex items-center gap-1 ml-1">
                                 <button
                                   onClick={() => handleDeleteUser(user.id)}
-                                  className="px-2 py-1 rounded-md bg-red-500 text-white text-[10px] font-medium hover:bg-red-600 transition-colors"
+                                  className="px-2 py-1 rounded-md bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors"
                                 >
                                   Löschen
                                 </button>
                                 <button
                                   onClick={() => setConfirmDelete(null)}
-                                  className="p-1 rounded-md hover:bg-slate-100/60 text-slate-400"
+                                  className="p-1 rounded-md hover:bg-slate-100/60 text-slate-500"
                                 >
                                   <X size={12} />
                                 </button>
@@ -1129,7 +1129,7 @@ export default function AdminPanel() {
                                 className={`p-1.5 rounded-md transition-colors ${
                                   isSelf
                                     ? 'text-slate-200 cursor-not-allowed'
-                                    : 'hover:bg-red-50/60 text-slate-400 hover:text-red-500'
+                                    : 'hover:bg-red-50/60 text-slate-500 hover:text-red-500'
                                 }`}
                                 title={isSelf ? 'Eigenen Account nicht löschbar' : 'Benutzer löschen'}
                               >
@@ -1147,7 +1147,7 @@ export default function AdminPanel() {
                       <td colSpan={5} className="px-5 py-12 text-center">
                         <div className="flex flex-col items-center gap-2">
                           <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
-                          <span className="text-xs text-slate-400">Lade Benutzer...</span>
+                          <span className="text-xs text-slate-500">Lade Benutzer...</span>
                         </div>
                       </td>
                     </tr>
@@ -1155,7 +1155,7 @@ export default function AdminPanel() {
                   {!loadingUsers && filteredUsers.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-5 py-12 text-center">
-                        <div className="text-slate-400 text-sm">Keine Benutzer gefunden</div>
+                        <div className="text-slate-500 text-sm">Keine Benutzer gefunden</div>
                       </td>
                     </tr>
                   )}
@@ -1192,23 +1192,23 @@ export default function AdminPanel() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-slate-900">{group.name}</h3>
-                        <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+                        <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
                           {group.memberCount} Mitglieder
                         </span>
                         {group.id === 'grp_admin' && (
-                          <span className="text-[10px] font-mono text-blue-500 bg-blue-50/80 px-2 py-0.5 rounded">
+                          <span className="text-xs font-mono text-blue-500 bg-blue-50/80 px-2 py-0.5 rounded">
                             System
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">{group.description}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{group.description}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => { setEditingGroup(group); setShowGroupModal(true); }}
-                      className="p-2 rounded-lg hover:bg-blue-50/60 text-slate-400 hover:text-[#3b82f6] transition-colors"
+                      className="p-2 rounded-lg hover:bg-blue-50/60 text-slate-500 hover:text-[#3b82f6] transition-colors"
                       title="Gruppe bearbeiten"
                     >
                       <Edit3 size={14} />
@@ -1218,13 +1218,13 @@ export default function AdminPanel() {
                         <div className="flex items-center gap-1 ml-1">
                           <button
                             onClick={() => handleDeleteGroup(group.id)}
-                            className="px-2 py-1 rounded-md bg-red-500 text-white text-[10px] font-medium hover:bg-red-600 transition-colors"
+                            className="px-2 py-1 rounded-md bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors"
                           >
                             Löschen
                           </button>
                           <button
                             onClick={() => setConfirmGroupDelete(null)}
-                            className="p-1 rounded-md hover:bg-slate-100/60 text-slate-400"
+                            className="p-1 rounded-md hover:bg-slate-100/60 text-slate-500"
                           >
                             <X size={12} />
                           </button>
@@ -1232,7 +1232,7 @@ export default function AdminPanel() {
                       ) : (
                         <button
                           onClick={() => setConfirmGroupDelete(group.id)}
-                          className="p-2 rounded-lg hover:bg-red-50/60 text-slate-400 hover:text-red-500 transition-colors"
+                          className="p-2 rounded-lg hover:bg-red-50/60 text-slate-500 hover:text-red-500 transition-colors"
                           title="Gruppe löschen"
                         >
                           <Trash2 size={14} />
@@ -1246,7 +1246,7 @@ export default function AdminPanel() {
                 <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Tabs */}
                   <div>
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                       Sichtbare Tabs
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -1259,7 +1259,7 @@ export default function AdminPanel() {
                         return (
                           <span
                             key={tabId}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium bg-slate-50/80 text-slate-600 border border-slate-200/40"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-slate-50/80 text-slate-600 border border-slate-200/40"
                           >
                             <TabIcon size={10} />
                             {tab?.label}
@@ -1271,7 +1271,7 @@ export default function AdminPanel() {
 
                   {/* Actions */}
                   <div>
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                       Aktionen
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -1280,7 +1280,7 @@ export default function AdminPanel() {
                         return (
                           <span
                             key={actionId}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium bg-emerald-50/80 text-emerald-600 border border-emerald-200/40"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-emerald-50/80 text-emerald-600 border border-emerald-200/40"
                           >
                             <Check size={10} />
                             {action?.label || actionId}
@@ -1292,7 +1292,7 @@ export default function AdminPanel() {
 
                   {/* Members */}
                   <div>
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                       Mitglieder
                     </div>
                     {members.length > 0 ? (
@@ -1300,7 +1300,7 @@ export default function AdminPanel() {
                         {members.map((m) => (
                           <div key={m.id} className="flex items-center gap-1.5">
                             <div
-                              className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
                               style={{ backgroundColor: group.color }}
                             >
                               {getInitials(m.name)}
@@ -1310,7 +1310,7 @@ export default function AdminPanel() {
                         ))}
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-300 italic">Keine Mitglieder</span>
+                      <span className="text-xs text-slate-500 italic">Keine Mitglieder</span>
                     )}
                   </div>
                 </div>
@@ -1329,17 +1329,17 @@ export default function AdminPanel() {
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 rounded-full bg-emerald-500" />
                 <h3 className="text-sm font-semibold text-slate-900">Aktivitätsprotokoll</h3>
-                <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+                <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
                   {filteredAuditLog.length} Einträge
                 </span>
-                <span className="text-[10px] font-mono text-blue-400 bg-blue-50/80 px-2 py-0.5 rounded flex items-center gap-1">
+                <span className="text-xs font-mono text-blue-400 bg-blue-50/80 px-2 py-0.5 rounded flex items-center gap-1">
                   <Clock size={10} />
                   Timeout: {getSessionTimeoutMinutes() / 60}h
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type="text"
                     value={auditFilter}
@@ -1358,7 +1358,7 @@ export default function AdminPanel() {
                 </button>
                 <button
                   onClick={async () => { await refreshAuditLog(); showToast('Audit-Log aktualisiert'); }}
-                  className="p-2 rounded-lg hover:bg-slate-100/60 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-2 rounded-lg hover:bg-slate-100/60 text-slate-500 hover:text-slate-600 transition-colors"
                   title="Aktualisieren"
                 >
                   <Activity size={14} />
@@ -1368,7 +1368,7 @@ export default function AdminPanel() {
 
             {/* DSGVO Info */}
             <div className="px-5 py-3 bg-blue-50/40 border-b border-blue-200/30">
-              <p className="text-[11px] text-blue-600 flex items-center gap-1.5">
+              <p className="text-xs text-blue-600 flex items-center gap-1.5">
                 <FileText size={12} />
                 <strong>DSGVO §47 Nachweispflicht:</strong> Alle sicherheitsrelevanten Aktionen werden serverseitig in der Airtable-Datenbank protokolliert. Logs sind persistent und revisionssicher.
               </p>
@@ -1379,13 +1379,13 @@ export default function AdminPanel() {
               {loadingAudit ? (
                 <div className="p-12 text-center">
                   <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
-                  <p className="text-xs text-slate-400">Lade Audit-Log...</p>
+                  <p className="text-xs text-slate-500">Lade Audit-Log...</p>
                 </div>
               ) : filteredAuditLog.length === 0 ? (
                 <div className="p-12 text-center">
                   <Activity size={32} className="text-slate-200 mx-auto mb-3" />
-                  <p className="text-sm text-slate-400">Keine Log-Einträge vorhanden</p>
-                  <p className="text-xs text-slate-300 font-mono mt-1">
+                  <p className="text-sm text-slate-500">Keine Log-Einträge vorhanden</p>
+                  <p className="text-xs text-slate-500 font-mono mt-1">
                     Aktionen werden ab jetzt protokolliert
                   </p>
                 </div>
@@ -1422,11 +1422,11 @@ export default function AdminPanel() {
                             </span>
                           </div>
                           <div className="flex items-center gap-3 mt-0.5">
-                            <span className="text-[10px] font-mono text-slate-400">
+                            <span className="text-xs font-mono text-slate-500">
                               {timeStr}
                             </span>
                             <span
-                              className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                              className="text-xs font-mono px-1.5 py-0.5 rounded"
                               style={{
                                 backgroundColor: color + '15',
                                 color: color,
@@ -1434,7 +1434,7 @@ export default function AdminPanel() {
                             >
                               {entry.action}
                             </span>
-                            <span className="text-[10px] text-slate-400">
+                            <span className="text-xs text-slate-500">
                               {entry.userName}
                             </span>
                           </div>
@@ -1448,7 +1448,7 @@ export default function AdminPanel() {
 
             {filteredAuditLog.length > 100 && (
               <div className="px-5 py-3 border-t border-slate-200/40 text-center">
-                <p className="text-xs text-slate-400 font-mono">
+                <p className="text-xs text-slate-500 font-mono">
                   Zeige 100 von {filteredAuditLog.length} Einträgen. Exportiere CSV für vollständige Daten.
                 </p>
               </div>
@@ -1469,7 +1469,7 @@ export default function AdminPanel() {
                 </div>
               </div>
               <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.open}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Offen</div>
+              <div className="text-xs text-slate-500 mt-0.5">Offen</div>
             </div>
             <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
               <div className="flex items-center gap-2 mb-2">
@@ -1478,7 +1478,7 @@ export default function AdminPanel() {
                 </div>
               </div>
               <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.in_review}</div>
-              <div className="text-xs text-slate-400 mt-0.5">In Review</div>
+              <div className="text-xs text-slate-500 mt-0.5">In Review</div>
             </div>
             <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
               <div className="flex items-center gap-2 mb-2">
@@ -1487,7 +1487,7 @@ export default function AdminPanel() {
                 </div>
               </div>
               <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.planned}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Geplant</div>
+              <div className="text-xs text-slate-500 mt-0.5">Geplant</div>
             </div>
             <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
               <div className="flex items-center gap-2 mb-2">
@@ -1496,7 +1496,7 @@ export default function AdminPanel() {
                 </div>
               </div>
               <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.done}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Erledigt</div>
+              <div className="text-xs text-slate-500 mt-0.5">Erledigt</div>
             </div>
           </div>
 
@@ -1506,7 +1506,7 @@ export default function AdminPanel() {
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 rounded-full bg-amber-500" />
                 <h3 className="text-sm font-semibold text-slate-900">Feedback & Anfragen</h3>
-                <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+                <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
                   {filteredFeedback.length}
                 </span>
               </div>
@@ -1522,10 +1522,10 @@ export default function AdminPanel() {
                     <button
                       key={t.key}
                       onClick={() => setFeedbackTypeFilter(t.key)}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                         feedbackTypeFilter === t.key
                           ? 'bg-white shadow-sm text-slate-900 border border-slate-200/60'
-                          : 'text-slate-400 hover:text-slate-600'
+                          : 'text-slate-500 hover:text-slate-600'
                       }`}
                     >
                       {t.label}
@@ -1547,11 +1547,11 @@ export default function AdminPanel() {
                     <option value="done">Erledigt</option>
                     <option value="rejected">Abgelehnt</option>
                   </select>
-                  <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                 </div>
                 {/* Search */}
                 <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type="text"
                     value={feedbackFilter}
@@ -1562,7 +1562,7 @@ export default function AdminPanel() {
                 </div>
                 <button
                   onClick={() => refreshFeedback()}
-                  className="p-2 rounded-lg hover:bg-slate-100/60 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-2 rounded-lg hover:bg-slate-100/60 text-slate-500 hover:text-slate-600 transition-colors"
                   title="Aktualisieren"
                 >
                   <Activity size={14} />
@@ -1574,12 +1574,12 @@ export default function AdminPanel() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200/40">
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3 w-10">Typ</th>
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Titel</th>
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Benutzer</th>
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Priorität</th>
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Status</th>
-                    <th className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3">Erstellt</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3 w-10">Typ</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Titel</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Benutzer</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Priorität</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Status</th>
+                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Erstellt</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1615,7 +1615,7 @@ export default function AdminPanel() {
                             {item.title}
                           </div>
                           {item.description && (
-                            <div className="text-[11px] text-slate-400 truncate max-w-xs mt-0.5">
+                            <div className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
                               {item.description}
                             </div>
                           )}
@@ -1632,7 +1632,7 @@ export default function AdminPanel() {
                             <select
                               value={item.priority || 'medium'}
                               onChange={(e) => updateFeedbackPriority(item.id, e.target.value)}
-                              className={`${prio.bg} ${prio.text} ${prio.border} border rounded-full px-2.5 py-1 text-[11px] font-medium focus:outline-none appearance-none cursor-pointer pr-6`}
+                              className={`${prio.bg} ${prio.text} ${prio.border} border rounded-full px-2.5 py-1 text-xs font-medium focus:outline-none appearance-none cursor-pointer pr-6`}
                             >
                               <option value="low">Low</option>
                               <option value="medium">Medium</option>
@@ -1649,7 +1649,7 @@ export default function AdminPanel() {
                             <select
                               value={item.status || 'open'}
                               onChange={(e) => updateFeedbackStatus(item.id, e.target.value)}
-                              className="bg-slate-50/80 border border-slate-200/60 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-700 focus:outline-none focus:border-[#3b82f6] appearance-none cursor-pointer pr-7 transition-colors"
+                              className="bg-slate-50/80 border border-slate-200/60 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#3b82f6] appearance-none cursor-pointer pr-7 transition-colors"
                             >
                               <option value="open">Offen</option>
                               <option value="in_review">In Review</option>
@@ -1658,13 +1658,13 @@ export default function AdminPanel() {
                               <option value="done">Erledigt</option>
                               <option value="rejected">Abgelehnt</option>
                             </select>
-                            <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                           </div>
                         </td>
 
                         {/* Created */}
                         <td className="px-5 py-3">
-                          <span className="text-xs font-mono text-slate-400">
+                          <span className="text-xs font-mono text-slate-500">
                             {item.created_at
                               ? new Date(item.created_at).toLocaleString('de-DE', {
                                   day: '2-digit',
@@ -1685,7 +1685,7 @@ export default function AdminPanel() {
                       <td colSpan={6} className="px-5 py-12 text-center">
                         <div className="flex flex-col items-center gap-2">
                           <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
-                          <span className="text-xs text-slate-400">Lade Feedback...</span>
+                          <span className="text-xs text-slate-500">Lade Feedback...</span>
                         </div>
                       </td>
                     </tr>
@@ -1694,8 +1694,8 @@ export default function AdminPanel() {
                     <tr>
                       <td colSpan={6} className="px-5 py-12 text-center">
                         <Lightbulb size={32} className="text-slate-200 mx-auto mb-3" />
-                        <div className="text-sm text-slate-400">Kein Feedback vorhanden</div>
-                        <p className="text-xs text-slate-300 font-mono mt-1">
+                        <div className="text-sm text-slate-500">Kein Feedback vorhanden</div>
+                        <p className="text-xs text-slate-500 font-mono mt-1">
                           Feedback wird hier angezeigt, sobald Benutzer Anfragen einreichen
                         </p>
                       </td>
@@ -1725,7 +1725,7 @@ export default function AdminPanel() {
                   className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                     apiTimeRange === range.id
                       ? 'bg-white shadow-sm text-slate-900 border border-slate-200/60'
-                      : 'text-slate-400 hover:text-slate-600'
+                      : 'text-slate-500 hover:text-slate-600'
                   }`}
                 >
                   {range.label}
@@ -1746,18 +1746,18 @@ export default function AdminPanel() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">API Calls</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">API Calls</span>
                 <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
                   <Zap size={14} className="text-blue-500" />
                 </div>
               </div>
               <div className="text-2xl font-bold text-slate-800 font-mono">{apiStats.totalCalls.toLocaleString('de-DE')}</div>
-              <div className="text-[10px] text-slate-400 mt-1 font-mono">{apiTimeRange === '24h' ? 'Letzte 24 Stunden' : apiTimeRange === '7d' ? 'Letzte 7 Tage' : 'Letzte 30 Tage'}</div>
+              <div className="text-xs text-slate-500 mt-1 font-mono">{apiTimeRange === '24h' ? 'Letzte 24 Stunden' : apiTimeRange === '7d' ? 'Letzte 7 Tage' : 'Letzte 30 Tage'}</div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Kosten (est.)</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Kosten (est.)</span>
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
                   <DollarSign size={14} className="text-emerald-500" />
                 </div>
@@ -1765,14 +1765,14 @@ export default function AdminPanel() {
               <div className="text-2xl font-bold text-slate-800 font-mono">
                 ${(apiStats.totalCostCents / 100).toFixed(2)}
               </div>
-              <div className="text-[10px] text-slate-400 mt-1 font-mono">
+              <div className="text-xs text-slate-500 mt-1 font-mono">
                 {apiStats.totalTokensIn > 0 ? `${((apiStats.totalTokensIn + apiStats.totalTokensOut) / 1000).toFixed(0)}k Tokens` : 'Keine Token-Daten'}
               </div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Fehler</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Fehler</span>
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${apiStats.errorCount > 0 ? 'bg-red-50' : 'bg-emerald-50'}`}>
                   <AlertCircle size={14} className={apiStats.errorCount > 0 ? 'text-red-500' : 'text-emerald-500'} />
                 </div>
@@ -1780,27 +1780,27 @@ export default function AdminPanel() {
               <div className={`text-2xl font-bold font-mono ${apiStats.errorCount > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                 {apiStats.errorCount}
               </div>
-              <div className="text-[10px] text-slate-400 mt-1 font-mono">
+              <div className="text-xs text-slate-500 mt-1 font-mono">
                 {apiStats.totalCalls > 0 ? `${(apiStats.errorCount / apiStats.totalCalls * 100).toFixed(1)}% Error-Rate` : '—'}
               </div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Ø Latenz</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Ø Latenz</span>
                 <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
                   <Clock size={14} className="text-amber-500" />
                 </div>
               </div>
               <div className="text-2xl font-bold text-slate-800 font-mono">{apiStats.avgDuration}ms</div>
-              <div className="text-[10px] text-slate-400 mt-1 font-mono">Durchschnittliche Antwortzeit</div>
+              <div className="text-xs text-slate-500 mt-1 font-mono">Durchschnittliche Antwortzeit</div>
             </div>
           </div>
 
           {/* Service Breakdown */}
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-200/60 flex items-center gap-2">
-              <Server size={14} className="text-slate-400" />
+              <Server size={14} className="text-slate-500" />
               <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Kosten nach Service</span>
             </div>
             <div className="divide-y divide-slate-100/80">
@@ -1832,16 +1832,16 @@ export default function AdminPanel() {
                           <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div className={`h-full ${colors.bar} rounded-full transition-all`} style={{ width: `${Math.max(costPct, 1)}%` }} />
                           </div>
-                          <span className="text-[10px] font-mono text-slate-400 shrink-0">{data.calls} calls</span>
+                          <span className="text-xs font-mono text-slate-500 shrink-0">{data.calls} calls</span>
                         </div>
                         {data.tokensIn > 0 && (
-                          <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                          <div className="text-xs font-mono text-slate-500 mt-0.5">
                             {(data.tokensIn / 1000).toFixed(0)}k in / {(data.tokensOut / 1000).toFixed(0)}k out tokens
                           </div>
                         )}
                       </div>
                       {data.errors > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-500 font-mono shrink-0">{data.errors} err</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-500 font-mono shrink-0">{data.errors} err</span>
                       )}
                     </div>
                   );
@@ -1849,8 +1849,8 @@ export default function AdminPanel() {
               {Object.keys(apiStats.byService).length === 0 && (
                 <div className="px-5 py-8 text-center">
                   <Zap size={24} className="text-slate-200 mx-auto mb-2" />
-                  <div className="text-sm text-slate-400">Noch keine API-Daten</div>
-                  <p className="text-xs text-slate-300 font-mono mt-1">Daten werden erfasst sobald API-Calls stattfinden</p>
+                  <div className="text-sm text-slate-500">Noch keine API-Daten</div>
+                  <p className="text-xs text-slate-500 font-mono mt-1">Daten werden erfasst sobald API-Calls stattfinden</p>
                 </div>
               )}
             </div>
@@ -1859,13 +1859,13 @@ export default function AdminPanel() {
           {/* Function Breakdown Table */}
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-200/60 flex items-center gap-2">
-              <Code size={14} className="text-slate-400" />
+              <Code size={14} className="text-slate-500" />
               <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Calls nach Function</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+                  <tr className="text-xs uppercase tracking-wider text-slate-500 font-medium">
                     <th className="px-5 py-2.5 text-left">Function</th>
                     <th className="px-3 py-2.5 text-right">Calls</th>
                     <th className="px-3 py-2.5 text-right">Errors</th>
@@ -1887,8 +1887,8 @@ export default function AdminPanel() {
                             <span className="text-xs font-mono text-emerald-500">0</span>
                           )}
                         </td>
-                        <td className="px-3 py-2.5 text-xs font-mono text-slate-500 text-right">{data.avgMs}ms</td>
-                        <td className="px-5 py-2.5 text-xs font-mono text-slate-600 text-right">${(data.cost / 100).toFixed(3)}</td>
+                        <td className="px-3 py-2.5 text-sm font-mono text-slate-500 text-right">{data.avgMs}ms</td>
+                        <td className="px-5 py-2.5 text-sm font-mono text-slate-600 text-right">${(data.cost / 100).toFixed(3)}</td>
                       </tr>
                     ))}
                 </tbody>
@@ -1900,15 +1900,15 @@ export default function AdminPanel() {
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-200/60 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Activity size={14} className="text-slate-400" />
+                <Activity size={14} className="text-slate-500" />
                 <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Letzte API Calls</span>
               </div>
-              <span className="text-[10px] font-mono text-slate-400">{apiUsageData.length} Einträge</span>
+              <span className="text-xs font-mono text-slate-500">{apiUsageData.length} Einträge</span>
             </div>
             <div className="overflow-x-auto max-h-96 overflow-y-auto">
               <table className="w-full">
                 <thead className="sticky top-0 bg-white/90 backdrop-blur-sm">
-                  <tr className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+                  <tr className="text-xs uppercase tracking-wider text-slate-500 font-medium">
                     <th className="px-4 py-2 text-left">Zeit</th>
                     <th className="px-3 py-2 text-left">Function</th>
                     <th className="px-3 py-2 text-left">Service</th>
@@ -1925,7 +1925,7 @@ export default function AdminPanel() {
                       </td>
                       <td className="px-3 py-2 font-mono text-slate-700">{row.function_name}</td>
                       <td className="px-3 py-2">
-                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium ${
                           row.service === 'anthropic' ? 'bg-purple-50 text-purple-600' :
                           row.service === 'airtable' ? 'bg-blue-50 text-blue-600' :
                           row.service === 'supabase' ? 'bg-emerald-50 text-emerald-600' :
@@ -1937,9 +1937,9 @@ export default function AdminPanel() {
                       </td>
                       <td className="px-3 py-2 text-center">
                         {row.success ? (
-                          <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 inline-flex items-center justify-center text-[9px] font-bold">{row.status_code || '✓'}</span>
+                          <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 inline-flex items-center justify-center text-xs font-bold">{row.status_code || '✓'}</span>
                         ) : (
-                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 inline-flex items-center justify-center text-[9px] font-bold">{row.status_code || '✗'}</span>
+                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 inline-flex items-center justify-center text-xs font-bold">{row.status_code || '✗'}</span>
                         )}
                       </td>
                       <td className="px-3 py-2 font-mono text-slate-500 text-right">{row.duration_ms ? `${row.duration_ms}ms` : '—'}</td>
@@ -1949,7 +1949,7 @@ export default function AdminPanel() {
                   {loadingApiUsage && (
                     <tr>
                       <td colSpan={6} className="px-5 py-8 text-center">
-                        <div className="flex items-center justify-center gap-2 text-slate-400">
+                        <div className="flex items-center justify-center gap-2 text-slate-500">
                           <RefreshCw size={14} className="animate-spin" />
                           <span className="text-sm">Lade API-Daten...</span>
                         </div>
@@ -1960,8 +1960,8 @@ export default function AdminPanel() {
                     <tr>
                       <td colSpan={6} className="px-5 py-12 text-center">
                         <Zap size={32} className="text-slate-200 mx-auto mb-3" />
-                        <div className="text-sm text-slate-400">Keine API-Daten vorhanden</div>
-                        <p className="text-xs text-slate-300 font-mono mt-1">
+                        <div className="text-sm text-slate-500">Keine API-Daten vorhanden</div>
+                        <p className="text-xs text-slate-500 font-mono mt-1">
                           API-Calls werden automatisch geloggt sobald die Tabelle erstellt ist
                         </p>
                       </td>

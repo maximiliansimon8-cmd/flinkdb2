@@ -51,14 +51,14 @@ const LEAD_STATUS_CONFIG = {
 };
 
 const getStatusConfig = (status) => {
-  if (!status) return { label: status || '–', color: '#94a3b8', bg: '#94a3b815', icon: '⚪' };
+  if (!status) return { label: status || '–', color: '#64748b', bg: '#64748b15', icon: '⚪' };
   // Try exact match first, then partial
   if (LEAD_STATUS_CONFIG[status]) return LEAD_STATUS_CONFIG[status];
   const lower = status.toLowerCase();
   for (const [key, val] of Object.entries(LEAD_STATUS_CONFIG)) {
     if (lower.includes(key.toLowerCase())) return val;
   }
-  return { label: status, color: '#94a3b8', bg: '#94a3b815', icon: '⚪' };
+  return { label: status, color: '#64748b', bg: '#64748b15', icon: '⚪' };
 };
 
 /* ─── City Normalization (merge duplicates like Frankfurt / Frankfurt am Main) ─── */
@@ -119,13 +119,13 @@ function KpiCard({ label, value, icon: Icon, color, subtitle, active, onClick })
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
         <div style={{ backgroundColor: `${color}12` }} className="w-7 h-7 rounded-lg flex items-center justify-center">
           <Icon size={14} style={{ color }} />
         </div>
       </div>
       <div className="text-2xl font-bold text-slate-800 font-mono">{value}</div>
-      {subtitle && <div className="text-[10px] text-slate-400 mt-1 font-mono">{subtitle}</div>}
+      {subtitle && <div className="text-xs text-slate-500 mt-1 font-mono">{subtitle}</div>}
     </div>
   );
 }
@@ -658,7 +658,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
         <span className="ml-2 text-sm text-slate-500 font-mono">Lade Akquise-Daten...</span>
       </div>
     );
@@ -692,7 +692,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
             placeholder="Suche (Name, ID, Stadt, Kontakt...)"
@@ -762,7 +762,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             {/* Total Live vs Target */}
             <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-lg shadow-blue-600/20">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-medium text-blue-200 uppercase tracking-wider">Netzwerk Live</span>
+                <span className="text-xs font-medium text-blue-200 uppercase tracking-wider">Netzwerk Live</span>
                 <Zap size={16} className="text-blue-300" />
               </div>
               <div className="text-3xl font-black font-mono">{totalLive}</div>
@@ -778,7 +778,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             {/* This Week Signed */}
             <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Diese Woche</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Diese Woche</span>
                 {currentWeekSigned >= WEEKLY_SIGN_TARGET ? (
                   <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center"><ArrowUpRight size={14} className="text-green-500" /></div>
                 ) : (
@@ -787,9 +787,9 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
               </div>
               <div className="flex items-baseline gap-2">
                 <span className={`text-3xl font-black font-mono ${currentWeekSigned >= WEEKLY_SIGN_TARGET ? 'text-green-600' : 'text-amber-600'}`}>{currentWeekSigned}</span>
-                <span className="text-sm text-slate-400 font-mono">/ {WEEKLY_SIGN_TARGET}</span>
+                <span className="text-sm text-slate-500 font-mono">/ {WEEKLY_SIGN_TARGET}</span>
               </div>
-              <div className="text-[10px] text-slate-400 mt-1">Signings diese Woche</div>
+              <div className="text-xs text-slate-500 mt-1">Signings diese Woche</div>
               <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-700" style={{
                   width: `${Math.min(100, WEEKLY_SIGN_TARGET > 0 ? currentWeekSigned / WEEKLY_SIGN_TARGET * 100 : 0)}%`,
@@ -801,15 +801,15 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             {/* Dropout Rate → Required Acquisitions */}
             <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Benötigte Akquisen/W</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Benötigte Akquisen/W</span>
                 <div className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center"><Target size={14} className="text-violet-500" /></div>
               </div>
               <div className="text-3xl font-black font-mono text-violet-600">{conversionMetrics.requiredWeeklyAcquisitions}</div>
-              <div className="text-[10px] text-slate-400 mt-1">
+              <div className="text-xs text-slate-500 mt-1">
                 für {conversionMetrics.WEEKLY_BUILD_TARGET} Installs/W
               </div>
-              <div className="mt-2 flex items-center gap-2 text-[10px]">
-                <span className="text-slate-400">Dropout-Rate:</span>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <span className="text-slate-500">Dropout-Rate:</span>
                 <span className={`font-mono font-bold ${conversionMetrics.dropoutRate > 30 ? 'text-red-500' : conversionMetrics.dropoutRate > 15 ? 'text-amber-500' : 'text-green-500'}`}>
                   {conversionMetrics.dropoutRate}%
                 </span>
@@ -819,33 +819,33 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             {/* Store-Besuche & Erfolgsquote */}
             <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Store-Besuche</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Store-Besuche</span>
                 <span className="text-lg font-black font-mono text-slate-700">{conversionMetrics.storeVisits}</span>
               </div>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="text-center p-2 rounded-xl bg-green-50 border border-green-100">
                   <div className="text-lg font-bold font-mono text-green-700">{conversionMetrics.successfulVisits}</div>
-                  <div className="text-[9px] text-green-600 font-medium">Erfolgreich</div>
+                  <div className="text-xs text-green-600 font-medium">Erfolgreich</div>
                 </div>
                 <div className="text-center p-2 rounded-xl bg-red-50 border border-red-100">
                   <div className="text-lg font-bold font-mono text-red-600">{conversionMetrics.noInterest}</div>
-                  <div className="text-[9px] text-red-500 font-medium">Kein Interesse</div>
+                  <div className="text-xs text-red-500 font-medium">Kein Interesse</div>
                 </div>
                 <div className="text-center p-2 rounded-xl bg-slate-50 border border-slate-100">
                   <div className="text-lg font-bold font-mono text-slate-600">{conversionMetrics.stillInPipeline > 0 ? conversionMetrics.stillInPipeline : 0}</div>
-                  <div className="text-[9px] text-slate-500 font-medium">In Pipeline</div>
+                  <div className="text-xs text-slate-500 font-medium">In Pipeline</div>
                 </div>
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400">Erfolgsquote</span>
+                  <span className="text-xs text-slate-500">Erfolgsquote</span>
                   <span className="text-xs font-mono font-bold text-green-600">{conversionMetrics.visitSuccessRate}%</span>
                 </div>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
                   <div className="h-full bg-green-500 rounded-l-full" style={{ width: `${conversionMetrics.visitSuccessRate}%` }} />
                   <div className="h-full bg-red-400" style={{ width: `${conversionMetrics.visitNoInterestRate}%` }} />
                 </div>
-                <div className="flex items-center justify-between text-[9px]">
+                <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500" /> Erfolgreich</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" /> Kein Interesse</span>
@@ -858,28 +858,28 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             {/* Signed vs Approved KPI */}
             <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Signed vs. Approved</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Signed vs. Approved</span>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="text-center p-3 rounded-xl bg-violet-50 border border-violet-100">
                   <div className="text-2xl font-bold font-mono text-violet-700">{conversionMetrics.signed}</div>
-                  <div className="text-[9px] text-violet-600 font-medium mt-0.5">Signed (Vertrag)</div>
+                  <div className="text-xs text-violet-600 font-medium mt-0.5">Signed (Vertrag)</div>
                 </div>
                 <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
                   <div className="text-2xl font-bold font-mono text-blue-700">{conversionMetrics.approved}</div>
-                  <div className="text-[9px] text-blue-600 font-medium mt-0.5">Approved</div>
+                  <div className="text-xs text-blue-600 font-medium mt-0.5">Approved</div>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400">Signed → Approved</span>
+                  <span className="text-xs text-slate-500">Signed → Approved</span>
                   <span className="text-xs font-mono font-bold text-violet-600">{conversionMetrics.signedToApprovedRate}%</span>
                 </div>
                 <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-violet-500 rounded-full" style={{ width: `${Math.min(conversionMetrics.signedToApprovedRate, 100)}%` }} />
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-slate-400">Warten auf Approval</span>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500">Warten auf Approval</span>
                   <span className="font-mono font-bold text-amber-600">{conversionMetrics.signedNotApproved}</span>
                 </div>
               </div>
@@ -888,32 +888,32 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             {/* Conversion Pipeline */}
             <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Conversion Pipeline</span>
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Conversion Pipeline</span>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400">Akquise → Approved</span>
+                  <span className="text-xs text-slate-500">Akquise → Approved</span>
                   <span className="text-xs font-mono font-bold text-blue-600">{conversionMetrics.akquiseToApprovedRate}%</span>
                 </div>
                 <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-blue-500 rounded-full" style={{ width: `${conversionMetrics.akquiseToApprovedRate}%` }} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400">Approved → Installiert</span>
+                  <span className="text-xs text-slate-500">Approved → Installiert</span>
                   <span className="text-xs font-mono font-bold text-green-600">{conversionMetrics.approvedToInstalledRate}%</span>
                 </div>
                 <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-green-500 rounded-full" style={{ width: `${conversionMetrics.approvedToInstalledRate}%` }} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400">Churn Rate (nach Install)</span>
+                  <span className="text-xs text-slate-500">Churn Rate (nach Install)</span>
                   <span className="text-xs font-mono font-bold text-red-500">{conversionMetrics.churnRate}%</span>
                 </div>
                 <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-red-400 rounded-full" style={{ width: `${conversionMetrics.churnRate}%` }} />
                 </div>
                 <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                  <span className="text-[10px] text-slate-500 font-medium">Gesamt-Conversion</span>
+                  <span className="text-xs text-slate-500 font-medium">Gesamt-Conversion</span>
                   <span className="text-xs font-mono font-bold text-slate-700">{conversionMetrics.overallConversion}%</span>
                 </div>
               </div>
@@ -925,9 +925,9 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-sm font-semibold text-slate-700">Wöchentliche Signings</h3>
-                <p className="text-[10px] text-slate-400 mt-0.5">Ziel: {WEEKLY_SIGN_TARGET} Signings pro Woche · Letzte 12 Wochen</p>
+                <p className="text-xs text-slate-500 mt-0.5">Ziel: {WEEKLY_SIGN_TARGET} Signings pro Woche · Letzte 12 Wochen</p>
               </div>
-              <div className="flex items-center gap-3 text-[10px]">
+              <div className="flex items-center gap-3 text-xs">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded-sm bg-blue-500" />
                   <span className="text-slate-500">Signings</span>
@@ -943,12 +943,12 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#94a3b8' }}
+                  tick={{ fontSize: 11, fontFamily: 'monospace', fill: '#64748b' }}
                   axisLine={{ stroke: '#e2e8f0' }}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#94a3b8' }}
+                  tick={{ fontSize: 11, fontFamily: 'monospace', fill: '#64748b' }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -957,7 +957,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                   formatter={(value, name) => [value, name === 'signed' ? 'Signings' : 'Ziel']}
                   labelFormatter={l => `KW ab ${l}`}
                 />
-                <ReferenceLine y={WEEKLY_SIGN_TARGET} stroke="#ef4444" strokeDasharray="6 4" strokeWidth={2} label={{ value: `Ziel: ${WEEKLY_SIGN_TARGET}`, position: 'right', fontSize: 10, fill: '#ef4444', fontFamily: 'monospace' }} />
+                <ReferenceLine y={WEEKLY_SIGN_TARGET} stroke="#ef4444" strokeDasharray="6 4" strokeWidth={2} label={{ value: `Ziel: ${WEEKLY_SIGN_TARGET}`, position: 'right', fontSize: 11, fill: '#ef4444', fontFamily: 'monospace' }} />
                 <Bar dataKey="signed" radius={[6, 6, 0, 0]} maxBarSize={40}>
                   {weeklySignData.map((entry, idx) => (
                     <Cell key={idx} fill={entry.signed >= WEEKLY_SIGN_TARGET ? '#22c55e' : entry.signed >= WEEKLY_SIGN_TARGET * 0.6 ? '#f59e0b' : '#ef4444'} opacity={idx === weeklySignData.length - 1 ? 1 : 0.7} />
@@ -967,14 +967,14 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             </ResponsiveContainer>
             {/* Week summary */}
             <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100">
-              <div className="text-[10px] text-slate-400">
+              <div className="text-xs text-slate-500">
                 Ø letzte 12 Wochen: <span className="font-mono font-bold text-slate-600">{weeklySignData.length > 0 ? Math.round(weeklySignData.reduce((s, w) => s + w.signed, 0) / weeklySignData.length) : 0}</span> Signings/W
               </div>
-              <div className="text-[10px] text-slate-400">
+              <div className="text-xs text-slate-500">
                 Wochen über Ziel: <span className="font-mono font-bold text-green-600">{weeklySignData.filter(w => w.signed >= WEEKLY_SIGN_TARGET).length}</span> / {weeklySignData.length}
               </div>
               {lastWeekSigned > 0 && (
-                <div className="text-[10px] text-slate-400">
+                <div className="text-xs text-slate-500">
                   Letzte Woche: <span className="font-mono font-bold text-slate-600">{lastWeekSigned}</span>
                 </div>
               )}
@@ -986,18 +986,18 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-sm font-semibold text-slate-700">Netzwerk-Aufbau nach Stadt</h3>
-                <p className="text-[10px] text-slate-400 mt-0.5">Live-Displays vs. Gesamtziel pro Stadt</p>
+                <p className="text-xs text-slate-500 mt-0.5">Live-Displays vs. Gesamtziel pro Stadt</p>
               </div>
               <div className="text-right">
-                <div className="text-lg font-black font-mono text-slate-700">{totalLive} <span className="text-sm text-slate-400 font-normal">/ {TOTAL_NETWORK_TARGET}</span></div>
-                <div className="text-[10px] text-slate-400">Gesamt-Netzwerk</div>
+                <div className="text-lg font-black font-mono text-slate-700">{totalLive} <span className="text-sm text-slate-500 font-normal">/ {TOTAL_NETWORK_TARGET}</span></div>
+                <div className="text-xs text-slate-500">Gesamt-Netzwerk</div>
               </div>
             </div>
 
             {/* City Grid */}
             <div className="space-y-1.5 overflow-x-auto">
               {/* Header */}
-              <div className="grid grid-cols-[1fr_70px_50px_55px_55px_55px_50px_90px] gap-1.5 px-3 py-1.5 text-[8px] text-slate-400 font-medium uppercase tracking-wider min-w-[700px]">
+              <div className="grid grid-cols-[1fr_70px_50px_55px_55px_55px_50px_90px] gap-1.5 px-3 py-1.5 text-xs text-slate-500 font-medium uppercase tracking-wider min-w-[700px]">
                 <span>Stadt</span>
                 <span className="text-center">Live / Ziel</span>
                 <span className="text-center">Signed</span>
@@ -1016,12 +1016,12 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                     onClick={() => { setCityFilter(cityFilter === c.name ? 'all' : c.name); setActiveSection('overview'); }}
                   >
                     <div className="flex items-center gap-2">
-                      <MapPin size={12} className="text-slate-400 flex-shrink-0" />
+                      <MapPin size={12} className="text-slate-500 flex-shrink-0" />
                       <span className="text-xs font-semibold text-slate-700">{c.name}</span>
                     </div>
                     <div className="text-center">
                       <span className="text-xs font-mono font-bold text-slate-700">{c.live}</span>
-                      {c.target > 0 && <span className="text-[10px] text-slate-400 font-mono"> / {c.target}</span>}
+                      {c.target > 0 && <span className="text-xs text-slate-500 font-mono"> / {c.target}</span>}
                     </div>
                     <div className="text-center">
                       <span className="text-xs font-mono font-bold text-green-600">{c.signed}</span>
@@ -1034,16 +1034,16 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                     </div>
                     <div className="text-center">
                       {c.churn > 0 ? (
-                        <span className="text-xs font-mono font-bold text-red-500">{c.churn} <span className="text-[9px] text-red-400">({c.churnRate}%)</span></span>
+                        <span className="text-xs font-mono font-bold text-red-500">{c.churn} <span className="text-xs text-red-400">({c.churnRate}%)</span></span>
                       ) : (
-                        <span className="text-xs text-slate-300">–</span>
+                        <span className="text-xs text-slate-500">–</span>
                       )}
                     </div>
                     <div className="text-center">
                       {c.target > 0 ? (
-                        <span className="text-[10px] font-mono font-bold" style={{ color: progressColor }}>{c.progress}%</span>
+                        <span className="text-xs font-mono font-bold" style={{ color: progressColor }}>{c.progress}%</span>
                       ) : (
-                        <span className="text-xs text-slate-300">–</span>
+                        <span className="text-xs text-slate-500">–</span>
                       )}
                     </div>
                     <div>
@@ -1063,7 +1063,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             </div>
 
             {/* City Summary Footer */}
-            <div className="flex items-center gap-6 mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400">
+            <div className="flex items-center gap-6 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
               <div>Städte mit Ziel: <span className="font-mono font-bold text-slate-600">{cityPerformanceWithTargets.filter(c => c.target > 0).length}</span></div>
               <div>Städte in Pipeline: <span className="font-mono font-bold text-slate-600">{cityPerformanceWithTargets.filter(c => c.total > 0).length}</span></div>
               <div>Noch aufzubauen: <span className="font-mono font-bold text-red-500">{Math.max(0, TOTAL_NETWORK_TARGET - totalLive)}</span> Displays</div>
@@ -1081,34 +1081,34 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="text-center p-3 bg-blue-50/60 rounded-xl border border-blue-100">
                 <div className="text-2xl font-black font-mono text-blue-600">{conversionMetrics.total}</div>
-                <div className="text-[10px] text-blue-500 mt-1">Aktive Leads</div>
+                <div className="text-xs text-blue-500 mt-1">Aktive Leads</div>
               </div>
               <div className="text-center p-3 bg-green-50/60 rounded-xl border border-green-100">
                 <div className="text-2xl font-black font-mono text-green-600">{conversionMetrics.signed}</div>
-                <div className="text-[10px] text-green-500 mt-1">Signed</div>
+                <div className="text-xs text-green-500 mt-1">Signed</div>
               </div>
               <div className="text-center p-3 bg-emerald-50/60 rounded-xl border border-emerald-100">
                 <div className="text-2xl font-black font-mono text-emerald-600">{conversionMetrics.installed}</div>
-                <div className="text-[10px] text-emerald-500 mt-1">Installiert</div>
+                <div className="text-xs text-emerald-500 mt-1">Installiert</div>
               </div>
               <div className="text-center p-3 bg-red-50/60 rounded-xl border border-red-100">
                 <div className="text-2xl font-black font-mono text-red-500">{conversionMetrics.cancelledTotal}</div>
-                <div className="text-[10px] text-red-400 mt-1">
+                <div className="text-xs text-red-400 mt-1">
                   Storniert ({conversionMetrics.dropoutRate}%)
                 </div>
-                <div className="text-[9px] text-red-300 mt-0.5">
+                <div className="text-xs text-red-300 mt-0.5">
                   {conversionMetrics.cancelledAkquise} Akquise · {conversionMetrics.cancelledPostInstall} Post-Install
                 </div>
               </div>
               <div className="text-center p-3 bg-violet-50/60 rounded-xl border border-violet-200">
                 <div className="text-2xl font-black font-mono text-violet-600">{conversionMetrics.requiredWeeklyAcquisitions}</div>
-                <div className="text-[10px] text-violet-500 mt-1 font-medium">Soll-Akquisen/W</div>
-                <div className="text-[9px] text-violet-400 mt-0.5">
+                <div className="text-xs text-violet-500 mt-1 font-medium">Soll-Akquisen/W</div>
+                <div className="text-xs text-violet-400 mt-0.5">
                   für {conversionMetrics.WEEKLY_BUILD_TARGET} Installs/W
                 </div>
               </div>
             </div>
-            <div className="mt-4 p-3 bg-slate-50 rounded-xl text-[10px] text-slate-500 font-mono">
+            <div className="mt-4 p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono">
               <span className="font-bold text-slate-600">Rechenweg:</span> Bei {conversionMetrics.overallConversion}% Gesamt-Conversion (Akquise→Live) werden für {conversionMetrics.WEEKLY_BUILD_TARGET} Installationen/Woche mindestens <span className="font-bold text-violet-600">{conversionMetrics.requiredWeeklyAcquisitions} Akquisen/Woche</span> benötigt.
             </div>
           </div>
@@ -1121,7 +1121,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                 <h3 className="text-sm font-semibold text-slate-700">Conversion & Besuche nach Stadt</h3>
               </div>
               <div className="overflow-x-auto">
-                <div className="grid grid-cols-[1fr_50px_55px_55px_50px_55px_55px_55px_50px_50px] gap-1 text-[8px] font-mono text-slate-400 uppercase tracking-wider mb-2 px-1 min-w-[750px]">
+                <div className="grid grid-cols-[1fr_50px_55px_55px_50px_55px_55px_55px_50px_50px] gap-1 text-xs font-mono text-slate-500 uppercase tracking-wider mb-2 px-1 min-w-[750px]">
                   <div>Stadt</div>
                   <div className="text-center">Besuche</div>
                   <div className="text-center">Erfolg</div>
@@ -1141,20 +1141,20 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                       <div className="text-center text-green-600">{cc.successfulVisits}</div>
                       <div className="text-center text-red-500">{cc.noInterest}</div>
                       <div className="text-center">
-                        <span className={`px-1 py-0.5 rounded text-[9px] ${cc.visitSuccessRate >= 40 ? 'bg-green-100 text-green-700' : cc.visitSuccessRate >= 20 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`px-1 py-0.5 rounded text-xs ${cc.visitSuccessRate >= 40 ? 'bg-green-100 text-green-700' : cc.visitSuccessRate >= 20 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
                           {cc.visitSuccessRate}%
                         </span>
                       </div>
                       <div className="text-center text-violet-600">{cc.signed}</div>
                       <div className="text-center text-blue-600">{cc.approved}</div>
                       <div className="text-center">
-                        <span className={`px-1 py-0.5 rounded text-[9px] ${cc.signedToApproved >= 70 ? 'bg-green-100 text-green-700' : cc.signedToApproved >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`px-1 py-0.5 rounded text-xs ${cc.signedToApproved >= 70 ? 'bg-green-100 text-green-700' : cc.signedToApproved >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
                           {cc.signedToApproved}%
                         </span>
                       </div>
                       <div className="text-center text-green-600">{cc.installed}</div>
                       <div className="text-center">
-                        <span className={`px-1 py-0.5 rounded text-[9px] ${cc.churnRate <= 5 ? 'bg-green-100 text-green-700' : cc.churnRate <= 15 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`px-1 py-0.5 rounded text-xs ${cc.churnRate <= 5 ? 'bg-green-100 text-green-700' : cc.churnRate <= 15 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
                           {cc.churnRate}%
                         </span>
                       </div>
@@ -1173,13 +1173,13 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Storno-Analyse</h3>
-                <p className="text-[10px] text-slate-400">Automatische Auswertung der Abbrüche</p>
+                <p className="text-xs text-slate-500">Automatische Auswertung der Abbrüche</p>
               </div>
               <div className="ml-auto flex items-center gap-2">
                 <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${cancellationInsight.last7Count > 0 ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'}`}>
                   {cancellationInsight.last7Count} letzte 7T
                 </span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-700 text-slate-500">
                   {cancellationInsight.last30Count} letzte 30T
                 </span>
               </div>
@@ -1190,7 +1190,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
               {cancellationInsight.insights.map((insight, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
                   <span className="text-slate-500 mt-0.5 flex-shrink-0">▸</span>
-                  <span className="text-slate-300">{insight}</span>
+                  <span className="text-slate-500">{insight}</span>
                 </div>
               ))}
             </div>
@@ -1200,27 +1200,27 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
               <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-700">
                 {/* Top Reasons */}
                 <div>
-                  <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2 font-medium">Top Gründe</div>
+                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-medium">Top Gründe</div>
                   <div className="space-y-1">
                     {cancellationInsight.topReasons.length > 0 ? cancellationInsight.topReasons.map(([reason, count]) => (
                       <div key={reason} className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400 truncate mr-2">{reason}</span>
-                        <span className="text-[10px] font-mono text-red-400 font-bold flex-shrink-0">{count}</span>
+                        <span className="text-xs text-slate-500 truncate mr-2">{reason}</span>
+                        <span className="text-xs font-mono text-red-400 font-bold flex-shrink-0">{count}</span>
                       </div>
                     )) : (
-                      <span className="text-[10px] text-slate-500">Keine Gründe angegeben</span>
+                      <span className="text-xs text-slate-500">Keine Gründe angegeben</span>
                     )}
                   </div>
                 </div>
 
                 {/* Top Cities */}
                 <div>
-                  <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2 font-medium">Betroffene Städte</div>
+                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-medium">Betroffene Städte</div>
                   <div className="space-y-1">
                     {cancellationInsight.topCities.map(([city, count]) => (
                       <div key={city} className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400">{city}</span>
-                        <span className="text-[10px] font-mono text-amber-400 font-bold">{count}</span>
+                        <span className="text-xs text-slate-500">{city}</span>
+                        <span className="text-xs font-mono text-amber-400 font-bold">{count}</span>
                       </div>
                     ))}
                   </div>
@@ -1228,12 +1228,12 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
 
                 {/* Top Partners */}
                 <div>
-                  <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2 font-medium">Betroffene Partner</div>
+                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-medium">Betroffene Partner</div>
                   <div className="space-y-1">
                     {cancellationInsight.topPartners.map(([partner, count]) => (
                       <div key={partner} className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400 truncate mr-2">{partner}</span>
-                        <span className="text-[10px] font-mono text-blue-400 font-bold flex-shrink-0">{count}</span>
+                        <span className="text-xs text-slate-500 truncate mr-2">{partner}</span>
+                        <span className="text-xs font-mono text-blue-400 font-bold flex-shrink-0">{count}</span>
                       </div>
                     ))}
                   </div>
@@ -1244,17 +1244,17 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             {/* Recent Cancellations List */}
             {cancellationInsight.recentItems.length > 0 && (
               <div className="mt-4 pt-4 border-t border-slate-700">
-                <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2 font-medium">Letzte Abbrüche</div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-medium">Letzte Abbrüche</div>
                 <div className="space-y-1 max-h-40 overflow-y-auto">
                   {cancellationInsight.recentItems.slice(0, 8).map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[10px] py-1 px-2 rounded-lg bg-slate-800/50">
-                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${item.type === 'Post-Install' ? 'bg-orange-500/20 text-orange-300' : 'bg-red-500/20 text-red-300'}`}>
+                    <div key={i} className="flex items-center gap-2 text-xs py-1 px-2 rounded-lg bg-slate-800/50">
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${item.type === 'Post-Install' ? 'bg-orange-500/20 text-orange-300' : 'bg-red-500/20 text-red-300'}`}>
                         {item.type === 'Post-Install' ? 'PI' : 'AQ'}
                       </span>
-                      <span className="text-slate-300 truncate flex-1">{item.name}</span>
+                      <span className="text-slate-500 truncate flex-1">{item.name}</span>
                       <span className="text-slate-500 flex-shrink-0">{item.city}</span>
                       <span className="text-slate-500 font-mono flex-shrink-0">{fmtDate(item.date)}</span>
-                      <span className="text-slate-400 truncate max-w-[120px]">{item.reasons}</span>
+                      <span className="text-slate-500 truncate max-w-[120px]">{item.reasons}</span>
                     </div>
                   ))}
                 </div>
@@ -1288,9 +1288,9 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                       <div className="absolute top-0 left-3 right-3 h-[3px] rounded-b-full" style={{ backgroundColor: cfg.color, opacity: count > 0 ? 1 : 0.2 }} />
                       <div className="text-center pt-1">
                         <div className="text-lg font-bold font-mono text-slate-800">{count}</div>
-                        <div className="text-[9px] font-medium text-slate-500 mt-0.5 leading-tight">{cfg.label}</div>
+                        <div className="text-xs font-medium text-slate-500 mt-0.5 leading-tight">{cfg.label}</div>
                         {count > 0 && (
-                          <div className="text-[9px] font-mono mt-1" style={{ color: cfg.color }}>{pct}%</div>
+                          <div className="text-xs font-mono mt-1" style={{ color: cfg.color }}>{pct}%</div>
                         )}
                       </div>
                     </div>
@@ -1298,7 +1298,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                 })}
               </div>
             ) : (
-              <div className="text-xs text-slate-400 text-center py-10">Keine Daten vorhanden</div>
+              <div className="text-xs text-slate-500 text-center py-10">Keine Daten vorhanden</div>
             )}
           </div>
 
@@ -1306,18 +1306,18 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
           <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">Partner Performance</h3>
-              <span className="text-[9px] text-slate-400 font-mono">ohne New Leads</span>
+              <span className="text-xs text-slate-500 font-mono">ohne New Leads</span>
             </div>
             {partnerData.length > 0 ? (
               <div className="space-y-2">
                 {/* Header */}
                 <div className="grid grid-cols-[1fr_60px_60px_60px_70px_70px] gap-2 px-3 py-1">
-                  <span className="text-[9px] text-slate-400 font-medium uppercase">Partner</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Leads</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Accepted</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Signed</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Install-Rate</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Sign-Rate</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase">Partner</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Leads</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Accepted</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Signed</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Install-Rate</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Sign-Rate</span>
                 </div>
                 {partnerData.map((p) => (
                   <div key={p.name} className="grid grid-cols-[1fr_60px_60px_60px_70px_70px] gap-2 items-center bg-slate-50/60 border border-slate-100/60 rounded-xl px-3 py-2.5 hover:bg-slate-100/60 transition-colors">
@@ -1334,7 +1334,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                         <div className="w-10 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${p.installRate}%`, backgroundColor: p.installRate >= 50 ? '#22c55e' : p.installRate >= 25 ? '#f59e0b' : '#ef4444' }} />
                         </div>
-                        <span className="text-[10px] font-mono text-slate-500">{p.installRate}%</span>
+                        <span className="text-xs font-mono text-slate-500">{p.installRate}%</span>
                       </div>
                     </div>
                     <div className="text-center">
@@ -1342,14 +1342,14 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                         <div className="w-10 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${p.signRate}%`, backgroundColor: p.signRate >= 50 ? '#22c55e' : p.signRate >= 25 ? '#f59e0b' : '#ef4444' }} />
                         </div>
-                        <span className="text-[10px] font-mono text-slate-500">{p.signRate}%</span>
+                        <span className="text-xs font-mono text-slate-500">{p.signRate}%</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-xs text-slate-400 text-center py-10">Keine Partner-Daten</div>
+              <div className="text-xs text-slate-500 text-center py-10">Keine Partner-Daten</div>
             )}
           </div>
 
@@ -1357,18 +1357,18 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
           <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">Akquisiteur Performance</h3>
-              <span className="text-[9px] text-slate-400 font-mono">ohne New Leads</span>
+              <span className="text-xs text-slate-500 font-mono">ohne New Leads</span>
             </div>
             {acquirerData.length > 0 ? (
               <div className="space-y-2">
                 {/* Header */}
                 <div className="grid grid-cols-[1fr_60px_60px_60px_70px_70px] gap-2 px-3 py-1">
-                  <span className="text-[9px] text-slate-400 font-medium uppercase">Akquisiteur</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Leads</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Accepted</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Signed</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Install-Rate</span>
-                  <span className="text-[9px] text-slate-400 font-medium uppercase text-center">Sign-Rate</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase">Akquisiteur</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Leads</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Accepted</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Signed</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Install-Rate</span>
+                  <span className="text-xs text-slate-500 font-medium uppercase text-center">Sign-Rate</span>
                 </div>
                 {acquirerData.map((a) => (
                   <div key={a.name} className="grid grid-cols-[1fr_60px_60px_60px_70px_70px] gap-2 items-center bg-slate-50/60 border border-slate-100/60 rounded-xl px-3 py-2.5 hover:bg-slate-100/60 transition-colors">
@@ -1385,7 +1385,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                         <div className="w-10 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${a.installRate}%`, backgroundColor: a.installRate >= 50 ? '#22c55e' : a.installRate >= 25 ? '#f59e0b' : '#ef4444' }} />
                         </div>
-                        <span className="text-[10px] font-mono text-slate-500">{a.installRate}%</span>
+                        <span className="text-xs font-mono text-slate-500">{a.installRate}%</span>
                       </div>
                     </div>
                     <div className="text-center">
@@ -1393,14 +1393,14 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                         <div className="w-10 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${a.signRate}%`, backgroundColor: a.signRate >= 50 ? '#22c55e' : a.signRate >= 25 ? '#f59e0b' : '#ef4444' }} />
                         </div>
-                        <span className="text-[10px] font-mono text-slate-500">{a.signRate}%</span>
+                        <span className="text-xs font-mono text-slate-500">{a.signRate}%</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-xs text-slate-400 text-center py-10">Keine Akquisiteur-Daten</div>
+              <div className="text-xs text-slate-500 text-center py-10">Keine Akquisiteur-Daten</div>
             )}
           </div>
         </div>
@@ -1413,11 +1413,11 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             <span className="text-xs font-medium text-slate-500">{filtered.filter(r => !r.akquiseStorno && !r.postInstallStorno).length} aktive Leads</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
                   {['Akquise-ID', 'Standort', 'Stadt', 'PLZ', 'Status', 'Partner', 'Akquisiteur', 'Datum', 'Vertrag', 'dVAC/W', 'Kontakt'].map(h => (
-                    <th key={h} className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">{h}</th>
+                    <th key={h} className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -1431,7 +1431,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                       <td className="px-3 py-2 text-slate-500 font-mono">{(r.city || []).join(', ') || '–'}</td>
                       <td className="px-3 py-2 text-slate-500 font-mono">{r.postalCode || '–'}</td>
                       <td className="px-3 py-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
                           style={{ backgroundColor: sc.bg, color: sc.color, border: `1px solid ${sc.color}33` }}>
                           {sc.icon} {sc.label}
                         </span>
@@ -1442,7 +1442,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                       <td className="px-3 py-2 text-center">
                         {r.vertragVorhanden && r.vertragVorhanden !== 'false' && r.vertragVorhanden !== ''
                           ? <CheckCircle2 size={14} className="text-green-500 inline" />
-                          : <span className="text-slate-300">–</span>}
+                          : <span className="text-slate-500">–</span>}
                       </td>
                       <td className="px-3 py-2 text-slate-500 font-mono">{r.dvacWeek != null ? r.dvacWeek : '–'}</td>
                       <td className="px-3 py-2">
@@ -1466,7 +1466,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
             </table>
           </div>
           {filtered.filter(r => !r.akquiseStorno && !r.postInstallStorno).length === 0 && (
-            <div className="text-xs text-slate-400 text-center py-10">Keine aktiven Leads gefunden</div>
+            <div className="text-xs text-slate-500 text-center py-10">Keine aktiven Leads gefunden</div>
           )}
         </div>
       )}
@@ -1480,8 +1480,8 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
               <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-4">Post-Install Storno Gründe</h3>
               <ResponsiveContainer width="100%" height={Math.max(150, stornoReasons.length * 32)}>
                 <BarChart data={stornoReasons} layout="vertical" margin={{ left: 160, right: 20, top: 5, bottom: 5 }}>
-                  <XAxis type="number" tick={{ fontSize: 10, fontFamily: 'monospace' }} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fontFamily: 'monospace' }} width={150} />
+                  <XAxis type="number" tick={{ fontSize: 11, fontFamily: 'monospace' }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fontFamily: 'monospace' }} width={150} />
                   <Tooltip contentStyle={{ fontSize: 11, fontFamily: 'monospace', borderRadius: 12 }} />
                   <Bar dataKey="count" fill="#ef4444" radius={[0, 6, 6, 0]} />
                 </BarChart>
@@ -1495,11 +1495,11 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
               <span className="text-xs font-medium text-slate-500">{kpis.stornoTotal} Stornierungen</span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100">
                     {['Akquise-ID', 'Standort', 'Stadt', 'Typ', 'Grund', 'Partner', 'Datum'].map(h => (
-                      <th key={h} className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">{h}</th>
+                      <th key={h} className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -1511,17 +1511,17 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
                       <td className="px-3 py-2 text-slate-500 font-mono">{(r.city || []).join(', ') || '–'}</td>
                       <td className="px-3 py-2">
                         {r.akquiseStorno && (
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">
+                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-200">
                             Akquise
                           </span>
                         )}
                         {r.postInstallStorno && (
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-50 text-orange-600 border border-orange-200 ml-1">
+                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600 border border-orange-200 ml-1">
                             Post-Install
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-slate-500 text-[10px]">{(r.postInstallStornoGrund || []).join(', ') || '–'}</td>
+                      <td className="px-3 py-2 text-slate-500 text-sm">{(r.postInstallStornoGrund || []).join(', ') || '–'}</td>
                       <td className="px-3 py-2 text-slate-500">{r.acquisitionPartner || '–'}</td>
                       <td className="px-3 py-2 text-slate-500 font-mono">{fmtDate(r.acquisitionDate)}</td>
                     </tr>
@@ -1530,7 +1530,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
               </table>
             </div>
             {kpis.stornoTotal === 0 && (
-              <div className="text-xs text-slate-400 text-center py-10">Keine Stornierungen</div>
+              <div className="text-xs text-slate-500 text-center py-10">Keine Stornierungen</div>
             )}
           </div>
         </div>

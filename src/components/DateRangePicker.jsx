@@ -52,7 +52,7 @@ export default function DateRangePicker({
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <Calendar size={14} className="text-slate-400 flex-shrink-0" />
+      <Calendar size={14} className="text-slate-500 flex-shrink-0" />
 
       {/* Preset buttons */}
       <div className="flex gap-1">
@@ -83,7 +83,7 @@ export default function DateRangePicker({
           onChange={(e) => onRangeChange(fromInputValue(e.target.value), rangeEnd)}
           className="bg-slate-50/80 border border-slate-200/60 rounded px-2 py-1 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#3b82f6] [color-scheme:light]"
         />
-        <span className="text-slate-400 text-xs">–</span>
+        <span className="text-slate-500 text-xs">–</span>
         <input
           type="date"
           value={toInputValue(rangeEnd)}

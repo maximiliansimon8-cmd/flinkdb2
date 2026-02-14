@@ -497,7 +497,7 @@ export default function TaskDashboard() {
         <div className="text-center">
           <Loader2 size={32} className="text-[#3b82f6] animate-spin mx-auto mb-3" />
           <div className="text-slate-600 text-sm">Tasks werden geladen...</div>
-          <div className="text-slate-400 text-xs mt-1">Airtable API Abfrage</div>
+          <div className="text-slate-500 text-xs mt-1">Airtable API Abfrage</div>
         </div>
       </div>
     );
@@ -509,7 +509,7 @@ export default function TaskDashboard() {
         <div className="text-center">
           <AlertCircle size={32} className="text-[#ef4444] mx-auto mb-3" />
           <div className="text-slate-900 text-sm mb-2">Fehler beim Laden der Tasks</div>
-          <div className="text-slate-400 text-xs mb-4">{error}</div>
+          <div className="text-slate-500 text-xs mb-4">{error}</div>
           <button onClick={loadTasks} className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg text-xs text-slate-600 hover:border-[#3b82f6]">
             <RefreshCw size={14} /> Erneut versuchen
           </button>
@@ -527,7 +527,7 @@ export default function TaskDashboard() {
             <ClipboardList size={20} className="text-[#3b82f6]" />
             Task Dashboard
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Zentrale Übersicht aller Aufgaben im Rahmen des JET DooH Projekts
           </p>
         </div>
@@ -568,7 +568,7 @@ export default function TaskDashboard() {
           <div className="flex-1">
             <div className="flex items-baseline gap-3 mb-2">
               <span className="text-3xl font-bold font-mono text-slate-900">{kpis.total.toLocaleString('de-DE')}</span>
-              <span className="text-sm text-slate-400">Tasks gesamt</span>
+              <span className="text-sm text-slate-500">Tasks gesamt</span>
             </div>
             {/* Stacked progress bar */}
             <div className="w-full h-3 bg-slate-200/60 rounded-full overflow-hidden flex mb-2">
@@ -591,8 +591,8 @@ export default function TaskDashboard() {
               ].filter(s => s.value > 0).map(s => (
                 <div key={s.label} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
-                  <span className="text-[10px] text-slate-600">{s.label}</span>
-                  <span className="text-[10px] font-mono font-medium" style={{ color: s.color }}>
+                  <span className="text-xs text-slate-600">{s.label}</span>
+                  <span className="text-xs font-mono font-medium" style={{ color: s.color }}>
                     {s.value} ({kpis.total > 0 ? ((s.value / kpis.total) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
@@ -604,19 +604,19 @@ export default function TaskDashboard() {
           <div className="flex gap-4 lg:gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold font-mono text-[#22c55e]">{kpis.completionRate}%</div>
-              <div className="text-[10px] text-slate-400">Abgeschlossen</div>
+              <div className="text-xs text-slate-500">Abgeschlossen</div>
             </div>
             <div className="w-px bg-slate-200" />
             <div className="text-center">
               <div className={`text-2xl font-bold font-mono ${Number(kpis.velocity30) >= 100 ? 'text-[#22c55e]' : Number(kpis.velocity30) >= 70 ? 'text-[#f59e0b]' : 'text-[#ef4444]'}`}>
                 {kpis.velocity30}{kpis.velocity30 !== '–' ? '%' : ''}
               </div>
-              <div className="text-[10px] text-slate-400">Velocity 30T</div>
+              <div className="text-xs text-slate-500">Velocity 30T</div>
             </div>
             <div className="w-px bg-slate-200" />
             <div className="text-center">
               <div className="text-2xl font-bold font-mono text-slate-900">{kpis.avgCompletionDays ? `${kpis.avgCompletionDays}d` : '–'}</div>
-              <div className="text-[10px] text-slate-400">⌀ Durchlaufzeit</div>
+              <div className="text-xs text-slate-500">⌀ Durchlaufzeit</div>
             </div>
           </div>
         </div>
@@ -649,9 +649,9 @@ export default function TaskDashboard() {
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1.5">
                   <CardIcon size={12} style={{ color: card.color }} />
-                  <span className="text-[10px] text-slate-400">{card.label}</span>
+                  <span className="text-xs text-slate-500">{card.label}</span>
                 </div>
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ backgroundColor: `${card.color}15`, color: card.color }}>
+                <span className="text-xs font-mono px-1.5 py-0.5 rounded" style={{ backgroundColor: `${card.color}15`, color: card.color }}>
                   {pct}%
                 </span>
               </div>
@@ -693,14 +693,14 @@ export default function TaskDashboard() {
             <div className="w-6 h-6 rounded bg-[#06b6d4]/10 flex items-center justify-center">
               <BarChart3 size={12} className="text-[#06b6d4]" />
             </div>
-            <div className="text-[10px] text-slate-400">30 Tage Bilanz</div>
+            <div className="text-xs text-slate-500">30 Tage Bilanz</div>
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-sm font-bold font-mono text-[#3b82f6]">+{kpis.created30}</span>
-            <span className="text-[10px] text-slate-400">/</span>
+            <span className="text-xs text-slate-500">/</span>
             <span className="text-sm font-bold font-mono text-[#22c55e]">-{kpis.completed30}</span>
           </div>
-          <div className="text-[9px] text-slate-400">Erstellt / Erledigt</div>
+          <div className="text-xs text-slate-500">Erstellt / Erledigt</div>
         </div>
       </div>
 
@@ -744,19 +744,19 @@ export default function TaskDashboard() {
             <Users size={14} className="text-[#3b82f6]" />
             Aufgaben nach Verantwortlichen
           </h3>
-          <p className="text-[10px] text-slate-400 mb-3">
+          <p className="text-xs text-slate-500 mb-3">
             Wie viele Aufgaben pro Teammitglied aktiv sind – inkl. offener, laufender und erledigter Tasks
           </p>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={tasksByAssignee} layout="vertical" margin={{ left: 0, right: 10, top: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} />
                 <YAxis
                   type="category"
                   dataKey="name"
                   width={120}
-                  tick={{ fill: '#64748b', fontSize: 10 }}
+                  tick={{ fill: '#64748b', fontSize: 11 }}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 {STATUS_ORDER.filter(s => s !== 'Completed').map((status, i) => (
@@ -774,17 +774,17 @@ export default function TaskDashboard() {
           <h3 className="text-sm font-medium text-slate-900 mb-1 flex items-center gap-2">
             <TrendingUp size={14} className="text-[#3b82f6]" />
             Wöchentliche Velocity
-            <span className="text-[10px] text-slate-400 font-normal">(Erstellt vs. Erledigt pro Kalenderwoche)</span>
+            <span className="text-xs text-slate-500 font-normal">(Erstellt vs. Erledigt pro Kalenderwoche)</span>
           </h3>
-          <p className="text-[10px] text-slate-400 mb-3">
+          <p className="text-xs text-slate-500 mb-3">
             Grüne Balken = mehr erledigt als erstellt (Backlog schrumpft) · Rote Balken = Backlog wächst
           </p>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyVelocity} margin={{ left: 0, right: 10, top: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="week" tick={{ fill: '#64748b', fontSize: 10 }} />
-                <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} width={35} />
+                <XAxis dataKey="week" tick={{ fill: '#64748b', fontSize: 11 }} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} width={35} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   formatter={(value) => <span className="text-xs text-slate-600">{value}</span>}
@@ -806,7 +806,7 @@ export default function TaskDashboard() {
             <h3 className="text-sm font-medium text-slate-900 mb-3 flex items-center gap-2">
               <TrendingUp size={14} className="text-[#3b82f6]" />
               Neue Tasks pro Tag
-              <span className="text-[10px] text-slate-400 font-normal">(90 Tage)</span>
+              <span className="text-xs text-slate-500 font-normal">(90 Tage)</span>
             </h3>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -814,14 +814,14 @@ export default function TaskDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="date"
-                    tick={{ fill: '#94a3b8', fontSize: 9 }}
+                    tick={{ fill: '#64748b', fontSize: 11 }}
                     tickFormatter={(d) => {
                       const dt = new Date(d);
                       return `${dt.getDate()}.${dt.getMonth() + 1}`;
                     }}
                     interval={Math.max(0, Math.floor(tasksTimeline.length / 12))}
                   />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} width={30} />
+                  <YAxis tick={{ fill: '#64748b', fontSize: 11 }} width={30} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="created" fill="#3b82f6" radius={[2, 2, 0, 0]} name="Erstellt" />
                 </BarChart>
@@ -834,7 +834,7 @@ export default function TaskDashboard() {
             <h3 className="text-sm font-medium text-slate-900 mb-3 flex items-center gap-2">
               <CheckCircle2 size={14} className="text-[#22c55e]" />
               Erledigte Tasks pro Tag
-              <span className="text-[10px] text-slate-400 font-normal">(90 Tage)</span>
+              <span className="text-xs text-slate-500 font-normal">(90 Tage)</span>
             </h3>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -842,14 +842,14 @@ export default function TaskDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="date"
-                    tick={{ fill: '#94a3b8', fontSize: 9 }}
+                    tick={{ fill: '#64748b', fontSize: 11 }}
                     tickFormatter={(d) => {
                       const dt = new Date(d);
                       return `${dt.getDate()}.${dt.getMonth() + 1}`;
                     }}
                     interval={Math.max(0, Math.floor(tasksTimeline.length / 12))}
                   />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} width={30} />
+                  <YAxis tick={{ fill: '#64748b', fontSize: 11 }} width={30} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="completed" fill="#22c55e" radius={[2, 2, 0, 0]} name="Erledigt" />
                 </BarChart>
@@ -864,7 +864,7 @@ export default function TaskDashboard() {
         <div className="flex items-center gap-2 mb-3">
           <Filter size={14} className="text-[#3b82f6]" />
           <h3 className="text-sm font-medium text-slate-900">Task-Liste</h3>
-          <span className="text-xs font-mono text-slate-400 bg-slate-50/80 px-2 py-0.5 rounded">
+          <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
             {filteredTasks.length} von {tasks.length}
           </span>
         </div>
@@ -872,7 +872,7 @@ export default function TaskDashboard() {
         <div className="flex flex-wrap gap-3 mb-4">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               value={searchQuery}
@@ -930,24 +930,24 @@ export default function TaskDashboard() {
 
         {/* ───── Task Table ───── */}
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200/60">
-                <th className="text-left py-2 px-3 text-slate-400 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('status')}>
+                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('status')}>
                   <div className="flex items-center gap-1">Status <SortIcon field="status" /></div>
                 </th>
-                <th className="text-left py-2 px-3 text-slate-400 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('title')}>
+                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('title')}>
                   <div className="flex items-center gap-1">Task <SortIcon field="title" /></div>
                 </th>
-                <th className="text-left py-2 px-3 text-slate-400 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('priority')}>
+                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('priority')}>
                   <div className="flex items-center gap-1">Priorität <SortIcon field="priority" /></div>
                 </th>
-                <th className="text-left py-2 px-3 text-slate-400 font-medium">Verantwortlich</th>
-                <th className="text-left py-2 px-3 text-slate-400 font-medium">Display / Location</th>
-                <th className="text-left py-2 px-3 text-slate-400 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('dueDate')}>
+                <th className="text-left py-2 px-3 text-slate-500 font-medium">Verantwortlich</th>
+                <th className="text-left py-2 px-3 text-slate-500 font-medium">Display / Location</th>
+                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('dueDate')}>
                   <div className="flex items-center gap-1">Fällig <SortIcon field="dueDate" /></div>
                 </th>
-                <th className="text-left py-2 px-3 text-slate-400 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('createdTime')}>
+                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('createdTime')}>
                   <div className="flex items-center gap-1">Erstellt <SortIcon field="createdTime" /></div>
                 </th>
               </tr>
@@ -966,7 +966,7 @@ export default function TaskDashboard() {
                     >
                       <td className="py-2.5 px-3">
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
                           style={{ backgroundColor: `${sc.color}20`, color: sc.color }}
                         >
                           {sc.label}
@@ -976,7 +976,7 @@ export default function TaskDashboard() {
                         <div className="text-slate-900 font-medium max-w-[300px] truncate">{task.title}</div>
                         {task.partner && (
                           <div className="mt-0.5">
-                            <span className="text-[9px] text-[#3b82f6] bg-[#3b82f6]/5 px-1.5 py-0.5 rounded">
+                            <span className="text-xs text-[#3b82f6] bg-[#3b82f6]/5 px-1.5 py-0.5 rounded">
                               {task.partner}
                             </span>
                           </div>
@@ -985,7 +985,7 @@ export default function TaskDashboard() {
                       <td className="py-2.5 px-3">
                         {task.priority && (
                           <span
-                            className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                            className="text-xs font-medium px-2 py-0.5 rounded-full"
                             style={{
                               backgroundColor: `${PRIORITY_COLORS[task.priority] || '#64748b'}20`,
                               color: PRIORITY_COLORS[task.priority] || '#64748b',
@@ -1003,15 +1003,15 @@ export default function TaskDashboard() {
                       <td className="py-2.5 px-3">
                         <div className="max-w-[200px]">
                           {(task.displayIds || []).length > 0 ? (
-                            <div className="text-slate-600 truncate text-[10px] font-mono">
+                            <div className="text-slate-600 truncate text-xs font-mono">
                               {task.displayIds.slice(0, 2).join(', ')}
                               {task.displayIds.length > 2 && ` +${task.displayIds.length - 2}`}
                             </div>
                           ) : (
-                            <span className="text-slate-400">–</span>
+                            <span className="text-slate-500">–</span>
                           )}
                           {(task.locationNames || []).length > 0 && (
-                            <div className="text-[10px] text-slate-400 truncate">
+                            <div className="text-xs text-slate-500 truncate">
                               {task.locationNames[0]}
                             </div>
                           )}
@@ -1032,7 +1032,7 @@ export default function TaskDashboard() {
                         <td colSpan={7} className="px-4 py-3">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <div className="text-[10px] text-slate-400 uppercase mb-1">Beschreibung</div>
+                              <div className="text-xs text-slate-500 uppercase mb-1">Beschreibung</div>
                               <div className="text-xs text-slate-600 whitespace-pre-wrap">
                                 {task.description || '– Keine Beschreibung –'}
                               </div>
@@ -1040,25 +1040,25 @@ export default function TaskDashboard() {
                             <div className="space-y-2">
                               {task.createdBy && (
                                 <div>
-                                  <span className="text-[10px] text-slate-400">Erstellt von: </span>
+                                  <span className="text-xs text-slate-500">Erstellt von: </span>
                                   <span className="text-xs text-slate-600">{task.createdBy}</span>
                                 </div>
                               )}
                               {task.completedDate && (
                                 <div>
-                                  <span className="text-[10px] text-slate-400">Erledigt am: </span>
+                                  <span className="text-xs text-slate-500">Erledigt am: </span>
                                   <span className="text-xs text-slate-600">{formatDate(task.completedDate)}</span>
                                 </div>
                               )}
                               {task.assigned.length > 0 && (
                                 <div>
-                                  <span className="text-[10px] text-slate-400">Zugewiesen: </span>
+                                  <span className="text-xs text-slate-500">Zugewiesen: </span>
                                   <span className="text-xs text-slate-600">{task.assigned.join(', ')}</span>
                                 </div>
                               )}
                               {task.displayIds?.length > 0 && (
                                 <div>
-                                  <span className="text-[10px] text-slate-400">Displays: </span>
+                                  <span className="text-xs text-slate-500">Displays: </span>
                                   <span className="text-xs text-slate-600 font-mono">{task.displayIds.join(', ')}</span>
                                 </div>
                               )}
@@ -1067,7 +1067,7 @@ export default function TaskDashboard() {
                               {/* Audit Trail */}
                               {(task.statusChangedBy || task.statusChangedDate) && (
                                 <div className="pt-1 border-t border-slate-200/40">
-                                  <span className="text-[10px] text-slate-400">Status geändert: </span>
+                                  <span className="text-xs text-slate-500">Status geändert: </span>
                                   <span className="text-xs text-slate-600">
                                     {task.statusChangedBy || '–'}
                                     {task.statusChangedDate && ` am ${formatDate(task.statusChangedDate)}`}
@@ -1078,15 +1078,15 @@ export default function TaskDashboard() {
                               {/* Installation Info */}
                               {(task.integrator || task.installDate) && (
                                 <div className="pt-1 border-t border-slate-200/40">
-                                  <div className="text-[10px] text-slate-400 uppercase mb-0.5">Installation</div>
+                                  <div className="text-xs text-slate-500 uppercase mb-0.5">Installation</div>
                                   {task.integrator && (
-                                    <div><span className="text-[10px] text-slate-400">Integrator: </span><span className="text-xs text-slate-600">{task.integrator}</span></div>
+                                    <div><span className="text-xs text-slate-500">Integrator: </span><span className="text-xs text-slate-600">{task.integrator}</span></div>
                                   )}
                                   {task.installDate && (
-                                    <div><span className="text-[10px] text-slate-400">Aufbau: </span><span className="text-xs text-slate-600 font-mono">{formatDate(task.installDate)}</span></div>
+                                    <div><span className="text-xs text-slate-500">Aufbau: </span><span className="text-xs text-slate-600 font-mono">{formatDate(task.installDate)}</span></div>
                                   )}
                                   {task.installRemarks && (
-                                    <div><span className="text-[10px] text-slate-400">Bemerkungen: </span><span className="text-xs text-slate-600">{task.installRemarks}</span></div>
+                                    <div><span className="text-xs text-slate-500">Bemerkungen: </span><span className="text-xs text-slate-600">{task.installRemarks}</span></div>
                                   )}
                                 </div>
                               )}
@@ -1094,14 +1094,14 @@ export default function TaskDashboard() {
                               {/* Visibility + Superchat */}
                               <div className="flex flex-wrap items-center gap-2 pt-1">
                                 {task.externalVisibility && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-200">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200">
                                     👁 Extern sichtbar
                                   </span>
                                 )}
                                 {task.superchat && (
                                   <a href={typeof task.superchat === 'string' ? task.superchat : '#'} target="_blank" rel="noopener noreferrer"
                                     onClick={e => e.stopPropagation()}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors">
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors">
                                     💬 Superchat
                                   </a>
                                 )}
@@ -1111,7 +1111,7 @@ export default function TaskDashboard() {
                           {/* Nacharbeit Kommentar */}
                           {task.nacharbeitKommentar && (
                             <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-slate-200/40">
-                              <div className="text-[10px] text-slate-400 uppercase mb-1">Nacharbeit / Follow-Up</div>
+                              <div className="text-xs text-slate-500 uppercase mb-1">Nacharbeit / Follow-Up</div>
                               <div className="text-xs text-slate-600 whitespace-pre-wrap bg-amber-50/50 rounded-lg p-2 border border-amber-100">
                                 {task.nacharbeitKommentar}
                               </div>
@@ -1121,14 +1121,14 @@ export default function TaskDashboard() {
 
                           {/* Quick Actions */}
                           <div className="mt-3 pt-3 border-t border-slate-200/40 flex flex-wrap items-center gap-2">
-                            <span className="text-[10px] text-slate-400 mr-1">Status ändern:</span>
+                            <span className="text-xs text-slate-500 mr-1">Status ändern:</span>
                             {STATUS_ORDER.filter(s => s !== task.status).map(status => {
                               const sc2 = STATUS_CONFIG[status];
                               return (
                                 <button
                                   key={status}
                                   onClick={(e) => handleQuickStatus(e, task.id, status)}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium transition-all hover:scale-105"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all hover:scale-105"
                                   style={{ backgroundColor: `${sc2.color}15`, color: sc2.color, border: `1px solid ${sc2.color}30` }}
                                 >
                                   {status}
@@ -1138,7 +1138,7 @@ export default function TaskDashboard() {
                             <div className="ml-auto flex items-center gap-2">
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingTask(task); }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#3b82f6]/10 text-[#3b82f6] rounded-lg text-[10px] font-medium hover:bg-[#3b82f6]/20 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#3b82f6]/10 text-[#3b82f6] rounded-lg text-xs font-medium hover:bg-[#3b82f6]/20 transition-colors"
                               >
                                 <Edit3 size={10} /> Bearbeiten
                               </button>
@@ -1157,24 +1157,24 @@ export default function TaskDashboard() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200/60">
-            <div className="text-[10px] text-slate-400 font-mono">
+            <div className="text-xs text-slate-500 font-mono">
               {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, sortedTasks.length)} von {sortedTasks.length}
             </div>
             <div className="flex gap-1">
               <button
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="px-2 py-1 text-[10px] rounded bg-slate-50/80 border border-slate-200/60 text-slate-600 disabled:opacity-30 hover:border-[#3b82f6]"
+                className="px-2 py-1 text-xs rounded bg-slate-50/80 border border-slate-200/60 text-slate-600 disabled:opacity-30 hover:border-[#3b82f6]"
               >
                 ← Zurück
               </button>
-              <span className="px-2 py-1 text-[10px] text-slate-400 font-mono">
+              <span className="px-2 py-1 text-xs text-slate-500 font-mono">
                 {page + 1} / {totalPages}
               </span>
               <button
                 onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-2 py-1 text-[10px] rounded bg-slate-50/80 border border-slate-200/60 text-slate-600 disabled:opacity-30 hover:border-[#3b82f6]"
+                className="px-2 py-1 text-xs rounded bg-slate-50/80 border border-slate-200/60 text-slate-600 disabled:opacity-30 hover:border-[#3b82f6]"
               >
                 Weiter →
               </button>
@@ -1212,10 +1212,10 @@ function MetricCard({ icon: Icon, iconColor, label, value, valueColor, sub }) {
         <div className="w-6 h-6 rounded flex items-center justify-center" style={{ backgroundColor: `${iconColor}15` }}>
           <Icon size={12} style={{ color: iconColor }} />
         </div>
-        <div className="text-[10px] text-slate-400">{label}</div>
+        <div className="text-xs text-slate-500">{label}</div>
       </div>
       <div className="text-lg font-bold font-mono" style={{ color: valueColor || '#0f172a' }}>{value}</div>
-      {sub && <div className="text-[9px] text-slate-400">{sub}</div>}
+      {sub && <div className="text-xs text-slate-500">{sub}</div>}
     </div>
   );
 }
