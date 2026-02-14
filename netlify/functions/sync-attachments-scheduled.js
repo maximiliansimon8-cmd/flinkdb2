@@ -1,25 +1,16 @@
 /**
- * Netlify Function: Sync Airtable Attachments → Supabase Storage
+ * Netlify Scheduled Function: Attachment Sync (Every 30 minutes)
  *
- * Downloads attachment files (PDFs, photos) from Airtable and uploads them
- * to Supabase Storage, creating permanent URLs that never expire.
+ * Proactively syncs Airtable attachments to Supabase Storage so that
+ * permanent URLs are always available (Airtable URLs expire after ~2h).
  *
- * Airtable attachment URLs expire after ~2 hours, which breaks saved links,
- * cached pages, and any offline/delayed access. This function solves that by
- * mirroring all attachments into Supabase Storage.
+ * Reuses the same attachment source definitions and sync logic as
+ * the manual sync-attachments.js function.
  *
- * Tables & fields synced:
- *   - Acquisition_DB: images_akquise, Vertrag (PDF), FAW_data_attachment
- *   - Installationen: Installationsprotokoll
- *   - Tasks: Attachments
+ * Schedule: Every 30 minutes (*/30 * * * *)
  *
- * Storage paths: {table}/{record_id}/{field}/{filename}
- * Bucket: "attachments" (public)
- *
- * Usage:
- *   GET /api/sync-attachments              — sync all tables
- *   GET /api/sync-attachments?table=tasks  — sync only tasks
- *   GET /api/sync-attachments?limit=50     — process max 50 attachments
+ * Logs results to the `attachment_sync_log` table in Supabase for
+ * status monitoring in the Admin Panel.
  *
  * Environment variables:
  *   - AIRTABLE_TOKEN
@@ -36,23 +27,27 @@ import {
 } from './shared/airtableFields.js';
 
 // ═══════════════════════════════════════════════
+//  SCHEDULE CONFIG
+// ═══════════════════════════════════════════════
+
+export const config = {
+  schedule: '*/30 * * * *',
+};
+
+// ═══════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════
 
 const STORAGE_BUCKET = 'attachments';
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
-const MAX_PROCESSING_TIME_MS = 22_000;  // Stop before 26s Netlify timeout
+const MAX_PROCESSING_TIME_MS = 120_000; // 2 minutes (scheduled functions have 15min budget, be conservative)
 
-/**
- * Attachment source definitions.
- * Each entry describes which Airtable table/fields contain attachments.
- */
 const ATTACHMENT_SOURCES = [
   {
     name: 'acquisition_images',
     tableId: TABLES.ACQUISITION,
     tableName: 'acquisition',
-    fieldName: ADF.IMAGES,                   // 'images_akquise'
+    fieldName: ADF.IMAGES,
     storageDirField: 'images_akquise',
     fetchFields: ['Akquise ID', ADF.IMAGES],
   },
@@ -60,7 +55,7 @@ const ATTACHMENT_SOURCES = [
     name: 'acquisition_vertrag',
     tableId: TABLES.ACQUISITION,
     tableName: 'acquisition',
-    fieldName: ADF.VERTRAG_PDF,              // 'Vertrag (PDF)'
+    fieldName: ADF.VERTRAG_PDF,
     storageDirField: 'vertrag_pdf',
     fetchFields: ['Akquise ID', ADF.VERTRAG_PDF],
   },
@@ -68,7 +63,7 @@ const ATTACHMENT_SOURCES = [
     name: 'acquisition_faw',
     tableId: TABLES.ACQUISITION,
     tableName: 'acquisition',
-    fieldName: ADF.FAW_DATA_ATTACHMENT,      // 'FAW_data_attachment'
+    fieldName: ADF.FAW_DATA_ATTACHMENT,
     storageDirField: 'faw_data_attachment',
     fetchFields: ['Akquise ID', ADF.FAW_DATA_ATTACHMENT],
   },
@@ -76,7 +71,7 @@ const ATTACHMENT_SOURCES = [
     name: 'installationen_protokoll',
     tableId: TABLES.INSTALLATIONEN,
     tableName: 'installationen',
-    fieldName: IF_.PROTOCOL,                 // 'Installationsprotokoll'
+    fieldName: IF_.PROTOCOL,
     storageDirField: 'installationsprotokoll',
     fetchFields: [IF_.INSTALL_DATE, IF_.PROTOCOL],
   },
@@ -84,7 +79,7 @@ const ATTACHMENT_SOURCES = [
     name: 'tasks_attachments',
     tableId: TABLES.TASKS,
     tableName: 'tasks',
-    fieldName: TF.ATTACHMENTS,               // 'Attachments'
+    fieldName: TF.ATTACHMENTS,
     storageDirField: 'attachments',
     fetchFields: [TF.TITLE, TF.ATTACHMENTS],
   },
@@ -110,7 +105,7 @@ async function fetchAllAirtable(token, tableId, fields) {
     if (res.status === 429) {
       retryCount++;
       const waitMs = Math.min(1000 * Math.pow(2, retryCount - 1), 10000);
-      console.warn(`[sync-attachments] Rate limited on ${tableId}, waiting ${waitMs}ms...`);
+      console.warn(`[sync-attachments-scheduled] Rate limited on ${tableId}, waiting ${waitMs}ms...`);
       await new Promise(r => setTimeout(r, waitMs));
       continue;
     }
@@ -118,7 +113,7 @@ async function fetchAllAirtable(token, tableId, fields) {
     retryCount = 0;
     if (!res.ok) {
       const errText = await res.text();
-      console.error(`[sync-attachments] Airtable error ${tableId}: ${res.status} ${errText.substring(0, 200)}`);
+      console.error(`[sync-attachments-scheduled] Airtable error ${tableId}: ${res.status} ${errText.substring(0, 200)}`);
       break;
     }
 
@@ -134,16 +129,11 @@ async function fetchAllAirtable(token, tableId, fields) {
 //  SUPABASE HELPERS
 // ═══════════════════════════════════════════════
 
-/**
- * Fetch all already-cached attachment keys from attachment_cache.
- * Returns a Set of "recordId|field|filename" strings for fast lookup.
- */
 async function fetchCachedKeys(supabaseUrl, serviceKey, tableName) {
   const cachedKeys = new Set();
   let offset = 0;
   const pageSize = 1000;
 
-  // Fetch in pages (Supabase default limit is 1000)
   while (true) {
     const params = new URLSearchParams({
       select: 'airtable_record_id,airtable_field,original_filename',
@@ -160,7 +150,7 @@ async function fetchCachedKeys(supabaseUrl, serviceKey, tableName) {
     });
 
     if (!res.ok) {
-      console.error(`[sync-attachments] Failed to fetch cached keys: ${res.status}`);
+      console.error(`[sync-attachments-scheduled] Failed to fetch cached keys: ${res.status}`);
       break;
     }
 
@@ -176,33 +166,23 @@ async function fetchCachedKeys(supabaseUrl, serviceKey, tableName) {
   return cachedKeys;
 }
 
-/**
- * Download a file from a URL and return it as an ArrayBuffer with metadata.
- */
 async function downloadFile(url) {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Download failed: ${res.status} ${res.statusText}`);
   }
-
   const contentType = res.headers.get('content-type') || 'application/octet-stream';
   const buffer = await res.arrayBuffer();
   return { buffer, contentType, size: buffer.byteLength };
 }
 
-/**
- * Upload a file to Supabase Storage.
- * Uses the Storage REST API directly.
- */
 async function uploadToStorage(supabaseUrl, serviceKey, storagePath, buffer, contentType) {
   const url = `${supabaseUrl}/storage/v1/object/${STORAGE_BUCKET}/${storagePath}`;
-
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${serviceKey}`,
       'Content-Type': contentType,
-      // x-upsert: true allows overwriting if file already exists
       'x-upsert': 'true',
     },
     body: buffer,
@@ -216,16 +196,10 @@ async function uploadToStorage(supabaseUrl, serviceKey, storagePath, buffer, con
   return res.json();
 }
 
-/**
- * Get the public URL for a file in Supabase Storage.
- */
 function getPublicUrl(supabaseUrl, storagePath) {
   return `${supabaseUrl}/storage/v1/object/public/${STORAGE_BUCKET}/${storagePath}`;
 }
 
-/**
- * Insert a record into the attachment_cache table.
- */
 async function insertCacheRecord(supabaseUrl, serviceKey, record) {
   const res = await fetch(`${supabaseUrl}/rest/v1/attachment_cache`, {
     method: 'POST',
@@ -244,32 +218,45 @@ async function insertCacheRecord(supabaseUrl, serviceKey, record) {
   }
 }
 
-// ═══════════════════════════════════════════════
-//  FILENAME SANITIZATION
-// ═══════════════════════════════════════════════
-
-/**
- * Sanitize a filename for use in Storage paths.
- * Removes problematic characters but keeps the file extension.
- */
 function sanitizeFilename(filename) {
   if (!filename) return 'unnamed';
-  // Replace spaces with underscores, remove anything that's not alphanumeric, dash, underscore, or dot
   return filename
     .replace(/\s+/g, '_')
     .replace(/[^a-zA-Z0-9_.\-]/g, '')
-    .substring(0, 200); // Limit length
+    .substring(0, 200);
 }
 
 // ═══════════════════════════════════════════════
-//  MAIN SYNC LOGIC
+//  SYNC LOG — write results to attachment_sync_log
 // ═══════════════════════════════════════════════
 
-/**
- * Process a single attachment source (one table + field combination).
- * Returns stats about what was processed.
- */
-async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys, limit, startTime) {
+async function writeSyncLog(supabaseUrl, serviceKey, logEntry) {
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/attachment_sync_log`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey': serviceKey,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify(logEntry),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn(`[sync-attachments-scheduled] Failed to write sync log: ${res.status} ${errText.substring(0, 200)}`);
+    }
+  } catch (err) {
+    console.warn(`[sync-attachments-scheduled] Sync log write error: ${err.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  PROCESS A SINGLE SOURCE
+// ═══════════════════════════════════════════════
+
+async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys, startTime) {
   const stats = {
     name: source.name,
     recordsFetched: 0,
@@ -281,11 +268,9 @@ async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys,
     errorDetails: [],
   };
 
-  // Fetch records from Airtable
   const records = await fetchAllAirtable(token, source.tableId, source.fetchFields);
   stats.recordsFetched = records.length;
 
-  // Collect all attachments that need processing
   const toProcess = [];
 
   for (const rec of records) {
@@ -303,10 +288,8 @@ async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys,
         continue;
       }
 
-      // Check file size from Airtable metadata
       if (att.size && att.size > MAX_FILE_SIZE) {
         stats.skippedTooLarge++;
-        console.log(`[sync-attachments] Skipping ${att.filename} (${(att.size / 1024 / 1024).toFixed(1)}MB > 50MB limit)`);
         continue;
       }
 
@@ -318,20 +301,12 @@ async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys,
     }
   }
 
-  console.log(`[sync-attachments] ${source.name}: ${stats.attachmentsFound} attachments found, ${stats.alreadyCached} already cached, ${toProcess.length} to upload`);
+  console.log(`[sync-attachments-scheduled] ${source.name}: ${stats.attachmentsFound} found, ${stats.alreadyCached} cached, ${toProcess.length} to upload`);
 
-  // Process attachments (respect limit and time budget)
   let processed = 0;
   for (const item of toProcess) {
-    // Check time budget
     if (Date.now() - startTime > MAX_PROCESSING_TIME_MS) {
-      console.log(`[sync-attachments] Time budget exceeded, stopping. Processed ${processed}/${toProcess.length}`);
-      break;
-    }
-
-    // Check item limit
-    if (limit > 0 && processed >= limit) {
-      console.log(`[sync-attachments] Limit of ${limit} reached, stopping.`);
+      console.log(`[sync-attachments-scheduled] Time budget exceeded, stopping. Processed ${processed}/${toProcess.length}`);
       break;
     }
 
@@ -340,23 +315,16 @@ async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys,
     const storagePath = `${src.tableName}/${recordId}/${src.storageDirField}/${safeFilename}`;
 
     try {
-      // Download from Airtable
       const { buffer, contentType, size } = await downloadFile(attachment.url);
 
-      // Double-check actual size
       if (size > MAX_FILE_SIZE) {
         stats.skippedTooLarge++;
-        console.log(`[sync-attachments] Skipping ${safeFilename} (actual ${(size / 1024 / 1024).toFixed(1)}MB > 50MB)`);
         continue;
       }
 
-      // Upload to Supabase Storage
       await uploadToStorage(supabaseUrl, serviceKey, storagePath, buffer, contentType);
-
-      // Get permanent public URL
       const publicUrl = getPublicUrl(supabaseUrl, storagePath);
 
-      // Insert into cache table
       await insertCacheRecord(supabaseUrl, serviceKey, {
         airtable_record_id: recordId,
         airtable_table: src.tableName,
@@ -373,7 +341,7 @@ async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys,
       processed++;
 
       if (processed % 10 === 0) {
-        console.log(`[sync-attachments] ${src.name}: ${processed}/${toProcess.length} uploaded...`);
+        console.log(`[sync-attachments-scheduled] ${src.name}: ${processed}/${toProcess.length} uploaded...`);
       }
     } catch (err) {
       stats.errors++;
@@ -382,7 +350,7 @@ async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys,
         filename: attachment.filename,
         error: err.message,
       });
-      console.error(`[sync-attachments] Error uploading ${safeFilename} for ${recordId}: ${err.message}`);
+      console.error(`[sync-attachments-scheduled] Error uploading ${safeFilename} for ${recordId}: ${err.message}`);
     }
   }
 
@@ -390,105 +358,45 @@ async function processSource(source, token, supabaseUrl, serviceKey, cachedKeys,
 }
 
 // ═══════════════════════════════════════════════
-//  HANDLER
+//  MAIN HANDLER (Scheduled — no request/response)
 // ═══════════════════════════════════════════════
 
-import {
-  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
-  checkRateLimit, getClientIP, rateLimitResponse,
-} from './shared/security.js';
-
-export default async (request) => {
+export default async () => {
   const startTime = Date.now();
-
-  if (request.method === 'OPTIONS') {
-    return handlePreflight(request);
-  }
-
-  // Origin check
-  const origin = getAllowedOrigin(request);
-  if (!origin) return forbiddenResponse();
-
-  const headers = {
-    'Content-Type': 'application/json',
-    ...corsHeaders(origin),
-  };
-
-  // Rate limiting — attachment sync is expensive
-  const clientIP = getClientIP(request);
-  const limit = checkRateLimit(`sync-attachments:${clientIP}`, 5, 60_000);
-  if (!limit.allowed) {
-    return rateLimitResponse(limit.retryAfterMs, origin);
-  }
+  console.log('[sync-attachments-scheduled] Starting scheduled attachment sync...');
 
   const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
   const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co';
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!AIRTABLE_TOKEN || !SUPABASE_SERVICE_KEY) {
-    console.error('[sync-attachments] Missing required environment variables');
-    return new Response(JSON.stringify({ error: 'Server-Konfigurationsfehler' }), {
-      status: 500, headers,
-    });
+    console.error('[sync-attachments-scheduled] Missing required environment variables');
+    return;
   }
 
-  // Parse query parameters
-  const url = new URL(request.url);
-  const tableFilter = url.searchParams.get('table');  // e.g. "tasks", "acquisition", "installationen"
-  const limitParam = parseInt(url.searchParams.get('limit') || '0', 10);
-
-  console.log(`[sync-attachments] Starting. table=${tableFilter || 'all'}, limit=${limitParam || 'none'}`);
-
   try {
-    // Determine which sources to process
-    let sources = ATTACHMENT_SOURCES;
-    if (tableFilter) {
-      sources = ATTACHMENT_SOURCES.filter(s =>
-        s.tableName === tableFilter || s.name === tableFilter || s.name.startsWith(tableFilter)
-      );
-      if (sources.length === 0) {
-        return new Response(JSON.stringify({
-          error: `Unknown table filter: "${tableFilter}"`,
-          validTables: ['acquisition', 'installationen', 'tasks'],
-          validNames: ATTACHMENT_SOURCES.map(s => s.name),
-        }), { status: 400, headers });
-      }
-    }
-
-    // Fetch cached keys for all relevant tables (deduplicated)
-    const uniqueTables = [...new Set(sources.map(s => s.tableName))];
+    // Fetch cached keys for all tables (deduplicated)
+    const uniqueTables = [...new Set(ATTACHMENT_SOURCES.map(s => s.tableName))];
     const cachedKeysMap = {};
     for (const tableName of uniqueTables) {
       cachedKeysMap[tableName] = await fetchCachedKeys(SUPABASE_URL, SUPABASE_SERVICE_KEY, tableName);
-      console.log(`[sync-attachments] Loaded ${cachedKeysMap[tableName].size} cached keys for ${tableName}`);
+      console.log(`[sync-attachments-scheduled] Loaded ${cachedKeysMap[tableName].size} cached keys for ${tableName}`);
     }
 
-    // Process each source sequentially (to respect time budget)
+    // Process each source sequentially
     const results = [];
-    let totalLimit = limitParam;
-
-    for (const source of sources) {
-      // Check time budget before starting a new source
+    for (const source of ATTACHMENT_SOURCES) {
       if (Date.now() - startTime > MAX_PROCESSING_TIME_MS) {
-        console.log(`[sync-attachments] Time budget exceeded, skipping remaining sources`);
+        console.log('[sync-attachments-scheduled] Time budget exceeded, skipping remaining sources');
         break;
       }
 
       const cachedKeys = cachedKeysMap[source.tableName];
-      const sourceLimit = totalLimit; // Each source can use remaining budget
-
       const stats = await processSource(
         source, AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY,
-        cachedKeys, sourceLimit, startTime
+        cachedKeys, startTime
       );
-
       results.push(stats);
-
-      // Subtract uploaded from remaining limit
-      if (totalLimit > 0) {
-        totalLimit = Math.max(0, totalLimit - stats.uploaded);
-        if (totalLimit === 0) break;
-      }
     }
 
     const durationMs = Date.now() - startTime;
@@ -503,53 +411,40 @@ export default async (request) => {
       errors: results.reduce((s, r) => s + r.errors, 0),
     };
 
-    console.log(`[sync-attachments] Complete in ${(durationMs / 1000).toFixed(1)}s — ${totals.uploaded} uploaded, ${totals.alreadyCached} cached, ${totals.errors} errors`);
+    console.log(`[sync-attachments-scheduled] Complete in ${(durationMs / 1000).toFixed(1)}s — ${totals.uploaded} uploaded, ${totals.alreadyCached} cached, ${totals.errors} errors`);
 
-    // Write to attachment_sync_log for AdminPanel status tracking
-    try {
-      await fetch(`${SUPABASE_URL}/rest/v1/attachment_sync_log`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'apikey': SUPABASE_SERVICE_KEY,
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({
-          sync_type: 'manual',
-          status: totals.errors === 0 ? 'success' : 'partial',
-          records_synced: totals.uploaded,
-          attachments_found: totals.attachmentsFound,
-          already_cached: totals.alreadyCached,
-          errors_count: totals.errors,
-          duration_ms: durationMs,
-          started_at: new Date(startTime).toISOString(),
-          completed_at: new Date().toISOString(),
-          error_message: totals.errors > 0
-            ? results.flatMap(r => r.errorDetails).slice(0, 5).map(e => `${e.recordId}: ${e.error}`).join('; ')
-            : null,
-          details: JSON.stringify({
-            filter: tableFilter || 'all',
-            sources: results.map(r => ({
-              name: r.name,
-              records: r.recordsFetched,
-              found: r.attachmentsFound,
-              cached: r.alreadyCached,
-              uploaded: r.uploaded,
-              errors: r.errors,
-            })),
-          }),
-        }),
-      });
-    } catch (logErr) {
-      console.warn('[sync-attachments] Failed to write sync log:', logErr.message);
-    }
+    // Write sync log to Supabase
+    await writeSyncLog(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      sync_type: 'scheduled',
+      status: totals.errors === 0 ? 'success' : 'partial',
+      records_synced: totals.uploaded,
+      attachments_found: totals.attachmentsFound,
+      already_cached: totals.alreadyCached,
+      errors_count: totals.errors,
+      duration_ms: durationMs,
+      started_at: new Date(startTime).toISOString(),
+      completed_at: new Date().toISOString(),
+      error_message: totals.errors > 0
+        ? results.flatMap(r => r.errorDetails).slice(0, 5).map(e => `${e.recordId}: ${e.error}`).join('; ')
+        : null,
+      details: JSON.stringify({
+        sources: results.map(r => ({
+          name: r.name,
+          records: r.recordsFetched,
+          found: r.attachmentsFound,
+          cached: r.alreadyCached,
+          uploaded: r.uploaded,
+          errors: r.errors,
+        })),
+      }),
+    });
 
+    // API usage logging
     logApiCall({
-      functionName: 'sync-attachments',
+      functionName: 'sync-attachments-scheduled',
       service: 'airtable',
       method: 'GET',
-      endpoint: '/sync-attachments',
+      endpoint: '/sync-attachments-scheduled',
       durationMs,
       statusCode: 200,
       success: totals.errors === 0,
@@ -561,67 +456,34 @@ export default async (request) => {
         errors: totals.errors,
       },
     });
-
-    return new Response(JSON.stringify({
-      success: true,
-      duration_ms: durationMs,
-      filter: tableFilter || 'all',
-      totals,
-      sources: results.map(r => ({
-        name: r.name,
-        records: r.recordsFetched,
-        attachments: r.attachmentsFound,
-        cached: r.alreadyCached,
-        uploaded: r.uploaded,
-        skipped_too_large: r.skippedTooLarge,
-        errors: r.errors,
-        error_details: r.errorDetails.length > 0 ? r.errorDetails.slice(0, 10) : undefined,
-      })),
-    }), { status: 200, headers });
   } catch (err) {
-    console.error('[sync-attachments] Fatal error:', err);
+    const durationMs = Date.now() - startTime;
+    console.error('[sync-attachments-scheduled] Fatal error:', err);
 
-    // Write failure to sync log
-    try {
-      await fetch(`${SUPABASE_URL}/rest/v1/attachment_sync_log`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'apikey': SUPABASE_SERVICE_KEY,
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({
-          sync_type: 'manual',
-          status: 'error',
-          records_synced: 0,
-          attachments_found: 0,
-          already_cached: 0,
-          errors_count: 1,
-          duration_ms: Date.now() - startTime,
-          started_at: new Date(startTime).toISOString(),
-          completed_at: new Date().toISOString(),
-          error_message: err.message,
-          details: null,
-        }),
-      });
-    } catch (_) { /* ignore log failure */ }
+    // Log the failure
+    await writeSyncLog(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      sync_type: 'scheduled',
+      status: 'error',
+      records_synced: 0,
+      attachments_found: 0,
+      already_cached: 0,
+      errors_count: 1,
+      duration_ms: durationMs,
+      started_at: new Date(startTime).toISOString(),
+      completed_at: new Date().toISOString(),
+      error_message: err.message,
+      details: null,
+    });
 
     logApiCall({
-      functionName: 'sync-attachments',
+      functionName: 'sync-attachments-scheduled',
       service: 'airtable',
       method: 'GET',
-      endpoint: '/sync-attachments',
-      durationMs: Date.now() - startTime,
+      endpoint: '/sync-attachments-scheduled',
+      durationMs,
       statusCode: 500,
       success: false,
       errorMessage: err.message,
     });
-
-    return new Response(JSON.stringify({
-      success: false,
-      error: 'Attachment-Sync fehlgeschlagen',
-      duration_ms: Date.now() - startTime,
-    }), { status: 500, headers });
   }
 };

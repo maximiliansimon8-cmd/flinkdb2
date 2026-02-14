@@ -6,6 +6,10 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# ─── Scheduled Functions ──────────────────────────────────────────
+[functions."sync-attachments-scheduled"]
+  schedule = "*/30 * * * *"
+
 # All redirects are in public/_redirects (copied to dist/ at build time)
 # _redirects takes priority over netlify.toml redirects
 

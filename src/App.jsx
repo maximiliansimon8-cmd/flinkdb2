@@ -78,6 +78,7 @@ const ActivityFeed = lazy(() => import('./components/ActivityFeed'));
 const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
 const AkquiseApp = lazy(() => import('./components/AkquiseApp'));
 const InstallationsDashboard = lazy(() => import('./components/InstallationsDashboard'));
+const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'));
 import { fetchVenuePerformance } from './utils/vistarService';
 import useIsMobile from './hooks/useIsMobile';
 

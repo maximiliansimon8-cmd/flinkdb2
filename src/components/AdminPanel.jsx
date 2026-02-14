@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, Fragment } from 'react';
 import {
   Shield,
   Users,
@@ -47,6 +47,8 @@ import {
   RefreshCw,
   Wifi,
   Server,
+  MapPin,
+  Globe,
 } from 'lucide-react';
 import {
   getAllUsers,
@@ -526,12 +528,15 @@ export default function AdminPanel() {
   const [apiTimeRange, setApiTimeRange] = useState('24h'); // '24h' | '7d' | '30d'
   const [feedbackTypeFilter, setFeedbackTypeFilter] = useState('all');
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('all');
+  const [expandedFeedbackId, setExpandedFeedbackId] = useState(null);
 
   // Attachment Sync state
   const [syncRunning, setSyncRunning] = useState(false);
   const [syncResult, setSyncResult] = useState(null);
   const [syncTableFilter, setSyncTableFilter] = useState('all');
   const [syncError, setSyncError] = useState('');
+  const [lastSyncLog, setLastSyncLog] = useState(null);
+  const [loadingSyncLog, setLoadingSyncLog] = useState(false);
 
   const currentUser = getCurrentUser();
 
@@ -735,7 +740,7 @@ export default function AdminPanel() {
     try {
       const { data, error } = await supabase
         .from('feedback_requests')
-        .select('id,user_id,user_name,type,title,description,priority,status,admin_notes,created_at,updated_at,resolved_at,resolved_by')
+        .select('id,user_id,user_name,type,title,description,priority,status,admin_notes,created_at,updated_at,resolved_at,resolved_by,click_x,click_y,url,component,viewport_width,viewport_height,user_agent,context_data')
         .order('created_at', { ascending: false });
       if (!error) setFeedbackItems(data || []);
     } catch (e) {
@@ -823,6 +828,29 @@ export default function AdminPanel() {
     if (activeSection === 'api-usage') refreshApiUsage();
   }, [activeSection, refreshApiUsage]);
 
+  // ─── Attachment Sync Log Fetcher ───
+  const fetchLastSyncLog = useCallback(async () => {
+    setLoadingSyncLog(true);
+    try {
+      const { data, error } = await supabase
+        .from('attachment_sync_log')
+        .select('*')
+        .order('completed_at', { ascending: false })
+        .limit(5);
+      if (!error && data?.length > 0) {
+        setLastSyncLog(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch sync log:', err);
+    } finally {
+      setLoadingSyncLog(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeSection === 'attachments') fetchLastSyncLog();
+  }, [activeSection, fetchLastSyncLog]);
+
   // ─── Attachment Sync Handler ───
   const handleSyncAttachments = useCallback(async () => {
     setSyncRunning(true);
@@ -840,13 +868,15 @@ export default function AdminPanel() {
       const data = await res.json();
       setSyncResult(data);
       showToast(`${data.totals?.uploaded || 0} Attachments hochgeladen, ${data.totals?.alreadyCached || 0} bereits gecached`);
+      // Refresh sync log to show the new entry
+      fetchLastSyncLog();
     } catch (err) {
       setSyncError(err.message || 'Unbekannter Fehler');
       showToast(err.message || 'Sync fehlgeschlagen', 'error');
     } finally {
       setSyncRunning(false);
     }
-  }, [syncTableFilter, showToast]);
+  }, [syncTableFilter, showToast, fetchLastSyncLog]);
 
   const apiStats = useMemo(() => {
     if (!apiUsageData.length) return { totalCalls: 0, byService: {}, byFunction: {}, errorCount: 0, totalCostCents: 0, totalTokensIn: 0, totalTokensOut: 0, avgDuration: 0 };
@@ -1549,6 +1579,7 @@ export default function AdminPanel() {
                     { key: 'all', label: 'Alle' },
                     { key: 'feature', label: 'Features' },
                     { key: 'bug', label: 'Bugs' },
+                    { key: 'feedback', label: 'Feedback' },
                     { key: 'question', label: 'Fragen' },
                   ].map((t) => (
                     <button
@@ -1616,8 +1647,8 @@ export default function AdminPanel() {
                 </thead>
                 <tbody>
                   {filteredFeedback.map((item) => {
-                    const TypeIcon = item.type === 'feature' ? Lightbulb : item.type === 'bug' ? Bug : HelpCircle;
-                    const typeColor = item.type === 'feature' ? '#f59e0b' : item.type === 'bug' ? '#ef4444' : '#3b82f6';
+                    const TypeIcon = item.type === 'feature' ? Lightbulb : item.type === 'bug' ? Bug : item.type === 'feedback' ? Lightbulb : HelpCircle;
+                    const typeColor = item.type === 'feature' ? '#f59e0b' : item.type === 'bug' ? '#ef4444' : item.type === 'feedback' ? '#8b5cf6' : '#3b82f6';
                     const priorityConfig = {
                       low: { label: 'Low', bg: 'bg-slate-50/80', text: 'text-slate-600', border: 'border-slate-200/60' },
                       medium: { label: 'Medium', bg: 'bg-blue-50/80', text: 'text-blue-600', border: 'border-blue-200/60' },
@@ -1625,11 +1656,14 @@ export default function AdminPanel() {
                       critical: { label: 'Critical', bg: 'bg-red-50/80', text: 'text-red-600', border: 'border-red-200/60' },
                     };
                     const prio = priorityConfig[item.priority] || priorityConfig.medium;
+                    const isExpanded = expandedFeedbackId === item.id;
+                    const hasContext = item.click_x != null || item.url || item.component || item.context_data;
 
                     return (
+                      <Fragment key={item.id}>
                       <tr
-                        key={item.id}
-                        className="border-b border-slate-100/60 hover:bg-blue-50/30 transition-colors"
+                        onClick={() => setExpandedFeedbackId(isExpanded ? null : item.id)}
+                        className={`border-b border-slate-100/60 hover:bg-blue-50/30 transition-colors cursor-pointer ${isExpanded ? 'bg-blue-50/20' : ''}`}
                       >
                         {/* Type Icon */}
                         <td className="px-5 py-3">
@@ -1643,14 +1677,19 @@ export default function AdminPanel() {
 
                         {/* Title */}
                         <td className="px-5 py-3">
-                          <div className="text-sm font-medium text-slate-900 truncate max-w-xs">
-                            {item.title}
-                          </div>
-                          {item.description && (
-                            <div className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
-                              {item.description}
+                          <div className="flex items-center gap-1.5">
+                            <ChevronRight size={12} className={`text-slate-400 transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-slate-900 truncate max-w-xs">
+                                {item.title}
+                              </div>
+                              {item.description && (
+                                <div className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
+                                  {item.description}
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </td>
 
                         {/* User */}
@@ -1659,7 +1698,7 @@ export default function AdminPanel() {
                         </td>
 
                         {/* Priority */}
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="relative inline-block">
                             <select
                               value={item.priority || 'medium'}
@@ -1676,7 +1715,7 @@ export default function AdminPanel() {
                         </td>
 
                         {/* Status */}
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="relative inline-block">
                             <select
                               value={item.status || 'open'}
@@ -1709,6 +1748,120 @@ export default function AdminPanel() {
                           </span>
                         </td>
                       </tr>
+
+                      {/* Expanded Detail Row */}
+                      {isExpanded && (
+                        <tr className="bg-slate-50/40">
+                          <td colSpan={6} className="px-5 py-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Description */}
+                              {item.description && (
+                                <div className="md:col-span-2">
+                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Beschreibung</div>
+                                  <div className="text-sm text-slate-700 bg-white/60 border border-slate-200/40 rounded-xl p-3 whitespace-pre-wrap">
+                                    {item.description}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Click Position & Context */}
+                              {hasContext && (
+                                <div>
+                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Kontext</div>
+                                  <div className="space-y-1.5 bg-white/60 border border-slate-200/40 rounded-xl p-3">
+                                    {item.component && (
+                                      <div className="flex items-center gap-2 text-xs">
+                                        <Monitor size={11} className="text-slate-400 shrink-0" />
+                                        <span className="text-slate-500">Komponente:</span>
+                                        <span className="font-mono text-slate-700">{item.component}</span>
+                                      </div>
+                                    )}
+                                    {item.url && (
+                                      <div className="flex items-center gap-2 text-xs">
+                                        <Globe size={11} className="text-slate-400 shrink-0" />
+                                        <span className="text-slate-500">URL:</span>
+                                        <span className="font-mono text-slate-700 truncate">{item.url}</span>
+                                      </div>
+                                    )}
+                                    {item.click_x != null && item.click_y != null && (
+                                      <div className="flex items-center gap-2 text-xs">
+                                        <MapPin size={11} className="text-red-400 shrink-0" />
+                                        <span className="text-slate-500">Klick-Position:</span>
+                                        <span className="font-mono text-red-600">({item.click_x}, {item.click_y})</span>
+                                      </div>
+                                    )}
+                                    {item.viewport_width && item.viewport_height && (
+                                      <div className="flex items-center gap-2 text-xs">
+                                        <Monitor size={11} className="text-slate-400 shrink-0" />
+                                        <span className="text-slate-500">Viewport:</span>
+                                        <span className="font-mono text-slate-700">{item.viewport_width} x {item.viewport_height}</span>
+                                      </div>
+                                    )}
+                                    {item.user_agent && (
+                                      <div className="flex items-start gap-2 text-xs">
+                                        <Globe size={11} className="text-slate-400 shrink-0 mt-0.5" />
+                                        <span className="text-slate-500 shrink-0">Browser:</span>
+                                        <span className="font-mono text-slate-600 text-xs break-all leading-relaxed">{item.user_agent.slice(0, 120)}{item.user_agent.length > 120 ? '...' : ''}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Extra context data */}
+                              {item.context_data && (
+                                <div>
+                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Zusatzdaten</div>
+                                  <div className="bg-white/60 border border-slate-200/40 rounded-xl p-3 space-y-1.5">
+                                    {item.context_data.activeFilters && item.context_data.activeFilters.length > 0 && (
+                                      <div className="text-xs">
+                                        <span className="text-slate-500">Aktive Filter: </span>
+                                        {item.context_data.activeFilters.map((f, i) => (
+                                          <span key={i} className="inline-flex px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded font-mono text-xs mr-1">
+                                            {f.label}: {f.value}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {item.context_data.elementAtClick && (
+                                      <div className="text-xs">
+                                        <span className="text-slate-500">Element: </span>
+                                        <span className="font-mono text-slate-600">
+                                          &lt;{item.context_data.elementAtClick.tag}&gt;
+                                          {item.context_data.elementAtClick.text ? ` "${item.context_data.elementAtClick.text.slice(0, 50)}"` : ''}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {item.context_data.devicePixelRatio && (
+                                      <div className="text-xs">
+                                        <span className="text-slate-500">DPR: </span>
+                                        <span className="font-mono text-slate-600">{item.context_data.devicePixelRatio}x</span>
+                                      </div>
+                                    )}
+                                    {item.context_data.screenWidth && (
+                                      <div className="text-xs">
+                                        <span className="text-slate-500">Bildschirm: </span>
+                                        <span className="font-mono text-slate-600">{item.context_data.screenWidth} x {item.context_data.screenHeight}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Admin Notes */}
+                              {item.admin_notes && (
+                                <div className="md:col-span-2">
+                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Admin Notizen</div>
+                                  <div className="text-sm text-slate-700 bg-amber-50/50 border border-amber-200/40 rounded-xl p-3">
+                                    {item.admin_notes}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </Fragment>
                     );
                   })}
 
