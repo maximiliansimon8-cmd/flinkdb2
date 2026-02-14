@@ -39,16 +39,24 @@ const DEINSTALL_TABLE = TABLES.DEINSTALL;
 const HARDWARE_SWAP_TABLE = TABLES.HARDWARE_SWAP;
 
 /**
- * Fetch all records from an Airtable table (paginated).
+ * Fetch records from an Airtable table (paginated).
+ * If sinceISO is provided, only fetches records modified after that timestamp.
  */
-async function fetchAllAirtable(token, tableId, fields) {
+async function fetchAllAirtable(token, tableId, fields, sinceISO = null) {
   const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
+  let filterParam = '';
+  if (sinceISO) {
+    // Airtable filterByFormula: only records modified since last sync
+    const formula = `LAST_MODIFIED_TIME()>'${sinceISO}'`;
+    filterParam = `&filterByFormula=${encodeURIComponent(formula)}`;
+  }
+
   let allRecords = [];
   let offset = null;
 
   do {
     const offsetParam = offset ? `&offset=${encodeURIComponent(offset)}` : '';
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${tableId}?${fieldParams}&pageSize=100${offsetParam}`;
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${tableId}?${fieldParams}&pageSize=100${offsetParam}${filterParam}`;
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -62,6 +70,48 @@ async function fetchAllAirtable(token, tableId, fields) {
   } while (offset);
 
   return allRecords;
+}
+
+/**
+ * Get the last sync timestamp for a table from Supabase sync_metadata.
+ */
+async function getLastSyncTime(supabaseUrl, serviceKey, tableName) {
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/sync_metadata?table_name=eq.${tableName}&select=last_sync_timestamp&limit=1`,
+      { headers: { 'Authorization': `Bearer ${serviceKey}`, 'apikey': serviceKey } }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows.length > 0 ? rows[0].last_sync_timestamp : null;
+  } catch { return null; }
+}
+
+/**
+ * Update last sync timestamp for a table in Supabase sync_metadata.
+ */
+async function updateSyncTime(supabaseUrl, serviceKey, tableName, fetched, upserted) {
+  try {
+    await fetch(`${supabaseUrl}/rest/v1/sync_metadata`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey': serviceKey,
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        table_name: tableName,
+        last_sync_timestamp: new Date().toISOString(),
+        records_fetched: fetched,
+        records_upserted: upserted,
+        last_sync_status: 'success',
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch (e) {
+    console.warn(`[sync] Failed to update sync_metadata for ${tableName}:`, e.message);
+  }
 }
 
 /**
@@ -321,7 +371,14 @@ export default async (request) => {
   const results = {};
 
   try {
-    // ═══ 1. GOOGLE SHEETS → display_heartbeats ═══
+    // ═══ INCREMENTAL SYNC: Get last sync timestamps ═══
+    const lastSync = {};
+    for (const table of ['heartbeats', 'stammdaten', 'airtable_displays', 'tasks', 'acquisition', 'dayn_screens', 'installationen', 'hardware_ops', 'hardware_sim', 'hardware_displays', 'chg_approvals', 'hardware_swaps', 'hardware_deinstalls', 'communications']) {
+      lastSync[table] = await getLastSyncTime(SUPABASE_URL, SUPABASE_SERVICE_KEY, table);
+    }
+    console.log('[sync] Incremental mode — last sync timestamps loaded');
+
+    // ═══ 1. GOOGLE SHEETS → display_heartbeats (incremental: skip old rows) ═══
     console.log('[sync] Fetching Google Sheets CSV...');
     try {
       const csvRes = await fetch(SHEET_CSV_URL, {
@@ -334,6 +391,9 @@ export default async (request) => {
         const colIdx = {};
         headers.forEach((h, i) => { colIdx[h] = i; });
 
+        const cutoffTime = lastSync.heartbeats ? new Date(lastSync.heartbeats) : null;
+        let skippedOld = 0;
+
         const heartbeatRows = [];
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i].trim();
@@ -343,12 +403,19 @@ export default async (request) => {
           const timestamp = cols[colIdx['Timestamp']] || '';
           if (!displayId || !timestamp) continue;
 
+          // Incremental: skip rows older than last sync
+          const parsedTs = parseGermanDateToISO(timestamp);
+          if (cutoffTime && parsedTs) {
+            const rowTime = new Date(parsedTs);
+            if (rowTime <= cutoffTime) { skippedOld++; continue; }
+          }
+
           const slashIdx = displayId.indexOf('/');
           const stableId = slashIdx >= 0 ? displayId.substring(0, slashIdx).trim() : displayId.trim();
 
           heartbeatRows.push({
             timestamp: timestamp || null,
-            timestamp_parsed: parseGermanDateToISO(timestamp),
+            timestamp_parsed: parsedTs,
             display_id: stableId,
             raw_display_id: displayId,
             location_name: cols[colIdx['Location Name']] || null,
@@ -362,11 +429,12 @@ export default async (request) => {
           });
         }
 
-        results.heartbeats = {
-          fetched: heartbeatRows.length,
-          inserted: await insertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'display_heartbeats', heartbeatRows),
-        };
-        console.log(`[sync] Heartbeats: ${results.heartbeats.fetched} fetched, ${results.heartbeats.inserted} inserted`);
+        const inserted = heartbeatRows.length > 0
+          ? await insertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'display_heartbeats', heartbeatRows)
+          : 0;
+        results.heartbeats = { fetched: heartbeatRows.length, inserted, skippedOld };
+        await updateSyncTime(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'heartbeats', heartbeatRows.length, inserted);
+        console.log(`[sync] Heartbeats: ${heartbeatRows.length} new (${skippedOld} skipped old), ${inserted} inserted`);
       } else {
         console.error(`[sync] Google Sheets error: ${csvRes.status}`);
         results.heartbeats = { error: `HTTP ${csvRes.status}` };
@@ -376,158 +444,72 @@ export default async (request) => {
       results.heartbeats = { error: sheetErr.message };
     }
 
+    // ═══ Helper: Sync an Airtable table (incremental if sync_metadata exists) ═══
+    async function syncAirtableTable(tableName, tableId, fields, mapperFn, supabaseTable) {
+      const since = lastSync[supabaseTable];
+      console.log(`[sync] Fetching ${tableName}...${since ? ` (since ${since})` : ' (full)'}`);
+      const records = await fetchAllAirtable(AIRTABLE_TOKEN, tableId, fields, since);
+      const rows = records.map(mapperFn);
+      const upserted = rows.length > 0
+        ? await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, supabaseTable, rows)
+        : 0;
+      // Only run orphan detection on full syncs (no sinceISO = first run or forced)
+      const deleted = !since
+        ? await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, supabaseTable, records.map(r => r.id))
+        : 0;
+      await updateSyncTime(SUPABASE_URL, SUPABASE_SERVICE_KEY, supabaseTable, records.length, upserted);
+      results[supabaseTable] = { fetched: records.length, upserted, deleted, incremental: !!since };
+      console.log(`[sync] ${tableName}: ${records.length} fetched → ${upserted} upserted${deleted ? `, ${deleted} orphans deleted` : ''}${since ? ' (incremental)' : ' (full)'}`);
+    }
+
     // ═══ 2. AIRTABLE: Stammdaten ═══
-    console.log('[sync] Fetching Stammdaten...');
-    const stammdatenRecords = await fetchAllAirtable(AIRTABLE_TOKEN, STAMMDATEN_TABLE, FETCH_FIELDS.stammdaten);
-    const stammdatenRows = stammdatenRecords.map(mapStammdaten);
-    results.stammdaten = {
-      fetched: stammdatenRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'stammdaten', stammdatenRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'stammdaten', stammdatenRecords.map(r => r.id)),
-    };
-    console.log(`[sync] Stammdaten: ${results.stammdaten.fetched} → ${results.stammdaten.upserted} upserted, ${results.stammdaten.deleted} orphans deleted`);
+    await syncAirtableTable('Stammdaten', STAMMDATEN_TABLE, FETCH_FIELDS.stammdaten, mapStammdaten, 'stammdaten');
 
     // ═══ 2b. AIRTABLE: Live Display Locations (Displays) ═══
-    console.log('[sync] Fetching Live Display Locations...');
-    const displayRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DISPLAYS_TABLE, FETCH_FIELDS.displays);
-    const displayRows = displayRecords.map(mapDisplay);
-    results.displays = {
-      fetched: displayRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'airtable_displays', displayRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'airtable_displays', displayRecords.map(r => r.id)),
-    };
-    console.log(`[sync] Displays: ${results.displays.fetched} → ${results.displays.upserted} upserted, ${results.displays.deleted} orphans deleted`);
+    await syncAirtableTable('Displays', DISPLAYS_TABLE, FETCH_FIELDS.displays, mapDisplay, 'airtable_displays');
 
-    // ═══ 3. AIRTABLE: Tasks (with expanded lookup fields) ═══
-    console.log('[sync] Fetching Tasks...');
-    const taskRecords = await fetchAllAirtable(AIRTABLE_TOKEN, TASKS_TABLE, FETCH_FIELDS.tasks);
-    const taskRows = taskRecords.map(mapTask);
-    results.tasks = {
-      fetched: taskRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'tasks', taskRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'tasks', taskRecords.map(r => r.id)),
-    };
-    console.log(`[sync] Tasks: ${results.tasks.fetched} → ${results.tasks.upserted} upserted, ${results.tasks.deleted} orphans deleted`);
+    // ═══ 3. AIRTABLE: Tasks ═══
+    await syncAirtableTable('Tasks', TASKS_TABLE, FETCH_FIELDS.tasks, mapTask, 'tasks');
 
     // ═══ 3b. AIRTABLE: Acquisition_DB ═══
-    console.log('[sync] Fetching Acquisition_DB...');
-    const acqRecords = await fetchAllAirtable(AIRTABLE_TOKEN, TABLES.ACQUISITION, FETCH_FIELDS.acquisition);
-    const acqRows = acqRecords.map(mapAcquisition);
-    results.acquisition = {
-      fetched: acqRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'acquisition', acqRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'acquisition', acqRecords.map(r => r.id)),
-    };
-    console.log(`[sync] Acquisition: ${results.acquisition.fetched} → ${results.acquisition.upserted} upserted, ${results.acquisition.deleted} orphans deleted`);
+    await syncAirtableTable('Acquisition', TABLES.ACQUISITION, FETCH_FIELDS.acquisition, mapAcquisition, 'acquisition');
 
-    // ═══ 3b. AIRTABLE: Dayn Screens ═══
-    console.log('[sync] Fetching Dayn Screens...');
-    const daynRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DAYN_SCREENS_TABLE, FETCH_FIELDS.daynScreens);
-    const daynRows = daynRecords.map(mapDaynScreen);
-    results.dayn_screens = {
-      fetched: daynRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'dayn_screens', daynRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'dayn_screens', daynRecords.map(r => r.id)),
-    };
-    console.log(`[sync] Dayn Screens: ${results.dayn_screens.fetched} → ${results.dayn_screens.upserted} upserted, ${results.dayn_screens.deleted} orphans deleted`);
+    // ═══ 3c. AIRTABLE: Dayn Screens ═══
+    await syncAirtableTable('Dayn Screens', DAYN_SCREENS_TABLE, FETCH_FIELDS.daynScreens, mapDaynScreen, 'dayn_screens');
 
     // ═══ 4. AIRTABLE: Installationen ═══
-    console.log('[sync] Fetching Installationen...');
-    const installRecords = await fetchAllAirtable(AIRTABLE_TOKEN, INSTALLATIONEN_TABLE, FETCH_FIELDS.installationen);
-    const installRows = installRecords.map(mapInstallation);
-    results.installationen = {
-      fetched: installRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'installationen', installRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'installationen', installRecords.map(r => r.id)),
-    };
-    console.log(`[sync] Installationen: ${results.installationen.fetched} → ${results.installationen.upserted} upserted, ${results.installationen.deleted} orphans deleted`);
+    await syncAirtableTable('Installationen', INSTALLATIONEN_TABLE, FETCH_FIELDS.installationen, mapInstallation, 'installationen');
 
     // ═══ 5. HARDWARE: OPS Player Inventory ═══
-    console.log('[sync] Fetching OPS Player Inventory...');
-    const opsRecords = await fetchAllAirtable(AIRTABLE_TOKEN, OPS_INVENTORY_TABLE, FETCH_FIELDS.opsInventory);
-    const opsRows = opsRecords.map(mapOpsInventory);
-    results.hardware_ops = {
-      fetched: opsRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_ops', opsRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_ops', opsRecords.map(r => r.id)),
-    };
-    console.log(`[sync] OPS Inventory: ${results.hardware_ops.fetched} → ${results.hardware_ops.upserted} upserted, ${results.hardware_ops.deleted} orphans deleted`);
+    await syncAirtableTable('OPS Inventory', OPS_INVENTORY_TABLE, FETCH_FIELDS.opsInventory, mapOpsInventory, 'hardware_ops');
 
     // ═══ 6. HARDWARE: SIM Card Inventory ═══
-    console.log('[sync] Fetching SIM Card Inventory...');
-    const simRecords = await fetchAllAirtable(AIRTABLE_TOKEN, SIM_INVENTORY_TABLE, FETCH_FIELDS.simInventory);
-    const simRows = simRecords.map(mapSimInventory);
-    results.hardware_sim = {
-      fetched: simRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_sim', simRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_sim', simRecords.map(r => r.id)),
-    };
-    console.log(`[sync] SIM Inventory: ${results.hardware_sim.fetched} → ${results.hardware_sim.upserted} upserted, ${results.hardware_sim.deleted} orphans deleted`);
+    await syncAirtableTable('SIM Inventory', SIM_INVENTORY_TABLE, FETCH_FIELDS.simInventory, mapSimInventory, 'hardware_sim');
 
     // ═══ 7. HARDWARE: Display Inventory ═══
-    console.log('[sync] Fetching Display Inventory...');
-    const dispInvRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DISPLAY_INVENTORY_TABLE, FETCH_FIELDS.displayInventory);
-    const dispInvRows = dispInvRecords.map(mapDisplayInventory);
-    results.hardware_displays = {
-      fetched: dispInvRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_displays', dispInvRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_displays', dispInvRecords.map(r => r.id)),
-    };
-    console.log(`[sync] Display Inventory: ${results.hardware_displays.fetched} → ${results.hardware_displays.upserted} upserted, ${results.hardware_displays.deleted} orphans deleted`);
+    await syncAirtableTable('Display Inventory', DISPLAY_INVENTORY_TABLE, FETCH_FIELDS.displayInventory, mapDisplayInventory, 'hardware_displays');
 
     // ═══ 8. HARDWARE: CHG Approval (Leasing) ═══
-    console.log('[sync] Fetching CHG Approval...');
-    const chgRecords = await fetchAllAirtable(AIRTABLE_TOKEN, CHG_APPROVAL_TABLE, FETCH_FIELDS.chgApproval);
-    const chgRows = chgRecords.map(mapChgApproval);
-    results.chg_approvals = {
-      fetched: chgRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'chg_approvals', chgRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'chg_approvals', chgRecords.map(r => r.id)),
-    };
-    console.log(`[sync] CHG Approval: ${results.chg_approvals.fetched} → ${results.chg_approvals.upserted} upserted, ${results.chg_approvals.deleted} orphans deleted`);
+    await syncAirtableTable('CHG Approval', CHG_APPROVAL_TABLE, FETCH_FIELDS.chgApproval, mapChgApproval, 'chg_approvals');
 
     // ═══ 9. HARDWARE: Hardware Swaps ═══
-    console.log('[sync] Fetching Hardware Swaps...');
     try {
-      const swapRecords = await fetchAllAirtable(AIRTABLE_TOKEN, HARDWARE_SWAP_TABLE, FETCH_FIELDS.hardwareSwap);
-      const swapRows = swapRecords.map(mapHardwareSwap);
-      results.hardware_swaps = {
-        fetched: swapRecords.length,
-        upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_swaps', swapRows),
-        deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_swaps', swapRecords.map(r => r.id)),
-      };
-      console.log(`[sync] Hardware Swaps: ${results.hardware_swaps.fetched} → ${results.hardware_swaps.upserted} upserted`);
+      await syncAirtableTable('Hardware Swaps', HARDWARE_SWAP_TABLE, FETCH_FIELDS.hardwareSwap, mapHardwareSwap, 'hardware_swaps');
     } catch (e) {
       console.warn('[sync] Hardware Swaps table not ready yet:', e.message);
       results.hardware_swaps = { fetched: 0, upserted: 0, error: e.message };
     }
 
     // ═══ 10. HARDWARE: Deinstallationen ═══
-    console.log('[sync] Fetching Deinstallationen...');
     try {
-      const deinstRecords = await fetchAllAirtable(AIRTABLE_TOKEN, DEINSTALL_TABLE, FETCH_FIELDS.deinstall);
-      const deinstRows = deinstRecords.map(mapDeinstall);
-      results.hardware_deinstalls = {
-        fetched: deinstRecords.length,
-        upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_deinstalls', deinstRows),
-        deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'hardware_deinstalls', deinstRecords.map(r => r.id)),
-      };
-      console.log(`[sync] Deinstallationen: ${results.hardware_deinstalls.fetched} → ${results.hardware_deinstalls.upserted} upserted`);
+      await syncAirtableTable('Deinstallationen', DEINSTALL_TABLE, FETCH_FIELDS.deinstall, mapDeinstall, 'hardware_deinstalls');
     } catch (e) {
       console.warn('[sync] Deinstallationen table not ready yet:', e.message);
       results.hardware_deinstalls = { fetched: 0, upserted: 0, error: e.message };
     }
 
     // ═══ 11. AIRTABLE: Activity Log / Communications ═══
-    console.log('[sync] Fetching Activity Log...');
-    const commRecords = await fetchAllAirtable(AIRTABLE_TOKEN, ACTIVITY_LOG_TABLE, FETCH_FIELDS.communications);
-    const commRows = commRecords.map(mapCommunication);
-    results.communications = {
-      fetched: commRecords.length,
-      upserted: await upsertToSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'communications', commRows),
-      deleted: await deleteOrphansFromSupabase(SUPABASE_URL, SUPABASE_SERVICE_KEY, 'communications', commRecords.map(r => r.id)),
-    };
-    console.log(`[sync] Communications: ${results.communications.fetched} → ${results.communications.upserted} upserted, ${results.communications.deleted} orphans deleted`);
+    await syncAirtableTable('Communications', ACTIVITY_LOG_TABLE, FETCH_FIELDS.communications, mapCommunication, 'communications');
 
     const durationMs = Date.now() - startTime;
     console.log(`[sync] Complete in ${(durationMs / 1000).toFixed(1)}s`);
