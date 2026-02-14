@@ -1,11 +1,10 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   Activity,
   Monitor,
   ClipboardList,
   TrendingUp,
   TrendingDown,
-  Minus,
   WifiOff,
   AlertTriangle,
   Clock,
@@ -17,30 +16,8 @@ import {
   Wrench,
   ArrowRight,
 } from 'lucide-react';
-import {
-  getStatusColor,
-  formatDuration,
-} from '../utils/dataProcessing';
 
-/* ─── Mini Trend Arrow ─── */
-function MiniTrend({ current, previous, inverted, suffix = '' }) {
-  if (previous == null || current == null) return null;
-  const diff = current - previous;
-  if (Math.abs(diff) < 0.1) return null;
-  const isPositive = inverted ? diff < 0 : diff > 0;
-  const color = isPositive ? '#22c55e' : '#ef4444';
-  const Icon = diff > 0 ? TrendingUp : TrendingDown;
-  const sign = diff > 0 ? '+' : '';
-  const displayDiff = Number.isInteger(diff) ? diff : diff.toFixed(1);
-  return (
-    <span className="inline-flex items-center gap-0.5 text-[11px] font-mono" style={{ color }}>
-      <Icon size={11} />
-      <span>{sign}{displayDiff}{suffix}</span>
-    </span>
-  );
-}
-
-/* ─── Swipeable KPI Carousel ─── */
+/* ─── KPI Carousel (swipeable) ─── */
 function KPICarousel({ items }) {
   const scrollRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -84,7 +61,6 @@ function KPICarousel({ items }) {
                   {item.label}
                 </span>
               </div>
-              {item.trend}
             </div>
             <div className="font-mono font-bold text-3xl tracking-tight" style={{ color: item.color }}>
               {item.value}
@@ -172,12 +148,24 @@ function QuickChip({ icon: Icon, label, onTap, delay = 0 }) {
   );
 }
 
-/* ─── Main Component ─── */
+/* ─── Helper: format offline duration ─── */
+function formatDuration(hours) {
+  if (hours == null) return '';
+  if (hours < 1) return `${Math.round(hours * 60)}min`;
+  if (hours < 24) return `${Math.round(hours)}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ${Math.round(hours % 24)}h`;
+}
+
+/* ═══════════════════════════════════════════════
+   MobileDashboard
+   ─ Zero raw data dependency. Uses mobileKPIs from
+     single Supabase RPC call for instant render.
+   ═══════════════════════════════════════════════ */
 export default function MobileDashboard({
   kpis,
-  rawData,
-  comparisonData,
-  comparisonKPIs,
+  topOffline,
+  byCity,
   onNavigate,
   onSelectDisplay,
   onRefresh,
@@ -217,12 +205,11 @@ export default function MobileDashboard({
     touchStartY.current = null;
   }, [pullDistance, onRefresh]);
 
-  /* ─── Computed Attention Items ─── */
+  /* ─── Attention Items (computed from KPIs only — no raw data!) ─── */
   const attentionItems = useMemo(() => {
     const items = [];
-    if (!rawData || !kpis) return items;
+    if (!kpis) return items;
 
-    // Offline displays (critical + permanent)
     const offlineCount = (kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0);
     if (offlineCount > 0) {
       items.push({
@@ -235,7 +222,6 @@ export default function MobileDashboard({
       });
     }
 
-    // Warning displays
     if (kpis.warningCount > 0) {
       items.push({
         icon: AlertTriangle,
@@ -247,7 +233,6 @@ export default function MobileDashboard({
       });
     }
 
-    // Never online
     if (kpis.neverOnlineCount > 0) {
       items.push({
         icon: Clock,
@@ -259,49 +244,28 @@ export default function MobileDashboard({
       });
     }
 
-    // Hardware defects from comparison data
-    const defectCount = comparisonData?.airtable?.locationMap
-      ? [...comparisonData.airtable.locationMap.values()].filter(l =>
-          l.status && /defect|defekt/i.test(l.status)
-        ).length
-      : 0;
-    if (defectCount > 0) {
-      items.push({
-        icon: Wrench,
-        iconColor: '#dc2626',
-        title: 'Hardware-Fehler',
-        subtitle: 'Geraete mit Defekt-Status',
-        count: defectCount,
-        onTap: () => onNavigate?.('mobile-hardware'),
-      });
-    }
-
     return items;
-  }, [rawData, kpis, comparisonData, onNavigate]);
+  }, [kpis, onNavigate]);
 
   /* ─── KPI Cards ─── */
   const healthColor = kpis?.healthRate >= 90 ? '#22c55e' : kpis?.healthRate >= 70 ? '#f59e0b' : '#ef4444';
-  const hasRange = kpis?.snapshotCount >= 2;
 
   const kpiItems = useMemo(() => {
     if (!kpis) return [];
     return [
       {
         label: 'Health Rate',
-        value: `${kpis.healthRate}%`,
+        value: `${kpis.healthRate || 0}%`,
         icon: Activity,
         color: healthColor,
-        subtitle: kpis.snapshotCount > 0 ? `${kpis.snapshotCount} Tage Durchschnitt` : undefined,
         highlight: true,
-        trend: hasRange ? <MiniTrend current={kpis.healthRate} previous={kpis.firstHealthRate} suffix="%" /> : null,
       },
       {
         label: 'Displays',
-        value: kpis.totalActive,
+        value: kpis.totalActive || 0,
         icon: Monitor,
         color: '#3b82f6',
-        subtitle: `${kpis.onlineCount} online`,
-        trend: hasRange ? <MiniTrend current={kpis.totalActive} previous={kpis.firstTotal} /> : null,
+        subtitle: `${kpis.onlineCount || 0} online`,
         onTap: () => onNavigate?.('mobile-displays'),
       },
       {
@@ -310,23 +274,30 @@ export default function MobileDashboard({
         icon: AlertTriangle,
         color: '#ef4444',
         subtitle: 'Offline > 72h',
-        trend: hasRange ? <MiniTrend current={kpis.criticalCount} previous={kpis.firstCritical} inverted /> : null,
         onTap: () => onNavigate?.('mobile-displays', 'critical'),
       },
       {
-        label: 'Neu / Deinstalliert',
-        value: `+${kpis.newlyInstalled} / -${kpis.deinstalled}`,
+        label: 'Neu',
+        value: `+${kpis.newlyInstalled || 0}`,
         icon: TrendingUp,
         color: '#8b5cf6',
-        subtitle: comparisonKPIs ? `Vorz. +${comparisonKPIs.newlyInstalled} / -${comparisonKPIs.deinstalled}` : 'Letzter Zeitraum',
+        subtitle: 'Letzte 7 Tage',
       },
     ];
-  }, [kpis, healthColor, hasRange, comparisonKPIs, onNavigate]);
+  }, [kpis, healthColor, onNavigate]);
 
-  if (!kpis || !rawData) {
+  /* ─── Loading State ─── */
+  if (!kpis) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4">
+        <div className="w-full flex gap-3 overflow-hidden">
+          {[1,2,3].map(i => (
+            <div key={i} className="w-[72%] shrink-0 h-24 rounded-2xl bg-slate-200/60 animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+          ))}
+        </div>
+        {[1,2,3].map(i => (
+          <div key={i} className="w-full h-16 rounded-xl bg-slate-200/40 animate-pulse" style={{ animationDelay: `${(i + 3) * 80}ms` }} />
+        ))}
       </div>
     );
   }
@@ -354,7 +325,6 @@ export default function MobileDashboard({
 
       {/* ─── Dark Gradient Header ─── */}
       <div className="relative overflow-hidden mx-4 mt-3 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-5 mobile-card-enter">
-        {/* Decorative orbs */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/15 rounded-full blur-2xl" />
         <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl" />
 
@@ -378,11 +348,11 @@ export default function MobileDashboard({
             <div>
               <div className="text-xs text-white/40 font-medium uppercase tracking-wider mb-1">Network Health</div>
               <div className="text-5xl font-mono font-bold tracking-tight" style={{ color: healthColor }}>
-                {kpis.healthRate}%
+                {kpis.healthRate || 0}%
               </div>
             </div>
             <div className="text-right pb-1">
-              <div className="text-xl font-mono font-bold text-white/90">{kpis.totalActive}</div>
+              <div className="text-xl font-mono font-bold text-white/90">{kpis.totalActive || 0}</div>
               <div className="text-xs text-white/40">Displays aktiv</div>
             </div>
           </div>
@@ -391,21 +361,21 @@ export default function MobileDashboard({
           <div className="mt-4 flex gap-1 h-1.5 rounded-full overflow-hidden bg-white/10">
             <div
               className="rounded-full bg-emerald-400 transition-all duration-700"
-              style={{ width: `${(kpis.onlineCount / Math.max(kpis.totalActive, 1)) * 100}%` }}
+              style={{ width: `${((kpis.onlineCount || 0) / Math.max(kpis.totalActive || 1, 1)) * 100}%` }}
             />
             <div
               className="rounded-full bg-amber-400 transition-all duration-700"
-              style={{ width: `${(kpis.warningCount / Math.max(kpis.totalActive, 1)) * 100}%` }}
+              style={{ width: `${((kpis.warningCount || 0) / Math.max(kpis.totalActive || 1, 1)) * 100}%` }}
             />
             <div
               className="rounded-full bg-red-400 transition-all duration-700"
-              style={{ width: `${((kpis.criticalCount + kpis.permanentOfflineCount) / Math.max(kpis.totalActive, 1)) * 100}%` }}
+              style={{ width: `${(((kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0)) / Math.max(kpis.totalActive || 1, 1)) * 100}%` }}
             />
           </div>
           <div className="flex items-center justify-between mt-1.5">
-            <span className="text-[10px] text-emerald-400/70 font-mono">{kpis.onlineCount} online</span>
-            <span className="text-[10px] text-amber-400/70 font-mono">{kpis.warningCount} warn</span>
-            <span className="text-[10px] text-red-400/70 font-mono">{kpis.criticalCount + kpis.permanentOfflineCount} offline</span>
+            <span className="text-[10px] text-emerald-400/70 font-mono">{kpis.onlineCount || 0} online</span>
+            <span className="text-[10px] text-amber-400/70 font-mono">{kpis.warningCount || 0} warn</span>
+            <span className="text-[10px] text-red-400/70 font-mono">{(kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0)} offline</span>
           </div>
         </div>
       </div>
@@ -447,35 +417,14 @@ export default function MobileDashboard({
       <div className="mt-5 px-4">
         <h2 className="text-sm font-bold text-slate-800 mb-3">Schnellzugriff</h2>
         <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2">
-          <QuickChip
-            icon={Monitor}
-            label="Alle Displays"
-            onTap={() => onNavigate?.('mobile-displays')}
-            delay={500}
-          />
-          <QuickChip
-            icon={Target}
-            label="Akquise"
-            onTap={() => onNavigate?.('mobile-rollout')}
-            delay={560}
-          />
-          <QuickChip
-            icon={ClipboardList}
-            label="Tasks"
-            onTap={() => onNavigate?.('mobile-rollout', 'tasks')}
-            delay={620}
-          />
-          <QuickChip
-            icon={Wrench}
-            label="Hardware"
-            onTap={() => onNavigate?.('mobile-hardware')}
-            delay={680}
-          />
+          <QuickChip icon={Monitor} label="Alle Displays" onTap={() => onNavigate?.('mobile-displays')} delay={500} />
+          <QuickChip icon={Target} label="Rollout" onTap={() => onNavigate?.('mobile-rollout')} delay={560} />
+          <QuickChip icon={Wrench} label="Hardware" onTap={() => onNavigate?.('mobile-hardware')} delay={620} />
         </div>
       </div>
 
-      {/* ─── Recent Offline Displays ─── */}
-      {rawData?.displays && (
+      {/* ─── Top Offline Displays (from RPC — no rawData needed!) ─── */}
+      {topOffline && topOffline.length > 0 && (
         <div className="mt-5 px-4 mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-slate-800">Zuletzt Offline</h2>
@@ -488,42 +437,75 @@ export default function MobileDashboard({
             </button>
           </div>
           <div className="space-y-2">
-            {rawData.displays
-              .filter(d => d.status === 'critical' || d.status === 'permanent_offline')
-              .sort((a, b) => (b.offlineHours || 0) - (a.offlineHours || 0))
-              .slice(0, 5)
-              .map((display, i) => (
-                <button
-                  key={display.displayId}
-                  onClick={() => {
-                    if (navigator.vibrate) navigator.vibrate(6);
-                    onSelectDisplay?.(display);
-                  }}
-                  className="
-                    w-full flex items-center gap-3 p-3 rounded-xl
-                    bg-white/50 border border-slate-200/40
-                    active:scale-[0.98] active:bg-white/70
-                    transition-all duration-200
-                    mobile-card-enter text-left
-                  "
-                  style={{ animationDelay: `${600 + i * 60}ms` }}
-                >
-                  <div className={`
-                    w-2.5 h-2.5 rounded-full shrink-0
-                    ${display.status === 'permanent_offline' ? 'bg-red-700' : 'bg-red-500'}
-                  `} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800 truncate">
-                      {display.locationName || display.displayId}
+            {topOffline.slice(0, 5).map((display, i) => (
+              <button
+                key={display.displayId}
+                onClick={() => {
+                  if (navigator.vibrate) navigator.vibrate(6);
+                  onSelectDisplay?.(display);
+                }}
+                className="
+                  w-full flex items-center gap-3 p-3 rounded-xl
+                  bg-white/50 border border-slate-200/40
+                  active:scale-[0.98] active:bg-white/70
+                  transition-all duration-200
+                  mobile-card-enter text-left
+                "
+                style={{ animationDelay: `${600 + i * 60}ms` }}
+              >
+                <div className={`
+                  w-2.5 h-2.5 rounded-full shrink-0
+                  ${display.status === 'permanent_offline' ? 'bg-red-700' : 'bg-red-500'}
+                `} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-slate-800 truncate">
+                    {display.locationName || display.displayId}
+                  </div>
+                  <div className="text-xs text-slate-500 font-mono truncate">
+                    {display.city || ''} {display.offlineHours ? `-- ${formatDuration(display.offlineHours)}` : ''}
+                  </div>
+                </div>
+                <ChevronRight size={14} className="text-slate-300 shrink-0" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── City Overview (from RPC byCity data) ─── */}
+      {byCity && Object.keys(byCity).length > 0 && (
+        <div className="mt-2 px-4 mb-8">
+          <h2 className="text-sm font-bold text-slate-800 mb-3">Staedte</h2>
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(byCity)
+              .sort(([,a], [,b]) => (b.total || 0) - (a.total || 0))
+              .slice(0, 6)
+              .map(([city, data], i) => {
+                const cityHealth = data.total > 0 ? Math.round((data.online / data.total) * 100) : 0;
+                const cityColor = cityHealth >= 90 ? '#22c55e' : cityHealth >= 70 ? '#f59e0b' : '#ef4444';
+                return (
+                  <div
+                    key={city}
+                    className="bg-white/60 rounded-xl border border-slate-200/50 p-3 mobile-card-enter"
+                    style={{ animationDelay: `${700 + i * 60}ms` }}
+                  >
+                    <div className="text-xs font-semibold text-slate-700 truncate">{city}</div>
+                    <div className="flex items-end justify-between mt-1.5">
+                      <span className="text-lg font-mono font-bold" style={{ color: cityColor }}>
+                        {cityHealth}%
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">{data.total} Displays</span>
                     </div>
-                    <div className="text-xs text-slate-500 font-mono truncate">
-                      {display.city || ''} {display.offlineHours ? `-- ${formatDuration(display.offlineHours)}` : ''}
+                    {/* Mini bar */}
+                    <div className="h-1 rounded-full bg-slate-200/80 mt-1.5">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${cityHealth}%`, backgroundColor: cityColor }}
+                      />
                     </div>
                   </div>
-                  <ChevronRight size={14} className="text-slate-300 shrink-0" />
-                </button>
-              ))
-            }
+                );
+              })}
           </div>
         </div>
       )}

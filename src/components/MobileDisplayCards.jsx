@@ -7,15 +7,68 @@ import {
   AlertTriangle,
   Monitor,
   Clock,
-  Filter,
   Wifi,
   Skull,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
-import {
-  getStatusColor,
-  getStatusLabel,
-  formatDuration,
-} from '../utils/dataProcessing';
+import { supabase } from '../utils/authService';
+
+/* ─── Status Classification (matches dataProcessing.js logic) ─── */
+function getStatusFromOffline(offlineHours, neverOnline) {
+  if (neverOnline) return 'never_online';
+  if (offlineHours == null || isNaN(offlineHours)) return 'online';
+  if (offlineHours < 24) return 'online';
+  if (offlineHours < 72) return 'warning';
+  if (offlineHours >= 168) return 'permanent_offline';
+  return 'critical';
+}
+
+function getStatusColor(status) {
+  switch (status) {
+    case 'online': return '#22c55e';
+    case 'warning': return '#f59e0b';
+    case 'critical': return '#ef4444';
+    case 'permanent_offline': return '#dc2626';
+    case 'never_online': return '#64748b';
+    default: return '#64748b';
+  }
+}
+
+function getStatusLabel(status) {
+  switch (status) {
+    case 'online': return 'Online';
+    case 'warning': return 'Warnung';
+    case 'critical': return 'Kritisch';
+    case 'permanent_offline': return 'Dauerhaft';
+    case 'never_online': return 'Nie Online';
+    default: return 'Unbekannt';
+  }
+}
+
+function formatDuration(hours) {
+  if (hours == null) return '';
+  if (hours < 1) return `${Math.round(hours * 60)}min`;
+  if (hours < 24) return `${Math.round(hours)}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ${Math.round(hours % 24)}h`;
+}
+
+// City code → City name mapping (same as dataProcessing.js)
+const CITY_MAP = {
+  'CGN': 'Köln', 'BER': 'Berlin', 'MUC': 'München', 'HAM': 'Hamburg', 'HH': 'Hamburg',
+  'DUS': 'Düsseldorf', 'FRA': 'Frankfurt', 'STR': 'Stuttgart', 'DTM': 'Dortmund', 'DO': 'Dortmund',
+  'LEJ': 'Leipzig', 'DRS': 'Dresden', 'NUE': 'Nürnberg', 'HAN': 'Hannover', 'BRE': 'Bremen',
+  'ESS': 'Essen', 'KA': 'Karlsruhe', 'MS': 'Münster', 'BI': 'Bielefeld', 'WI': 'Wiesbaden',
+  'MA': 'Mannheim', 'AC': 'Aachen', 'KI': 'Kiel', 'ROS': 'Rostock',
+};
+
+function getCityFromId(displayId) {
+  if (!displayId) return '';
+  const parts = displayId.split('-');
+  if (parts.length < 3) return '';
+  return CITY_MAP[parts[2]] || parts[2];
+}
 
 /* ─── Status Filter Chips ─── */
 const STATUS_FILTERS = [
@@ -27,15 +80,12 @@ const STATUS_FILTERS = [
   { id: 'never_online', label: 'Nie Online', icon: WifiOff, color: '#64748b' },
 ];
 
+const PAGE_SIZE = 25;
+
 /* ─── Display Card ─── */
-function DisplayCard({ display, onTap, comparisonData, delay = 0 }) {
+function DisplayCard({ display, onTap, delay = 0 }) {
   const statusColor = getStatusColor(display.status);
   const statusLabel = getStatusLabel(display.status);
-
-  // Get enriched data
-  const enriched = comparisonData?.airtable?.locationMap?.get(display.displayId);
-  const jetId = enriched?.jetId;
-  const city = enriched?.city || display.city || '';
 
   return (
     <button
@@ -54,31 +104,20 @@ function DisplayCard({ display, onTap, comparisonData, delay = 0 }) {
     >
       {/* Status Indicator */}
       <div className="relative shrink-0">
-        <div
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: statusColor }}
-        />
-        {(display.status === 'online') && (
-          <div
-            className="absolute inset-0 rounded-full animate-ping opacity-40"
-            style={{ backgroundColor: statusColor }}
-          />
+        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: statusColor }} />
+        {display.status === 'online' && (
+          <div className="absolute inset-0 rounded-full animate-ping opacity-40" style={{ backgroundColor: statusColor }} />
         )}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-slate-800 truncate">
-            {display.locationName || display.displayId}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-xs text-slate-500 truncate">
-            {city}
-            {jetId ? ` -- ${jetId}` : ''}
-          </span>
-        </div>
+        <span className="text-sm font-semibold text-slate-800 truncate block">
+          {display.locationName || display.displayId}
+        </span>
+        <span className="text-xs text-slate-500 truncate block mt-0.5">
+          {display.city}
+        </span>
         {display.offlineHours > 0 && display.status !== 'online' && (
           <div className="flex items-center gap-1 mt-1">
             <Clock size={10} className="text-slate-400" />
@@ -93,10 +132,7 @@ function DisplayCard({ display, onTap, comparisonData, delay = 0 }) {
       <div className="flex items-center gap-2 shrink-0">
         <span
           className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg"
-          style={{
-            color: statusColor,
-            backgroundColor: statusColor + '14',
-          }}
+          style={{ color: statusColor, backgroundColor: statusColor + '14' }}
         >
           {statusLabel}
         </span>
@@ -106,90 +142,174 @@ function DisplayCard({ display, onTap, comparisonData, delay = 0 }) {
   );
 }
 
-/* ─── Main Component ─── */
+/* ═══════════════════════════════════════════════
+   MobileDisplayCards
+   ─ Loads displays directly from Supabase with
+     server-side filtering + pagination.
+     NO displays prop needed — self-contained.
+   ═══════════════════════════════════════════════ */
 export default function MobileDisplayCards({
-  displays,
-  onSelectDisplay,
-  comparisonData,
   initialFilter,
+  onSelectDisplay,
 }) {
+  const [displays, setDisplays] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState({});
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState(initialFilter || 'all');
-  const [visibleCount, setVisibleCount] = useState(20);
   const searchRef = useRef(null);
   const listRef = useRef(null);
+  const pageRef = useRef(0);
 
-  // Reset visible count when filter changes
-  useEffect(() => {
-    setVisibleCount(20);
-    if (listRef.current) listRef.current.scrollTop = 0;
-  }, [statusFilter, search]);
-
-  // Apply initial filter
+  // Apply initial filter when prop changes
   useEffect(() => {
     if (initialFilter) setStatusFilter(initialFilter);
   }, [initialFilter]);
 
-  // Filtered & sorted displays
-  const filteredDisplays = useMemo(() => {
-    let result = displays || [];
+  /* ─── Fetch displays from Supabase ─── */
+  const fetchDisplays = useCallback(async (page = 0, filter = statusFilter, searchQuery = search, append = false) => {
+    if (page === 0) setLoading(true);
+    else setLoadingMore(true);
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(d => d.status === statusFilter);
-    }
+    try {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
 
-    // Search
-    if (search.length >= 2) {
-      const q = search.toLowerCase().trim();
-      result = result.filter(d => {
-        const enriched = comparisonData?.airtable?.locationMap?.get(d.displayId);
-        return (
-          d.displayId?.toLowerCase().includes(q) ||
-          d.locationName?.toLowerCase().includes(q) ||
-          d.city?.toLowerCase().includes(q) ||
-          d.serialNumber?.toLowerCase().includes(q) ||
-          enriched?.jetId?.toLowerCase().includes(q) ||
-          enriched?.city?.toLowerCase().includes(q) ||
-          enriched?.street?.toLowerCase().includes(q)
-        );
-      });
-    }
+      // We fetch from display_heartbeats with DISTINCT ON display_id
+      // Since Supabase doesn't support DISTINCT ON in JS client,
+      // we fetch recent data and deduplicate client-side
+      let query = supabase
+        .from('display_heartbeats')
+        .select('display_id, raw_display_id, location_name, timestamp_parsed, heartbeat, days_offline, is_alive, display_status')
+        .order('timestamp_parsed', { ascending: false })
+        .gte('timestamp_parsed', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
-    // Sort: offline first (by hours desc), then online
-    result = [...result].sort((a, b) => {
-      // Status priority: critical > permanent_offline > warning > never_online > online
+      // Search filter (server-side)
+      if (searchQuery && searchQuery.length >= 2) {
+        query = query.or(`location_name.ilike.%${searchQuery}%,display_id.ilike.%${searchQuery}%`);
+      }
+
+      // Status-based filtering (via days_offline for server-side pre-filtering)
+      if (filter === 'critical') {
+        query = query.gte('days_offline', 3).lt('days_offline', 7);
+      } else if (filter === 'permanent_offline') {
+        query = query.gte('days_offline', 7);
+      } else if (filter === 'warning') {
+        query = query.gte('days_offline', 1).lt('days_offline', 3);
+      } else if (filter === 'online') {
+        query = query.or('days_offline.is.null,days_offline.lt.1');
+      }
+
+      // Limit to get enough unique displays
+      query = query.limit(PAGE_SIZE * 3);
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Deduplicate: keep latest per display_id
+      const seen = new Map();
+      for (const row of (data || [])) {
+        if (!seen.has(row.display_id)) {
+          const offlineHours = row.heartbeat && row.timestamp_parsed
+            ? (new Date(row.timestamp_parsed).getTime() - new Date(row.heartbeat).getTime()) / (1000 * 60 * 60)
+            : null;
+
+          const neverOnline = !row.heartbeat && !row.is_alive;
+          const status = getStatusFromOffline(
+            offlineHours != null && offlineHours >= 0 ? offlineHours : null,
+            neverOnline
+          );
+
+          // Apply client-side filter for never_online (can't easily filter server-side)
+          if (filter === 'never_online' && status !== 'never_online') continue;
+          if (filter !== 'all' && filter !== 'never_online' && status !== filter) continue;
+
+          seen.set(row.display_id, {
+            displayId: row.display_id,
+            locationName: row.location_name || '',
+            city: getCityFromId(row.display_id),
+            offlineHours: offlineHours != null ? Math.max(0, offlineHours) : null,
+            status,
+            daysOffline: row.days_offline,
+          });
+        }
+      }
+
+      // Sort: worst status first
       const statusOrder = { critical: 0, permanent_offline: 1, warning: 2, never_online: 3, online: 4 };
-      const aOrder = statusOrder[a.status] ?? 5;
-      const bOrder = statusOrder[b.status] ?? 5;
-      if (aOrder !== bOrder) return aOrder - bOrder;
-      return (b.offlineHours || 0) - (a.offlineHours || 0);
-    });
+      const sorted = [...seen.values()].sort((a, b) => {
+        const ao = statusOrder[a.status] ?? 5;
+        const bo = statusOrder[b.status] ?? 5;
+        if (ao !== bo) return ao - bo;
+        return (b.offlineHours || 0) - (a.offlineHours || 0);
+      });
 
-    return result;
-  }, [displays, statusFilter, search, comparisonData]);
+      // Paginate
+      const paged = sorted.slice(0, PAGE_SIZE);
 
-  // Visible subset for virtualization
-  const visibleDisplays = useMemo(() => {
-    return filteredDisplays.slice(0, visibleCount);
-  }, [filteredDisplays, visibleCount]);
+      if (append) {
+        setDisplays(prev => [...prev, ...paged]);
+      } else {
+        setDisplays(paged);
+      }
+      setHasMore(paged.length === PAGE_SIZE);
+      setTotalCount(sorted.length);
+      pageRef.current = page;
+    } catch (e) {
+      console.error('[MobileDisplayCards] Fetch error:', e);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [statusFilter, search]);
 
-  // Load more on scroll
+  /* ─── Fetch status counts once ─── */
+  useEffect(() => {
+    async function fetchCounts() {
+      try {
+        const { data } = await supabase.rpc('get_mobile_kpis');
+        if (data) {
+          setStatusCounts({
+            all: data.totalActive || 0,
+            online: data.onlineCount || 0,
+            warning: data.warningCount || 0,
+            critical: data.criticalCount || 0,
+            permanent_offline: data.permanentOfflineCount || 0,
+            never_online: data.neverOnlineCount || 0,
+          });
+        }
+      } catch {}
+    }
+    fetchCounts();
+  }, []);
+
+  /* ─── Initial fetch + re-fetch on filter change ─── */
+  useEffect(() => {
+    fetchDisplays(0, statusFilter, search, false);
+  }, [statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ─── Debounced search ─── */
+  useEffect(() => {
+    if (search.length === 0 || search.length >= 2) {
+      const timer = setTimeout(() => {
+        fetchDisplays(0, statusFilter, search, false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ─── Scroll to load more ─── */
   const handleScroll = useCallback((e) => {
     const el = e.target;
-    if (el.scrollHeight - el.scrollTop - el.clientHeight < 200) {
-      setVisibleCount(prev => Math.min(prev + 20, filteredDisplays.length));
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 200 && hasMore && !loadingMore) {
+      fetchDisplays(pageRef.current + 1, statusFilter, search, true);
     }
-  }, [filteredDisplays.length]);
-
-  // Status counts
-  const statusCounts = useMemo(() => {
-    const counts = { all: displays?.length || 0 };
-    (displays || []).forEach(d => {
-      counts[d.status] = (counts[d.status] || 0) + 1;
-    });
-    return counts;
-  }, [displays]);
+  }, [hasMore, loadingMore, fetchDisplays, statusFilter, search]);
 
   return (
     <div className="flex flex-col h-full">
@@ -200,7 +320,7 @@ export default function MobileDisplayCards({
           <input
             ref={searchRef}
             type="text"
-            placeholder="Standort, JET-ID, Display-ID..."
+            placeholder="Standort oder Display-ID..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="
@@ -210,13 +330,10 @@ export default function MobileDisplayCards({
               focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300
               font-mono
             "
-            style={{ fontSize: '16px' }} // Prevents iOS zoom
+            style={{ fontSize: '16px' }}
           />
           {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 active:text-slate-600"
-            >
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 active:text-slate-600">
               <X size={16} />
             </button>
           )}
@@ -237,23 +354,18 @@ export default function MobileDisplayCards({
                 className={`
                   flex items-center gap-1.5 px-3 py-1.5 rounded-full
                   text-xs font-medium whitespace-nowrap shrink-0
-                  transition-all duration-200
-                  active:scale-95
-                  ${isActive
-                    ? 'text-white shadow-sm'
-                    : 'bg-white/60 border border-slate-200/50 text-slate-600'
-                  }
+                  transition-all duration-200 active:scale-95
+                  ${isActive ? 'text-white shadow-sm' : 'bg-white/60 border border-slate-200/50 text-slate-600'}
                 `}
                 style={isActive ? { backgroundColor: f.color } : {}}
               >
                 <f.icon size={12} />
                 <span>{f.label}</span>
-                <span className={`
-                  text-[10px] font-mono px-1 py-0.5 rounded-md
-                  ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}
-                `}>
-                  {count}
-                </span>
+                {count > 0 && (
+                  <span className={`text-[10px] font-mono px-1 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                    {count}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -266,50 +378,55 @@ export default function MobileDisplayCards({
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-3 space-y-2 pb-28"
       >
-        {/* Results count */}
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-slate-500 font-mono">
-            {filteredDisplays.length} {filteredDisplays.length === 1 ? 'Display' : 'Displays'}
-          </span>
-          {search && (
-            <span className="text-xs text-blue-600 font-mono">
-              Suche: "{search}"
-            </span>
-          )}
-        </div>
-
-        {/* Cards */}
-        {visibleDisplays.map((display, i) => (
-          <DisplayCard
-            key={display.displayId}
-            display={display}
-            onTap={onSelectDisplay}
-            comparisonData={comparisonData}
-            delay={Math.min(i * 30, 300)}
-          />
-        ))}
-
-        {/* Load more indicator */}
-        {visibleCount < filteredDisplays.length && (
-          <div className="flex items-center justify-center py-4">
-            <button
-              onClick={() => setVisibleCount(prev => prev + 20)}
-              className="text-xs font-medium text-blue-600 bg-blue-50 px-4 py-2 rounded-xl active:bg-blue-100 transition-colors"
-            >
-              {filteredDisplays.length - visibleCount} weitere laden
-            </button>
+        {/* Loading */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <Loader2 size={24} className="animate-spin text-blue-500" />
+            <span className="text-xs text-slate-400">Lade Displays...</span>
           </div>
-        )}
-
-        {/* Empty state */}
-        {filteredDisplays.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Monitor size={32} className="text-slate-300 mb-3" />
-            <div className="text-sm font-medium text-slate-500">Keine Displays gefunden</div>
-            <div className="text-xs text-slate-400 mt-1">
-              {search ? 'Versuche einen anderen Suchbegriff' : 'Kein Display mit diesem Status'}
+        ) : (
+          <>
+            {/* Results count */}
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-slate-500 font-mono">
+                {displays.length} Displays
+              </span>
+              {search && (
+                <span className="text-xs text-blue-600 font-mono">
+                  Suche: "{search}"
+                </span>
+              )}
             </div>
-          </div>
+
+            {/* Cards */}
+            {displays.map((display, i) => (
+              <DisplayCard
+                key={display.displayId}
+                display={display}
+                onTap={onSelectDisplay}
+                delay={Math.min(i * 30, 300)}
+              />
+            ))}
+
+            {/* Loading more */}
+            {loadingMore && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 size={16} className="animate-spin text-blue-500 mr-2" />
+                <span className="text-xs text-slate-400">Lade mehr...</span>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {displays.length === 0 && !loading && (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Monitor size={32} className="text-slate-300 mb-3" />
+                <div className="text-sm font-medium text-slate-500">Keine Displays gefunden</div>
+                <div className="text-xs text-slate-400 mt-1">
+                  {search ? 'Versuche einen anderen Suchbegriff' : 'Kein Display mit diesem Status'}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
