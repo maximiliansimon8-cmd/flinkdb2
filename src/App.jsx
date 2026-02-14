@@ -1165,9 +1165,57 @@ function App() {
     );
   }
 
-  /* ─── Loading Screen ─── */
+  /* ═══ MOBILE: Render IMMEDIATELY — never wait for Desktop data ═══════════
+     On mobile we have mobileKPIs from a single RPC call (~2KB).
+     We MUST render the mobile layout BEFORE the desktop loading/data checks,
+     otherwise mobile gets stuck on the heavy desktop loading screen.
+     ═══════════════════════════════════════════════════════════════════════ */
+  if (isMobile) {
+    // Mobile has data (from cache or RPC) → render immediately
+    if (mobileKPIs && !loading) {
+      // Rendered below in the mobile layout section
+    } else if (mobileKPIs) {
+      // Have cached data but still refreshing → show mobile layout (not desktop loader)
+    } else if (loading) {
+      // No cached data, still loading → show lightweight mobile skeleton
+      return (
+        <div className="min-h-screen bg-[#F2F2F7] flex flex-col items-center justify-center p-6">
+          <div className="text-center">
+            <img
+              src="/dimension-outdoor-logo.png"
+              alt="Dimension Outdoor"
+              className="h-10 w-auto brightness-0 opacity-60 mx-auto mb-4"
+            />
+            <div className="w-48 mx-auto">
+              <div className="h-1 bg-slate-200/80 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-progress-glow" style={{ width: '60%' }} />
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 font-mono mt-3">Lade Dashboard...</p>
+          </div>
+        </div>
+      );
+    } else if (error) {
+      // Error on mobile
+      return (
+        <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6">
+          <div className="text-center">
+            <AlertCircle size={32} className="text-red-400 mx-auto mb-3" />
+            <p className="text-sm text-slate-700 mb-1">Verbindungsfehler</p>
+            <p className="text-xs text-slate-500 mb-4">{error}</p>
+            <button onClick={() => loadData(true)} className="px-4 py-2 bg-blue-500 text-white text-sm rounded-xl">
+              Erneut versuchen
+            </button>
+          </div>
+        </div>
+      );
+    }
+    // If we reach here with mobileKPIs → fall through to mobile layout below
+  }
 
-  if (loading) {
+  /* ─── DESKTOP Loading Screen ─── */
+
+  if (loading && !isMobile) {
     return (
       <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
         {/* Animated background orbs */}
@@ -1270,9 +1318,9 @@ function App() {
     );
   }
 
-  /* ─── Error Screen ─── */
+  /* ─── Error Screen (Desktop only — mobile handled above) ─── */
 
-  if (error) {
+  if (error && !isMobile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md">
@@ -1293,7 +1341,10 @@ function App() {
     );
   }
 
-  if (!rawData || !kpis) return null;
+  if (!rawData || !kpis) {
+    // Mobile with mobileKPIs can bypass this — falls through to mobile layout
+    if (!(isMobile && mobileKPIs)) return null;
+  }
 
   /* ─── Standalone Akquise App Mode (/#akquise-app) ─── */
   if (activeMainTab === 'akquise-app') {
@@ -1367,10 +1418,16 @@ function App() {
               </div>
             )}
 
-            {/* Hardware — Lazy loaded only when tapped */}
+            {/* Hardware — Lazy loaded only when tapped (needs Desktop data) */}
             {mobileTab === 'mobile-hardware' && (
               <div className="flex-1 overflow-y-auto pb-24">
-                <HardwareDashboard comparisonData={comparisonData} rawData={rawData} />
+                {rawData ? (
+                  <HardwareDashboard comparisonData={comparisonData || {}} rawData={rawData} />
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />Daten werden geladen...
+                  </div>
+                )}
               </div>
             )}
 
@@ -1391,9 +1448,9 @@ function App() {
         {/* AI Chat Assistant — opens as overlay on mobile when J.E.T. tab is active */}
         <Suspense fallback={null}>
           <ChatAssistant
-            rawData={rawData}
-            kpis={kpis}
-            comparisonData={comparisonData}
+            rawData={rawData || { displays: [], cityData: [], tasks: [], trendData: [] }}
+            kpis={kpis || mobileKPIs || {}}
+            comparisonData={comparisonData || {}}
             currentUser={currentUser}
             forceOpen={showMobileChat}
             onClose={() => { setShowMobileChat(false); setMobileTab('mobile-home'); }}
