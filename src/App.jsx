@@ -1165,53 +1165,44 @@ function App() {
     );
   }
 
-  /* ═══ MOBILE: Render IMMEDIATELY — never wait for Desktop data ═══════════
-     On mobile we have mobileKPIs from a single RPC call (~2KB).
-     We MUST render the mobile layout BEFORE the desktop loading/data checks,
-     otherwise mobile gets stuck on the heavy desktop loading screen.
+  /* ═══ MOBILE: Skip desktop loading entirely ═══════════════════════════════
+     Mobile uses mobileKPIs from a single RPC call (~2KB).
+     If we have mobileKPIs (from cache or fresh RPC), jump DIRECTLY to
+     the mobile layout section below — never show the desktop loader.
      ═══════════════════════════════════════════════════════════════════════ */
-  if (isMobile) {
-    // Mobile has data (from cache or RPC) → render immediately
-    if (mobileKPIs && !loading) {
-      // Rendered below in the mobile layout section
-    } else if (mobileKPIs) {
-      // Have cached data but still refreshing → show mobile layout (not desktop loader)
-    } else if (loading) {
-      // No cached data, still loading → show lightweight mobile skeleton
-      return (
-        <div className="min-h-screen bg-[#F2F2F7] flex flex-col items-center justify-center p-6">
-          <div className="text-center">
-            <img
-              src="/dimension-outdoor-logo.png"
-              alt="Dimension Outdoor"
-              className="h-10 w-auto brightness-0 opacity-60 mx-auto mb-4"
-            />
-            <div className="w-48 mx-auto">
-              <div className="h-1 bg-slate-200/80 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-progress-glow" style={{ width: '60%' }} />
-              </div>
+  if (isMobile && !mobileKPIs && loading) {
+    // No data at all yet — show lightweight mobile skeleton (NOT desktop loader)
+    return (
+      <div className="min-h-screen bg-[#F2F2F7] flex flex-col items-center justify-center p-6">
+        <div className="text-center">
+          <img src="/dimension-outdoor-logo.png" alt="Dimension Outdoor" className="h-10 w-auto brightness-0 opacity-60 mx-auto mb-4" />
+          <div className="w-48 mx-auto">
+            <div className="h-1 bg-slate-200/80 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-progress-glow" style={{ width: '60%' }} />
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-3">Lade Dashboard...</p>
           </div>
+          <p className="text-xs text-slate-400 font-mono mt-3">Lade Dashboard...</p>
         </div>
-      );
-    } else if (error) {
-      // Error on mobile
-      return (
-        <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6">
-          <div className="text-center">
-            <AlertCircle size={32} className="text-red-400 mx-auto mb-3" />
-            <p className="text-sm text-slate-700 mb-1">Verbindungsfehler</p>
-            <p className="text-xs text-slate-500 mb-4">{error}</p>
-            <button onClick={() => loadData(true)} className="px-4 py-2 bg-blue-500 text-white text-sm rounded-xl">
-              Erneut versuchen
-            </button>
-          </div>
-        </div>
-      );
-    }
-    // If we reach here with mobileKPIs → fall through to mobile layout below
+      </div>
+    );
   }
+
+  if (isMobile && !mobileKPIs && error) {
+    // Error + no cached data on mobile
+    return (
+      <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6">
+        <div className="text-center">
+          <AlertCircle size={32} className="text-red-400 mx-auto mb-3" />
+          <p className="text-sm text-slate-700 mb-1">Verbindungsfehler</p>
+          <p className="text-xs text-slate-500 mb-4">{error}</p>
+          <button onClick={() => loadData(true)} className="px-4 py-2 bg-blue-500 text-white text-sm rounded-xl">Erneut versuchen</button>
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile WITH mobileKPIs → skip everything below, go straight to mobile layout (line ~1365)
+  // (this means: skip desktop loading screen, skip rawData/kpis null check)
 
   /* ─── DESKTOP Loading Screen ─── */
 
@@ -1341,10 +1332,8 @@ function App() {
     );
   }
 
-  if (!rawData || !kpis) {
-    // Mobile with mobileKPIs can bypass this — falls through to mobile layout
-    if (!(isMobile && mobileKPIs)) return null;
-  }
+  // Desktop needs rawData + kpis. Mobile only needs mobileKPIs.
+  if (!isMobile && (!rawData || !kpis)) return null;
 
   /* ─── Standalone Akquise App Mode (/#akquise-app) ─── */
   if (activeMainTab === 'akquise-app') {
