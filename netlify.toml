@@ -7,6 +7,9 @@
   NODE_VERSION = "20"
 
 # ─── Scheduled Functions ──────────────────────────────────────────
+[functions."sync-airtable"]
+  schedule = "0 */2 * * *"
+
 [functions."sync-attachments-scheduled"]
   schedule = "*/30 * * * *"
 
