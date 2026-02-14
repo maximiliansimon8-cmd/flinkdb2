@@ -294,7 +294,7 @@ async function handleChat(body, origin) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-haiku-4-5-20250514',
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages,
@@ -323,7 +323,7 @@ async function handleChat(body, origin) {
       );
     }
     const errText = await anthropicRes.text().catch(() => '');
-    console.error('[chat-proxy] Anthropic error:', status, errText);
+    console.error('[chat-proxy] Anthropic error:', status, errText.substring(0, 500));
     // Return more specific error for debugging
     let errorMsg = 'Fehler bei der Verarbeitung.';
     if (status === 401) errorMsg = 'KI-Service Authentifizierung fehlgeschlagen.';
@@ -356,7 +356,7 @@ async function handleChat(body, origin) {
     statusCode: 200,
     success: true,
     userId: body.userId || null,
-    metadata: { model: 'claude-haiku-4-5-20251001', maxTokens: 1024 },
+    metadata: { model: 'claude-haiku-4-5-20250514', maxTokens: 1024 },
   });
 
   // Stream the SSE response through to the client
