@@ -509,10 +509,14 @@ function GroupEditModal({ group, onClose, onSave }) {
 
 /* ─── Main Admin Panel ─── */
 
-export default function AdminPanel() {
+export default function AdminPanel({ initialSection, onSectionChange }) {
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState(() => getAllGroups());
-  const [activeSection, setActiveSection] = useState('users'); // 'users' | 'groups' | 'audit'
+  const [activeSection, setActiveSectionRaw] = useState(initialSection || 'users');
+  const setActiveSection = useCallback((sec) => {
+    setActiveSectionRaw(sec);
+    onSectionChange?.(sec);
+  }, [onSectionChange]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);

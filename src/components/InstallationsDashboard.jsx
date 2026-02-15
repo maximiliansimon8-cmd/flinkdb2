@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { Calendar, List, Loader2, Send, BarChart3, PhoneCall } from 'lucide-react';
 
 const InstallationCalendar = lazy(() => import('./InstallationCalendar'));
@@ -15,8 +15,12 @@ const SUB_TABS = [
   { id: 'bookings', label: 'Buchungen', icon: List },
 ];
 
-export default function InstallationsDashboard() {
-  const [activeSubTab, setActiveSubTab] = useState('executive');
+export default function InstallationsDashboard({ initialSection, onSectionChange }) {
+  const [activeSubTab, setActiveSubTabRaw] = useState(initialSection || 'executive');
+  const setActiveSubTab = useCallback((tab) => {
+    setActiveSubTabRaw(tab);
+    onSectionChange?.(tab);
+  }, [onSectionChange]);
 
   return (
     <div className="space-y-4">

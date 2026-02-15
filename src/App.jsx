@@ -207,18 +207,37 @@ function App() {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState(null);
   const [selectedDisplay, setSelectedDisplay] = useState(null);
-  // Hash-based routing: read initial tab from URL hash
-  const getTabFromHash = () => {
-    const hash = window.location.hash.replace('#', '').replace('/', '');
-    const validTabs = ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app'];
-    return validTabs.includes(hash) ? hash : 'overview';
-  };
-  const [activeMainTab, setActiveMainTabRaw] = useState(getTabFromHash);
-  const setActiveMainTab = useCallback((tab) => {
+  // Hash-based routing: read initial tab from URL hash (supports #main/sub format)
+  const SUB_TAB_DEFAULTS = useMemo(() => ({
+    admin:         { valid: ['users','groups','audit','feedback','api-usage','attachments','data-mapping','api-overview'], default: 'users' },
+    hardware:      { valid: ['ops','completeness','leasing','orders','timeline','fehler','data-quality'], default: 'ops' },
+    acquisition:   { valid: ['netzwerk','overview','pipeline','storno'], default: 'netzwerk' },
+    installations: { valid: ['executive','calendar','invite','phone','bookings'], default: 'executive' },
+  }), []);
+  const validTabs = useMemo(() => ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app'], []);
+  const parseHash = useCallback(() => {
+    const raw = window.location.hash.replace('#', '');
+    const [mainPart, subPart] = raw.split('/');
+    const mainTab = validTabs.includes(mainPart) ? mainPart : 'overview';
+    const subDef = SUB_TAB_DEFAULTS[mainTab];
+    const subTab = subDef && subPart && subDef.valid.includes(subPart) ? subPart : (subDef?.default || null);
+    return { mainTab, subTab };
+  }, [validTabs, SUB_TAB_DEFAULTS]);
+  const initialHash = useMemo(() => parseHash(), [parseHash]);
+  const [activeMainTab, setActiveMainTabRaw] = useState(initialHash.mainTab);
+  const [activeSubTab, setActiveSubTabRaw] = useState(initialHash.subTab);
+  const setActiveMainTab = useCallback((tab, sub) => {
     setActiveMainTabRaw(tab);
-    window.history.replaceState(null, '', `#${tab}`);
-  }, []);
-  const [activeSubTab, setActiveSubTab] = useState('overview'); // kept for compat
+    const subDef = SUB_TAB_DEFAULTS[tab];
+    const resolvedSub = subDef && sub && subDef.valid.includes(sub) ? sub : (subDef?.default || null);
+    setActiveSubTabRaw(resolvedSub);
+    const hash = resolvedSub ? `#${tab}/${resolvedSub}` : `#${tab}`;
+    window.history.replaceState(null, '', hash);
+  }, [SUB_TAB_DEFAULTS]);
+  const updateSubTab = useCallback((sub) => {
+    setActiveSubTabRaw(sub);
+    window.history.replaceState(null, '', `#${activeMainTab}/${sub}`);
+  }, [activeMainTab]);
   const [loadProgress, setLoadProgress] = useState('');
 
   const [rangeStart, setRangeStart] = useState(null);
@@ -643,15 +662,13 @@ function App() {
   /* ─── URL Hash Routing (browser back/forward) ─── */
   useEffect(() => {
     const onHashChange = () => {
-      const hash = window.location.hash.replace('#', '').replace('/', '');
-      const validTabs = ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app'];
-      if (validTabs.includes(hash)) {
-        setActiveMainTabRaw(hash);
-      }
+      const { mainTab, subTab } = parseHash();
+      setActiveMainTabRaw(mainTab);
+      setActiveSubTabRaw(subTab);
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
+  }, [parseHash]);
 
   /* ─── Session Timeout Monitoring ─── */
 
@@ -2109,7 +2126,7 @@ function App() {
         {activeMainTab === 'installations' && (
           <TabErrorBoundary name="Installationen">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Installationen...</span></div>}>
-            <InstallationsDashboard />
+            <InstallationsDashboard initialSection={activeSubTab} onSectionChange={updateSubTab} />
           </Suspense>
           </TabErrorBoundary>
         )}
@@ -2127,7 +2144,7 @@ function App() {
         {activeMainTab === 'admin' && canAccessTab('admin') && (
           <TabErrorBoundary name="Admin">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Admin...</span></div>}>
-            <AdminPanel />
+            <AdminPanel initialSection={activeSubTab} onSectionChange={updateSubTab} />
           </Suspense>
           </TabErrorBoundary>
         )}
@@ -2145,7 +2162,7 @@ function App() {
         {activeMainTab === 'hardware' && (
           <TabErrorBoundary name="Hardware">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Hardware...</span></div>}>
-            <HardwareDashboard comparisonData={comparisonData} rawData={rawData} />
+            <HardwareDashboard comparisonData={comparisonData} rawData={rawData} initialSection={activeSubTab} onSectionChange={updateSubTab} />
           </Suspense>
           </TabErrorBoundary>
         )}
@@ -2154,7 +2171,7 @@ function App() {
         {activeMainTab === 'acquisition' && (
           <TabErrorBoundary name="Akquise">
             <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Akquise...</span></div>}>
-              <AcquisitionDashboard onOpenAkquiseApp={isMobile ? () => setShowAkquiseApp(true) : undefined} />
+              <AcquisitionDashboard onOpenAkquiseApp={isMobile ? () => setShowAkquiseApp(true) : undefined} initialSection={activeSubTab} onSectionChange={updateSubTab} />
             </Suspense>
           </TabErrorBoundary>
         )}

@@ -90,7 +90,7 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }) {
 
 /* ──────────────────────── MAIN COMPONENT ──────────────────────── */
 
-export default function HardwareDashboard({ comparisonData, rawData }) {
+export default function HardwareDashboard({ comparisonData, rawData, initialSection, onSectionChange }) {
   const [opsData, setOpsData] = useState([]);
   const [leaseData, setLeaseData] = useState({ chg: [], bank: [] });
   const [swaps, setSwaps] = useState([]);
@@ -109,7 +109,11 @@ export default function HardwareDashboard({ comparisonData, rawData }) {
   const [typeFilter, setTypeFilter] = useState('');
   const [leasingFilter, setLeasingFilter] = useState('');
   const [completenessFilter, setCompletenessFilter] = useState('');
-  const [activeSection, setActiveSection] = useState('ops');
+  const [activeSection, setActiveSectionRaw] = useState(initialSection || 'ops');
+  const setActiveSection = useCallback((sec) => {
+    setActiveSectionRaw(sec);
+    onSectionChange?.(sec);
+  }, [onSectionChange]);
   const [opsPage, setOpsPage] = useState(0);
   const [expandedOps, setExpandedOps] = useState(null);
   const [showEditWarning, setShowEditWarning] = useState(false);

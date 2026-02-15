@@ -131,10 +131,14 @@ function KpiCard({ label, value, icon: Icon, color, subtitle, active, onClick })
 }
 
 /* ─── Main Component ─── */
-export default function AcquisitionDashboard({ onOpenAkquiseApp }) {
+export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection, onSectionChange }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('netzwerk');
+  const [activeSection, setActiveSectionRaw] = useState(initialSection || 'netzwerk');
+  const setActiveSection = useCallback((sec) => {
+    setActiveSectionRaw(sec);
+    onSectionChange?.(sec);
+  }, [onSectionChange]);
   const [searchTerm, setSearchTerm] = useState('');
   const [cityFilter, setCityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');

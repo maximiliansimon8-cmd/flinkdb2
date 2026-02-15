@@ -53,7 +53,8 @@ const PRIORITIES = [
 /* ─── Helpers ─── */
 
 function getPageContext() {
-  const hash = window.location.hash.replace('#', '').replace('/', '');
+  const raw = window.location.hash.replace('#', '');
+  const [mainHash, subHash] = raw.split('/');
   const title = document.title;
 
   // Try to detect active tab/component name from hash or page title
@@ -74,7 +75,8 @@ function getPageContext() {
     'akquise-app': 'Akquise App',
   };
 
-  const component = tabNames[hash] || hash || 'Unknown';
+  const mainName = tabNames[mainHash] || mainHash || 'Unknown';
+  const component = subHash ? `${mainName} > ${subHash}` : mainName;
 
   // Try to find any visible search/filter inputs
   const searchInputs = document.querySelectorAll('input[type="text"], input[type="search"]');
