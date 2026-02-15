@@ -39,6 +39,7 @@ import {
   History,
   ArrowRight,
   MapPinned,
+  Grip,
 } from 'lucide-react';
 import {
   LineChart,
@@ -1139,7 +1140,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
     );
   }
 
-  if (!hardware || (hardware.ops.length === 0 && hardware.sims.length === 0 && hardware.displays.length === 0)) {
+  if (!hardware || (hardware.ops.length === 0 && hardware.sims.length === 0 && hardware.displays.length === 0 && !installation)) {
     return null;
   }
 
@@ -1384,9 +1385,43 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {/* OPS Player */}
-        {hardware.ops.map((ops, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        {/* ── Display ── */}
+        {hardware.displays.length > 0 ? hardware.displays.map((disp, i) => (
+          <div
+            key={disp.id || i}
+            className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-purple-200 transition-all"
+            onClick={() => onSelectComponent?.({ type: 'display', id: disp.id })}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <Monitor size={12} className="text-purple-500" />
+                <span className="text-xs font-mono font-medium text-slate-500 uppercase">Display</span>
+              </div>
+              {statusBadge(disp.status)}
+            </div>
+            <div className="space-y-1">
+              {disp.displaySerialNumber && <div className="text-xs"><span className="text-slate-500">SN: </span><span className="font-mono text-slate-700 text-[11px]">{disp.displaySerialNumber}</span></div>}
+              {(airtableDisplay?.screen_type || airtableDisplay?.screen_size) && (
+                <div className="text-xs"><span className="text-slate-500">Typ: </span><span className="text-slate-700">{airtableDisplay.screen_size ? `${airtableDisplay.screen_size} ` : ''}{airtableDisplay.screen_type || ''}</span></div>
+              )}
+              {disp.location && <div className="text-xs"><span className="text-slate-500">Standort: </span><span className="text-slate-700">{disp.location}</span></div>}
+            </div>
+            {disp.displaySerialNumber && reassignmentForSn('displaySn', disp.displaySerialNumber)}
+            <div onClick={(e) => e.stopPropagation()}>
+              {disp.displaySerialNumber && historyButton('displaySn', disp.displaySerialNumber, `Display ${disp.displaySerialNumber}`)}
+            </div>
+          </div>
+        )) : (
+          <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
+            <Monitor size={16} className="text-slate-300 mb-1" />
+            <span className="text-xs text-slate-400 font-mono">Display</span>
+            <span className="text-[10px] text-slate-300">nicht zugewiesen</span>
+          </div>
+        )}
+
+        {/* ── OPS Player ── */}
+        {hardware.ops.length > 0 ? hardware.ops.map((ops, i) => (
           <div
             key={ops.id || i}
             className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-blue-200 transition-all"
@@ -1401,7 +1436,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             </div>
             <div className="space-y-1">
               {ops.opsNr && <div className="text-xs"><span className="text-slate-500">Nr: </span><span className="font-mono text-slate-700">{ops.opsNr}</span></div>}
-              {ops.opsSn && <div className="text-xs"><span className="text-slate-500">SN: </span><span className="font-mono text-slate-700 text-xs">{ops.opsSn}</span></div>}
+              {ops.opsSn && <div className="text-xs"><span className="text-slate-500">SN: </span><span className="font-mono text-slate-700 text-[11px]">{ops.opsSn}</span></div>}
               {ops.hardwareType && <div className="text-xs"><span className="text-slate-500">Typ: </span><span className="text-slate-700">{ops.hardwareType}</span></div>}
             </div>
             {reassignmentForSn('opsSn', ops.opsSn)}
@@ -1409,10 +1444,16 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
               {historyButton('opsSn', ops.opsSn, `OPS ${ops.opsNr || ops.opsSn}`)}
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
+            <Cpu size={16} className="text-slate-300 mb-1" />
+            <span className="text-xs text-slate-400 font-mono">OPS Player</span>
+            <span className="text-[10px] text-slate-300">nicht zugewiesen</span>
+          </div>
+        )}
 
-        {/* SIM Cards */}
-        {hardware.sims.map((sim, i) => (
+        {/* ── SIM-Karte ── */}
+        {hardware.sims.length > 0 ? hardware.sims.map((sim, i) => (
           <div
             key={sim.id || i}
             className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-green-200 transition-all"
@@ -1430,9 +1471,9 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
                 <div className="text-xs">
                   <span className="text-slate-500">ICCID: </span>
                   {sim.simIdImprecise ? (
-                    <span className="text-amber-500 text-xs" title="ICCID ungenau – Airtable speichert als Zahl (Präzisionsverlust)">⚠ ungenau</span>
+                    <span className="text-amber-500 text-xs" title="ICCID ungenau – Airtable speichert als Zahl (Pr\u00e4zisionsverlust)">⚠ ungenau</span>
                   ) : (
-                    <span className="font-mono text-slate-700 text-xs">{sim.simId}</span>
+                    <span className="font-mono text-slate-700 text-[11px]">{sim.simId}</span>
                   )}
                 </div>
               )}
@@ -1443,32 +1484,53 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
               {sim.simId && !sim.simIdImprecise && historyButton('simId', sim.simId, `SIM ${sim.simId.substring(0, 10)}...`)}
             </div>
           </div>
-        ))}
-
-        {/* Displays */}
-        {hardware.displays.map((disp, i) => (
-          <div
-            key={disp.id || i}
-            className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-purple-200 transition-all"
-            onClick={() => onSelectComponent?.({ type: 'display', id: disp.id })}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <Monitor size={12} className="text-purple-500" />
-                <span className="text-xs font-mono font-medium text-slate-500 uppercase">Display</span>
-              </div>
-              {statusBadge(disp.status)}
-            </div>
-            <div className="space-y-1">
-              {disp.displaySerialNumber && <div className="text-xs"><span className="text-slate-500">SN: </span><span className="font-mono text-slate-700 text-xs">{disp.displaySerialNumber}</span></div>}
-              {disp.location && <div className="text-xs"><span className="text-slate-500">Standort: </span><span className="text-slate-700">{disp.location}</span></div>}
-            </div>
-            {disp.displaySerialNumber && reassignmentForSn('displaySn', disp.displaySerialNumber)}
-            <div onClick={(e) => e.stopPropagation()}>
-              {disp.displaySerialNumber && historyButton('displaySn', disp.displaySerialNumber, `Display ${disp.displaySerialNumber}`)}
-            </div>
+        )) : (
+          <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
+            <CardSim size={16} className="text-slate-300 mb-1" />
+            <span className="text-xs text-slate-400 font-mono">SIM-Karte</span>
+            <span className="text-[10px] text-slate-300">nicht zugewiesen</span>
           </div>
-        ))}
+        )}
+
+        {/* ── Mount / Halterung ── */}
+        {(() => {
+          const mountType = installation?.installationType || '';
+          const screenInfo = installation ? `${installation.screenSize || ''}${installation.screenSize ? '″' : ''} ${installation.screenType || ''}`.trim() : '';
+          const integrator = installation?.integrator || '';
+          const installDate = installation?.installDate;
+          const hasMountData = mountType || screenInfo || integrator || installDate;
+
+          if (hasMountData) {
+            return (
+              <div className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <Grip size={12} className="text-orange-500" />
+                    <span className="text-xs font-mono font-medium text-slate-500 uppercase">Halterung</span>
+                  </div>
+                  {mountType && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium"
+                      style={{ backgroundColor: '#f59e0b15', color: '#f59e0b', border: '1px solid #f59e0b33' }}>
+                      {mountType}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  {screenInfo && <div className="text-xs"><span className="text-slate-500">Screen: </span><span className="text-slate-700">{screenInfo}</span></div>}
+                  {integrator && <div className="text-xs"><span className="text-slate-500">Integrator: </span><span className="text-slate-700">{integrator}</span></div>}
+                  {installDate && <div className="text-xs"><span className="text-slate-500">Aufbau: </span><span className="font-mono text-slate-700">{new Date(installDate).toLocaleDateString('de-DE')}</span></div>}
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
+              <Grip size={16} className="text-slate-300 mb-1" />
+              <span className="text-xs text-slate-400 font-mono">Halterung</span>
+              <span className="text-[10px] text-slate-300">keine Daten</span>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

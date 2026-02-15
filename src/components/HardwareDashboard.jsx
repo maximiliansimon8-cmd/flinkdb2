@@ -6,10 +6,14 @@ import {
   TrendingUp, ArrowUpRight, ArrowDownRight, Shield, ShieldAlert,
   ShieldCheck, Calendar, Wrench, Eye, CreditCard, SlidersHorizontal,
   History, ClipboardCheck, Truck, HelpCircle, XCircle, Radio,
-  Database, Pencil,
+  Database, Pencil, QrCode,
 } from 'lucide-react';
 
 const DataQualityDashboard = React.lazy(() => import('./DataQualityDashboard'));
+const HardwareLifecyclePanel = React.lazy(() => import('./HardwareLifecyclePanel').then(m => ({
+  default: () => null // placeholder, we use named exports
+})));
+import { WareneingangTab, QRCodeTab, PositionenTab } from './HardwareLifecyclePanel';
 import HardwareComponentDetail from './HardwareComponentDetail';
 import {
   fetchAllOpsInventory,
@@ -1160,6 +1164,9 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           { id: 'completeness', label: 'Vollst.', icon: ClipboardCheck, count: completeness.withoutOps + completeness.withoutSim + completeness.withoutDisplay },
           { id: 'leasing', label: 'Leasing', icon: Landmark, count: leaseKpis.bankAssets },
           { id: 'orders', label: 'Auftr.', icon: ArrowLeftRight, count: openSwaps.length + openDeinstalls.length },
+          { id: 'wareneingang', label: 'Wareneingang', icon: Package, count: null },
+          { id: 'qr-codes', label: 'QR-Codes', icon: QrCode, count: null },
+          { id: 'positionen', label: 'Positionen', icon: MapPin, count: null },
           { id: 'timeline', label: 'Timeline', icon: History, count: timelineEvents.length },
           { id: 'fehler', label: 'Fehler', icon: ShieldAlert, count: hwMismatches.length || null },
           { id: 'data-quality', label: 'Datenqualität', icon: Database, count: null },
@@ -2123,6 +2130,27 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ═══ WARENEINGANG ═══ */}
+      {activeSection === 'wareneingang' && (
+        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
+          <WareneingangTab />
+        </div>
+      )}
+
+      {/* ═══ QR-CODES ═══ */}
+      {activeSection === 'qr-codes' && (
+        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
+          <QRCodeTab />
+        </div>
+      )}
+
+      {/* ═══ POSITIONEN ═══ */}
+      {activeSection === 'positionen' && (
+        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
+          <PositionenTab />
         </div>
       )}
 
