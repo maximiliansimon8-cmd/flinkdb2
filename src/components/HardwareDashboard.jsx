@@ -17,6 +17,7 @@ import { WareneingangTab, QRCodeTab, PositionenTab } from './HardwareLifecyclePa
 const BestellwesenTab = React.lazy(() => import('./BestellwesenTab'));
 const LagerVersandTab = React.lazy(() => import('./LagerVersandTab'));
 const TrackingDashboard = React.lazy(() => import('./TrackingDashboard'));
+const NocoDBPanel = React.lazy(() => import('./NocoDBPanel'));
 import HardwareComponentDetail from './HardwareComponentDetail';
 import {
   fetchAllOpsInventory,
@@ -1175,6 +1176,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           { id: 'tracking', label: 'Tracking', icon: Eye, count: null },
           { id: 'timeline', label: 'Timeline', icon: History, count: timelineEvents.length },
           { id: 'fehler', label: 'Fehler', icon: ShieldAlert, count: hwMismatches.length || null },
+          { id: 'nocodb', label: 'NocoDB', icon: Database, count: null },
           { id: 'data-quality', label: 'Datenqualität', icon: Database, count: null },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -2178,6 +2180,13 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
       {activeSection === 'tracking' && (
         <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Tracking...</span></div>}>
           <TrackingDashboard />
+        </React.Suspense>
+      )}
+
+      {/* ═══ NOCODB ═══ */}
+      {activeSection === 'nocodb' && (
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade NocoDB...</span></div>}>
+          <NocoDBPanel />
         </React.Suspense>
       )}
 
