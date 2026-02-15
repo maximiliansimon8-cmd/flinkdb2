@@ -81,6 +81,8 @@ const InstallationsDashboard = lazy(() => import('./components/InstallationsDash
 const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'));
 const MobileDashboard = lazy(() => import('./components/MobileDashboard'));
 const MobileDisplayCards = lazy(() => import('./components/MobileDisplayCards'));
+const MobileActivityFeed = lazy(() => import('./components/MobileActivityFeed'));
+const QRHardwareScanner = lazy(() => import('./components/QRHardwareScanner'));
 import MobileBottomNav from './components/MobileBottomNav';
 import { fetchVenuePerformance } from './utils/vistarService';
 import useIsMobile from './hooks/useIsMobile';
@@ -186,9 +188,9 @@ function App() {
       const raw = localStorage.getItem('jet_mobile_kpis');
       if (!raw) return null;
       const cached = JSON.parse(raw);
-      // Accept cache up to 4 hours old for instant display on startup
+      // Accept cache up to 24 hours old for instant display on startup
       // (fresh data will be fetched in background via loadData)
-      if (Date.now() - cached._ts > 4 * 60 * 60 * 1000) return null;
+      if (Date.now() - cached._ts > 24 * 60 * 60 * 1000) return null;
       return cached;
     } catch { return null; }
   });
@@ -229,6 +231,7 @@ function App() {
   /* ─── Mobile UI State ─── */
   const isMobile = useIsMobile(768);
   const [showAkquiseApp, setShowAkquiseApp] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const [mobileTab, setMobileTab] = useState('mobile-home');
   const [mobileDisplayFilter, setMobileDisplayFilter] = useState(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
@@ -333,12 +336,12 @@ function App() {
 
         if (rpcError || !data) {
           console.warn('[mobile] RPC failed:', rpcError?.message || 'no data returned');
-          // If we have stale cache, keep showing it — don't fall to desktop
+          // If we have stale cache, keep showing it
           if (hasCachedData) {
             setLoading(false);
             return;
           }
-          // No cache at all → fall through to desktop path
+          // No cache → try lightweight fallback query (NOT the heavy desktop path)
         } else {
           const kpiData = { ...data, _ts: Date.now() };
           setMobileKPIs(kpiData);
@@ -354,7 +357,99 @@ function App() {
           return;
         }
       }
-      // Only fall through to desktop path if NO cached data at all
+
+      // 3. Lightweight fallback: direct query when RPC doesn't exist yet
+      // Instead of falling through to 40K-row desktop path, compute basic KPIs
+      // from a small aggregated query (~500ms instead of 5-10s)
+      try {
+        console.log('[mobile] RPC unavailable, using lightweight fallback query');
+        // Fetch heartbeats AND dayn screens in parallel
+        const [hbResult, daynResult] = await Promise.all([
+          supabase
+            .from('display_heartbeats')
+            .select('display_id, days_offline, is_alive, display_status, location_name')
+            .order('timestamp_parsed', { ascending: false })
+            .limit(2000),
+          supabase
+            .from('dayn_screens')
+            .select('dayn_screen_id, do_screen_id, screen_status')
+        ]);
+
+        const { data: hbRows, error: hbErr } = hbResult;
+
+        if (!hbErr && hbRows && hbRows.length > 0) {
+          // Deduplicate by display_id (keep first = latest)
+          const seen = new Set();
+          const unique = [];
+          for (const row of hbRows) {
+            if (row.display_id && !seen.has(row.display_id)) {
+              seen.add(row.display_id);
+              unique.push(row);
+            }
+          }
+
+          // Classify heartbeat displays
+          let onlineCount = 0, warningCount = 0, criticalCount = 0, permanentOfflineCount = 0;
+          for (const d of unique) {
+            const days = parseInt(d.days_offline) || 0;
+            if (days < 1) onlineCount++;
+            else if (days < 3) warningCount++;
+            else if (days < 7) criticalCount++;
+            else permanentOfflineCount++;
+          }
+
+          // Add Dayn screens (all installed Dayn = totalActive, online status = onlineCount)
+          let daynTotal = 0, daynOnline = 0;
+          if (!daynResult.error && daynResult.data && daynResult.data.length > 0) {
+            daynTotal = daynResult.data.length;
+            daynOnline = daynResult.data.filter(d => d.screen_status && /online/i.test(d.screen_status)).length;
+          }
+
+          const totalActive = unique.length + daynTotal;
+          const totalOnline = onlineCount + daynOnline;
+          const healthRate = totalActive > 0 ? Math.round((totalOnline / totalActive) * 1000) / 10 : 0;
+
+          const fallbackKPIs = {
+            healthRate,
+            totalActive,
+            onlineCount: totalOnline,
+            warningCount,
+            criticalCount,
+            permanentOfflineCount,
+            neverOnlineCount: 0,
+            newlyInstalled: 0,
+            deinstalled: 0,
+            daynTotal,
+            daynOnline,
+            topOffline: unique
+              .filter(d => (parseInt(d.days_offline) || 0) >= 3)
+              .sort((a, b) => (parseInt(b.days_offline) || 0) - (parseInt(a.days_offline) || 0))
+              .slice(0, 10)
+              .map(d => ({
+                displayId: d.display_id,
+                locationName: d.location_name || '–',
+                city: '–',
+                status: (parseInt(d.days_offline) || 0) >= 7 ? 'permanent_offline' : 'critical',
+                daysOffline: parseInt(d.days_offline) || 0,
+              })),
+            byCity: {},
+            _fallback: true,
+            _ts: Date.now(),
+          };
+
+          setMobileKPIs(fallbackKPIs);
+          try { localStorage.setItem('jet_mobile_kpis', JSON.stringify(fallbackKPIs)); } catch {}
+          setLoading(false);
+          return;
+        }
+      } catch (fallbackErr) {
+        console.warn('[mobile] Fallback query also failed:', fallbackErr.message);
+      }
+
+      // 4. Last resort: show error on mobile (NEVER fall through to desktop 40K path)
+      setError('Dashboard konnte nicht geladen werden. Bitte erneut versuchen.');
+      setLoading(false);
+      return;
     }
 
     setLoading(true);
@@ -609,6 +704,11 @@ function App() {
 
   /* ─── Derived Data ─── */
 
+  // comparisonData state declared here (before kpis memo) so Dayn screens
+  // can be included in KPI calculations. The useEffect that populates it
+  // remains near its Supabase loading logic further below.
+  const [comparisonData, setComparisonData] = useState(null);
+
   const rawData = useMemo(() => {
     if (!parsedRows) return null;
     return aggregateData(parsedRows, rangeStart, rangeEnd, globalFirstSeen);
@@ -670,8 +770,42 @@ function App() {
 
   const kpis = useMemo(() => {
     if (!rawData || !rawData.latestTimestamp) return null;
-    return computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
-  }, [rawData, globalFirstSeen, rangeStart]);
+    const base = computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
+    if (!base) return null;
+
+    // ── Dayn Screens: add to totalActive and onlineCount ──
+    // Dayn screens are a separate network (not in heartbeat data).
+    // All live/installed Dayn screens count as "online" in our KPIs.
+    const daynTotal = comparisonData?.dayn?.total || 0;
+    const daynOnline = comparisonData?.dayn?.activeIds?.size || 0;
+    if (daynTotal > 0) {
+      base.totalActive += daynTotal;
+      base.onlineCount += daynOnline;
+      // Recalculate health rate including Dayn screens
+      // Dayn online screens contribute full 16h operating hours each
+      if (rawData.trendData && rawData.trendData.length > 0) {
+        const baseOnlineHours = rawData.trendData.reduce((sum, day) => sum + (day.totalOnlineHours || 0), 0);
+        const baseExpectedHours = rawData.trendData.reduce((sum, day) => sum + (day.totalExpectedHours || 0), 0);
+        // Dayn screens: online ones get 16h * trendDays, all get 16h * trendDays expected
+        const trendDays = rawData.trendData.length;
+        const daynOnlineHours = daynOnline * 16.0 * trendDays;
+        const daynExpectedHours = daynTotal * 16.0 * trendDays;
+        const totalOnline = baseOnlineHours + daynOnlineHours;
+        const totalExpected = baseExpectedHours + daynExpectedHours;
+        base.healthRate = totalExpected > 0 ? Math.round((totalOnline / totalExpected) * 1000) / 10 : base.healthRate;
+      } else {
+        // Fallback: simple ratio
+        const totalOnline = (base.onlineCount);
+        const totalActive = base.totalActive;
+        base.healthRate = totalActive > 0 ? Math.round((totalOnline / totalActive) * 1000) / 10 : 0;
+      }
+      // Also adjust averages
+      base.avgTotal = (base.avgTotal || 0) + daynTotal;
+      base.avgOnline = (base.avgOnline || 0) + daynOnline;
+    }
+
+    return base;
+  }, [rawData, globalFirstSeen, rangeStart, comparisonData]);
 
   const distribution = useMemo(() => {
     if (!rawData) return [];
@@ -691,14 +825,16 @@ function App() {
   // Save KPIs to localStorage cache for instant-load on next visit
   useEffect(() => {
     if (kpis && rawData) {
+      // Use totalActive (active displays only) + Dayn screens for accurate count
+      const daynTotal = comparisonData?.dayn?.total || 0;
       saveToCache({
         kpis,
-        displayCount: rawData.displays.length,
+        displayCount: (kpis.totalActive || 0) + daynTotal,
         cityData: rawData.cityData,
         latestTimestamp: rawData.latestTimestamp?.toISOString(),
       });
     }
-  }, [kpis, rawData]);
+  }, [kpis, rawData, comparisonData]);
 
   // Vistar venue performance data (loaded once, cached in service)
   const [vistarData, setVistarData] = useState(null);
@@ -716,7 +852,7 @@ function App() {
 
   // ── Comparison data: loaded ONCE in App, shared with all DisplayTable instances ──
   // This eliminates 3 redundant Supabase queries per DisplayTable mount
-  const [comparisonData, setComparisonData] = useState(null);
+  // (State declaration moved up before kpis memo for Dayn screen integration)
   useEffect(() => {
     if (!rawData) return;
     async function loadComparisonData() {
@@ -1360,7 +1496,7 @@ function App() {
     const mobileBadges = {};
     const offlineCount = (mk.criticalCount || 0) + (mk.permanentOfflineCount || 0);
     if (offlineCount > 0) mobileBadges['mobile-displays'] = offlineCount;
-    mobileBadges['mobile-jet'] = true;
+    // J.E.T. is now a floating button, no badge needed in nav
 
     return (
       <div className="min-h-screen flex flex-col mobile-app-container">
@@ -1410,6 +1546,22 @@ function App() {
             {/* Hardware — Lazy loaded only when tapped (needs Desktop data) */}
             {mobileTab === 'mobile-hardware' && (
               <div className="flex-1 overflow-y-auto pb-24">
+                {/* QR Scanner Quick-Access */}
+                <div className="px-4 pt-4 pb-2">
+                  <button
+                    onClick={() => setShowQRScanner(true)}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 bg-blue-50/80 border border-blue-200/60 rounded-2xl active:bg-blue-100/80 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0">
+                      <Search size={20} className="text-white" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-semibold text-slate-900">QR / Barcode Scanner</div>
+                      <div className="text-[11px] text-slate-500">Hardware per Kamera oder Seriennummer finden</div>
+                    </div>
+                    <ChevronDown size={16} className="text-slate-400 -rotate-90" />
+                  </button>
+                </div>
                 {rawData ? (
                   <HardwareDashboard comparisonData={comparisonData || {}} rawData={rawData} />
                 ) : (
@@ -1418,6 +1570,11 @@ function App() {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Live — Liveticker / Activity Feed */}
+            {mobileTab === 'mobile-live' && (
+              <MobileActivityFeed />
             )}
 
             {/* J.E.T. Chat — handled via ChatAssistant overlay */}
@@ -1432,7 +1589,21 @@ function App() {
           activeTab={mobileTab}
           onTabChange={handleMobileTabChange}
           badges={mobileBadges}
+          onJETPress={showMobileChat ? null : () => { setShowMobileChat(true); setMobileTab('mobile-jet'); }}
         />
+
+        {/* QR Hardware Scanner Overlay */}
+        {showQRScanner && (
+          <Suspense fallback={
+            <div className="fixed inset-0 z-[9999] bg-black/20 backdrop-blur-sm flex items-end justify-center">
+              <div className="w-full max-w-lg bg-white/90 rounded-t-3xl p-8 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+              </div>
+            </div>
+          }>
+            <QRHardwareScanner onClose={() => setShowQRScanner(false)} />
+          </Suspense>
+        )}
 
         {/* AI Chat Assistant — opens as overlay on mobile when J.E.T. tab is active */}
         <Suspense fallback={null}>
@@ -1442,7 +1613,7 @@ function App() {
             comparisonData={comparisonData || {}}
             currentUser={currentUser}
             forceOpen={showMobileChat}
-            onClose={() => { setShowMobileChat(false); setMobileTab('mobile-home'); }}
+            onClose={() => { setShowMobileChat(false); if (mobileTab === 'mobile-jet') setMobileTab('mobile-home'); }}
           />
         </Suspense>
 

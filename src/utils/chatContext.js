@@ -183,7 +183,7 @@ export function buildChatContext(rawData, kpis, comparisonData) {
   return {
     timestamp: new Date().toISOString(),
     overview: {
-      totalDisplays: rawData?.displays?.length || 0,
+      totalDisplays: kpis?.totalActive || rawData?.displays?.length || 0,
       totalActive: kpis?.totalActive || 0,
       healthRate: kpis?.healthRate != null ? Math.round(kpis.healthRate * 10) / 10 : null,
       online: kpis?.onlineCount || 0,
@@ -736,8 +736,8 @@ function buildRolloutSummary(installationen, deinstalls) {
       byCity: Object.keys(deinstByCity).length > 0 ? deinstByCity : undefined,
       letzte7Detail: last7DeinstDetail.length > 0 ? last7DeinstDetail : undefined,
     },
-    // Net Rollout (last 30 days)
-    nettoLetzten30Tage: last30Installs.length - last30Deinstalls.length,
+    // Net Rollout (last 30 days) — uses successful installations only (not all appointments)
+    nettoLetzten30Tage: last30Success.length - last30Deinstalls.length,
   };
 }
 

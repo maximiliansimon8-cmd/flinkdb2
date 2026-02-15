@@ -1,10 +1,10 @@
 -- =============================================
 -- Mobile KPIs RPC Function
 -- Returns all dashboard KPIs in a single call (~2KB JSON)
+-- Includes BOTH Navori heartbeat displays AND Dayn screens
 -- Run this in Supabase SQL Editor
 -- =============================================
 
--- City code mapping (same as frontend CITY_MAP)
 CREATE OR REPLACE FUNCTION get_mobile_kpis()
 RETURNS JSON
 LANGUAGE plpgsql
@@ -14,7 +14,7 @@ DECLARE
   result JSON;
 BEGIN
   WITH
-  -- 1. Get the LATEST heartbeat snapshot per display_id
+  -- 1. Get the LATEST heartbeat snapshot per display_id (Navori displays)
   latest_per_display AS (
     SELECT DISTINCT ON (display_id)
       display_id,
@@ -101,8 +101,14 @@ BEGIN
     FROM classified c
   ),
 
-  -- 5. Aggregate KPIs
-  kpi_agg AS (
+  -- 5. Aggregate Navori KPIs (uptime-based health rate matching desktop calculation)
+  --    Desktop uses estimateOperatingOnlineHours(offlineHours):
+  --      <= 3.5h offline → 16h online (within check interval)
+  --      3.5h-16h offline → (16 - offlineHours) online
+  --      > 16h offline → 0h online
+  --    Health Rate = sum(online_hours) / sum(expected_hours) * 100
+  --    Expected hours = 16h per active display (excluding never_online)
+  navori_agg AS (
     SELECT
       COUNT(*) AS total_active,
       COUNT(*) FILTER (WHERE status = 'online') AS online_count,
@@ -110,12 +116,53 @@ BEGIN
       COUNT(*) FILTER (WHERE status = 'critical') AS critical_count,
       COUNT(*) FILTER (WHERE status = 'permanent_offline') AS permanent_offline_count,
       COUNT(*) FILTER (WHERE status = 'never_online') AS never_online_count,
+      -- Sum of online operating hours (numerator for health rate)
+      COALESCE(SUM(
+        CASE
+          WHEN status = 'never_online' THEN 0
+          WHEN offline_hours IS NULL OR offline_hours <= 3.5 THEN 16.0
+          WHEN offline_hours <= 16.0 THEN GREATEST(0, 16.0 - offline_hours)
+          ELSE 0
+        END
+      ), 0) AS navori_online_hours,
+      -- Total expected operating hours (denominator for health rate)
+      COALESCE(COUNT(*) FILTER (WHERE status != 'never_online') * 16.0, 0) AS navori_expected_hours
+    FROM city_mapped
+  ),
+
+  -- 5b. Dayn Screens aggregation (separate display network)
+  --     All installed Dayn screens count as totalActive.
+  --     Screens with screen_status ~* 'online' count as online.
+  dayn_agg AS (
+    SELECT
+      COUNT(*) AS dayn_total,
+      COUNT(*) FILTER (WHERE screen_status ~* 'online') AS dayn_online
+    FROM dayn_screens
+  ),
+
+  -- 5c. Combined KPIs (Navori + Dayn)
+  kpi_agg AS (
+    SELECT
+      n.total_active + d.dayn_total AS total_active,
+      n.online_count + d.dayn_online AS online_count,
+      n.warning_count,
+      n.critical_count,
+      n.permanent_offline_count,
+      n.never_online_count,
+      d.dayn_total,
+      d.dayn_online,
+      -- Combined health rate: Dayn online screens contribute full 16h
       ROUND(
-        (COUNT(*) FILTER (WHERE status = 'online'))::NUMERIC /
-        NULLIF(COUNT(*) FILTER (WHERE status != 'never_online'), 0) * 100,
+        COALESCE(
+          (n.navori_online_hours + d.dayn_online * 16.0)
+          / NULLIF(n.navori_expected_hours + d.dayn_total * 16.0, 0)
+          * 100,
+          0
+        ),
         1
       ) AS health_rate
-    FROM city_mapped
+    FROM navori_agg n
+    CROSS JOIN dayn_agg d
   ),
 
   -- 6. Top offline displays (for attention cards)
@@ -136,7 +183,7 @@ BEGIN
     ) t
   ),
 
-  -- 7. City breakdown
+  -- 7. City breakdown (Navori only — Dayn screens don't have city codes in same format)
   city_breakdown AS (
     SELECT json_object_agg(
       city_name,
@@ -177,6 +224,8 @@ BEGIN
     'criticalCount', k.critical_count,
     'permanentOfflineCount', k.permanent_offline_count,
     'neverOnlineCount', k.never_online_count,
+    'daynTotal', k.dayn_total,
+    'daynOnline', k.dayn_online,
     'newlyInstalled', COALESCE(n.cnt, 0),
     'deinstalled', 0,
     'topOffline', COALESCE(o.displays, '[]'::json),

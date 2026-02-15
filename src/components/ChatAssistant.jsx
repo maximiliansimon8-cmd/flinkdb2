@@ -89,7 +89,7 @@ function renderMarkdown(text) {
         parts.push(
           <code
             key={partKey++}
-            className="bg-slate-700/60 text-blue-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
+            className="bg-slate-700/60 text-violet-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
           >
             {firstMatch[1]}
           </code>
@@ -323,18 +323,19 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
           className={`
             fixed bottom-6 right-6 z-40
             ${isMobile ? 'w-16 h-16' : 'w-14 h-14'}
-            bg-gradient-to-br from-blue-500 to-blue-600
-            text-white rounded-full shadow-lg
+            bg-gradient-to-br from-violet-500 to-indigo-600
+            text-white rounded-full
+            shadow-lg shadow-violet-500/25
             flex items-center justify-center
-            hover:scale-105 hover:shadow-xl
+            hover:scale-105 hover:shadow-xl hover:shadow-violet-500/30
             active:scale-95
             transition-all duration-200 ease-out
-            cursor-pointer
+            cursor-pointer qr-fab-pulse
             ${isOpen ? 'opacity-0 pointer-events-none scale-90' : 'opacity-100 scale-100'}
           `}
           aria-label="J.E.T. oeffnen"
         >
-          <MessageSquare size={isMobile ? 28 : 24} />
+          <Sparkles size={isMobile ? 26 : 22} strokeWidth={2.2} />
         </button>
       )}
 
@@ -362,10 +363,10 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
           `}
         >
           {/* ── Header ── */}
-          <div className="flex items-center justify-between h-14 px-4 bg-slate-800/80 border-b border-slate-700/50 rounded-t-2xl shrink-0">
+          <div className="flex items-center justify-between h-14 px-4 bg-gradient-to-r from-slate-800/90 via-slate-800/80 to-violet-900/20 border-b border-violet-500/20 rounded-t-2xl shrink-0">
             <div className="flex items-center gap-2.5">
-              <Sparkles size={18} className="text-blue-400" />
-              <span className="text-sm font-semibold text-slate-100">J.E.T.</span>
+              <Sparkles size={18} className="text-violet-400 jet-sparkle-icon" />
+              <span className="text-sm font-bold jet-gradient-text">J.E.T.</span>
               <span
                 className={`w-2 h-2 rounded-full shrink-0 ${
                   isDataLoaded ? 'bg-emerald-400' : 'bg-amber-400'
@@ -417,7 +418,7 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                   className={`
                     px-4 py-3 text-sm leading-relaxed
                     ${msg.role === 'user'
-                      ? 'bg-blue-600 text-white rounded-2xl rounded-br-sm max-w-[85%] ml-auto'
+                      ? 'bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-2xl rounded-br-sm max-w-[85%] ml-auto shadow-sm shadow-violet-500/20'
                       : msg.isError
                       ? 'bg-red-900/30 text-red-200 border border-red-700/40 rounded-2xl rounded-bl-sm max-w-[85%]'
                       : 'bg-slate-800/80 text-slate-200 border border-slate-700/40 rounded-2xl rounded-bl-sm max-w-[85%]'}
@@ -495,7 +496,7 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                   flex-1 resize-none bg-slate-800/60 text-slate-100
                   border border-slate-700/50 rounded-xl px-3.5 py-2.5
                   text-sm placeholder:text-slate-500
-                  focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
+                  focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
                   disabled:opacity-50 disabled:cursor-not-allowed
                   transition-colors
                 "
@@ -521,12 +522,13 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                   disabled={!inputValue.trim()}
                   className="
                     w-10 h-10 shrink-0 rounded-xl
-                    bg-blue-600 text-white
+                    bg-gradient-to-br from-violet-600 to-indigo-600 text-white
                     flex items-center justify-center
-                    hover:bg-blue-500
-                    disabled:bg-slate-700 disabled:text-slate-500
+                    hover:from-violet-500 hover:to-indigo-500
+                    shadow-sm shadow-violet-500/20
+                    disabled:bg-slate-700 disabled:text-slate-500 disabled:from-slate-700 disabled:to-slate-700 disabled:shadow-none
                     disabled:cursor-not-allowed
-                    transition-colors cursor-pointer
+                    transition-all cursor-pointer
                   "
                   aria-label="Nachricht senden"
                 >

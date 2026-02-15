@@ -16,8 +16,25 @@ import {
   ClipboardList,
   Zap,
   X,
+  CheckCheck,
 } from 'lucide-react';
 import { fetchAllTasks } from '../utils/airtableService';
+
+/* ─── Shared "last read" timestamp (synced via localStorage with Mobile) ─── */
+const LAST_READ_KEY = 'jet_liveticker_last_read';
+
+function getLastReadTimestamp() {
+  try {
+    const ts = localStorage.getItem(LAST_READ_KEY);
+    return ts ? new Date(ts) : null;
+  } catch { return null; }
+}
+
+function markAllAsRead() {
+  try {
+    localStorage.setItem(LAST_READ_KEY, new Date().toISOString());
+  } catch {}
+}
 
 /* ──────────────────────── Constants ──────────────────────── */
 
@@ -331,7 +348,7 @@ function generateSystemActivities(rawData) {
 /**
  * Single activity card in the feed.
  */
-function ActivityCard({ activity, isLast }) {
+function ActivityCard({ activity, isLast, isUnread }) {
   const config = TYPE_CONFIG[activity.type] || TYPE_CONFIG[ACTIVITY_TYPES.SYSTEM];
   const IconComponent = activity.icon || config.icon;
 
@@ -352,6 +369,9 @@ function ActivityCard({ activity, isLast }) {
         >
           <IconComponent size={18} style={{ color: config.color }} />
         </div>
+        {isUnread && (
+          <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-900 shadow-sm shadow-blue-500/40" />
+        )}
       </div>
 
       {/* Content area */}
@@ -496,6 +516,12 @@ export default function ActivityFeed({ rawData }) {
   const [activeFilters, setActiveFilters] = useState(new Set());
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastRead, setLastRead] = useState(() => getLastReadTimestamp());
+
+  const handleMarkAllRead = useCallback(() => {
+    markAllAsRead();
+    setLastRead(new Date());
+  }, []);
 
   // Load tasks from Supabase
   useEffect(() => {
@@ -617,13 +643,29 @@ export default function ActivityFeed({ rawData }) {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center ring-1 ring-blue-500/20">
             <Activity size={20} className="text-blue-400" />
           </div>
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold text-slate-100">Aktivitäten</h2>
             <p className="text-sm text-slate-400">
               {allActivities.length} Aktivitäten insgesamt
+              {(() => {
+                const unread = lastRead ? allActivities.filter(a => a.timestamp > lastRead).length : allActivities.length;
+                return unread > 0 ? <span className="text-blue-400 font-medium"> · {unread} neu</span> : null;
+              })()}
               {loadingTasks && ' — Lade Tasks...'}
             </p>
           </div>
+          {(() => {
+            const unread = lastRead ? allActivities.filter(a => a.timestamp > lastRead).length : allActivities.length;
+            return unread > 0 ? (
+              <button
+                onClick={handleMarkAllRead}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium bg-blue-500/15 text-blue-400 border border-blue-500/30 hover:bg-blue-500/25 transition-all"
+              >
+                <CheckCheck size={15} />
+                Alle gelesen
+              </button>
+            ) : null;
+          })()}
         </div>
       </div>
 
@@ -647,7 +689,7 @@ export default function ActivityFeed({ rawData }) {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
             >
               <X size={14} />
             </button>
@@ -669,7 +711,7 @@ export default function ActivityFeed({ rawData }) {
           {(activeFilters.size > 0 || searchQuery) && (
             <button
               onClick={clearFilters}
-              className="text-xs text-slate-500 hover:text-slate-500 underline underline-offset-2 ml-2 transition-colors"
+              className="text-xs text-slate-500 hover:text-slate-300 underline underline-offset-2 ml-2 transition-colors"
             >
               Zurücksetzen
             </button>
@@ -722,11 +764,14 @@ export default function ActivityFeed({ rawData }) {
               (i < groupedActivities.length - 1 && groupedActivities[i + 1].type === 'header' &&
                 i + 1 === groupedActivities.length - 1);
 
+            const isUnread = !lastRead || item.data.timestamp > lastRead;
+
             return (
               <ActivityCard
                 key={item.data.id}
                 activity={item.data}
                 isLast={i === groupedActivities.length - 1}
+                isUnread={isUnread}
               />
             );
           })}

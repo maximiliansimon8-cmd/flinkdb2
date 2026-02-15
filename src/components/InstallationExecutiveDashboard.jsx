@@ -258,7 +258,7 @@ export default function InstallationExecutiveDashboard() {
   const capacityData = useMemo(() => {
     return routes
       .filter(r => r.status === 'open')
-      .sort((a, b) => a.schedule_date.localeCompare(b.schedule_date))
+      .sort((a, b) => (a.schedule_date || '').localeCompare(b.schedule_date || ''))
       .slice(0, 10)
       .map(r => {
         const routeBookings = bookings.filter(b =>

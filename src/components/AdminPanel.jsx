@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback, useEffect, Fragment } from 'react';
+import { useState, useMemo, useCallback, useEffect, Fragment, lazy, Suspense } from 'react';
 import {
   Shield,
+  Database,
   Users,
   UserPlus,
   Settings,
@@ -72,6 +73,9 @@ import {
   getSessionTimeoutMinutes,
   supabase,
 } from '../utils/authService';
+
+const DataMappingPanel = lazy(() => import('./DataMappingPanel'));
+const APIOverviewPanel = lazy(() => import('./APIOverviewPanel'));
 
 /* ─── Group Icon Map ─── */
 
@@ -939,6 +943,8 @@ export default function AdminPanel() {
     { id: 'feedback', label: 'Feedback', icon: Lightbulb, count: feedbackItems.length },
     { id: 'api-usage', label: 'API Usage', icon: Zap, count: apiStats.totalCalls },
     { id: 'attachments', label: 'Attachments', icon: Server },
+    { id: 'data-mapping', label: 'Data Mapping', icon: Database, count: 14 },
+    { id: 'api-overview', label: 'API Overview', icon: Globe, count: 7 },
   ];
 
   return (
@@ -2345,6 +2351,27 @@ export default function AdminPanel() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ═══════ DATA MAPPING SECTION ═══════ */}
+      {activeSection === 'data-mapping' && (
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64">
+            <RefreshCw size={20} className="animate-spin text-slate-400" />
+          </div>
+        }>
+          <DataMappingPanel />
+        </Suspense>
+      )}
+
+      {activeSection === 'api-overview' && (
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64">
+            <RefreshCw size={20} className="animate-spin text-slate-400" />
+          </div>
+        }>
+          <APIOverviewPanel />
+        </Suspense>
       )}
 
       {/* Modals */}

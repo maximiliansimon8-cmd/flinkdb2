@@ -113,7 +113,7 @@ function renderMarkdown(text) {
         parts.push(
           <code
             key={partKey++}
-            className="bg-slate-700/60 text-blue-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
+            className="bg-slate-700/60 text-violet-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
           >
             {firstMatch[1]}
           </code>
@@ -178,7 +178,7 @@ function VoiceWaveform({ volumeLevel, color = 'blue', barCount = 5 }) {
     return result;
   }, [volumeLevel, barCount]);
 
-  const barColor = color === 'blue' ? 'bg-blue-400' : 'bg-emerald-400';
+  const barColor = color === 'blue' ? 'bg-violet-400' : color === 'violet' ? 'bg-violet-400' : 'bg-emerald-400';
 
   return (
     <div className="flex items-center justify-center gap-1 h-12">
@@ -361,7 +361,7 @@ function VoiceSettingsPanel({ settings, onClose }) {
                 onClick={() => setSpeechRate(opt.value)}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                   speechRate === opt.value
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-500/20'
                     : 'bg-slate-700/60 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
                 }`}
               >
@@ -380,7 +380,7 @@ function VoiceSettingsPanel({ settings, onClose }) {
           <button
             onClick={() => setAutoConversation(!autoConversation)}
             className={`w-12 h-7 rounded-full transition-colors cursor-pointer relative ${
-              autoConversation ? 'bg-blue-600' : 'bg-slate-600'
+              autoConversation ? 'bg-violet-600' : 'bg-slate-600'
             }`}
           >
             <span
@@ -399,7 +399,7 @@ function VoiceSettingsPanel({ settings, onClose }) {
               <button
                 onClick={() => setVoiceName('')}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors ${
-                  !voiceName ? 'bg-blue-600/20 text-blue-300' : 'text-slate-400 hover:bg-slate-700/50'
+                  !voiceName ? 'bg-violet-600/20 text-violet-300' : 'text-slate-400 hover:bg-slate-700/50'
                 }`}
               >
                 Automatisch (beste Stimme)
@@ -409,7 +409,7 @@ function VoiceSettingsPanel({ settings, onClose }) {
                   key={v.name}
                   onClick={() => setVoiceName(v.name)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors ${
-                    voiceName === v.name ? 'bg-blue-600/20 text-blue-300' : 'text-slate-400 hover:bg-slate-700/50'
+                    voiceName === v.name ? 'bg-violet-600/20 text-violet-300' : 'text-slate-400 hover:bg-slate-700/50'
                   }`}
                 >
                   {v.name}
@@ -442,12 +442,12 @@ function ConversationOverlay({
     },
     thinking: {
       label: 'Denke nach...',
-      color: 'amber',
+      color: 'violet',
       bgClass: 'bg-slate-900/97',
     },
     speaking: {
       label: 'Spreche...',
-      color: 'blue',
+      color: 'violet',
       bgClass: 'bg-slate-900/93',
     },
     idle: {
@@ -467,6 +467,7 @@ function ConversationOverlay({
   const statusColorMap = {
     emerald: 'text-emerald-400',
     amber: 'text-amber-400',
+    violet: 'text-violet-400',
     blue: 'text-blue-400',
     slate: 'text-slate-400',
   };
@@ -474,6 +475,7 @@ function ConversationOverlay({
   const ringColorMap = {
     emerald: 'ring-emerald-500/40',
     amber: 'ring-amber-500/40',
+    violet: 'ring-violet-500/40',
     blue: 'ring-blue-500/40',
     slate: 'ring-slate-500/40',
   };
@@ -481,6 +483,7 @@ function ConversationOverlay({
   const pulseColorMap = {
     emerald: 'animate-conversation-pulse-green',
     amber: 'animate-conversation-pulse-amber',
+    violet: 'animate-conversation-pulse-blue',
     blue: 'animate-conversation-pulse-blue',
     slate: '',
   };
@@ -516,9 +519,9 @@ function ConversationOverlay({
               conversationState === 'listening'
                 ? 'bg-emerald-500'
                 : conversationState === 'speaking'
-                ? 'bg-blue-500'
+                ? 'bg-gradient-to-br from-violet-500 to-indigo-600'
                 : conversationState === 'thinking'
-                ? 'bg-amber-500'
+                ? 'bg-gradient-to-br from-violet-500 to-purple-600'
                 : 'bg-slate-600'
             }`}
           >
@@ -568,7 +571,7 @@ function ConversationOverlay({
             <p className="text-sm text-slate-400">Sag etwas oder tippe um fortzufahren</p>
             <button
               onClick={onResume}
-              className="px-6 py-2.5 rounded-full bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 active:bg-blue-700 transition-colors cursor-pointer"
+              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-medium hover:from-violet-500 hover:to-indigo-500 active:from-violet-700 active:to-indigo-700 transition-all cursor-pointer shadow-sm shadow-violet-500/20"
             >
               Weiter zuhören
             </button>
@@ -846,7 +849,8 @@ export default function MobileAgentView({ onClose, engine }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900 text-slate-100 flex flex-col animate-slide-up-full safe-top safe-bottom"
+      className="fixed inset-x-0 top-0 z-40 bg-slate-900 text-slate-100 flex flex-col animate-slide-up-full safe-top"
+      style={{ bottom: 'calc(56px + max(env(safe-area-inset-bottom, 0px), 8px))' }}
       onClick={warmUpTTS}
     >
 
@@ -872,7 +876,7 @@ export default function MobileAgentView({ onClose, engine }) {
       )}
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between h-14 px-4 bg-slate-800/80 border-b border-slate-700/50 shrink-0">
+      <div className="flex items-center justify-between h-14 px-4 bg-gradient-to-r from-slate-800/90 via-slate-800/80 to-violet-900/20 border-b border-violet-500/20 shrink-0">
         <button
           onClick={onClose}
           className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-slate-100 active:bg-slate-700/50 transition-colors cursor-pointer"
@@ -882,17 +886,17 @@ export default function MobileAgentView({ onClose, engine }) {
         </button>
 
         <div className="flex items-center gap-2">
-          <Sparkles size={18} className="text-blue-400" />
-          <span className="text-base font-semibold text-slate-100">J.E.T.</span>
+          <Sparkles size={18} className="text-violet-400 jet-sparkle-icon" />
+          <span className="text-base font-bold jet-gradient-text">J.E.T.</span>
         </div>
 
         <div className="flex items-center gap-1">
           {/* Speaking indicator */}
           {isSpeaking && !conversationMode && (
             <div className="flex items-center gap-0.5 mr-1" title="Spricht...">
-              <span className="w-1 h-3 bg-blue-400 rounded-full animate-pulse" />
-              <span className="w-1 h-4 bg-blue-400 rounded-full animate-pulse [animation-delay:150ms]" />
-              <span className="w-1 h-2.5 bg-blue-400 rounded-full animate-pulse [animation-delay:300ms]" />
+              <span className="w-1 h-3 bg-violet-400 rounded-full animate-pulse" />
+              <span className="w-1 h-4 bg-violet-400 rounded-full animate-pulse [animation-delay:150ms]" />
+              <span className="w-1 h-2.5 bg-violet-400 rounded-full animate-pulse [animation-delay:300ms]" />
             </div>
           )}
 
@@ -968,7 +972,7 @@ export default function MobileAgentView({ onClose, engine }) {
               className={`
                 px-4 py-3 text-base leading-relaxed
                 ${msg.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-2xl rounded-br-sm max-w-[90%] ml-auto'
+                  ? 'bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-2xl rounded-br-sm max-w-[90%] ml-auto shadow-sm shadow-violet-500/20'
                   : msg.isError
                   ? 'bg-red-900/30 text-red-200 border border-red-700/40 rounded-2xl rounded-bl-sm max-w-[90%]'
                   : 'bg-slate-800/80 text-slate-200 border border-slate-700/40 rounded-2xl rounded-bl-sm max-w-[90%]'}
@@ -1050,7 +1054,7 @@ export default function MobileAgentView({ onClose, engine }) {
       )}
 
       {/* ── Input Area ── */}
-      <div className="border-t border-slate-700/50 px-4 py-3 shrink-0 safe-bottom">
+      <div className="border-t border-slate-700/50 px-4 py-2 shrink-0">
         <div className="flex items-end gap-2">
           {/* Conversation mode button */}
           {isSupported && !conversationMode && (
@@ -1088,7 +1092,7 @@ export default function MobileAgentView({ onClose, engine }) {
               flex-1 resize-none bg-slate-800/60 text-slate-100
               border border-slate-700/50 rounded-xl px-4 py-3
               text-base placeholder:text-slate-500
-              focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
+              focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-colors
               ${interimText && !inputValue ? 'placeholder:text-slate-300 placeholder:italic' : ''}
@@ -1109,8 +1113,8 @@ export default function MobileAgentView({ onClose, engine }) {
                 ${isListening
                   ? 'bg-red-500 text-white animate-voice-pulse'
                   : isSpeaking
-                  ? 'bg-blue-500/60 text-white ring-2 ring-blue-400/40'
-                  : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 active:from-blue-600 active:to-blue-700'}
+                  ? 'bg-violet-500/60 text-white ring-2 ring-violet-400/40'
+                  : 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white hover:from-violet-400 hover:to-indigo-500 active:from-violet-600 active:to-indigo-700 shadow-sm shadow-violet-500/20'}
               `}
               aria-label={isListening ? 'Aufnahme stoppen' : 'Spracheingabe starten'}
             >
@@ -1139,12 +1143,14 @@ export default function MobileAgentView({ onClose, engine }) {
               disabled={!inputValue.trim()}
               className="
                 w-12 h-12 shrink-0 rounded-xl
-                bg-blue-600 text-white
+                bg-gradient-to-br from-violet-600 to-indigo-600 text-white
                 flex items-center justify-center
-                hover:bg-blue-500 active:bg-blue-700
-                disabled:bg-slate-700 disabled:text-slate-500
+                hover:from-violet-500 hover:to-indigo-500
+                active:from-violet-700 active:to-indigo-700
+                shadow-sm shadow-violet-500/20
+                disabled:bg-slate-700 disabled:text-slate-500 disabled:from-slate-700 disabled:to-slate-700 disabled:shadow-none
                 disabled:cursor-not-allowed
-                transition-colors cursor-pointer
+                transition-all cursor-pointer
               "
               aria-label="Nachricht senden"
             >
