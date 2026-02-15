@@ -14,6 +14,9 @@ const HardwareLifecyclePanel = React.lazy(() => import('./HardwareLifecyclePanel
   default: () => null // placeholder, we use named exports
 })));
 import { WareneingangTab, QRCodeTab, PositionenTab } from './HardwareLifecyclePanel';
+const BestellwesenTab = React.lazy(() => import('./BestellwesenTab'));
+const LagerVersandTab = React.lazy(() => import('./LagerVersandTab'));
+const TrackingDashboard = React.lazy(() => import('./TrackingDashboard'));
 import HardwareComponentDetail from './HardwareComponentDetail';
 import {
   fetchAllOpsInventory,
@@ -1164,9 +1167,12 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           { id: 'completeness', label: 'Vollst.', icon: ClipboardCheck, count: completeness.withoutOps + completeness.withoutSim + completeness.withoutDisplay },
           { id: 'leasing', label: 'Leasing', icon: Landmark, count: leaseKpis.bankAssets },
           { id: 'orders', label: 'Auftr.', icon: ArrowLeftRight, count: openSwaps.length + openDeinstalls.length },
+          { id: 'bestellwesen', label: 'Bestellwesen', icon: CreditCard, count: null },
           { id: 'wareneingang', label: 'Wareneingang', icon: Package, count: null },
+          { id: 'lager-versand', label: 'Lager & Versand', icon: Truck, count: null },
           { id: 'qr-codes', label: 'QR-Codes', icon: QrCode, count: null },
           { id: 'positionen', label: 'Positionen', icon: MapPin, count: null },
+          { id: 'tracking', label: 'Tracking', icon: Eye, count: null },
           { id: 'timeline', label: 'Timeline', icon: History, count: timelineEvents.length },
           { id: 'fehler', label: 'Fehler', icon: ShieldAlert, count: hwMismatches.length || null },
           { id: 'data-quality', label: 'Datenqualität', icon: Database, count: null },
@@ -2133,11 +2139,25 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
         </div>
       )}
 
+      {/* ═══ BESTELLWESEN ═══ */}
+      {activeSection === 'bestellwesen' && (
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Bestellwesen...</span></div>}>
+          <BestellwesenTab />
+        </React.Suspense>
+      )}
+
       {/* ═══ WARENEINGANG ═══ */}
       {activeSection === 'wareneingang' && (
         <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
           <WareneingangTab />
         </div>
+      )}
+
+      {/* ═══ LAGER & VERSAND ═══ */}
+      {activeSection === 'lager-versand' && (
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Lager & Versand...</span></div>}>
+          <LagerVersandTab />
+        </React.Suspense>
       )}
 
       {/* ═══ QR-CODES ═══ */}
@@ -2152,6 +2172,13 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
         <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
           <PositionenTab />
         </div>
+      )}
+
+      {/* ═══ TRACKING DASHBOARD ═══ */}
+      {activeSection === 'tracking' && (
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Tracking...</span></div>}>
+          <TrackingDashboard />
+        </React.Suspense>
       )}
 
       {/* ═══ DATA QUALITY (embedded sub-tab) ═══ */}

@@ -43,6 +43,9 @@ export const ALL_TABS = [
   { id: 'hardware.wareneingang',   label: 'Wareneingang',          parent: 'hardware' },
   { id: 'hardware.qr-codes',      label: 'QR-Codes',              parent: 'hardware' },
   { id: 'hardware.positionen',    label: 'Positionen',            parent: 'hardware' },
+  { id: 'hardware.bestellwesen',  label: 'Bestellwesen',          parent: 'hardware' },
+  { id: 'hardware.lager-versand', label: 'Lager & Versand',       parent: 'hardware' },
+  { id: 'hardware.tracking',     label: 'Tracking',              parent: 'hardware' },
   { id: 'tasks',             label: 'Tasks',               parent: null },
   { id: 'communication',     label: 'Kommunikation',       parent: null },
   { id: 'installations',           label: 'Installationen',      parent: null },
@@ -395,7 +398,7 @@ function getDefaultGroups() {
     { id: 'grp_management', name: 'Management', description: 'Berichte', color: '#a855f7', icon: 'BarChart3', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_tech', name: 'Tech', description: 'Technische Tasks', color: '#06b6d4', icon: 'Code', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_scheduling', name: 'Terminierung', description: 'Installationstermine planen', color: '#f97316', icon: 'CalendarCheck', tabs: ['installations', 'installations.calendar', 'installations.bookings'], actions: ['manage_schedule', 'manage_bookings', 'send_booking_invite'], memberCount: 0 },
-    { id: 'grp_partner', name: 'Partner / Logistik', description: 'Installations- und Hardware-Logistik Partner', color: '#10b981', icon: 'Truck', tabs: ['hardware', 'hardware.inventory', 'hardware.wareneingang', 'hardware.qr-codes', 'hardware.positionen', 'installations', 'installations.calendar', 'installations.bookings'], actions: ['view', 'manage_hardware', 'manage_warehouse', 'manage_qr', 'manage_bookings'], memberCount: 0 },
+    { id: 'grp_partner', name: 'Partner / Logistik', description: 'Installations- und Hardware-Logistik Partner', color: '#10b981', icon: 'Truck', tabs: ['hardware', 'hardware.inventory', 'hardware.wareneingang', 'hardware.qr-codes', 'hardware.positionen', 'hardware.bestellwesen', 'hardware.lager-versand', 'hardware.tracking', 'installations', 'installations.calendar', 'installations.bookings'], actions: ['view', 'manage_hardware', 'manage_warehouse', 'manage_qr', 'manage_bookings'], memberCount: 0 },
   ];
 }
 
