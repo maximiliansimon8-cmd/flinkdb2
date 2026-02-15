@@ -96,9 +96,20 @@ async function getLastSyncTime(supabaseUrl, serviceKey, tableName) {
 
 /**
  * Update last sync timestamp for a table in Supabase sync_metadata.
+ * Uses POST with merge-duplicates (upsert), falls back to PATCH if POST fails.
  */
 async function updateSyncTime(supabaseUrl, serviceKey, tableName, fetched, upserted) {
+  const payload = {
+    table_name: tableName,
+    last_sync_timestamp: new Date().toISOString(),
+    records_fetched: fetched,
+    records_upserted: upserted,
+    last_sync_status: 'success',
+    updated_at: new Date().toISOString(),
+  };
+
   try {
+    // Attempt 1: POST with upsert (works if row exists or not)
     const res = await fetch(`${supabaseUrl}/rest/v1/sync_metadata`, {
       method: 'POST',
       headers: {
@@ -107,21 +118,44 @@ async function updateSyncTime(supabaseUrl, serviceKey, tableName, fetched, upser
         'apikey': serviceKey,
         'Prefer': 'resolution=merge-duplicates',
       },
-      body: JSON.stringify({
-        table_name: tableName,
-        last_sync_timestamp: new Date().toISOString(),
-        records_fetched: fetched,
-        records_upserted: upserted,
-        last_sync_status: 'success',
-        updated_at: new Date().toISOString(),
-      }),
+      body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-      const errText = await res.text();
-      console.warn(`[sync] sync_metadata update failed for ${tableName}: ${res.status} ${errText.substring(0, 200)}`);
+    if (res.ok) {
+      console.log(`[sync] ✅ sync_metadata updated for ${tableName}: ${fetched} fetched, ${upserted} upserted`);
+      return;
+    }
+
+    const errText = await res.text();
+    console.warn(`[sync] POST sync_metadata failed for ${tableName}: ${res.status} ${errText.substring(0, 200)}`);
+
+    // Attempt 2: PATCH (update existing row) — handles schema/conflict issues
+    const patchRes = await fetch(
+      `${supabaseUrl}/rest/v1/sync_metadata?table_name=eq.${encodeURIComponent(tableName)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey': serviceKey,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          last_sync_timestamp: payload.last_sync_timestamp,
+          records_fetched: fetched,
+          records_upserted: upserted,
+          last_sync_status: 'success',
+          updated_at: payload.updated_at,
+        }),
+      }
+    );
+    if (patchRes.ok) {
+      console.log(`[sync] ✅ sync_metadata PATCH succeeded for ${tableName}`);
+    } else {
+      const patchErr = await patchRes.text();
+      console.error(`[sync] ❌ sync_metadata PATCH also failed for ${tableName}: ${patchRes.status} ${patchErr.substring(0, 200)}`);
     }
   } catch (e) {
-    console.warn(`[sync] Failed to update sync_metadata for ${tableName}:`, e.message);
+    console.error(`[sync] ❌ Failed to update sync_metadata for ${tableName}:`, e.message);
   }
 }
 

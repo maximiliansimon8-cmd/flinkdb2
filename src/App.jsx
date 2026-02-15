@@ -1770,22 +1770,41 @@ function App() {
             {/* Right: Actions */}
             <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
               {/* API check + data points — desktop only */}
-              <div className="text-right hidden lg:block">
-                <div className="text-xs text-slate-500 font-mono">
-                  Letzter API-Check
-                </div>
-                <div className="text-sm text-slate-600 font-mono">
-                  {formatDateTime(rawData.latestTimestamp)}
-                </div>
-              </div>
-              <div className="text-right hidden lg:block">
-                <div className="text-xs text-slate-500 font-mono">
-                  Datenpunkte
-                </div>
-                <div className="text-sm text-slate-600 font-mono">
-                  {totalRowsGlobal.toLocaleString('de-DE')}
-                </div>
-              </div>
+              {(() => {
+                const dataAgeHours = rawData.latestTimestamp
+                  ? (Date.now() - new Date(rawData.latestTimestamp).getTime()) / (1000 * 60 * 60)
+                  : Infinity;
+                const isStale = dataAgeHours > 24;
+                const isVeryStale = dataAgeHours > 72;
+                return (
+                  <>
+                    <div className={`text-right hidden lg:block ${isStale ? 'relative group' : ''}`}>
+                      <div className={`text-xs font-mono flex items-center gap-1 justify-end ${isVeryStale ? 'text-red-500' : isStale ? 'text-amber-500' : 'text-slate-500'}`}>
+                        {isStale && <AlertTriangle size={10} />}
+                        Letzter API-Check
+                      </div>
+                      <div className={`text-sm font-mono ${isVeryStale ? 'text-red-600 font-semibold' : isStale ? 'text-amber-600' : 'text-slate-600'}`}>
+                        {formatDateTime(rawData.latestTimestamp)}
+                      </div>
+                      {isStale && (
+                        <div className="absolute top-full right-0 mt-1 px-3 py-2 bg-slate-800 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 max-w-[280px]">
+                          {isVeryStale
+                            ? `⚠️ Daten sind ${Math.round(dataAgeHours / 24)} Tage veraltet! Heartbeat-Pipeline prüfen.`
+                            : `Daten sind ${Math.round(dataAgeHours)}h alt. Sync-Button klicken oder Pipeline prüfen.`}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right hidden lg:block">
+                      <div className="text-xs text-slate-500 font-mono">
+                        Datenpunkte
+                      </div>
+                      <div className="text-sm text-slate-600 font-mono">
+                        {totalRowsGlobal.toLocaleString('de-DE')}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               {/* Display count badge — Navori + Dayn total */}
               <div className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50/60 border border-emerald-200/40 rounded-full px-2 sm:px-3 py-1 sm:py-1.5">

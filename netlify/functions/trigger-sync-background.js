@@ -189,6 +189,58 @@ async function upsertToSupabase(supabaseUrl, serviceKey, table, rows) {
    ═══════════════════════════════════════════════ */
 
 
+/**
+ * Update last sync timestamp for a table in Supabase sync_metadata.
+ */
+async function updateSyncTime(supabaseUrl, serviceKey, tableName, fetched, upserted) {
+  const payload = {
+    table_name: tableName,
+    last_sync_timestamp: new Date().toISOString(),
+    records_fetched: fetched,
+    records_upserted: upserted,
+    last_sync_status: 'success',
+    updated_at: new Date().toISOString(),
+  };
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/sync_metadata`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey': serviceKey,
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) return;
+    // Fallback: PATCH existing row
+    const patchRes = await fetch(
+      `${supabaseUrl}/rest/v1/sync_metadata?table_name=eq.${encodeURIComponent(tableName)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey': serviceKey,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          last_sync_timestamp: payload.last_sync_timestamp,
+          records_fetched: fetched,
+          records_upserted: upserted,
+          last_sync_status: 'success',
+          updated_at: payload.updated_at,
+        }),
+      }
+    );
+    if (!patchRes.ok) {
+      console.warn(`[trigger-sync] sync_metadata update failed for ${tableName}`);
+    }
+  } catch (e) {
+    console.warn(`[trigger-sync] sync_metadata error for ${tableName}:`, e.message);
+  }
+}
+
 function parseGermanDateToISO(str) {
   if (!str || typeof str !== 'string') return null;
   const trimmed = str.trim();
@@ -231,6 +283,7 @@ async function syncDisplays(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapDisplay);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'airtable_displays', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'airtable_displays', records.map(r => r.id));
+  await updateSyncTime(supabaseUrl, serviceKey, 'displays', records.length, upserted);
   console.log(`[trigger-sync] Displays: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'displays', fetched: records.length, upserted, deleted };
 }
@@ -240,6 +293,7 @@ async function syncAcquisition(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapAcquisition);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'acquisition', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'acquisition', records.map(r => r.id));
+  await updateSyncTime(supabaseUrl, serviceKey, 'acquisition', records.length, upserted);
   console.log(`[trigger-sync] Acquisition: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'acquisition', fetched: records.length, upserted, deleted };
 }
@@ -249,6 +303,7 @@ async function syncDaynScreens(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapDaynScreen);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'dayn_screens', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'dayn_screens', records.map(r => r.id));
+  await updateSyncTime(supabaseUrl, serviceKey, 'dayn_screens', records.length, upserted);
   console.log(`[trigger-sync] Dayn Screens: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'dayn_screens', fetched: records.length, upserted, deleted };
 }
@@ -258,6 +313,7 @@ async function syncOps(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapOpsInventory);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_ops', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_ops', records.map(r => r.id), 'id');
+  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_ops', records.length, upserted);
   console.log(`[trigger-sync] OPS: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'hardware_ops', fetched: records.length, upserted, deleted };
 }
@@ -267,6 +323,7 @@ async function syncSim(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapSimInventory);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_sim', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_sim', records.map(r => r.id), 'id');
+  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_sim', records.length, upserted);
   console.log(`[trigger-sync] SIM: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'hardware_sim', fetched: records.length, upserted, deleted };
 }
@@ -276,6 +333,7 @@ async function syncDisplayInventory(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapDisplayInventory);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_displays', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_displays', records.map(r => r.id), 'id');
+  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_displays', records.length, upserted);
   console.log(`[trigger-sync] Display Inv: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'hardware_displays', fetched: records.length, upserted, deleted };
 }
@@ -286,6 +344,7 @@ async function syncChg(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapChgApproval);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'chg_approvals', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'chg_approvals', records.map(r => r.id), 'id');
+  await updateSyncTime(supabaseUrl, serviceKey, 'chg_approvals', records.length, upserted);
   console.log(`[trigger-sync] CHG: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'chg_approvals', fetched: records.length, upserted, deleted };
 }
@@ -295,6 +354,7 @@ async function syncStammdaten(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapStammdaten);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'stammdaten', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'stammdaten', records.map(r => r.id));
+  await updateSyncTime(supabaseUrl, serviceKey, 'stammdaten', records.length, upserted);
   console.log(`[trigger-sync] Stammdaten: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'stammdaten', fetched: records.length, upserted, deleted };
 }
@@ -304,6 +364,7 @@ async function syncTasks(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapTask);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'tasks', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'tasks', records.map(r => r.id));
+  await updateSyncTime(supabaseUrl, serviceKey, 'tasks', records.length, upserted);
   console.log(`[trigger-sync] Tasks: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'tasks', fetched: records.length, upserted, deleted };
 }
@@ -313,6 +374,7 @@ async function syncInstallationen(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapInstallation);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'installationen', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'installationen', records.map(r => r.id));
+  await updateSyncTime(supabaseUrl, serviceKey, 'installationen', records.length, upserted);
   console.log(`[trigger-sync] Installationen: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'installationen', fetched: records.length, upserted, deleted };
 }
@@ -322,6 +384,7 @@ async function syncSwaps(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapHardwareSwap);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_swaps', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_swaps', records.map(r => r.id), 'id');
+  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_swaps', records.length, upserted);
   console.log(`[trigger-sync] Swaps: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'hardware_swaps', fetched: records.length, upserted, deleted };
 }
@@ -331,6 +394,7 @@ async function syncDeinstalls(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapDeinstall);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_deinstalls', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_deinstalls', records.map(r => r.id), 'id');
+  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_deinstalls', records.length, upserted);
   console.log(`[trigger-sync] Deinstalls: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'hardware_deinstalls', fetched: records.length, upserted, deleted };
 }
@@ -340,6 +404,7 @@ async function syncCommunications(token, supabaseUrl, serviceKey) {
   const rows = records.map(mapCommunication);
   const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'communications', rows);
   const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'communications', records.map(r => r.id));
+  await updateSyncTime(supabaseUrl, serviceKey, 'communications', records.length, upserted);
   console.log(`[trigger-sync] Communications: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
   return { name: 'communications', fetched: records.length, upserted, deleted };
 }
@@ -380,6 +445,7 @@ async function syncHeartbeats(supabaseUrl, serviceKey) {
     });
   }
   const inserted = await insertToSupabase(supabaseUrl, serviceKey, 'display_heartbeats', heartbeatRows);
+  await updateSyncTime(supabaseUrl, serviceKey, 'heartbeats', heartbeatRows.length, inserted);
   console.log(`[trigger-sync] Heartbeats: ${heartbeatRows.length} → ${inserted} inserted`);
   return { name: 'heartbeats', fetched: heartbeatRows.length, inserted };
 }
