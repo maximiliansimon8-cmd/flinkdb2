@@ -1669,7 +1669,35 @@ export default function APIOverviewPanel() {
                                                           <div className="w-2.5 h-2.5 rounded-full border border-slate-300 mx-auto" />
                                                         )}
                                                       </td>
-                                                      <td className="px-2 py-1.5 font-mono text-slate-700 text-[11px]">{field.airtable}</td>
+                                                      <td className="px-2 py-1.5 font-mono text-slate-700 text-[11px]">
+                                                        <span className="inline-flex items-center gap-1">
+                                                          {field.airtable}
+                                                          {field.airtable !== field.airtable.trim() && (
+                                                            <span className="relative group cursor-help">
+                                                              <AlertCircle size={10} className="text-amber-500" />
+                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                                                Feldname hat Leerzeichen am Ende (Trailing Space) — Bug in Airtable
+                                                              </span>
+                                                            </span>
+                                                          )}
+                                                          {/[Ll]enth|[Mm]aximun|visiblity|weekdend|Longt?itude/.test(field.airtable) && (
+                                                            <span className="relative group cursor-help">
+                                                              <AlertCircle size={10} className="text-red-400" />
+                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                                                Tippfehler im Airtable-Feldnamen — kann nicht umbenannt werden ohne Sync-Bruch
+                                                              </span>
+                                                            </span>
+                                                          )}
+                                                          {/  /.test(field.airtable) && (
+                                                            <span className="relative group cursor-help">
+                                                              <AlertCircle size={10} className="text-orange-400" />
+                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                                                Doppeltes Leerzeichen im Feldnamen — Bug in Airtable
+                                                              </span>
+                                                            </span>
+                                                          )}
+                                                        </span>
+                                                      </td>
                                                       <td className="text-center px-1 py-1.5 text-slate-300">{'\u2192'}</td>
                                                       <td className="px-2 py-1.5 font-mono text-blue-700 text-[11px]">{field.supabase}</td>
                                                       <td className="px-2 py-1.5">
