@@ -29,6 +29,7 @@ import {
   CircleDot,
   Circle,
   BarChart3,
+  Download,
 } from 'lucide-react';
 import { supabase } from '../utils/authService';
 
@@ -735,6 +736,80 @@ export default function DataMappingPanel() {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
+  // ─── CSV Export ──────────────────────────────────────────────────
+  const escapeCSV = (val) => {
+    if (val == null) return '';
+    const str = String(val);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  };
+
+  const downloadCSV = (filename, csvContent) => {
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export single data source fields
+  const exportSourceCSV = (src) => {
+    const headers = ['Synced', 'Airtable Feld', 'Supabase Spalte', 'Typ', 'Bedeutung', 'Hinweis'];
+    const rows = src.fields.map(f => [
+      f.synced ? 'Ja' : 'Nein',
+      f.airtable,
+      f.supabase,
+      f.type,
+      f.interpretation || '',
+      f.quirk || f.note || '',
+    ]);
+    const meta = [
+      ['# Tabelle', src.name],
+      ['# Airtable', src.airtableTable || ''],
+      ['# Supabase', src.supabaseTable],
+      ['# Sync', src.syncFrequency],
+      ['# Methode', src.syncMethod],
+      ['# Kategorie', CATEGORY_INFO[src.category]?.label || src.category],
+      ['# Verwendet in', (src.usedIn || []).join(', ')],
+      ['# Records', tableCounts[src.supabaseTable] || ''],
+      [],
+    ];
+    const csv = [...meta, headers, ...rows].map(r => r.map(escapeCSV).join(',')).join('\n');
+    downloadCSV(`${src.supabaseTable}_felder.csv`, csv);
+  };
+
+  // Export ALL data sources as single CSV
+  const exportAllSourcesCSV = () => {
+    const headers = ['Datenquelle', 'Kategorie', 'Supabase Tabelle', 'Sync', 'Synced', 'Airtable Feld', 'Supabase Spalte', 'Typ', 'Bedeutung', 'Hinweis', 'Verwendet in'];
+    const rows = [];
+    DATA_SOURCES.forEach(src => {
+      src.fields.forEach(f => {
+        rows.push([
+          src.name,
+          CATEGORY_INFO[src.category]?.label || src.category,
+          src.supabaseTable,
+          src.syncFrequency,
+          f.synced ? 'Ja' : 'Nein',
+          f.airtable,
+          f.supabase,
+          f.type,
+          f.interpretation || '',
+          f.quirk || f.note || '',
+          (src.usedIn || []).join(', '),
+        ]);
+      });
+    });
+    const csv = [headers, ...rows].map(r => r.map(escapeCSV).join(',')).join('\n');
+    downloadCSV('jet_data_dictionary_komplett.csv', csv);
+  };
+
   const formatTimestamp = (ts) => {
     if (!ts) return '\u2013';
     try {
@@ -803,8 +878,16 @@ export default function DataMappingPanel() {
         />
       </div>
 
-      {/* KPI Audit Toggle & Section */}
-      <div>
+      {/* Export + KPI Audit Toolbar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={exportAllSourcesCSV}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-white/60 backdrop-blur-xl text-slate-600 border border-slate-200/60 hover:bg-emerald-50/80 hover:text-emerald-700 hover:border-emerald-200/60 transition-all"
+          title="Alle Datenquellen als CSV exportieren"
+        >
+          <Download size={13} />
+          Alle exportieren
+        </button>
         <button
           onClick={() => setShowKPIAudit(!showKPIAudit)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
@@ -1141,16 +1224,26 @@ export default function DataMappingPanel() {
                         <ArrowRight size={12} />
                         Field Mapping ({syncedCount} synced{availableCount > 0 ? ` + ${availableCount} verfuegbar` : ''})
                       </h4>
-                      {availableCount > 0 && (
+                      <div className="flex items-center gap-2">
+                        {availableCount > 0 && (
+                          <button
+                            onClick={() => setShowOnlySynced(!showOnlySynced)}
+                            className={`text-xs px-2 py-1 rounded-lg font-medium transition-colors ${
+                              showOnlySynced ? 'bg-blue-50 text-blue-700' : 'bg-slate-100/80 text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            {showOnlySynced ? 'Nur Synced' : 'Alle zeigen'}
+                          </button>
+                        )}
                         <button
-                          onClick={() => setShowOnlySynced(!showOnlySynced)}
-                          className={`text-xs px-2 py-1 rounded-lg font-medium transition-colors ${
-                            showOnlySynced ? 'bg-blue-50 text-blue-700' : 'bg-slate-100/80 text-slate-500 hover:text-slate-700'
-                          }`}
+                          onClick={(e) => { e.stopPropagation(); exportSourceCSV(src); }}
+                          className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium bg-slate-100/80 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                          title={`${src.name} als CSV exportieren`}
                         >
-                          {showOnlySynced ? 'Nur Synced' : 'Alle zeigen'}
+                          <Download size={11} />
+                          CSV
                         </button>
-                      )}
+                      </div>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Globe,
   Database,
@@ -31,6 +31,7 @@ import {
   XCircle,
   Copy,
   Info,
+  Download,
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -75,19 +76,252 @@ const API_DATA = [
     ],
     envVars: ['AIRTABLE_TOKEN'],
     tables: [
-      { id: 'tblcKHWJg77mgIQ9l', name: 'Tasks', usage: 'Aufgabenverwaltung' },
-      { id: 'tblDk1dl4J3Ow3Qde', name: 'Activity Log', usage: 'Kommunikationshistorie' },
-      { id: 'tblS6cWN7uEhZHcie', name: 'Live Display Locations', usage: 'Display-Standorte' },
-      { id: 'tblLJ1S7OUhc2w5Jw', name: 'JET Stammdaten', usage: 'Kontakt- & Adressdaten' },
-      { id: 'tblqFMBAeKQ1NbSI8', name: 'Acquisition_DB', usage: 'Akquise-Pipeline' },
-      { id: 'tblzFHk0HhB4bNYJ4', name: 'Hardware Swap', usage: 'Hardware-Tausch' },
-      { id: 'tbltdxgzDeNz9d0ZC', name: 'Deinstallationen', usage: 'Deinstall-Protokolle' },
-      { id: 'tblKznpAOAMvEfX8u', name: 'Installationen', usage: 'Install-Termine' },
-      { id: 'tblPxz19KsF1TUkwr', name: 'external_team', usage: 'Partner & Integratoren' },
-      { id: 'tbl7szvfLUjsUvMkH', name: 'OPS_Player_inventory', usage: 'Media-Player Hardware' },
-      { id: 'tblaV4UQX6hhcSDAj', name: 'SIM_card_inventory', usage: 'SIM-Karten' },
-      { id: 'tblaMScl3j45Q4Dtc', name: 'display_inventory', usage: 'Display-Hardware' },
-      { id: 'tblvj4qjJpBVLbY7F', name: 'CHG Approval', usage: 'Bank-Zertifizierungen' },
+      {
+        id: 'tblcKHWJg77mgIQ9l',
+        name: 'Tasks',
+        usage: 'Aufgabenverwaltung',
+        supabaseTable: 'tasks',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['TaskDashboard', 'ActivityFeed', 'DisplayDetail'],
+        fields: [
+          { airtable: 'Task Title', supabase: 'title', type: 'text', synced: true, interpretation: 'Titel der Aufgabe' },
+          { airtable: 'Task Type', supabase: 'task_type_select', type: 'array', synced: true, interpretation: 'Aufgabentyp (Multi-Select)' },
+          { airtable: 'Status', supabase: 'status', type: 'text', synced: true, interpretation: 'New, In Progress, Completed, Follow Up, On Hold, In Review' },
+          { airtable: 'Priority', supabase: 'priority', type: 'text', synced: true, interpretation: 'High, Medium, Low' },
+          { airtable: 'Due Date', supabase: 'due_date', type: 'date', synced: true, interpretation: 'Faelligkeit' },
+          { airtable: 'Description', supabase: 'description', type: 'text', synced: true, interpretation: 'Aufgaben-Beschreibung' },
+          { airtable: 'Responsible User', supabase: 'responsible_user', type: 'text', synced: true, interpretation: 'Zustaendiger Benutzer' },
+          { airtable: 'Assigned', supabase: 'assigned', type: 'array', synced: true, interpretation: 'Zugewiesene Personen' },
+          { airtable: 'Display ID (from Displays )', supabase: 'display_ids', type: 'array', synced: true, interpretation: 'Verknuepfte Displays (TRAILING SPACE!)' },
+          { airtable: 'Location Name (from Locations)', supabase: 'location_names', type: 'array', synced: true, interpretation: 'Verknuepfte Standorte' },
+          { airtable: 'Overdue', supabase: 'overdue', type: 'text', synced: true, interpretation: 'Berechnet: Overdue wenn due_date < heute' },
+          { airtable: 'Attachments', supabase: 'attachments', type: 'attachment', synced: true, interpretation: 'Angehaengte Dateien' },
+          { airtable: 'Online Status  (from Displays )', supabase: 'online_status', type: 'array', synced: true, interpretation: 'DOUBLE SPACE + TRAILING SPACE!' },
+          { airtable: 'Kommentar Nacharbeit', supabase: 'nacharbeit_kommentar', type: 'text', synced: true, interpretation: 'Nacharbeitsnotizen' },
+          { airtable: 'external_visiblity', supabase: 'external_visibility', type: 'text', synced: true, interpretation: 'TYPO: visiblity statt visibility' },
+        ],
+      },
+      {
+        id: 'tblDk1dl4J3Ow3Qde',
+        name: 'Activity Log',
+        usage: 'Kommunikationshistorie',
+        supabaseTable: 'communications',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['ActivityFeed', 'DisplayDetail', 'CommunicationPanel'],
+        fields: [
+          { airtable: 'Channel', supabase: 'channel', type: 'text', synced: true, interpretation: 'Email, WhatsApp, SMS, Phone' },
+          { airtable: 'Direction', supabase: 'direction', type: 'text', synced: true, interpretation: 'Inbound, Outbound' },
+          { airtable: 'Subject', supabase: 'subject', type: 'text', synced: true, interpretation: 'Betreff der Nachricht' },
+          { airtable: 'Message', supabase: 'message', type: 'text', synced: true, interpretation: 'Nachrichteninhalt' },
+          { airtable: 'Timestamp', supabase: 'timestamp', type: 'date', synced: true, interpretation: 'Zeitstempel' },
+          { airtable: 'Status', supabase: 'status', type: 'text', synced: true, interpretation: 'Sent, Received, Pending' },
+          { airtable: 'Recipient Name', supabase: 'recipient_name', type: 'text', synced: true, interpretation: 'Empfaenger' },
+          { airtable: 'Sender', supabase: 'sender', type: 'text', synced: true, interpretation: 'Absender' },
+          { airtable: 'External ID', supabase: 'external_id', type: 'text', synced: true, interpretation: 'Superchat Message ID' },
+          { airtable: 'Location', supabase: 'location_ids', type: 'link', synced: true, interpretation: 'Verknuepfter Standort' },
+        ],
+      },
+      {
+        id: 'tblS6cWN7uEhZHcie',
+        name: 'Live Display Locations',
+        usage: 'Display-Standorte',
+        supabaseTable: 'airtable_displays',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['DisplayOverview', 'MapView', 'DisplayDetail', 'KPICards'],
+        fields: [
+          { airtable: 'Display ID', supabase: 'display_id', type: 'text', synced: true, interpretation: 'Eindeutige Display-Kennung' },
+          { airtable: 'display_name', supabase: 'display_name', type: 'text', synced: true, interpretation: 'Anzeigename des Displays' },
+          { airtable: 'Online Status ', supabase: 'online_status', type: 'text', synced: true, interpretation: 'TRAILING SPACE! Werte: Live, Offline' },
+          { airtable: 'Live since', supabase: 'live_since', type: 'date', synced: true, interpretation: 'Aktivierungsdatum' },
+          { airtable: 'deinstall_date', supabase: 'deinstall_date', type: 'date', synced: true, interpretation: 'Wenn gesetzt = abgebaut' },
+          { airtable: 'Screen Type', supabase: 'screen_type', type: 'text', synced: true, interpretation: 'WD (Window Display) etc.' },
+          { airtable: 'Screen Size ', supabase: 'screen_size', type: 'text', synced: true, interpretation: 'TRAILING SPACE! Groesse in Zoll' },
+          { airtable: 'Navori Venue ID', supabase: 'navori_venue_id', type: 'text', synced: true, interpretation: 'Link zu Navori CMS / Vistar SSP' },
+          { airtable: 'Location Name', supabase: 'location_name', type: 'text', synced: true, interpretation: 'Standortname' },
+          { airtable: 'City', supabase: 'city', type: 'text', synced: true, interpretation: 'Stadt' },
+          { airtable: 'JET ID (from JET ID)', supabase: 'jet_id', type: 'text', synced: true, interpretation: 'Standort-ID' },
+          { airtable: 'SoV Partner Ad', supabase: 'sov_partner_ad', type: 'number', synced: true, interpretation: 'Share of Voice Partner-Anteil' },
+        ],
+      },
+      {
+        id: 'tblLJ1S7OUhc2w5Jw',
+        name: 'JET Stammdaten',
+        usage: 'Kontakt- & Adressdaten',
+        supabaseTable: 'stammdaten',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['StammdatenView', 'DisplayDetail', 'InstallBooker'],
+        fields: [
+          { airtable: 'JET ID', supabase: 'jet_id', type: 'text', synced: true, interpretation: 'Standort-ID (JET-STADT-NR)' },
+          { airtable: 'Display ID', supabase: 'display_ids', type: 'array', synced: true, interpretation: 'Alle Display-IDs dieses Standorts' },
+          { airtable: 'Location Name', supabase: 'location_name', type: 'text', synced: true, interpretation: 'Name des Standorts' },
+          { airtable: 'Contact Person', supabase: 'contact_person', type: 'text', synced: true, interpretation: 'Ansprechpartner' },
+          { airtable: 'Contact Email', supabase: 'contact_email', type: 'text', synced: true, interpretation: 'Kontakt E-Mail' },
+          { airtable: 'Contact Phone', supabase: 'contact_phone', type: 'text', synced: true, interpretation: 'Kontakt Telefon' },
+          { airtable: 'Street', supabase: 'street', type: 'text', synced: true, interpretation: 'Strasse' },
+          { airtable: 'City', supabase: 'city', type: 'text', synced: true, interpretation: 'Stadt' },
+          { airtable: 'Postal Code', supabase: 'postal_code', type: 'text', synced: true, interpretation: 'PLZ' },
+          { airtable: 'Lead Status  (from Akquise)', supabase: 'lead_status', type: 'text', synced: true, interpretation: 'DOUBLE SPACE! Akquise-Status' },
+          { airtable: 'Status', supabase: 'display_status', type: 'text', synced: true, interpretation: 'Display-Status' },
+        ],
+      },
+      {
+        id: 'tblqFMBAeKQ1NbSI8',
+        name: 'Acquisition_DB',
+        usage: 'Akquise-Pipeline',
+        supabaseTable: 'acquisition',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['AcquisitionPipeline', 'KPICards'],
+        fields: [
+          { airtable: 'Akquise ID', supabase: 'akquise_id', type: 'text', synced: true, interpretation: 'Eindeutige Akquise-ID' },
+          { airtable: 'Lead_Status', supabase: 'lead_status', type: 'text', synced: true, interpretation: 'Pipeline: Lead\u2192Qualified\u2192Contracted\u2192Ready\u2192Installed\u2192Live' },
+          { airtable: 'Location Name_new', supabase: 'location_name', type: 'text', synced: true, interpretation: 'Standortname' },
+          { airtable: 'City', supabase: 'city', type: 'array', synced: true, interpretation: 'Stadt' },
+          { airtable: 'frequency_approval', supabase: 'frequency_approval', type: 'text', synced: true, interpretation: 'FAW-Check Genehmigung' },
+          { airtable: 'install_approval', supabase: 'install_approval', type: 'text', synced: true, interpretation: 'Installations-Genehmigung' },
+          { airtable: 'ready_for_installation', supabase: 'ready_for_installation', type: 'text', synced: true, interpretation: 'ACHTUNG: String \'checked\' statt Boolean!' },
+          { airtable: 'Akquise Storno', supabase: 'akquise_storno', type: 'text', synced: true, interpretation: 'Akquise storniert?' },
+          { airtable: 'Post\u2011Install Storno', supabase: 'post_install_storno', type: 'text', synced: true, interpretation: 'NON-BREAKING HYPHEN U+2011!' },
+          { airtable: 'Vertrag PDF vorhanden', supabase: 'vertrag_vorhanden', type: 'text', synced: true, interpretation: 'Vertrags-PDF hochgeladen?' },
+          { airtable: '# dVAC / Woche 100% SoV', supabase: 'dvac_week', type: 'number', synced: true, interpretation: 'Daily Views at Capacity pro Woche' },
+        ],
+      },
+      {
+        id: 'tblKznpAOAMvEfX8u',
+        name: 'Installationen',
+        usage: 'Install-Termine',
+        supabaseTable: 'installationen',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['InstallBooker', 'InstallOverview', 'DisplayDetail'],
+        fields: [
+          { airtable: 'Aufbau Datum', supabase: 'install_date', type: 'date', synced: true, interpretation: 'Installations-Termin' },
+          { airtable: 'Status Installation', supabase: 'status', type: 'text', synced: true, interpretation: 'Installiert, Abgebrochen, Terminiert, Nacharbeit' },
+          { airtable: 'Installationsart', supabase: 'installation_type', type: 'text', synced: true, interpretation: 'Boden-, Wand-, Deckenmontage' },
+          { airtable: 'Company (from Integrator)', supabase: 'integrator', type: 'text', synced: true, interpretation: 'e-Systems, MediaAV, DAYNMEDIA' },
+          { airtable: 'Screen Art', supabase: 'screen_type', type: 'text', synced: true, interpretation: 'WD etc.' },
+          { airtable: 'OPS Nr', supabase: 'ops_nr', type: 'text', synced: true, interpretation: 'OPS-Player Nummer' },
+          { airtable: 'SIM-ID', supabase: 'sim_id', type: 'text', synced: true, interpretation: 'SIM-Karten ID' },
+          { airtable: 'Allgemeine Bemerkungen', supabase: 'remarks', type: 'text', synced: true, interpretation: 'Installations-Notizen' },
+        ],
+      },
+      {
+        id: 'tblzFHk0HhB4bNYJ4',
+        name: 'Hardware Swap',
+        usage: 'Hardware-Tausch',
+        supabaseTable: 'hardware_swaps',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['HardwareOverview', 'DisplayDetail'],
+        fields: [
+          { airtable: 'Tausch-ID', supabase: 'swap_id', type: 'text', synced: true, interpretation: 'Eindeutige Tausch-ID' },
+          { airtable: 'Tausch-Typ', supabase: 'swap_type', type: 'array', synced: true, interpretation: 'Art des Tausches' },
+          { airtable: 'Tausch-Datum', supabase: 'swap_date', type: 'date', synced: true, interpretation: 'Datum des Tausches' },
+          { airtable: 'Tausch-Grund', supabase: 'swap_reason', type: 'text', synced: true, interpretation: 'Grund fuer Hardware-Tausch' },
+          { airtable: 'Defekt-Beschreibung', supabase: 'defect_description', type: 'text', synced: true, interpretation: 'Detaillierte Fehlerbeschreibung' },
+          { airtable: 'Status', supabase: 'status', type: 'text', synced: true, interpretation: 'Status des Tausches' },
+        ],
+      },
+      {
+        id: 'tbltdxgzDeNz9d0ZC',
+        name: 'Deinstallationen',
+        usage: 'Deinstall-Protokolle',
+        supabaseTable: 'hardware_deinstalls',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['HardwareOverview', 'DisplayDetail'],
+        fields: [
+          { airtable: 'Deinstallations-ID', supabase: 'deinstall_id', type: 'text', synced: true, interpretation: 'Eindeutige ID' },
+          { airtable: 'Deinstallationsdatum', supabase: 'deinstall_date', type: 'date', synced: true, interpretation: 'Datum der Deinstallation' },
+          { airtable: 'Grund', supabase: 'reason', type: 'text', synced: true, interpretation: 'Deinstallationsgrund' },
+          { airtable: 'Hardware-Zustand', supabase: 'hardware_condition', type: 'text', synced: true, interpretation: 'Zustand der Hardware' },
+          { airtable: 'Status', supabase: 'status', type: 'text', synced: true, interpretation: 'Status' },
+        ],
+      },
+      {
+        id: 'tbl7szvfLUjsUvMkH',
+        name: 'OPS_Player_inventory',
+        usage: 'Media-Player Hardware',
+        supabaseTable: 'hardware_ops',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['HardwareOverview', 'OPSInventory'],
+        fields: [
+          { airtable: 'OpsNr.', supabase: 'ops_nr', type: 'text', synced: true, interpretation: 'OPS-Player Nummer' },
+          { airtable: 'status', supabase: 'status', type: 'text', synced: true, interpretation: 'Active, Inactive, RMA' },
+          { airtable: 'OPS-SN', supabase: 'ops_sn', type: 'text', synced: true, interpretation: 'Seriennummer' },
+          { airtable: 'ops_hardware_type', supabase: 'hardware_type', type: 'text', synced: true, interpretation: 'Hardware-Typ' },
+          { airtable: 'navori_venueID', supabase: 'navori_venue_id', type: 'text', synced: true, interpretation: 'Navori Venue ID' },
+          { airtable: 'SimID (from SimID)', supabase: 'sim_id', type: 'text', synced: true, interpretation: 'Verknuepfte SIM-Karte' },
+          { airtable: 'Online Status ', supabase: 'location_online_status', type: 'text', synced: true, interpretation: 'DOUBLE SPACE! Display Online-Status' },
+        ],
+      },
+      {
+        id: 'tblaV4UQX6hhcSDAj',
+        name: 'SIM_card_inventory',
+        usage: 'SIM-Karten',
+        supabaseTable: 'hardware_sim',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['HardwareOverview', 'SIMInventory'],
+        fields: [
+          { airtable: 'SimID', supabase: 'sim_id', type: 'text', synced: true, interpretation: 'SIM-Karten ID' },
+          { airtable: 'activate_date', supabase: 'activate_date', type: 'date', synced: true, interpretation: 'Aktivierungsdatum' },
+          { airtable: 'status', supabase: 'status', type: 'text', synced: true, interpretation: 'Active, Inactive' },
+        ],
+      },
+      {
+        id: 'tblaMScl3j45Q4Dtc',
+        name: 'display_inventory',
+        usage: 'Display-Hardware',
+        supabaseTable: 'hardware_displays',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['HardwareOverview', 'DisplayInventory'],
+        fields: [
+          { airtable: 'display_serial_number', supabase: 'display_serial_number', type: 'text', synced: true, interpretation: 'Display-Seriennummer' },
+          { airtable: 'location', supabase: 'location', type: 'text', synced: true, interpretation: 'Zugeordneter Standort' },
+          { airtable: 'status', supabase: 'status', type: 'text', synced: true, interpretation: 'Active, Inactive, RMA' },
+        ],
+      },
+      {
+        id: 'tblvj4qjJpBVLbY7F',
+        name: 'CHG Approval',
+        usage: 'Bank-Zertifizierungen',
+        supabaseTable: 'chg_approvals',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['CHGOverview', 'BankLeasing'],
+        fields: [
+          { airtable: 'JET ID Location', supabase: 'jet_id_location', type: 'text', synced: true, interpretation: 'JET Standort-ID' },
+          { airtable: 'Asset ID', supabase: 'asset_id', type: 'text', synced: true, interpretation: 'CHG Asset-ID' },
+          { airtable: 'Display SN', supabase: 'display_sn', type: 'text', synced: true, interpretation: 'Display Seriennummer' },
+          { airtable: 'Status', supabase: 'status', type: 'text', synced: true, interpretation: 'Approved, Pending, Rejected' },
+          { airtable: 'Rental start date', supabase: 'rental_start', type: 'date', synced: true, interpretation: 'Mietbeginn' },
+          { airtable: 'Rental end date', supabase: 'rental_end', type: 'date', synced: true, interpretation: 'Mietende' },
+          { airtable: 'Payment released on', supabase: 'payment_released_on', type: 'date', synced: true, interpretation: 'Zahlungsfreigabe' },
+        ],
+      },
+      {
+        id: 'tblPxz19KsF1TUkwr',
+        name: 'external_team',
+        usage: 'Partner & Integratoren',
+        supabaseTable: 'external_team',
+        syncFrequency: 'Alle 2 Stunden',
+        syncMethod: 'Inkrementell',
+        usedIn: ['TeamOverview', 'InstallBooker'],
+        fields: [
+          { airtable: 'Company', supabase: 'company', type: 'text', synced: true, interpretation: 'Firmenname des Partners' },
+          { airtable: 'Name', supabase: 'name', type: 'text', synced: true, interpretation: 'Ansprechpartner' },
+          { airtable: 'Email', supabase: 'email', type: 'text', synced: true, interpretation: 'E-Mail' },
+          { airtable: 'Phone', supabase: 'phone', type: 'text', synced: true, interpretation: 'Telefon' },
+          { airtable: 'Role', supabase: 'role', type: 'text', synced: true, interpretation: 'Rolle (Integrator, Techniker etc.)' },
+        ],
+      },
     ],
     endpoints: [
       { method: 'GET', path: '/v0/{baseId}/{tableId}', description: 'Records lesen (mit Pagination, max 100/Request)', icon: Eye },
@@ -423,6 +657,7 @@ const STATS = [
 
 export default function APIOverviewPanel() {
   const [expandedApi, setExpandedApi] = useState(null);
+  const [expandedTableId, setExpandedTableId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [copiedText, setCopiedText] = useState(null);
@@ -461,6 +696,80 @@ export default function APIOverviewPanel() {
     navigator.clipboard.writeText(text).catch(() => {});
     setCopiedText(text);
     setTimeout(() => setCopiedText(null), 2000);
+  };
+
+  // ─── CSV Export helpers ──────────────────────────────────────────
+  const escapeCSV = (val) => {
+    if (val == null) return '';
+    const str = String(val);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  };
+
+  const downloadCSV = (filename, csvContent) => {
+    const BOM = '\uFEFF'; // UTF-8 BOM for Excel compatibility
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export a single table's fields as CSV
+  const exportTableCSV = (table, apiName) => {
+    if (!table.fields || table.fields.length === 0) return;
+    const headers = ['Synced', 'Airtable Feld', 'Supabase Spalte', 'Typ', 'Bedeutung'];
+    const rows = table.fields.map(f => [
+      f.synced ? 'Ja' : 'Nein',
+      f.airtable,
+      f.supabase,
+      f.type,
+      f.interpretation || '',
+    ]);
+    const meta = [
+      ['# Tabelle', table.name],
+      ['# Table ID', table.id],
+      ['# Supabase', table.supabaseTable || ''],
+      ['# Sync', table.syncFrequency || ''],
+      ['# Methode', table.syncMethod || ''],
+      ['# Verwendet in', (table.usedIn || []).join(', ')],
+      ['# API', apiName],
+      [],
+    ];
+    const csv = [...meta, headers, ...rows].map(r => r.map(escapeCSV).join(',')).join('\n');
+    downloadCSV(`${table.supabaseTable || table.name}_felder.csv`, csv);
+  };
+
+  // Export ALL tables of an API as a single CSV
+  const exportAllTablesCSV = (api) => {
+    const tablesWithFields = api.tables.filter(t => t.fields && t.fields.length > 0);
+    if (tablesWithFields.length === 0) return;
+    const headers = ['Tabelle', 'Table ID', 'Supabase', 'Sync', 'Synced', 'Airtable Feld', 'Supabase Spalte', 'Typ', 'Bedeutung', 'Verwendet in'];
+    const rows = [];
+    tablesWithFields.forEach(t => {
+      t.fields.forEach(f => {
+        rows.push([
+          t.name,
+          t.id,
+          t.supabaseTable || '',
+          t.syncFrequency || '',
+          f.synced ? 'Ja' : 'Nein',
+          f.airtable,
+          f.supabase,
+          f.type,
+          f.interpretation || '',
+          (t.usedIn || []).join(', '),
+        ]);
+      });
+    });
+    const csv = [headers, ...rows].map(r => r.map(escapeCSV).join(',')).join('\n');
+    downloadCSV(`${api.id}_alle_tabellen.csv`, csv);
   };
 
   return (
@@ -730,40 +1039,172 @@ export default function APIOverviewPanel() {
                     </div>
                   </div>
 
-                  {/* Tables (if any) */}
+                  {/* Tables (if any) — expandable rows */}
                   {api.tables.length > 0 && (
                     <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
-                      <div className="px-3 py-2 border-b border-slate-200/40">
+                      <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
                         <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                           <Database size={12} />
                           Tabellen / Collections ({api.tables.length})
+                          {api.tables.some(t => t.fields) && (
+                            <span className="text-[10px] text-slate-400 font-normal normal-case tracking-normal ml-2">Klicken zum Aufklappen</span>
+                          )}
                         </h4>
+                        {api.tables.some(t => t.fields && t.fields.length > 0) && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); exportAllTablesCSV(api); }}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/60 border border-slate-200/60 text-slate-600 hover:border-blue-400/60 hover:text-blue-600 transition-colors"
+                            title="Alle Tabellen als CSV exportieren"
+                          >
+                            <Download size={11} />
+                            Alle exportieren
+                          </button>
+                        )}
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="border-b border-slate-200/40 bg-slate-50/50">
+                              <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider w-6"></th>
                               <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Table ID</th>
                               <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Name</th>
                               <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Verwendung</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {api.tables.map((table, i) => (
-                              <tr key={i} className="border-b border-slate-100/60 hover:bg-slate-50/50">
-                                <td className="px-3 py-2 font-mono text-slate-500 text-[11px]">
-                                  <span
-                                    className="cursor-pointer hover:text-slate-700"
-                                    onClick={() => handleCopy(table.id)}
+                            {api.tables.map((table, i) => {
+                              const tableKey = `${api.id}-${table.id}`;
+                              const isTableExpanded = expandedTableId === tableKey;
+                              return (
+                                <React.Fragment key={i}>
+                                  <tr
+                                    className="border-b border-slate-100/60 hover:bg-blue-50/30 cursor-pointer transition-colors"
+                                    onClick={() => setExpandedTableId(isTableExpanded ? null : tableKey)}
                                   >
-                                    {table.id}
-                                    {copiedText === table.id && <CheckCircle2 size={10} className="inline ml-1 text-emerald-500" />}
-                                  </span>
-                                </td>
-                                <td className="px-3 py-2 font-medium text-slate-700">{table.name}</td>
-                                <td className="px-3 py-2 text-slate-500">{table.usage}</td>
-                              </tr>
-                            ))}
+                                    <td className="px-3 py-2 text-slate-400">
+                                      <div className={`transition-transform ${isTableExpanded ? 'rotate-90' : ''}`}>
+                                        <ChevronRight size={12} />
+                                      </div>
+                                    </td>
+                                    <td className="px-3 py-2 font-mono text-slate-500 text-[11px]">
+                                      <span
+                                        className="cursor-pointer hover:text-slate-700"
+                                        onClick={(e) => { e.stopPropagation(); handleCopy(table.id); }}
+                                      >
+                                        {table.id}
+                                        {copiedText === table.id && <CheckCircle2 size={10} className="inline ml-1 text-emerald-500" />}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2 font-medium text-slate-700">{table.name}</td>
+                                    <td className="px-3 py-2 text-slate-500">{table.usage}</td>
+                                  </tr>
+
+                                  {/* Expanded table detail */}
+                                  {isTableExpanded && (
+                                    <tr>
+                                      <td colSpan={4} className="p-0">
+                                        <div className="bg-slate-50/50 border-t border-slate-200/40 p-4 space-y-3">
+                                          {/* Sync Info + Usage chips */}
+                                          <div className="flex flex-wrap gap-3 text-xs">
+                                            {table.syncFrequency && (
+                                              <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-lg font-mono">
+                                                <RefreshCw size={10} /> {table.syncFrequency}
+                                              </span>
+                                            )}
+                                            {table.syncMethod && (
+                                              <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-2 py-1 rounded-lg font-mono">
+                                                {table.syncMethod}
+                                              </span>
+                                            )}
+                                            {table.supabaseTable && (
+                                              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg font-mono">
+                                                {'\u2192'} {table.supabaseTable}
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          {/* Used in components */}
+                                          {table.usedIn && table.usedIn.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5">
+                                              <span className="text-xs text-slate-400 mr-1">Verwendet in:</span>
+                                              {table.usedIn.map((comp, j) => (
+                                                <span key={j} className="text-xs font-mono bg-blue-50/80 text-blue-700 px-2 py-0.5 rounded">
+                                                  {comp}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          )}
+
+                                          {/* Fields table */}
+                                          {table.fields && table.fields.length > 0 && (
+                                            <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
+                                              <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
+                                                <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                                                  Felder ({table.fields.length})
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                  <span className="text-[10px] text-slate-400">
+                                                    {table.fields.filter(f => f.synced).length} synced / {table.fields.filter(f => !f.synced).length} verfuegbar
+                                                  </span>
+                                                  <button
+                                                    onClick={(e) => { e.stopPropagation(); exportTableCSV(table, api.name); }}
+                                                    className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100/80 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                                    title={`${table.name} als CSV exportieren`}
+                                                  >
+                                                    <Download size={10} />
+                                                    CSV
+                                                  </button>
+                                                </div>
+                                              </div>
+                                              <table className="w-full text-xs">
+                                                <thead>
+                                                  <tr className="border-b border-slate-200/40 bg-slate-50/50">
+                                                    <th className="text-center px-2 py-1.5 w-6"></th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Airtable</th>
+                                                    <th className="text-center px-1 py-1.5 text-slate-300 w-6">{'\u2192'}</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Supabase</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Typ</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Bedeutung</th>
+                                                  </tr>
+                                                </thead>
+                                                <tbody>
+                                                  {table.fields.map((field, k) => (
+                                                    <tr key={k} className={`border-b border-slate-100/40 ${!field.synced ? 'opacity-50' : ''}`}>
+                                                      <td className="text-center px-2 py-1.5">
+                                                        {field.synced ? (
+                                                          <CheckCircle2 size={11} className="text-emerald-500 mx-auto" />
+                                                        ) : (
+                                                          <div className="w-2.5 h-2.5 rounded-full border border-slate-300 mx-auto" />
+                                                        )}
+                                                      </td>
+                                                      <td className="px-2 py-1.5 font-mono text-slate-700 text-[11px]">{field.airtable}</td>
+                                                      <td className="text-center px-1 py-1.5 text-slate-300">{'\u2192'}</td>
+                                                      <td className="px-2 py-1.5 font-mono text-blue-700 text-[11px]">{field.supabase}</td>
+                                                      <td className="px-2 py-1.5">
+                                                        <span className={`px-1.5 py-0.5 rounded font-mono text-[10px] ${
+                                                          field.type === 'text' ? 'bg-blue-50 text-blue-700' :
+                                                          field.type === 'date' ? 'bg-purple-50 text-purple-700' :
+                                                          field.type === 'number' ? 'bg-green-50 text-green-700' :
+                                                          field.type === 'array' ? 'bg-orange-50 text-orange-700' :
+                                                          field.type === 'attachment' ? 'bg-pink-50 text-pink-700' :
+                                                          field.type === 'link' ? 'bg-cyan-50 text-cyan-700' :
+                                                          'bg-slate-50 text-slate-600'
+                                                        }`}>{field.type}</span>
+                                                      </td>
+                                                      <td className="px-2 py-1.5 text-[11px] text-slate-500 max-w-xs">{field.interpretation || ''}</td>
+                                                    </tr>
+                                                  ))}
+                                                </tbody>
+                                              </table>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </React.Fragment>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
