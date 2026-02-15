@@ -1086,133 +1086,76 @@ export default function APIOverviewPanel() {
                       <MetaChip label="Platform API" value={api.secondaryUrl} onCopy={handleCopy} copied={copiedText === api.secondaryUrl} />
                     )}
                     <MetaChip label="Rate Limit" value={api.rateLimit} />
+                    <MetaChip label="Rechte" value={api.rights} />
+                    <span className="inline-flex items-center gap-1 bg-slate-100/80 text-slate-600 px-2 py-1 rounded-lg text-xs">
+                      <Code size={10} className="text-slate-400" />
+                      {api.usedBy.length} Dateien
+                    </span>
                   </div>
 
-                  {/* Info Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* Auth Details */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <Key size={12} />
-                        Authentifizierung
-                      </h4>
-                      <div className="space-y-1.5 text-xs">
-                        {api.authDetails.map((detail, i) => (
-                          <div key={i} className="flex justify-between gap-2">
-                            <span className="text-slate-400 shrink-0">{detail.label}</span>
-                            <span className="font-mono text-slate-700 text-right truncate">{detail.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {/* Env Vars */}
-                      {api.envVars.length > 0 && (
-                        <div className="mt-3 pt-2 border-t border-slate-200/40">
-                          <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">Environment Variables</div>
-                          <div className="flex flex-wrap gap-1">
-                            {api.envVars.map((v, i) => (
-                              <span key={i} className="inline-flex items-center gap-1 text-xs font-mono bg-red-50/80 text-red-700 px-1.5 py-0.5 rounded cursor-pointer hover:bg-red-100/80" onClick={() => handleCopy(v)}>
-                                <Key size={9} />
-                                {v}
-                                {copiedText === v ? <CheckCircle2 size={9} className="text-emerald-500" /> : <Copy size={9} className="text-red-400" />}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {api.envVars.length === 0 && (
-                        <div className="mt-3 pt-2 border-t border-slate-200/40">
-                          <div className="text-[10px] text-slate-400 italic">Keine Env Variables noetig (Public Access)</div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Rights */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <Shield size={12} />
-                        Rechte & Zugriff
-                      </h4>
-                      <div className="space-y-2 text-xs">
-                        <div>
-                          <div className={`inline-flex items-center gap-1.5 font-semibold ${
-                            api.rightsColor === 'emerald' ? 'text-emerald-700' :
-                            api.rightsColor === 'blue' ? 'text-blue-700' :
-                            'text-amber-700'
-                          }`}>
-                            {api.rights === 'READ-ONLY' ? <Eye size={14} /> :
-                             api.rights === 'WRITE (Incoming)' ? <ArrowRight size={14} /> :
-                             <Edit3 size={14} />}
-                            {api.rights}
-                          </div>
-                          <p className="text-slate-500 mt-1">{api.rightsDetail}</p>
-                        </div>
-
-                        {/* Rate Limit visual */}
-                        <div className="mt-2 pt-2 border-t border-slate-200/40">
-                          <div className="flex items-center gap-1.5 text-slate-400 mb-1">
-                            <Clock size={11} />
-                            <span className="uppercase tracking-wider text-[10px]">Rate Limit</span>
-                          </div>
-                          <span className="font-mono text-slate-600 text-xs">{api.rateLimit}</span>
-                        </div>
-                      </div>
-
-                      {/* Modes (for Claude) */}
-                      {api.modes && (
-                        <div className="mt-3 pt-2 border-t border-slate-200/40">
-                          <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">Modi</div>
-                          <div className="space-y-1">
-                            {api.modes.map((mode, i) => (
-                              <div key={i} className="flex items-start gap-1.5 text-xs">
-                                <span className="text-purple-500 mt-0.5"><Sparkles size={10} /></span>
-                                <div>
-                                  <span className="font-medium text-slate-700">{mode.name}</span>
-                                  <span className="text-slate-400 ml-1">— {mode.description}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Metrics (for Vistar) */}
-                      {api.metrics && (
-                        <div className="mt-3 pt-2 border-t border-slate-200/40">
-                          <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">Metriken</div>
-                          <div className="flex flex-wrap gap-1">
-                            {api.metrics.map((m, i) => (
-                              <span key={i} className="text-xs font-mono bg-pink-50/80 text-pink-700 px-1.5 py-0.5 rounded">{m}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Used By */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <Code size={12} />
-                        Verwendet in
-                      </h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        {api.usedBy.map((file, i) => (
-                          <span key={i} className="inline-flex items-center text-xs font-mono bg-blue-50/80 text-blue-700 px-2 py-1 rounded-lg">
-                            {file}
+                  {/* API-level Fields FIRST (for non-Airtable APIs) */}
+                  {api.fields && api.fields.length > 0 && (
+                    <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
+                      <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                          <Database size={12} />
+                          Verfuegbare Felder & Parameter ({api.fields.length})
+                          <span className="text-[10px] text-slate-400 font-normal normal-case tracking-normal ml-2">
+                            {api.fields.filter(f => f.used).length} genutzt / {api.fields.filter(f => !f.used).length} verfuegbar
                           </span>
-                        ))}
+                        </h4>
                       </div>
-
-                      {/* Endpoint count summary */}
-                      <div className="mt-3 pt-2 border-t border-slate-200/40 text-xs text-slate-500">
-                        <span className="font-mono">{api.endpoints.length}</span> Endpoints genutzt
-                        {api.tables.length > 0 && (
-                          <span> | <span className="font-mono">{api.tables.length}</span> Tabellen</span>
-                        )}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-200/40 bg-slate-50/50">
+                              <th className="text-center px-2 py-1.5 w-6"></th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Feld / Parameter</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Typ</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Quelle</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Beschreibung</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {api.fields.map((field, k) => (
+                              <tr key={k} className={`border-b border-slate-100/40 ${!field.used ? 'opacity-50' : ''}`}>
+                                <td className="text-center px-2 py-1.5">
+                                  {field.used ? (
+                                    <CheckCircle2 size={11} className="text-emerald-500 mx-auto" />
+                                  ) : (
+                                    <div className="w-2.5 h-2.5 rounded-full border border-slate-300 mx-auto" />
+                                  )}
+                                </td>
+                                <td className="px-2 py-1.5 font-mono text-slate-700 text-[11px]">{field.name}</td>
+                                <td className="px-2 py-1.5">
+                                  <span className={`px-1.5 py-0.5 rounded font-mono text-[10px] ${
+                                    field.type === 'text' ? 'bg-blue-50 text-blue-700' :
+                                    field.type === 'date' || field.type === 'datetime' ? 'bg-purple-50 text-purple-700' :
+                                    field.type === 'number' ? 'bg-green-50 text-green-700' :
+                                    field.type === 'currency' ? 'bg-emerald-50 text-emerald-700' :
+                                    field.type === 'percent' ? 'bg-teal-50 text-teal-700' :
+                                    field.type === 'array' || field.type === 'object' ? 'bg-orange-50 text-orange-700' :
+                                    field.type === 'boolean' ? 'bg-yellow-50 text-yellow-700' :
+                                    field.type === 'binary' ? 'bg-red-50 text-red-700' :
+                                    field.type === 'uuid' ? 'bg-indigo-50 text-indigo-700' :
+                                    field.type === 'query' || field.type === 'header' ? 'bg-cyan-50 text-cyan-700' :
+                                    field.type === 'function' ? 'bg-violet-50 text-violet-700' :
+                                    field.type === 'event' ? 'bg-amber-50 text-amber-700' :
+                                    field.type === 'void' ? 'bg-slate-100 text-slate-500' :
+                                    'bg-slate-50 text-slate-600'
+                                  }`}>{field.type}</span>
+                                </td>
+                                <td className="px-2 py-1.5 text-[11px] text-slate-500">{field.source}</td>
+                                <td className="px-2 py-1.5 text-[11px] text-slate-500 max-w-sm">{field.description}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Tables (if any) — expandable rows */}
+                  {/* Tables FIRST (if any) — expandable rows */}
                   {api.tables.length > 0 && (
                     <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
                       <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
@@ -1384,68 +1327,6 @@ export default function APIOverviewPanel() {
                     </div>
                   )}
 
-                  {/* API-level Fields (for non-Airtable APIs) */}
-                  {api.fields && api.fields.length > 0 && (
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
-                      <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
-                        <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                          <Database size={12} />
-                          Verfuegbare Felder & Parameter ({api.fields.length})
-                          <span className="text-[10px] text-slate-400 font-normal normal-case tracking-normal ml-2">
-                            {api.fields.filter(f => f.used).length} genutzt / {api.fields.filter(f => !f.used).length} verfuegbar
-                          </span>
-                        </h4>
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs">
-                          <thead>
-                            <tr className="border-b border-slate-200/40 bg-slate-50/50">
-                              <th className="text-center px-2 py-1.5 w-6"></th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Feld / Parameter</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Typ</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Quelle</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Beschreibung</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {api.fields.map((field, k) => (
-                              <tr key={k} className={`border-b border-slate-100/40 ${!field.used ? 'opacity-50' : ''}`}>
-                                <td className="text-center px-2 py-1.5">
-                                  {field.used ? (
-                                    <CheckCircle2 size={11} className="text-emerald-500 mx-auto" />
-                                  ) : (
-                                    <div className="w-2.5 h-2.5 rounded-full border border-slate-300 mx-auto" />
-                                  )}
-                                </td>
-                                <td className="px-2 py-1.5 font-mono text-slate-700 text-[11px]">{field.name}</td>
-                                <td className="px-2 py-1.5">
-                                  <span className={`px-1.5 py-0.5 rounded font-mono text-[10px] ${
-                                    field.type === 'text' ? 'bg-blue-50 text-blue-700' :
-                                    field.type === 'date' || field.type === 'datetime' ? 'bg-purple-50 text-purple-700' :
-                                    field.type === 'number' ? 'bg-green-50 text-green-700' :
-                                    field.type === 'currency' ? 'bg-emerald-50 text-emerald-700' :
-                                    field.type === 'percent' ? 'bg-teal-50 text-teal-700' :
-                                    field.type === 'array' || field.type === 'object' ? 'bg-orange-50 text-orange-700' :
-                                    field.type === 'boolean' ? 'bg-yellow-50 text-yellow-700' :
-                                    field.type === 'binary' ? 'bg-red-50 text-red-700' :
-                                    field.type === 'uuid' ? 'bg-indigo-50 text-indigo-700' :
-                                    field.type === 'query' || field.type === 'header' ? 'bg-cyan-50 text-cyan-700' :
-                                    field.type === 'function' ? 'bg-violet-50 text-violet-700' :
-                                    field.type === 'event' ? 'bg-amber-50 text-amber-700' :
-                                    field.type === 'void' ? 'bg-slate-100 text-slate-500' :
-                                    'bg-slate-50 text-slate-600'
-                                  }`}>{field.type}</span>
-                                </td>
-                                <td className="px-2 py-1.5 text-[11px] text-slate-500">{field.source}</td>
-                                <td className="px-2 py-1.5 text-[11px] text-slate-500 max-w-sm">{field.description}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Endpoints Table */}
                   <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
                     <div className="px-3 py-2 border-b border-slate-200/40">
@@ -1478,6 +1359,114 @@ export default function APIOverviewPanel() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+
+                  {/* API Details (Auth, Rights, Used By) — below fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Auth Details */}
+                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
+                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <Key size={12} />
+                        Authentifizierung
+                      </h4>
+                      <div className="space-y-1.5 text-xs">
+                        {api.authDetails.map((detail, i) => (
+                          <div key={i} className="flex justify-between gap-2">
+                            <span className="text-slate-400 shrink-0">{detail.label}</span>
+                            <span className="font-mono text-slate-700 text-right truncate">{detail.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {api.envVars.length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-slate-200/40">
+                          <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">Environment Variables</div>
+                          <div className="flex flex-wrap gap-1">
+                            {api.envVars.map((v, i) => (
+                              <span key={i} className="inline-flex items-center gap-1 text-xs font-mono bg-red-50/80 text-red-700 px-1.5 py-0.5 rounded cursor-pointer hover:bg-red-100/80" onClick={() => handleCopy(v)}>
+                                <Key size={9} />
+                                {v}
+                                {copiedText === v ? <CheckCircle2 size={9} className="text-emerald-500" /> : <Copy size={9} className="text-red-400" />}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {api.envVars.length === 0 && (
+                        <div className="mt-3 pt-2 border-t border-slate-200/40">
+                          <div className="text-[10px] text-slate-400 italic">Keine Env Variables noetig (Public Access)</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Rights & Access */}
+                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
+                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <Shield size={12} />
+                        Rechte & Zugriff
+                      </h4>
+                      <div className="space-y-2 text-xs">
+                        <div>
+                          <div className={`inline-flex items-center gap-1.5 font-semibold ${
+                            api.rightsColor === 'emerald' ? 'text-emerald-700' :
+                            api.rightsColor === 'blue' ? 'text-blue-700' :
+                            'text-amber-700'
+                          }`}>
+                            {api.rights === 'READ-ONLY' ? <Eye size={14} /> :
+                             api.rights === 'WRITE (Incoming)' ? <ArrowRight size={14} /> :
+                             <Edit3 size={14} />}
+                            {api.rights}
+                          </div>
+                          <p className="text-slate-500 mt-1">{api.rightsDetail}</p>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-slate-200/40">
+                          <div className="flex items-center gap-1.5 text-slate-400 mb-1">
+                            <Clock size={11} />
+                            <span className="uppercase tracking-wider text-[10px]">Rate Limit</span>
+                          </div>
+                          <span className="font-mono text-slate-600 text-xs">{api.rateLimit}</span>
+                        </div>
+                      </div>
+                      {api.modes && (
+                        <div className="mt-3 pt-2 border-t border-slate-200/40">
+                          <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">Modi</div>
+                          <div className="space-y-1">
+                            {api.modes.map((mode, i) => (
+                              <div key={i} className="flex items-start gap-1.5 text-xs">
+                                <span className="text-purple-500 mt-0.5"><Sparkles size={10} /></span>
+                                <div>
+                                  <span className="font-medium text-slate-700">{mode.name}</span>
+                                  <span className="text-slate-400 ml-1">— {mode.description}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Used By */}
+                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
+                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <Code size={12} />
+                        Verwendet in
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {api.usedBy.map((file, i) => (
+                          <span key={i} className="inline-flex items-center text-xs font-mono bg-blue-50/80 text-blue-700 px-2 py-1 rounded-lg">
+                            {file}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-slate-200/40 text-xs text-slate-500">
+                        <span className="font-mono">{api.endpoints.length}</span> Endpoints
+                        {api.tables.length > 0 && (
+                          <span> | <span className="font-mono">{api.tables.length}</span> Tabellen</span>
+                        )}
+                        {api.fields && (
+                          <span> | <span className="font-mono">{api.fields.length}</span> Felder</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

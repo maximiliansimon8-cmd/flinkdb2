@@ -21,6 +21,15 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - **APIOverviewPanel.jsx** — Komplette API-Integrations-Uebersicht mit Status
 - **DataMappingPanel.jsx** — Vollstaendiges Data Dictionary (254+ Felder, 20 Datenquellen)
 - Violet/Indigo Theme fuer Chat Assistant (Gradient FAB, Sparkles Icon)
+- **URL-basiertes Sub-Tab Routing** (#admin/data-mapping, #hardware/fehler etc.)
+  - Jeder Sub-Tab hat eigene URL — Links teilbar, Browser-Back funktioniert
+  - 4 Panels: AdminPanel (8), HardwareDashboard (7), AcquisitionDashboard (4), InstallationsDashboard (5)
+- **Vollstaendige API-Felder-Dokumentation** in APIOverviewPanel
+  - Alle 7 APIs mit kompletten Feld-Auflistungen (Vistar 25, Superchat 33, Claude 24, Sheets 16, Make 18, Supabase 27)
+  - Inkl. theoretisch verfuegbare aber nicht genutzte Felder (used/unused Markierung)
+  - Felder-Tabelle jetzt OBEN im erweiterten Bereich, API-Details (Auth, Rights) darunter
+- **CSV-Export** fuer APIOverviewPanel und DataMappingPanel
+  - Pro Tabelle und global exportierbar (UTF-8 BOM fuer Excel)
 
 ### Geaendert
 - Chat-Modell auf `claude-haiku-4-5-20251001` aktualisiert
@@ -28,11 +37,13 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - Mobile: RPC Timeout-Fallback (lightweight query ~500ms statt 5-10s)
 - Cache-Akzeptanz von 4h auf 24h erweitert fuer Mobile
 - Mobile Render Guard vereinfacht (verhindert Blank Screen)
+- APIOverviewPanel Reihenfolge: Felder/Tabellen zuerst, dann Endpoints, dann Auth/Rights
 
 ### Behoben
 - Voice AI Unicode-Bug bei Markdown-Stripping
 - Installations-Zaehlung in Funnel korrigiert
 - Aktivitaeten-Ticker Lesbarkeit verbessert
+- **sync-airtable.js Robustheit**: Health-Check fuer sync_metadata, besseres Error-Logging, CSV-Spalten-Validierung, graceful Fallback auf Full-Sync
 
 ---
 
