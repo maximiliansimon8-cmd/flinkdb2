@@ -1690,7 +1690,7 @@ function App() {
         { id: 'overview', label: 'Overview', icon: LayoutDashboard, access: 'displays' },
         { id: 'displays-list', label: 'Displays', icon: Monitor, access: 'displays' },
         { id: 'cities', label: 'Städte', icon: MapPin, access: 'displays' },
-        { id: 'hardware', label: 'Hardware', icon: HardDrive, access: 'displays' },
+        { id: 'hardware', label: 'Hardware', icon: HardDrive, access: 'hardware' },
       ],
     },
     {

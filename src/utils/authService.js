@@ -38,6 +38,11 @@ export const ALL_TABS = [
   { id: 'displays.overview', label: 'Overview',            parent: 'displays' },
   { id: 'displays.list',     label: 'Displays',            parent: 'displays' },
   { id: 'displays.cities',   label: 'Städte',              parent: 'displays' },
+  { id: 'hardware',                label: 'Hardware',              parent: null },
+  { id: 'hardware.inventory',      label: 'Inventar',              parent: 'hardware' },
+  { id: 'hardware.wareneingang',   label: 'Wareneingang',          parent: 'hardware' },
+  { id: 'hardware.qr-codes',      label: 'QR-Codes',              parent: 'hardware' },
+  { id: 'hardware.positionen',    label: 'Positionen',            parent: 'hardware' },
   { id: 'tasks',             label: 'Tasks',               parent: null },
   { id: 'communication',     label: 'Kommunikation',       parent: null },
   { id: 'installations',           label: 'Installationen',      parent: null },
@@ -59,6 +64,9 @@ export const ALL_ACTIONS = [
   { id: 'manage_schedule',     label: 'Routen verwalten',         category: 'Installationen' },
   { id: 'manage_bookings',    label: 'Buchungen verwalten',      category: 'Installationen' },
   { id: 'send_booking_invite', label: 'Buchungseinladung senden', category: 'Installationen' },
+  { id: 'manage_hardware',     label: 'Hardware verwalten',        category: 'Hardware' },
+  { id: 'manage_warehouse',    label: 'Wareneingang verwalten',    category: 'Hardware' },
+  { id: 'manage_qr',           label: 'QR-Codes verwalten',        category: 'Hardware' },
   { id: 'manage_users',   label: 'Benutzer verwalten',     category: 'Admin' },
   { id: 'manage_groups',  label: 'Gruppen verwalten',      category: 'Admin' },
   { id: 'settings',       label: 'Einstellungen ändern',   category: 'Admin' },
@@ -387,6 +395,7 @@ function getDefaultGroups() {
     { id: 'grp_management', name: 'Management', description: 'Berichte', color: '#a855f7', icon: 'BarChart3', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_tech', name: 'Tech', description: 'Technische Tasks', color: '#06b6d4', icon: 'Code', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_scheduling', name: 'Terminierung', description: 'Installationstermine planen', color: '#f97316', icon: 'CalendarCheck', tabs: ['installations', 'installations.calendar', 'installations.bookings'], actions: ['manage_schedule', 'manage_bookings', 'send_booking_invite'], memberCount: 0 },
+    { id: 'grp_partner', name: 'Partner / Logistik', description: 'Installations- und Hardware-Logistik Partner', color: '#10b981', icon: 'Truck', tabs: ['hardware', 'hardware.inventory', 'hardware.wareneingang', 'hardware.qr-codes', 'hardware.positionen', 'installations', 'installations.calendar', 'installations.bookings'], actions: ['view', 'manage_hardware', 'manage_warehouse', 'manage_qr', 'manage_bookings'], memberCount: 0 },
   ];
 }
 
