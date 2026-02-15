@@ -81,10 +81,17 @@ async function getLastSyncTime(supabaseUrl, serviceKey, tableName) {
       `${supabaseUrl}/rest/v1/sync_metadata?table_name=eq.${tableName}&select=last_sync_timestamp&limit=1`,
       { headers: { 'Authorization': `Bearer ${serviceKey}`, 'apikey': serviceKey } }
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn(`[sync] sync_metadata lookup failed for ${tableName}: ${res.status} ${errText.substring(0, 100)}`);
+      return null;
+    }
     const rows = await res.json();
     return rows.length > 0 ? rows[0].last_sync_timestamp : null;
-  } catch { return null; }
+  } catch (e) {
+    console.warn(`[sync] sync_metadata error for ${tableName}:`, e.message);
+    return null;
+  }
 }
 
 /**
@@ -92,7 +99,7 @@ async function getLastSyncTime(supabaseUrl, serviceKey, tableName) {
  */
 async function updateSyncTime(supabaseUrl, serviceKey, tableName, fetched, upserted) {
   try {
-    await fetch(`${supabaseUrl}/rest/v1/sync_metadata`, {
+    const res = await fetch(`${supabaseUrl}/rest/v1/sync_metadata`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -109,6 +116,10 @@ async function updateSyncTime(supabaseUrl, serviceKey, tableName, fetched, upser
         updated_at: new Date().toISOString(),
       }),
     });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn(`[sync] sync_metadata update failed for ${tableName}: ${res.status} ${errText.substring(0, 200)}`);
+    }
   } catch (e) {
     console.warn(`[sync] Failed to update sync_metadata for ${tableName}:`, e.message);
   }
@@ -370,13 +381,37 @@ export default async (request) => {
 
   const results = {};
 
+  // ═══ HEALTH CHECK: Verify sync_metadata table ═══
+  let syncMetadataAvailable = true;
+  try {
+    const metaCheck = await fetch(
+      `${SUPABASE_URL}/rest/v1/sync_metadata?select=table_name&limit=1`,
+      { headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`, 'apikey': SUPABASE_SERVICE_KEY } }
+    );
+    if (!metaCheck.ok) {
+      syncMetadataAvailable = false;
+      console.warn(`[sync] ⚠️  sync_metadata table NOT accessible (${metaCheck.status}) — running FULL SYNC for all tables`);
+    } else {
+      const metaRows = await metaCheck.json();
+      console.log(`[sync] sync_metadata OK — ${metaRows.length} table(s) tracked`);
+    }
+  } catch (e) {
+    syncMetadataAvailable = false;
+    console.warn(`[sync] ⚠️  sync_metadata check failed: ${e.message} — running FULL SYNC`);
+  }
+
   try {
     // ═══ INCREMENTAL SYNC: Get last sync timestamps ═══
     const lastSync = {};
-    for (const table of ['heartbeats', 'stammdaten', 'airtable_displays', 'tasks', 'acquisition', 'dayn_screens', 'installationen', 'hardware_ops', 'hardware_sim', 'hardware_displays', 'chg_approvals', 'hardware_swaps', 'hardware_deinstalls', 'communications']) {
-      lastSync[table] = await getLastSyncTime(SUPABASE_URL, SUPABASE_SERVICE_KEY, table);
+    if (syncMetadataAvailable) {
+      for (const table of ['heartbeats', 'stammdaten', 'airtable_displays', 'tasks', 'acquisition', 'dayn_screens', 'installationen', 'hardware_ops', 'hardware_sim', 'hardware_displays', 'chg_approvals', 'hardware_swaps', 'hardware_deinstalls', 'communications']) {
+        lastSync[table] = await getLastSyncTime(SUPABASE_URL, SUPABASE_SERVICE_KEY, table);
+      }
+      const trackedTables = Object.entries(lastSync).filter(([, ts]) => ts).length;
+      console.log(`[sync] Incremental mode — ${trackedTables}/${Object.keys(lastSync).length} tables have previous sync timestamps`);
+    } else {
+      console.log('[sync] Full sync mode — sync_metadata unavailable, all tables will be fully synced');
     }
-    console.log('[sync] Incremental mode — last sync timestamps loaded');
 
     // ═══ 1. GOOGLE SHEETS → display_heartbeats (incremental: skip old rows) ═══
     console.log('[sync] Fetching Google Sheets CSV...');
@@ -390,6 +425,14 @@ export default async (request) => {
         const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
         const colIdx = {};
         headers.forEach((h, i) => { colIdx[h] = i; });
+
+        // Defensive: Verify required columns exist
+        const requiredCols = ['Display ID', 'Timestamp', 'Status', 'Is Alive'];
+        const missingCols = requiredCols.filter(c => colIdx[c] === undefined);
+        if (missingCols.length > 0) {
+          console.warn(`[sync] CSV missing columns: ${missingCols.join(', ')}. Available: ${headers.join(', ')}`);
+        }
+        console.log(`[sync] CSV parsed: ${lines.length} lines, ${headers.length} columns: ${headers.join(', ')}`);
 
         const cutoffTime = lastSync.heartbeats ? new Date(lastSync.heartbeats) : null;
         let skippedOld = 0;

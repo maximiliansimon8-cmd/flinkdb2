@@ -395,6 +395,39 @@ const API_DATA = [
       { id: 'agent_memories', name: 'agent_memories', usage: 'AI Agent Kontext' },
       { id: 'dayn_screens', name: 'dayn_screens', usage: 'DAYN Screen-Netzwerk' },
     ],
+    fields: [
+      // Auth
+      { name: 'auth.user.id', type: 'uuid', used: true, source: 'Auth API', description: 'User UUID (Primary Key in app_users)' },
+      { name: 'auth.user.email', type: 'text', used: true, source: 'Auth API', description: 'Benutzer-E-Mail' },
+      { name: 'auth.user.role', type: 'text', used: true, source: 'Auth API', description: 'User Role (authenticated)' },
+      { name: 'auth.session.access_token', type: 'text', used: true, source: 'Auth API', description: 'JWT Access Token (8h Laufzeit)' },
+      { name: 'auth.session.refresh_token', type: 'text', used: true, source: 'Auth API', description: 'Refresh Token' },
+      { name: 'auth.user.user_metadata', type: 'object', used: false, source: 'Auth API', description: 'Benutzerdefinierte Metadaten' },
+      { name: 'auth.user.app_metadata', type: 'object', used: false, source: 'Auth API', description: 'App-spezifische Metadaten' },
+      { name: 'auth.mfa', type: 'object', used: false, source: 'Auth API', description: 'Multi-Factor Authentication' },
+      // REST API (PostgREST)
+      { name: 'select', type: 'query', used: true, source: 'PostgREST', description: 'Spalten-Auswahl (z.B. select=id,name)' },
+      { name: 'filter (eq, gt, lt, in, is)', type: 'query', used: true, source: 'PostgREST', description: 'Row-Filter (z.B. status=eq.active)' },
+      { name: 'order', type: 'query', used: true, source: 'PostgREST', description: 'Sortierung (z.B. order=created_at.desc)' },
+      { name: 'limit', type: 'query', used: true, source: 'PostgREST', description: 'Ergebnis-Limit' },
+      { name: 'offset', type: 'query', used: false, source: 'PostgREST', description: 'Pagination Offset' },
+      { name: 'Prefer: resolution=merge-duplicates', type: 'header', used: true, source: 'PostgREST', description: 'Upsert-Modus (INSERT or UPDATE)' },
+      { name: 'Prefer: resolution=ignore-duplicates', type: 'header', used: true, source: 'PostgREST', description: 'Insert mit Duplikat-Ignorierung' },
+      { name: 'Prefer: return=representation', type: 'header', used: false, source: 'PostgREST', description: 'Gibt eingefuegte/aktualisierte Rows zurueck' },
+      // RPC
+      { name: 'rpc.get_mobile_kpis()', type: 'function', used: true, source: 'RPC', description: 'Mobile KPI Aggregation (lightweight ~2KB JSON)' },
+      { name: 'rpc.get_display_kpis()', type: 'function', used: false, source: 'RPC', description: 'Display-spezifische KPIs (nicht implementiert)' },
+      // Storage
+      { name: 'storage.bucket', type: 'text', used: true, source: 'Storage API', description: 'Bucket-Name: attachments (public)' },
+      { name: 'storage.object.upload', type: 'binary', used: true, source: 'Storage API', description: 'Datei-Upload (Airtable Attachment Cache)' },
+      { name: 'storage.object.download', type: 'binary', used: true, source: 'Storage API', description: 'Datei-Download via Public URL' },
+      { name: 'storage.object.list', type: 'array', used: false, source: 'Storage API', description: 'Dateien in einem Bucket auflisten' },
+      { name: 'storage.object.delete', type: 'void', used: false, source: 'Storage API', description: 'Datei loeschen' },
+      // Realtime (nicht genutzt)
+      { name: 'realtime.channel', type: 'text', used: false, source: 'Realtime API', description: 'WebSocket Channel fuer Live-Updates' },
+      { name: 'realtime.broadcast', type: 'object', used: false, source: 'Realtime API', description: 'Broadcast Messages an Clients' },
+      { name: 'realtime.presence', type: 'object', used: false, source: 'Realtime API', description: 'User Presence Tracking' },
+    ],
     endpoints: [
       { method: 'GET', path: '/rest/v1/{table}', description: 'Records lesen (PostgREST, Filter, Pagination)', icon: Eye },
       { method: 'POST', path: '/rest/v1/{table}', description: 'Records erstellen (Upsert moeglich)', icon: Plus },
@@ -447,12 +480,40 @@ const API_DATA = [
     ],
     envVars: ['VISTAR_EMAIL', 'VISTAR_PASSWORD'],
     tables: [],
+    fields: [
+      // Felder die wir nutzen
+      { name: 'impressions', type: 'number', used: true, source: 'SSP Exchange Report', description: 'Anzahl der ausgelieferten Ad-Impressions pro Venue/Tag' },
+      { name: 'spots', type: 'number', used: true, source: 'SSP Exchange Report', description: 'Anzahl der abgespielten Spots (1 Spot = 1 Ad-Playout)' },
+      { name: 'partner_revenue', type: 'currency', used: true, source: 'SSP Exchange Report', description: 'Umsatz-Anteil des Partners (JET/DAYN) in EUR' },
+      { name: 'partner_profit', type: 'currency', used: true, source: 'SSP Exchange Report', description: 'Profit-Anteil nach Vistar-Fee in EUR' },
+      { name: 'partner_eCPM', type: 'currency', used: true, source: 'SSP Exchange Report', description: 'Effective Cost per Mille (Umsatz pro 1000 Impressions)' },
+      // Felder die theoretisch verfuegbar sind
+      { name: 'gross_revenue', type: 'currency', used: false, source: 'SSP Exchange Report', description: 'Brutto-Umsatz vor Abzug der Vistar-Fee' },
+      { name: 'exchange_fee', type: 'currency', used: false, source: 'SSP Exchange Report', description: 'Vistar Exchange Fee (Plattform-Gebuehr)' },
+      { name: 'fill_rate', type: 'percent', used: false, source: 'SSP Exchange Report', description: 'Anteil der verfuegbaren Slots die verkauft wurden (%)' },
+      { name: 'avails', type: 'number', used: false, source: 'SSP Exchange Report', description: 'Verfuegbare Ad-Slots pro Venue/Tag' },
+      { name: 'venue_id', type: 'text', used: true, source: 'Network API', description: 'Eindeutige Vistar Venue-ID (z.B. vn-XXX)' },
+      { name: 'venue_name', type: 'text', used: true, source: 'Network API', description: 'Anzeigename des Venues in Vistar' },
+      { name: 'venue_address', type: 'text', used: false, source: 'Network API', description: 'Adresse des Venues' },
+      { name: 'venue_lat', type: 'number', used: false, source: 'Network API', description: 'Breitengrad des Venues' },
+      { name: 'venue_lng', type: 'number', used: false, source: 'Network API', description: 'Laengengrad des Venues' },
+      { name: 'network_id', type: 'text', used: true, source: 'Network API', description: 'Netzwerk-ID (DAYN Network)' },
+      { name: 'network_name', type: 'text', used: true, source: 'Network API', description: 'Netzwerk-Name' },
+      { name: 'screen_count', type: 'number', used: false, source: 'Network API', description: 'Anzahl Screens im Venue' },
+      { name: 'screen_width', type: 'number', used: false, source: 'Network API', description: 'Bildschirmbreite in Pixel' },
+      { name: 'screen_height', type: 'number', used: false, source: 'Network API', description: 'Bildschirmhoehe in Pixel' },
+      { name: 'cpm_floor', type: 'currency', used: false, source: 'Network API', description: 'Mindest-CPM (Floor Price)' },
+      { name: 'operating_hours', type: 'text', used: false, source: 'Network API', description: 'Betriebszeiten des Venues' },
+      { name: 'dsp_name', type: 'text', used: false, source: 'SSP Exchange Report', description: 'Name der Demand-Side Platform (Kaeufer)' },
+      { name: 'campaign_name', type: 'text', used: false, source: 'SSP Exchange Report', description: 'Kampagnenname des Advertisers' },
+      { name: 'creative_id', type: 'text', used: false, source: 'SSP Exchange Report', description: 'ID des ausgespielten Creatives' },
+      { name: 'date', type: 'date', used: true, source: 'SSP Exchange Report', description: 'Berichtsdatum' },
+    ],
     endpoints: [
       { method: 'POST', path: '/api/session', description: 'Login — Session-Cookie erhalten', icon: Key },
       { method: 'POST', path: '/report', description: 'SSP Exchange Report (Impressions, Revenue, eCPM)', icon: Eye },
       { method: 'GET', path: '/networks', description: 'Netzwerk-Uebersicht (Platform API)', icon: Radio },
     ],
-    metrics: ['impressions', 'spots', 'partner_revenue', 'partner_profit', 'partner_eCPM'],
     usedBy: [
       'vistar-proxy.js',
       'vistar-sync.js',
@@ -491,6 +552,45 @@ const API_DATA = [
     ],
     envVars: ['SUPERCHAT_API_KEY'],
     tables: [],
+    fields: [
+      // Conversations
+      { name: 'conversation.id', type: 'text', used: true, source: 'Conversations API', description: 'Eindeutige Konversations-ID' },
+      { name: 'conversation.status', type: 'text', used: true, source: 'Conversations API', description: 'open, closed, pending' },
+      { name: 'conversation.channel', type: 'text', used: true, source: 'Conversations API', description: 'whatsapp, email, sms, instagram, facebook' },
+      { name: 'conversation.assignee', type: 'text', used: false, source: 'Conversations API', description: 'Zugewiesener Agent/Mitarbeiter' },
+      { name: 'conversation.tags', type: 'array', used: false, source: 'Conversations API', description: 'Labels/Tags der Konversation' },
+      { name: 'conversation.created_at', type: 'date', used: true, source: 'Conversations API', description: 'Erstellungszeitpunkt' },
+      { name: 'conversation.updated_at', type: 'date', used: true, source: 'Conversations API', description: 'Letztes Update' },
+      // Messages
+      { name: 'message.id', type: 'text', used: true, source: 'Messages API', description: 'Eindeutige Nachrichten-ID' },
+      { name: 'message.body', type: 'text', used: true, source: 'Messages API', description: 'Nachrichteninhalt (Text)' },
+      { name: 'message.direction', type: 'text', used: true, source: 'Messages API', description: 'inbound, outbound' },
+      { name: 'message.type', type: 'text', used: false, source: 'Messages API', description: 'text, image, document, template, location' },
+      { name: 'message.media_url', type: 'text', used: false, source: 'Messages API', description: 'URL des Medien-Anhangs' },
+      { name: 'message.template_name', type: 'text', used: true, source: 'Messages API', description: 'Name des WhatsApp Templates' },
+      { name: 'message.status', type: 'text', used: true, source: 'Messages API', description: 'sent, delivered, read, failed' },
+      { name: 'message.created_at', type: 'date', used: true, source: 'Messages API', description: 'Sendezeitpunkt' },
+      { name: 'message.error_code', type: 'text', used: false, source: 'Messages API', description: 'Fehlercode bei fehlgeschlagener Zustellung' },
+      // Contacts
+      { name: 'contact.id', type: 'text', used: true, source: 'Contacts API', description: 'Eindeutige Kontakt-ID' },
+      { name: 'contact.name', type: 'text', used: true, source: 'Contacts API', description: 'Kontaktname' },
+      { name: 'contact.phone', type: 'text', used: true, source: 'Contacts API', description: 'Telefonnummer (WhatsApp)' },
+      { name: 'contact.email', type: 'text', used: false, source: 'Contacts API', description: 'E-Mail-Adresse' },
+      { name: 'contact.custom_fields', type: 'object', used: false, source: 'Contacts API', description: 'Benutzerdefinierte Felder' },
+      { name: 'contact.tags', type: 'array', used: false, source: 'Contacts API', description: 'Kontakt-Labels' },
+      { name: 'contact.created_at', type: 'date', used: false, source: 'Contacts API', description: 'Erstellungsdatum' },
+      // Templates
+      { name: 'template.name', type: 'text', used: true, source: 'Templates API', description: 'Template-Name (z.B. standort_bereitschaft)' },
+      { name: 'template.language', type: 'text', used: true, source: 'Templates API', description: 'Sprache (de, en, tr)' },
+      { name: 'template.status', type: 'text', used: false, source: 'Templates API', description: 'approved, pending, rejected' },
+      { name: 'template.components', type: 'array', used: false, source: 'Templates API', description: 'Template-Bestandteile (Header, Body, Buttons)' },
+      { name: 'template.category', type: 'text', used: false, source: 'Templates API', description: 'marketing, utility, authentication' },
+      // Channels
+      { name: 'channel.id', type: 'text', used: false, source: 'Channels API', description: 'Kanal-ID' },
+      { name: 'channel.type', type: 'text', used: false, source: 'Channels API', description: 'whatsapp, email, sms' },
+      { name: 'channel.name', type: 'text', used: false, source: 'Channels API', description: 'Kanal-Name' },
+      { name: 'channel.phone_number', type: 'text', used: false, source: 'Channels API', description: 'WhatsApp Business Nummer' },
+    ],
     endpoints: [
       { method: 'GET', path: '/conversations', description: 'Konversationen auflisten (Pagination)', icon: Eye },
       { method: 'POST', path: '/conversations', description: 'Neue Konversation starten', icon: Plus },
@@ -539,6 +639,35 @@ const API_DATA = [
     ],
     envVars: ['ANTHROPIC_API_KEY'],
     tables: [],
+    fields: [
+      // Request
+      { name: 'model', type: 'text', used: true, source: 'Messages API', description: 'Modell-ID (claude-sonnet-4-20250514, claude-haiku-4-5-20251001)' },
+      { name: 'messages', type: 'array', used: true, source: 'Messages API', description: 'Konversationsverlauf (role + content)' },
+      { name: 'max_tokens', type: 'number', used: true, source: 'Messages API', description: 'Maximale Antwortlaenge in Tokens' },
+      { name: 'system', type: 'text', used: true, source: 'Messages API', description: 'System-Prompt mit Dashboard-Kontext' },
+      { name: 'stream', type: 'boolean', used: true, source: 'Messages API', description: 'SSE Streaming aktiviert (true)' },
+      { name: 'temperature', type: 'number', used: false, source: 'Messages API', description: 'Kreativitaet (0.0-1.0, default 1.0)' },
+      { name: 'top_p', type: 'number', used: false, source: 'Messages API', description: 'Nucleus Sampling Parameter' },
+      { name: 'top_k', type: 'number', used: false, source: 'Messages API', description: 'Top-K Sampling Parameter' },
+      { name: 'stop_sequences', type: 'array', used: false, source: 'Messages API', description: 'Stop-Sequenzen fuer Antwort-Terminierung' },
+      { name: 'tools', type: 'array', used: false, source: 'Messages API', description: 'Tool-Definitionen fuer Function Calling' },
+      { name: 'tool_choice', type: 'text', used: false, source: 'Messages API', description: 'auto, any, tool (Tool-Auswahl-Strategie)' },
+      // Response
+      { name: 'response.id', type: 'text', used: true, source: 'Messages API', description: 'Eindeutige Antwort-ID (msg_...)' },
+      { name: 'response.content', type: 'array', used: true, source: 'Messages API', description: 'Antwort-Bloecke (text, tool_use)' },
+      { name: 'response.model', type: 'text', used: true, source: 'Messages API', description: 'Verwendetes Modell' },
+      { name: 'response.stop_reason', type: 'text', used: true, source: 'Messages API', description: 'end_turn, max_tokens, stop_sequence, tool_use' },
+      { name: 'response.usage.input_tokens', type: 'number', used: true, source: 'Messages API', description: 'Verbrauchte Input-Tokens' },
+      { name: 'response.usage.output_tokens', type: 'number', used: true, source: 'Messages API', description: 'Generierte Output-Tokens' },
+      { name: 'response.usage.cache_creation_input_tokens', type: 'number', used: false, source: 'Messages API', description: 'Tokens fuer Prompt Caching (Erstellung)' },
+      { name: 'response.usage.cache_read_input_tokens', type: 'number', used: false, source: 'Messages API', description: 'Tokens aus Prompt Cache gelesen' },
+      // Streaming Events
+      { name: 'event.message_start', type: 'event', used: true, source: 'SSE Stream', description: 'Stream-Start mit Message-Metadaten' },
+      { name: 'event.content_block_delta', type: 'event', used: true, source: 'SSE Stream', description: 'Text-Delta (inkrementelle Antwort)' },
+      { name: 'event.message_stop', type: 'event', used: true, source: 'SSE Stream', description: 'Stream-Ende' },
+      { name: 'event.ping', type: 'event', used: false, source: 'SSE Stream', description: 'Keepalive-Ping' },
+      { name: 'event.error', type: 'event', used: false, source: 'SSE Stream', description: 'Fehler-Event im Stream' },
+    ],
     modes: [
       { name: 'Chat', description: 'Streaming-Antworten mit Dashboard-Kontext' },
       { name: 'Feedback', description: 'Bug Reports direkt in Supabase speichern' },
@@ -583,6 +712,26 @@ const API_DATA = [
     ],
     envVars: [],
     tables: [],
+    fields: [
+      // CSV Spalten die wir nutzen
+      { name: 'Display ID', type: 'text', used: true, source: 'CSV Export', description: 'Display-Kennung (Format: ID/Name, Split bei /)' },
+      { name: 'Timestamp', type: 'datetime', used: true, source: 'CSV Export', description: 'Heartbeat-Zeitstempel (DD.MM.YYYY HH:MM)' },
+      { name: 'Location Name', type: 'text', used: true, source: 'CSV Export', description: 'Standortname' },
+      { name: 'Serial Number', type: 'text', used: true, source: 'CSV Export', description: 'Display-Seriennummer' },
+      { name: 'Date', type: 'date', used: true, source: 'CSV Export', description: 'Registrierungsdatum' },
+      { name: 'Status', type: 'text', used: true, source: 'CSV Export', description: 'Heartbeat-Status (Online/Offline)' },
+      { name: 'Is Alive', type: 'text', used: true, source: 'CSV Export', description: 'Alive-Flag (Yes/No)' },
+      { name: 'Display Status', type: 'text', used: true, source: 'CSV Export', description: 'Display-Status (Active, Inactive)' },
+      { name: 'Last Online Date', type: 'datetime', used: true, source: 'CSV Export', description: 'Letzter Online-Zeitpunkt' },
+      { name: 'Days Offline', type: 'number', used: true, source: 'CSV Export', description: 'Anzahl Tage offline' },
+      // Theoretisch verfuegbare Google Sheets API v4 Features
+      { name: 'spreadsheetId', type: 'text', used: false, source: 'Sheets API v4', description: 'Spreadsheet-ID (wir nutzen Public CSV statt API)' },
+      { name: 'sheets[].properties', type: 'object', used: false, source: 'Sheets API v4', description: 'Sheet-Metadaten (Titel, Index, Groesse)' },
+      { name: 'sheets[].data', type: 'array', used: false, source: 'Sheets API v4', description: 'Zelldaten mit Formatierung' },
+      { name: 'namedRanges', type: 'array', used: false, source: 'Sheets API v4', description: 'Benannte Bereiche' },
+      { name: 'developerMetadata', type: 'array', used: false, source: 'Sheets API v4', description: 'Entwickler-Metadaten' },
+      { name: 'values', type: 'array', used: false, source: 'Sheets API v4', description: 'Batch-Read/Write von Zellwerten' },
+    ],
     endpoints: [
       { method: 'GET', path: '/export?format=csv', description: 'CSV-Export des gesamten Sheets', icon: Eye },
     ],
@@ -622,6 +771,29 @@ const API_DATA = [
     ],
     envVars: ['BOOKER_API_KEY'],
     tables: [],
+    fields: [
+      // Install Booker Invite (incoming webhook payload)
+      { name: 'location_name', type: 'text', used: true, source: 'install-booker-invite', description: 'Standortname aus Airtable' },
+      { name: 'jet_id', type: 'text', used: true, source: 'install-booker-invite', description: 'JET-ID des Standorts' },
+      { name: 'contact_name', type: 'text', used: true, source: 'install-booker-invite', description: 'Ansprechpartner-Name' },
+      { name: 'contact_phone', type: 'text', used: true, source: 'install-booker-invite', description: 'Telefonnummer fuer WhatsApp' },
+      { name: 'language', type: 'text', used: true, source: 'install-booker-invite', description: 'Sprache (de, en, tr)' },
+      { name: 'install_date', type: 'date', used: true, source: 'install-booker-invite', description: 'Geplanter Installations-Termin' },
+      { name: 'airtable_record_id', type: 'text', used: true, source: 'install-booker-invite', description: 'Airtable Record ID fuer Write-back' },
+      // Bank Import (incoming webhook payload)
+      { name: 'xlsx_data', type: 'binary', used: true, source: 'bank-import', description: 'XLSX-Datei als Base64 (Bank/Leasing Daten)' },
+      { name: 'sender_email', type: 'text', used: true, source: 'bank-import', description: 'Absender-E-Mail der Bank' },
+      { name: 'subject', type: 'text', used: true, source: 'bank-import', description: 'E-Mail-Betreff' },
+      { name: 'received_at', type: 'date', used: true, source: 'bank-import', description: 'Empfangszeitpunkt' },
+      // Theoretisch verfuegbare Make.com API Features
+      { name: 'scenario.id', type: 'number', used: false, source: 'Scenarios API', description: 'Szenario-ID' },
+      { name: 'scenario.name', type: 'text', used: false, source: 'Scenarios API', description: 'Szenario-Name' },
+      { name: 'scenario.is_enabled', type: 'boolean', used: false, source: 'Scenarios API', description: 'Aktiv/Inaktiv' },
+      { name: 'execution.id', type: 'number', used: false, source: 'Executions API', description: 'Execution-ID' },
+      { name: 'execution.status', type: 'text', used: false, source: 'Executions API', description: 'success, warning, error' },
+      { name: 'execution.operations', type: 'number', used: false, source: 'Executions API', description: 'Verbrauchte Operationen' },
+      { name: 'data_store', type: 'object', used: false, source: 'Data Stores API', description: 'Persistenter Key-Value Speicher' },
+    ],
     endpoints: [
       { method: 'POST', path: '/install-booker-invite', description: 'Standort-Bereitschaft melden (Location Readiness)', icon: Zap },
       { method: 'POST', path: '/bank-import', description: 'XLSX Email-Parsing (Bank/Leasing Daten)', icon: Zap },
@@ -675,7 +847,8 @@ export default function APIOverviewPanel() {
           api.baseUrl.toLowerCase().includes(q) ||
           api.usedBy.some(f => f.toLowerCase().includes(q)) ||
           api.endpoints.some(e => e.path.toLowerCase().includes(q) || e.description.toLowerCase().includes(q)) ||
-          api.unusedFeatures.some(f => f.toLowerCase().includes(q))
+          api.unusedFeatures.some(f => f.toLowerCase().includes(q)) ||
+          (api.fields || []).some(f => f.name.toLowerCase().includes(q) || f.description.toLowerCase().includes(q))
         );
       }
       return true;
@@ -1205,6 +1378,68 @@ export default function APIOverviewPanel() {
                                 </React.Fragment>
                               );
                             })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* API-level Fields (for non-Airtable APIs) */}
+                  {api.fields && api.fields.length > 0 && (
+                    <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
+                      <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                          <Database size={12} />
+                          Verfuegbare Felder & Parameter ({api.fields.length})
+                          <span className="text-[10px] text-slate-400 font-normal normal-case tracking-normal ml-2">
+                            {api.fields.filter(f => f.used).length} genutzt / {api.fields.filter(f => !f.used).length} verfuegbar
+                          </span>
+                        </h4>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-200/40 bg-slate-50/50">
+                              <th className="text-center px-2 py-1.5 w-6"></th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Feld / Parameter</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Typ</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Quelle</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Beschreibung</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {api.fields.map((field, k) => (
+                              <tr key={k} className={`border-b border-slate-100/40 ${!field.used ? 'opacity-50' : ''}`}>
+                                <td className="text-center px-2 py-1.5">
+                                  {field.used ? (
+                                    <CheckCircle2 size={11} className="text-emerald-500 mx-auto" />
+                                  ) : (
+                                    <div className="w-2.5 h-2.5 rounded-full border border-slate-300 mx-auto" />
+                                  )}
+                                </td>
+                                <td className="px-2 py-1.5 font-mono text-slate-700 text-[11px]">{field.name}</td>
+                                <td className="px-2 py-1.5">
+                                  <span className={`px-1.5 py-0.5 rounded font-mono text-[10px] ${
+                                    field.type === 'text' ? 'bg-blue-50 text-blue-700' :
+                                    field.type === 'date' || field.type === 'datetime' ? 'bg-purple-50 text-purple-700' :
+                                    field.type === 'number' ? 'bg-green-50 text-green-700' :
+                                    field.type === 'currency' ? 'bg-emerald-50 text-emerald-700' :
+                                    field.type === 'percent' ? 'bg-teal-50 text-teal-700' :
+                                    field.type === 'array' || field.type === 'object' ? 'bg-orange-50 text-orange-700' :
+                                    field.type === 'boolean' ? 'bg-yellow-50 text-yellow-700' :
+                                    field.type === 'binary' ? 'bg-red-50 text-red-700' :
+                                    field.type === 'uuid' ? 'bg-indigo-50 text-indigo-700' :
+                                    field.type === 'query' || field.type === 'header' ? 'bg-cyan-50 text-cyan-700' :
+                                    field.type === 'function' ? 'bg-violet-50 text-violet-700' :
+                                    field.type === 'event' ? 'bg-amber-50 text-amber-700' :
+                                    field.type === 'void' ? 'bg-slate-100 text-slate-500' :
+                                    'bg-slate-50 text-slate-600'
+                                  }`}>{field.type}</span>
+                                </td>
+                                <td className="px-2 py-1.5 text-[11px] text-slate-500">{field.source}</td>
+                                <td className="px-2 py-1.5 text-[11px] text-slate-500 max-w-sm">{field.description}</td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
