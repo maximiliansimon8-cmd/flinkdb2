@@ -654,7 +654,8 @@ export default async (request) => {
 };
 
 // Netlify Scheduled Function config
-// Runs every 2 hours (saves credits; manual sync via trigger-sync.js button)
+// Navori schreibt um 06:05, 09:35, 13:05, 16:35, 20:05, 23:35 (alle 3h30m)
+// Wir syncen alle 2h um :25 — max 2h Verzoegerung nach jedem Navori-Zyklus
 export const config = {
-  schedule: '0 */2 * * *',
+  schedule: '25 */2 * * *',
 };

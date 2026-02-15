@@ -12,8 +12,9 @@ import {
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
+// WICHTIG: /gviz/tq liefert LIVE-Daten, /export?format=csv nur einen gecachten Snapshot!
 const SHEET_CSV_URL =
-  'https://docs.google.com/spreadsheets/d/1MGqJAGgROYohc_SwR3NhW-BEyJXixLKQZhS9yUOH8_s/export?format=csv&gid=0';
+  'https://docs.google.com/spreadsheets/d/1MGqJAGgROYohc_SwR3NhW-BEyJXixLKQZhS9yUOH8_s/gviz/tq?tqx=out:csv&gid=0';
 
 export default async (request, context) => {
   // Handle CORS preflight
