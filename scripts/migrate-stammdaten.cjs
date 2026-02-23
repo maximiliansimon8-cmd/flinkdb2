@@ -8,13 +8,18 @@
 
 const { Client } = require('pg');
 
+if (!process.env.DATABASE_URL) {
+  console.error('ERROR: DATABASE_URL environment variable is required. Set it before running this script.');
+  process.exit(1);
+}
+
 const AIRTABLE_TOKEN = '***REMOVED_AIRTABLE_PAT***';
 const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 const STAMMDATEN_TABLE = 'tblLJ1S7OUhc2w5Jw';
 const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
 const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
 
-const PG_URL = 'postgresql://postgres:***REMOVED***@db.hvgjdosdejnwkuyivnrq.supabase.co:5432/postgres';
+const PG_URL = process.env.DATABASE_URL;
 
 async function fetchAllAirtable(tableId, fields) {
   const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');

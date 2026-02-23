@@ -4,7 +4,6 @@ import {
   Database,
   Users,
   UserPlus,
-  Settings,
   Key,
   Trash2,
   Edit3,
@@ -15,7 +14,6 @@ import {
   ChevronDown,
   Activity,
   Crown,
-  Briefcase,
   Eye,
   Layers,
   Plus,
@@ -33,7 +31,6 @@ import {
   FileText,
   Clock,
   Download,
-  Trash,
   LogIn,
   LogOut as LogOutIcon,
   UserMinus,
@@ -127,8 +124,8 @@ function GroupBadge({ group }) {
 
 /* ─── Add User Modal ─── */
 
-function AddUserModal({ onClose, onSave, groups }) {
-  const [form, setForm] = useState({ name: '', email: '', groupId: groups[0]?.id || '', password: '***REMOVED_DEFAULT_PW***' });
+function AddUserModal({ onClose, onSave, groups, installerTeams }) {
+  const [form, setForm] = useState({ name: '', email: '', groupId: groups[0]?.id || '', password: '', installerTeam: '' });
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
@@ -212,10 +209,31 @@ function AddUserModal({ onClose, onSave, groups }) {
               type="text"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="Standard: ***REMOVED_DEFAULT_PW***"
+              placeholder="Passwort eingeben (min. 8 Zeichen)"
               className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
             />
           </div>
+
+          {/* Installer Team — only for Monteur group */}
+          {form.groupId === 'grp_monteur' && (
+            <div>
+              <label className="text-xs text-slate-500 block mb-1.5">Installations-Team</label>
+              <div className="relative">
+                <select
+                  value={form.installerTeam}
+                  onChange={(e) => setForm({ ...form, installerTeam: e.target.value })}
+                  className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="">Team wählen...</option>
+                  {(installerTeams || []).map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Monteur wird diesem Installations-Team zugeordnet.</p>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-2">
             <button
@@ -518,6 +536,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
     onSectionChange?.(sec);
   }, [onSectionChange]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [installerTeams, setInstallerTeams] = useState([]);
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
   const [editingGroupId, setEditingGroupId] = useState(null);
@@ -559,6 +578,16 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
         ]);
         setUsers(fetchedUsers || []);
         if (fetchedGroups?.length) setGroups(fetchedGroups);
+
+        // Load installer team names for Monteur group assignment
+        try {
+          const { data: routes } = await supabase
+            .from('install_routen')
+            .select('installer_team')
+            .not('installer_team', 'is', null);
+          const uniqueTeams = [...new Set((routes || []).map(r => r.installer_team).filter(Boolean))].sort();
+          setInstallerTeams(uniqueTeams);
+        } catch { /* non-critical */ }
       } catch (err) {
         console.error('Admin data load error:', err);
       } finally {
@@ -1141,9 +1170,14 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               </button>
                             </div>
                           ) : (
-                            userGroup ? <GroupBadge group={userGroup} /> : (
-                              <span className="text-xs text-slate-500">–</span>
-                            )
+                            <div className="flex flex-col gap-0.5">
+                              {userGroup ? <GroupBadge group={userGroup} /> : (
+                                <span className="text-xs text-slate-500">–</span>
+                              )}
+                              {user.installerTeam && (
+                                <span className="text-[10px] text-slate-400">Team: {user.installerTeam}</span>
+                              )}
+                            </div>
                           )}
                         </td>
 
@@ -2384,6 +2418,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           onClose={() => setShowAddModal(false)}
           onSave={handleAddUser}
           groups={groups}
+          installerTeams={installerTeams}
         />
       )}
 

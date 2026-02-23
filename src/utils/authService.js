@@ -26,8 +26,30 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const SESSION_KEY = 'dooh_user';
 const SESSION_TS_KEY = 'dooh_session_ts';
 
-/** Session timeout: 8 hours (DSGVO-konform) */
-const SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000;
+const SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000; // 8h (DSGVO-konform)
+
+function roleFromGroupId(groupId) {
+  if (groupId === 'grp_admin') return 'admin';
+  if (groupId === 'grp_monteur') return 'monteur';
+  return 'manager';
+}
+
+/**
+ * Get headers with JWT Authorization for authenticated API calls.
+ * Falls back to Content-Type only if no session exists.
+ */
+async function getAuthHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+  } catch {
+    // No session — will rely on origin check only
+  }
+  return headers;
+}
 
 /* ═══════════════════════════════════════════
    TAB & ACTION DEFINITIONS (for admin UI)
@@ -89,11 +111,11 @@ let _groupsPromise = null; // dedup parallel fetches
 
 function safeGetSession() {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
 
     // Activity-based timeout check
-    const ts = sessionStorage.getItem(SESSION_TS_KEY);
+    const ts = localStorage.getItem(SESSION_TS_KEY);
     if (ts) {
       const elapsed = Date.now() - parseInt(ts, 10);
       if (elapsed > SESSION_TIMEOUT_MS) {
@@ -119,19 +141,24 @@ function saveSession(user) {
     groupId: user.groupId,
     groupName: user.groupName,
     group: user.group,
+    authId: user.authId || null,
+    installerTeam: user.installerTeam || null,
+    mustChangePassword: user.mustChangePassword || false,
+    passwordExpired: user.passwordExpired || false,
+    passwordExpiresAt: user.passwordExpiresAt || null,
   };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
-  sessionStorage.setItem(SESSION_TS_KEY, Date.now().toString());
+  localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+  localStorage.setItem(SESSION_TS_KEY, Date.now().toString());
 }
 
 export function touchSession() {
-  if (sessionStorage.getItem(SESSION_KEY)) {
-    sessionStorage.setItem(SESSION_TS_KEY, Date.now().toString());
+  if (localStorage.getItem(SESSION_KEY)) {
+    localStorage.setItem(SESSION_TS_KEY, Date.now().toString());
   }
 }
 
 export function getSessionRemainingMs() {
-  const ts = sessionStorage.getItem(SESSION_TS_KEY);
+  const ts = localStorage.getItem(SESSION_TS_KEY);
   if (!ts) return 0;
   return Math.max(0, SESSION_TIMEOUT_MS - (Date.now() - parseInt(ts, 10)));
 }
@@ -141,15 +168,21 @@ export function getSessionTimeoutMinutes() {
 }
 
 function clearSession() {
-  sessionStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(SESSION_TS_KEY);
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_TS_KEY);
+  // Clean up legacy sessionStorage entries (migration)
+  try { sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_TS_KEY); } catch {}
 }
 
 /* ═══════════════════════════════════════════
    AUDIT LOG (direct Supabase insert – fast)
    ═══════════════════════════════════════════ */
 
-function writeAuditEntry(action, detail, userId, userName) {
+/**
+ * Write an audit log entry (fire-and-forget).
+ * Exported so other components can log user actions too.
+ */
+export function writeAuditEntry(action, detail, userId, userName) {
   // Fire-and-forget – no await
   supabase.from('audit_log').insert({
     action,
@@ -157,6 +190,12 @@ function writeAuditEntry(action, detail, userId, userName) {
     user_id: userId || null,
     user_name: userName || '',
   }).then(() => {}).catch(() => {});
+}
+
+/** Convenience: log an action for the current user */
+export function auditLog(action, detail) {
+  const user = safeGetSession();
+  writeAuditEntry(action, detail, user?.id, user?.name);
 }
 
 export async function getAuditLog(limit = 100) {
@@ -231,13 +270,19 @@ export async function login(email, password) {
     // Update last login
     supabase.from('app_users').update({ last_login: new Date().toISOString() }).eq('id', profile.id).then(() => {});
 
+    // Check password policy from Supabase Auth app_metadata
+    const appMeta = authData.user?.app_metadata || {};
+    const mustChangePassword = appMeta.must_change_password === true;
+    const passwordExpiresAt = appMeta.password_expires_at ? new Date(appMeta.password_expires_at) : null;
+    const passwordExpired = passwordExpiresAt ? passwordExpiresAt < new Date() : false;
+
     // Build user session object
     const group = profile.groups;
     const user = {
       id: profile.id,
       name: profile.name,
       email: profile.email,
-      role: profile.group_id === 'grp_admin' ? 'admin' : 'manager',
+      role: roleFromGroupId(profile.group_id),
       groupId: profile.group_id,
       groupName: group?.name || 'Operations',
       group: group ? {
@@ -248,10 +293,23 @@ export async function login(email, password) {
         color: group.color || '#64748b',
         icon: group.icon || 'Users',
       } : null,
+      authId: authData.user.id, // Supabase Auth ID for password policy updates
+      installerTeam: profile.installer_team || null, // Monteur team assignment
+      mustChangePassword,
+      passwordExpired,
+      passwordExpiresAt: passwordExpiresAt?.toISOString() || null,
     };
 
     saveSession(user);
-    writeAuditEntry('login', `Login erfolgreich: ${user.name} (${email})`, profile.id, user.name);
+
+    // Detailed audit logging
+    if (mustChangePassword) {
+      writeAuditEntry('login_force_pw_change', `Login (Passwort-Änderung erforderlich): ${user.name} (${email})`, profile.id, user.name);
+    } else if (passwordExpired) {
+      writeAuditEntry('login_pw_expired', `Login (Passwort abgelaufen): ${user.name} (${email})`, profile.id, user.name);
+    } else {
+      writeAuditEntry('login', `Login erfolgreich: ${user.name} (${email})`, profile.id, user.name);
+    }
 
     return { success: true, user };
   } catch (err) {
@@ -268,13 +326,54 @@ export async function logout() {
   await supabase.auth.signOut().catch(() => {});
 }
 
+/**
+ * Simple hash function for password history comparison (client-side).
+ * NOT for security — just to prevent obvious reuse without sending plaintext to server.
+ */
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + '_jet_salt_2026');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export async function changePassword(oldPassword, newPassword) {
   const session = safeGetSession();
   if (!session) return { success: false, error: 'Nicht angemeldet' };
   if (!oldPassword || !newPassword) return { success: false, error: 'Altes und neues Passwort erforderlich' };
-  if (newPassword.length < 6) return { success: false, error: 'Neues Passwort muss mindestens 6 Zeichen haben' };
+  if (newPassword.length < 8) return { success: false, error: 'Neues Passwort muss mindestens 8 Zeichen haben' };
+
+  // Check password strength
+  let score = 0;
+  if (newPassword.length >= 8) score++;
+  if (newPassword.length >= 12) score++;
+  if (/[A-Z]/.test(newPassword) && /[a-z]/.test(newPassword)) score++;
+  if (/[0-9]/.test(newPassword)) score++;
+  if (/[^A-Za-z0-9]/.test(newPassword)) score++;
+  if (score < 2) return { success: false, error: 'Passwort zu schwach. Verwende Groß-/Kleinbuchstaben, Zahlen und Sonderzeichen.' };
 
   try {
+    // Hash the new password for history check
+    const newHash = await hashPassword(newPassword);
+
+    // Check password history (prevent reuse of last 5 passwords)
+    if (session.authId) {
+      try {
+        const histRes = await fetch('/api/users/check-password-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ authId: session.authId, passwordHash: newHash }),
+        });
+        const histData = await histRes.json();
+        if (histData.isReused) {
+          return { success: false, error: 'Dieses Passwort wurde bereits verwendet. Bitte wähle ein neues Passwort (letzte 5 werden geprüft).' };
+        }
+      } catch {
+        // Non-critical: continue even if history check fails
+      }
+    }
+
     // Verify old password by re-authenticating
     const { error: verifyError } = await supabase.auth.signInWithPassword({
       email: session.email,
@@ -286,11 +385,72 @@ export async function changePassword(oldPassword, newPassword) {
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
     if (updateError) return { success: false, error: updateError.message };
 
-    writeAuditEntry('password_changed', `Passwort geändert: ${session.name}`, session.id, session.name);
+    // Update password policy metadata (mark as changed, add to history)
+    if (session.authId) {
+      try {
+        await fetch('/api/users/password-changed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ authId: session.authId, passwordHash: newHash }),
+        });
+
+        // Update session to reflect new policy state
+        saveSession({
+          ...session,
+          mustChangePassword: false,
+          passwordExpired: false,
+          passwordExpiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      } catch {
+        // Non-critical
+      }
+    }
+
+    let auditAction = 'password_changed';
+    let auditDetail = `Passwort geändert: ${session.name}`;
+    if (session.mustChangePassword) {
+      auditAction = 'password_forced_change';
+      auditDetail = `Pflicht-Passwortänderung (Erstlogin): ${session.name}`;
+    } else if (session.passwordExpired) {
+      auditAction = 'password_expired_change';
+      auditDetail = `Passwort abgelaufen & geändert: ${session.name}`;
+    }
+    writeAuditEntry(auditAction, auditDetail, session.id, session.name);
     return { success: true };
   } catch {
     return { success: false, error: 'Verbindungsfehler' };
   }
+}
+
+/* ═══════════════════════════════════════════
+   PASSWORD POLICY CHECKS
+   ═══════════════════════════════════════════ */
+
+/** Check if user needs to change their password (first login or expired) */
+export function needsPasswordChange() {
+  const session = safeGetSession();
+  if (!session) return false;
+  if (session.mustChangePassword) return true;
+  if (session.passwordExpired) return true;
+  if (session.passwordExpiresAt && new Date(session.passwordExpiresAt) < new Date()) return true;
+  return false;
+}
+
+/** Get password policy reason (for UI display) */
+export function getPasswordChangeReason() {
+  const session = safeGetSession();
+  if (!session) return null;
+  if (session.mustChangePassword) return 'first_login';
+  if (session.passwordExpired || (session.passwordExpiresAt && new Date(session.passwordExpiresAt) < new Date())) return 'expired';
+  return null;
+}
+
+/** Get remaining days until password expires */
+export function getPasswordExpiryDays() {
+  const session = safeGetSession();
+  if (!session?.passwordExpiresAt) return null;
+  const diff = new Date(session.passwordExpiresAt) - new Date();
+  return Math.max(0, Math.ceil(diff / (24 * 60 * 60 * 1000)));
 }
 
 /* ═══════════════════════════════════════════
@@ -318,6 +478,78 @@ export async function requestPasswordReset(email) {
     return { success: true };
   } catch {
     return { success: false, error: 'Verbindungsfehler. Bitte versuche es erneut.' };
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SESSION RECOVERY (from Supabase Auth)
+   ═══════════════════════════════════════════ */
+
+/**
+ * Attempt to recover an app session from an existing Supabase Auth session.
+ * Called on app startup — if Supabase still has a valid JWT but our localStorage
+ * session was lost (e.g. cleared by user), this re-fetches the profile and restores it.
+ * Also handles migration from sessionStorage → localStorage.
+ */
+export async function recoverSession() {
+  // 1) Migrate from old sessionStorage if present
+  try {
+    const oldRaw = sessionStorage.getItem(SESSION_KEY);
+    if (oldRaw && !localStorage.getItem(SESSION_KEY)) {
+      localStorage.setItem(SESSION_KEY, oldRaw);
+      const oldTs = sessionStorage.getItem(SESSION_TS_KEY);
+      if (oldTs) localStorage.setItem(SESSION_TS_KEY, oldTs);
+      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_TS_KEY);
+    }
+  } catch {}
+
+  // 2) If we already have a valid app session, just return it
+  const existing = safeGetSession();
+  if (existing) return existing;
+
+  // 3) Check if Supabase Auth has a valid session (JWT in localStorage managed by Supabase)
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return null;
+
+    // Fetch user profile from app_users
+    const { data: profile } = await supabase
+      .from('app_users')
+      .select('*, groups(*)')
+      .eq('auth_id', session.user.id)
+      .single();
+
+    if (!profile || profile.active === false) return null;
+
+    const group = profile.groups;
+    const user = {
+      id: profile.id,
+      name: profile.name,
+      email: profile.email,
+      role: roleFromGroupId(profile.group_id),
+      groupId: profile.group_id,
+      groupName: group?.name || 'Operations',
+      group: group ? {
+        id: group.id,
+        name: group.name,
+        tabs: group.tabs || [],
+        actions: group.actions || [],
+        color: group.color || '#64748b',
+        icon: group.icon || 'Users',
+      } : null,
+      authId: session.user.id,
+      installerTeam: profile.installer_team || null,
+      mustChangePassword: false,
+      passwordExpired: false,
+      passwordExpiresAt: null,
+    };
+
+    saveSession(user);
+    return user;
+  } catch (err) {
+    console.warn('[Auth] Session recovery failed:', err);
+    return null;
   }
 }
 
@@ -399,6 +631,7 @@ function getDefaultGroups() {
     { id: 'grp_tech', name: 'Tech', description: 'Technische Tasks', color: '#06b6d4', icon: 'Code', tabs: [], actions: [], memberCount: 0 },
     { id: 'grp_scheduling', name: 'Terminierung', description: 'Installationstermine planen', color: '#f97316', icon: 'CalendarCheck', tabs: ['installations', 'installations.calendar', 'installations.bookings'], actions: ['manage_schedule', 'manage_bookings', 'send_booking_invite'], memberCount: 0 },
     { id: 'grp_partner', name: 'Partner / Logistik', description: 'Installations- und Hardware-Logistik Partner', color: '#10b981', icon: 'Truck', tabs: ['hardware', 'hardware.inventory', 'hardware.wareneingang', 'hardware.qr-codes', 'hardware.positionen', 'hardware.bestellwesen', 'hardware.lager-versand', 'hardware.tracking', 'installations', 'installations.calendar', 'installations.bookings'], actions: ['view', 'manage_hardware', 'manage_warehouse', 'manage_qr', 'manage_bookings'], memberCount: 0 },
+    { id: 'grp_monteur', name: 'Monteur', description: 'Installations-Monteur — Tagesroute & Standort-Details', color: '#f97316', icon: 'Wrench', tabs: ['monteur'], actions: ['monteur:view_route', 'monteur:send_status'], memberCount: 0 },
   ];
 }
 
@@ -442,6 +675,7 @@ export async function fetchAllUsers() {
       active: u.active,
       lastLogin: u.last_login,
       authId: u.auth_id,
+      installerTeam: u.installer_team || null,
     }));
     return _cachedUsers;
   } catch {
@@ -453,15 +687,15 @@ export function getAllUsers() {
   return _cachedUsers || [];
 }
 
-export async function addUser({ name, email, groupId, password }) {
+export async function addUser({ name, email, groupId, password, installerTeam }) {
   const currentUser = safeGetSession();
 
   try {
     // Use Netlify Function with service_role key (bypasses RLS)
     const res = await fetch('/api/users/add', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, groupId, password }),
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ name, email, groupId, password, installerTeam: installerTeam || null }),
     });
 
     const data = await res.json();
@@ -483,7 +717,7 @@ export async function updateUserGroup(userId, newGroupId) {
   try {
     const res = await fetch('/api/users/update', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await getAuthHeaders(),
       body: JSON.stringify({ userId, groupId: newGroupId }),
     });
 
@@ -523,7 +757,7 @@ export async function resetUserPassword(userId) {
 
     const res = await fetch('/api/users/reset', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await getAuthHeaders(),
       body: JSON.stringify({ userId }),
     });
 
@@ -548,7 +782,7 @@ export async function deleteUser(userId) {
 
     const res = await fetch('/api/users/delete', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await getAuthHeaders(),
       body: JSON.stringify({ userId }),
     });
 

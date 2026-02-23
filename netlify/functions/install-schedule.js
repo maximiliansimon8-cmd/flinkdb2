@@ -38,6 +38,10 @@ function authenticate(request) {
     return { source: 'dashboard', origin };
   }
 
+  // Log auth failure for debugging
+  const rawOrigin = request.headers.get('origin');
+  const rawReferer = request.headers.get('referer');
+  console.warn(`[install-schedule] Auth failed — origin: ${rawOrigin}, referer: ${rawReferer}, method: ${request.method}, url: ${request.url}`);
   return null;
 }
 
@@ -92,19 +96,121 @@ export default async (request, context) => {
   const cors = corsHeaders(auth.origin === '*' ? undefined : auth.origin);
   const url = new URL(request.url);
 
-  // Extract route ID from path: /api/install-schedule/{id}
+  // Extract route ID from path: /api/install-schedule/{id} or /api/install-schedule/teams
   const pathParts = url.pathname.replace(/^\/?(\.netlify\/functions\/install-schedule\/?|api\/install-schedule\/?)/, '').split('/').filter(Boolean);
   const routeId = pathParts[0] || null;
+
+  // Validate routeId if present and not a sub-route keyword
+  if (routeId && routeId !== 'teams' && !isValidUUID(routeId)) {
+    return new Response(JSON.stringify({ error: 'Ungültiges ID-Format' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...cors },
+    });
+  }
 
   const apiStart = Date.now();
 
   try {
+    // ── Teams CRUD ──
+    if (routeId === 'teams') {
+      const teamId = pathParts[1] || null;
+      // Validate teamId if present
+      if (teamId && !isValidUUID(teamId)) {
+        return new Response(JSON.stringify({ error: 'Ungültiges Team-ID-Format' }), {
+          status: 400, headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
+
+      // GET /teams — list all teams
+      if (request.method === 'GET') {
+        const result = await supabaseRequest('install_teams?select=*&order=name.asc');
+        return new Response(JSON.stringify(result.data || []), {
+          status: result.status,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            ...cors,
+          },
+        });
+      }
+
+      // POST /teams — create team
+      if (request.method === 'POST') {
+        const body = await request.json();
+        const { name, description, color, members } = body;
+        if (!name) {
+          return new Response(JSON.stringify({ error: 'name is required' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...cors },
+          });
+        }
+        const result = await supabaseRequest('install_teams', {
+          method: 'POST',
+          body: JSON.stringify({
+            name, description: description || null,
+            color: color || '#FF8000',
+            members: members ? JSON.stringify(members) : '[]',
+          }),
+        });
+        return new Response(JSON.stringify(result.data), {
+          status: result.ok ? 201 : result.status,
+          headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
+
+      // PATCH /teams/:id — update team
+      if (request.method === 'PATCH' && teamId) {
+        const body = await request.json();
+        const allowed = ['name', 'description', 'color', 'is_active', 'members'];
+        const updates = {};
+        for (const key of allowed) {
+          if (body[key] !== undefined) {
+            updates[key] = key === 'members' ? JSON.stringify(body[key]) : body[key];
+          }
+        }
+        updates.updated_at = new Date().toISOString();
+        const result = await supabaseRequest(`install_teams?id=eq.${teamId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(updates),
+        });
+        return new Response(JSON.stringify(result.data), {
+          status: result.status,
+          headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
+
+      // DELETE /teams/:id — delete team
+      if (request.method === 'DELETE' && teamId) {
+        const result = await supabaseRequest(`install_teams?id=eq.${teamId}`, { method: 'DELETE' });
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
+
+      return new Response(JSON.stringify({ error: 'Method not allowed for teams' }), {
+        status: 405, headers: { 'Content-Type': 'application/json', ...cors },
+      });
+    }
+
     // ── GET: List routes ──
     if (request.method === 'GET') {
       const city = url.searchParams.get('city');
       const from = url.searchParams.get('from');
       const to = url.searchParams.get('to');
       const status = url.searchParams.get('status');
+
+      // Validate date format (YYYY-MM-DD) to prevent PostgREST filter injection
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (from && !dateRegex.test(from)) {
+        return new Response(JSON.stringify({ error: 'Ungültiges Datumsformat für "from" (YYYY-MM-DD erwartet)' }), {
+          status: 400, headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
+      if (to && !dateRegex.test(to)) {
+        return new Response(JSON.stringify({ error: 'Ungültiges Datumsformat für "to" (YYYY-MM-DD erwartet)' }), {
+          status: 400, headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
 
       let query = 'install_routen?select=*&order=schedule_date.asc';
       if (city) query += `&city=eq.${encodeURIComponent(city)}`;
@@ -126,7 +232,11 @@ export default async (request, context) => {
 
       return new Response(JSON.stringify(result.data || []), {
         status: result.status,
-        headers: { 'Content-Type': 'application/json', ...cors },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          ...cors,
+        },
       });
     }
 
@@ -142,16 +252,16 @@ export default async (request, context) => {
         });
       }
 
-      // Default time slots extended to cover 08:00–22:00 in 2h intervals
-      const defaultSlots = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
+      // Default time slots: 09:00–22:00, 2h intervals (90min appointment + 30min travel)
+      const defaultSlots = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
       // Ensure time_slots is stored as a proper JSON array (not double-encoded)
       const slotsValue = time_slots || defaultSlots;
       const row = {
         city,
         schedule_date,
         installer_team: installer_team || null,
-        max_capacity: max_capacity || 8,
-        time_slots: Array.isArray(slotsValue) ? JSON.stringify(slotsValue) : slotsValue,
+        max_capacity: max_capacity != null ? max_capacity : 8,
+        time_slots: Array.isArray(slotsValue) ? slotsValue : (typeof slotsValue === 'string' ? JSON.parse(slotsValue) : slotsValue),
         status: 'open',
         notes: notes || null,
         airtable_id: airtable_id || null,
@@ -188,13 +298,17 @@ export default async (request, context) => {
       for (const key of allowed) {
         if (body[key] !== undefined) {
           if (key === 'time_slots') {
-            // Ensure proper JSON encoding (not double-encoded)
-            updates[key] = Array.isArray(body[key]) ? JSON.stringify(body[key]) : body[key];
+            // Pass array directly to Supabase (jsonb column handles it natively)
+            updates[key] = Array.isArray(body[key]) ? body[key] : (typeof body[key] === 'string' ? JSON.parse(body[key]) : body[key]);
+          } else if (key === 'max_capacity') {
+            updates[key] = body[key] != null ? body[key] : 8;
           } else {
             updates[key] = body[key];
           }
         }
       }
+
+      updates.updated_at = new Date().toISOString();
 
       const result = await supabaseRequest(`install_routen?id=eq.${routeId}`, {
         method: 'PATCH',
@@ -221,9 +335,6 @@ export default async (request, context) => {
 
     // ── DELETE: Remove route ──
     if (request.method === 'DELETE' && routeId) {
-      // First get the record to check for airtable_id
-      const existing = await supabaseRequest(`install_routen?id=eq.${routeId}&select=airtable_id`);
-
       const result = await supabaseRequest(`install_routen?id=eq.${routeId}`, {
         method: 'DELETE',
       });
@@ -260,7 +371,7 @@ export default async (request, context) => {
       durationMs: Date.now() - apiStart,
       statusCode: 500,
       success: false,
-      error: err.message,
+      errorMessage: err.message,
     });
 
     console.error('[install-schedule] Error:', err.message);

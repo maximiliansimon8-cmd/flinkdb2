@@ -9,6 +9,7 @@
 
 const ALLOWED_ORIGINS = [
   'https://jet-dashboard-v2.netlify.app',
+  'https://tools.dimension-outdoor.com',
   'http://localhost:5173',   // Vite dev server
   'http://localhost:4173',   // Vite preview
 ];
@@ -103,7 +104,7 @@ export function getAllowedOrigin(request) {
   const referer = request.headers.get('referer');
 
   // Check Origin header first (most reliable for CORS)
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  if (origin && origin !== 'null' && ALLOWED_ORIGINS.includes(origin)) {
     return origin;
   }
 
@@ -114,12 +115,22 @@ export function getAllowedOrigin(request) {
     }
   }
 
-  // Allow requests with no Origin/Referer (same-origin fetch from Netlify itself,
-  // or server-to-server calls like Make.com webhooks)
-  if (!origin && !referer) {
-    return ALLOWED_ORIGINS[0];
+  // Netlify internal proxy: when requests come through _redirects proxy,
+  // x-nf-client-connection-ip is set by Netlify infrastructure AND
+  // we also have a valid referer from our own domain.
+  const netlifyClientIp = request.headers.get('x-nf-client-connection-ip');
+  if (netlifyClientIp && referer) {
+    for (const allowed of ALLOWED_ORIGINS) {
+      if (referer.startsWith(allowed)) {
+        console.info(`[security] Allowing request via Netlify proxy — IP: ${netlifyClientIp}, referer: ${referer}`);
+        return allowed;
+      }
+    }
   }
 
+  // NOTE: Requests without Origin AND without Referer are now REJECTED.
+  // This prevents curl/Postman/server-to-server bypass.
+  // Internal triggers (scheduled→background) must set Origin header explicitly.
   return null;
 }
 
@@ -231,6 +242,35 @@ export function sanitizeObject(obj, maxStringLength = 1000) {
     sanitized[safeKey] = sanitizeObject(value, maxStringLength);
   }
   return sanitized;
+}
+
+// ─── Phone Number Normalization ─────────────────────────────────────
+
+/**
+ * Normalize a phone number for WhatsApp delivery.
+ * - Strips spaces, dashes, parentheses, dots
+ * - Converts German local format (0157...) → +49157...
+ * - Prepends + if number starts with 49 without it
+ * - Leaves numbers already starting with + as-is
+ */
+export function normalizePhone(phone) {
+  if (!phone) return '';
+  // Strip spaces, dashes, parentheses, dots
+  let cleaned = String(phone).replace(/[\s\-().]/g, '');
+  // International format with 00 prefix: 004917612345678 → +4917612345678
+  if (cleaned.startsWith('00') && cleaned.length > 4) {
+    cleaned = '+' + cleaned.slice(2);
+  }
+  // German local format: leading 0 → +49
+  else if (cleaned.startsWith('0')) {
+    cleaned = '+49' + cleaned.slice(1);
+  }
+  // Starts with 49 but no +
+  else if (cleaned.startsWith('49') && !cleaned.startsWith('+')) {
+    cleaned = '+' + cleaned;
+  }
+  // Already starts with + → leave as-is
+  return cleaned;
 }
 
 // ─── Error Handling ─────────────────────────────────────────────────

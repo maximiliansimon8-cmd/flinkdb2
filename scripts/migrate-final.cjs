@@ -6,7 +6,12 @@
 const { Client } = require('pg');
 const { Writable } = require('stream');
 
-const PG_URL = 'postgresql://postgres:***REMOVED***@db.hvgjdosdejnwkuyivnrq.supabase.co:5432/postgres';
+if (!process.env.DATABASE_URL) {
+  console.error('ERROR: DATABASE_URL environment variable is required. Set it before running this script.');
+  process.exit(1);
+}
+
+const PG_URL = process.env.DATABASE_URL;
 const AIRTABLE_TOKEN = '***REMOVED_AIRTABLE_PAT***';
 const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 const ACTIVITY_LOG_TABLE = 'tblDk1dl4J3Ow3Qde';

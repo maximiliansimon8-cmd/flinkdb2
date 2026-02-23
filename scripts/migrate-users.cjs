@@ -7,7 +7,12 @@ const https = require('https');
 const SUPABASE_URL = 'https://hvgjdosdejnwkuyivnrq.supabase.co';
 const SERVICE_KEY = '***REMOVED_SERVICE_ROLE_KEY***';
 const AIRTABLE_TOKEN = '***REMOVED_AIRTABLE_PAT***';
-const PG_URL = 'postgresql://postgres:***REMOVED***@db.hvgjdosdejnwkuyivnrq.supabase.co:5432/postgres';
+if (!process.env.DATABASE_URL) {
+  console.error('ERROR: DATABASE_URL environment variable is required. Set it before running this script.');
+  process.exit(1);
+}
+
+const PG_URL = process.env.DATABASE_URL;
 
 const ADMIN_EMAILS = ['max@dimension-outdoor.com', 'luca@dimension-outdoor.com'];
 const DEFAULT_PASSWORD = '***REMOVED_DEFAULT_PW***';

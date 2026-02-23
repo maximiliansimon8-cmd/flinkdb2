@@ -1,8 +1,14 @@
 const { Client } = require('pg');
 
+if (!process.env.DATABASE_URL) {
+  console.error('ERROR: DATABASE_URL environment variable is required. Set it before running this script.');
+  process.exit(1);
+}
+
 async function run() {
+  const connectionString = process.env.DATABASE_URL;
   const client = new Client({
-    connectionString: 'postgresql://postgres:***REMOVED***@db.hvgjdosdejnwkuyivnrq.supabase.co:5432/postgres',
+    connectionString,
     ssl: { rejectUnauthorized: false },
   });
   await client.connect();

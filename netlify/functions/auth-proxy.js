@@ -40,6 +40,25 @@ async function sha256(str) {
 }
 
 /**
+ * Timing-safe comparison of two hex hash strings.
+ * Prevents timing attacks by using constant-time comparison.
+ */
+function hashesEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  try {
+    const { timingSafeEqual } = require('node:crypto');
+    return timingSafeEqual(Buffer.from(a, 'hex'), Buffer.from(b, 'hex'));
+  } catch {
+    // Fallback: still do constant-time comparison via XOR
+    let result = 0;
+    for (let i = 0; i < a.length; i++) {
+      result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    }
+    return result === 0;
+  }
+}
+
+/**
  * Group definitions - kept on server for security.
  * Maps Group name (from Airtable Single Select) to permissions.
  */
@@ -251,16 +270,21 @@ async function handleLogin(body, origin, clientIP) {
   const storedHash = f[PW_FIELD] || '';
   const inputHash = await sha256(password);
 
-  // Default password hash for initial migration
-  const DEFAULT_PW_HASH = await sha256('***REMOVED_DEFAULT_PW***');
+  // Default password for initial migration (MUST be set via env var)
+  const DEFAULT_PW = process.env.DEFAULT_LOGIN_PASSWORD;
+  if (!DEFAULT_PW) {
+    console.error('[auth-proxy] CRITICAL: DEFAULT_LOGIN_PASSWORD not configured');
+    return jsonResponse(500, { error: 'Server-Konfigurationsfehler' }, origin);
+  }
+  const DEFAULT_PW_HASH = await sha256(DEFAULT_PW);
 
   if (storedHash) {
-    if (inputHash !== storedHash) {
+    if (!hashesEqual(inputHash, storedHash)) {
       await writeAuditLog('login_failed', `Falsches Passwort: ${email}`, record.id, f.Name);
       return jsonResponse(401, { error: 'Ungueltige E-Mail oder Passwort' }, origin);
     }
   } else {
-    if (inputHash !== DEFAULT_PW_HASH) {
+    if (!hashesEqual(inputHash, DEFAULT_PW_HASH)) {
       await writeAuditLog('login_failed', `Falsches Passwort (kein Hash gesetzt): ${email}`, record.id, f.Name);
       return jsonResponse(401, { error: 'Ungueltige E-Mail oder Passwort' }, origin);
     }
@@ -304,13 +328,13 @@ async function handleChangePassword(body, origin) {
   const storedHash = f[PW_FIELD] || '';
   const oldHash = await sha256(oldPassword);
 
-  if (oldHash !== storedHash) {
+  if (!hashesEqual(oldHash, storedHash)) {
     await writeAuditLog('password_change_failed', `Falsches altes Passwort: ${f.Name}`, userId, f.Name);
     return jsonResponse(401, { error: 'Altes Passwort ist falsch' }, origin);
   }
 
   const newHash = await sha256(newPassword);
-  if (newHash === storedHash) {
+  if (hashesEqual(newHash, storedHash)) {
     return jsonResponse(400, { error: 'Neues Passwort muss sich vom alten unterscheiden' }, origin);
   }
 
@@ -352,7 +376,12 @@ async function handleResetPassword(body, origin) {
     return jsonResponse(404, { error: 'Benutzer nicht gefunden' }, origin);
   }
 
-  const defaultHash = await sha256('***REMOVED_DEFAULT_PW***');
+  const resetPw = process.env.DEFAULT_LOGIN_PASSWORD;
+  if (!resetPw) {
+    console.error('[auth-proxy] CRITICAL: DEFAULT_LOGIN_PASSWORD not configured');
+    return jsonResponse(500, { error: 'Server-Konfigurationsfehler' }, origin);
+  }
+  const defaultHash = await sha256(resetPw);
   await updateUser(userId, { [PW_FIELD]: defaultHash });
 
   const f = record.fields;
@@ -404,7 +433,12 @@ async function handleCreateUser(body, origin) {
     return jsonResponse(409, { error: 'E-Mail existiert bereits' }, origin);
   }
 
-  const pwHash = await sha256(password || '***REMOVED_DEFAULT_PW***');
+  const createPw = password || process.env.DEFAULT_LOGIN_PASSWORD;
+  if (!createPw) {
+    console.error('[auth-proxy] CRITICAL: DEFAULT_LOGIN_PASSWORD not configured');
+    return jsonResponse(500, { error: 'Server-Konfigurationsfehler' }, origin);
+  }
+  const pwHash = await sha256(createPw);
 
   const res = await airtableFetch(`${BASE_ID}/${TEAM_TABLE}`, {
     method: 'POST',

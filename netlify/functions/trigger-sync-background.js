@@ -7,38 +7,41 @@
  * Usage: GET /api/trigger-sync
  */
 
-import { logApiCall, logApiCalls, estimateAirtableCost } from './shared/apiLogger.js';
-import {
-  AIRTABLE_BASE, TABLES, FETCH_FIELDS, SHEET_CSV_URL,
-} from './shared/airtableFields.js';
+import { logApiCall, estimateAirtableCost } from './shared/apiLogger.js';
+import { AIRTABLE_BASE, TABLES, FETCH_FIELDS, SHEET_CSV_URL } from './shared/airtableFields.js';
 import {
   mapStammdaten, mapDisplay, mapTask, mapAcquisition, mapDaynScreen,
   mapInstallation, mapOpsInventory, mapSimInventory, mapDisplayInventory,
   mapChgApproval, mapHardwareSwap, mapDeinstall, mapCommunication,
+  mapInstallationstermin,
 } from './shared/airtableMappers.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse,
+} from './shared/security.js';
 
-// Local aliases for backward compat
-const STAMMDATEN_TABLE = TABLES.STAMMDATEN;
-const DISPLAYS_TABLE = TABLES.DISPLAYS;
-const DAYN_SCREENS_TABLE = TABLES.DAYN_SCREENS;
-const TASKS_TABLE = TABLES.TASKS;
-const INSTALLATIONEN_TABLE = TABLES.INSTALLATIONEN;
-const ACTIVITY_LOG_TABLE = TABLES.ACTIVITY_LOG;
-const OPS_INVENTORY_TABLE = TABLES.OPS_INVENTORY;
-const SIM_INVENTORY_TABLE = TABLES.SIM_INVENTORY;
-const DISPLAY_INVENTORY_TABLE = TABLES.DISPLAY_INVENTORY;
-const CHG_APPROVAL_TABLE = TABLES.CHG_APPROVAL;
-const DEINSTALL_TABLE = TABLES.DEINSTALL;
-const HARDWARE_SWAP_TABLE = TABLES.HARDWARE_SWAP;
-
-async function fetchAllAirtable(token, tableId, fields) {
-  const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
+/**
+ * Fetch records from an Airtable table (paginated).
+ * If sinceISO is provided, only fetches records modified after that timestamp
+ * using Airtable's LAST_MODIFIED_TIME() formula filter.
+ */
+async function fetchAllAirtable(token, tableId, fields, sinceISO = null) {
+  // If fields is null/empty, fetch ALL fields (no fields[] params → Airtable returns everything)
+  const fieldParams = (fields && fields.length > 0)
+    ? fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&')
+    : '';
+  let filterParam = '';
+  if (sinceISO) {
+    const formula = `LAST_MODIFIED_TIME()>'${sinceISO}'`;
+    filterParam = `&filterByFormula=${encodeURIComponent(formula)}`;
+  }
   let allRecords = [];
   let offset = null;
   let retryCount = 0;
   do {
     const offsetParam = offset ? `&offset=${encodeURIComponent(offset)}` : '';
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${tableId}?${fieldParams}&pageSize=100${offsetParam}`;
+    const params = [fieldParams, `pageSize=100`, offsetParam.replace(/^&/, ''), filterParam.replace(/^&/, '')].filter(Boolean).join('&');
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${tableId}?${params}`;
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     // Handle Airtable rate limiting (429) with exponential backoff
     if (res.status === 429) {
@@ -60,6 +63,24 @@ async function fetchAllAirtable(token, tableId, fields) {
     offset = data.offset || null;
   } while (offset);
   return allRecords;
+}
+
+/**
+ * Get the last sync timestamp for a table from Supabase sync_metadata.
+ */
+async function getLastSyncTime(supabaseUrl, serviceKey, tableName) {
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/sync_metadata?table_name=eq.${tableName}&select=last_sync_timestamp&limit=1`,
+      { headers: { 'Authorization': `Bearer ${serviceKey}`, 'apikey': serviceKey } }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows.length > 0 ? rows[0].last_sync_timestamp : null;
+  } catch (e) {
+    console.warn(`[trigger-sync] sync_metadata error for ${tableName}:`, e.message);
+    return null;
+  }
 }
 
 async function deleteOrphansFromSupabase(supabaseUrl, serviceKey, table, validAirtableIds, idColumn = 'airtable_id') {
@@ -92,18 +113,21 @@ async function deleteOrphansFromSupabase(supabaseUrl, serviceKey, table, validAi
   }
 }
 
-async function insertToSupabase(supabaseUrl, serviceKey, table, rows) {
+async function insertToSupabase(supabaseUrl, serviceKey, table, rows, onConflict = null) {
   const batchSize = 500;
   let inserted = 0;
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
-    const res = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
+    // Use merge-duplicates with on_conflict to avoid 409 errors on unique constraints
+    const prefer = onConflict ? 'resolution=merge-duplicates' : 'resolution=ignore-duplicates';
+    const conflictParam = onConflict ? `?on_conflict=${onConflict}` : '';
+    const res = await fetch(`${supabaseUrl}/rest/v1/${table}${conflictParam}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${serviceKey}`,
         'apikey': serviceKey,
-        'Prefer': 'resolution=ignore-duplicates',
+        'Prefer': prefer,
       },
       body: JSON.stringify(batch),
     });
@@ -157,8 +181,10 @@ async function upsertToSupabase(supabaseUrl, serviceKey, table, rows) {
       const errText = await res.text();
 
       // Detect "column X does not exist" or type mismatch errors
+      // PostgREST PGRST204: "Could not find the 'col_name' column of 'table' in the schema cache"
+      // Postgres: "column \"col_name\" of relation \"table\" does not exist"
       const colMatch = errText.match(/column\s+"?([^"]+)"?\s+(?:of relation|does not exist)/i) ||
-                        errText.match(/Could not find.*column\s+'([^']+)'/i);
+                        errText.match(/Could not find[^']*'([^']+)'\s+column/i);
       if (colMatch && res.status === 400 && attempt < 3) {
         const badCol = colMatch[1];
         columnsToStrip.add(badCol);
@@ -183,11 +209,6 @@ async function upsertToSupabase(supabaseUrl, serviceKey, table, rows) {
 
   return upserted;
 }
-
-/* ═══════════════════════════════════════════════
-   MAPPER FUNCTIONS: imported from shared/airtableMappers.js
-   ═══════════════════════════════════════════════ */
-
 
 /**
  * Update last sync timestamp for a table in Supabase sync_metadata.
@@ -276,138 +297,70 @@ function parseCSVLine(line) {
   return result;
 }
 
-/* ─── Individual sync functions (each returns {name, result}) ─── */
+/**
+ * Generic incremental-capable sync function for Airtable tables.
+ * Fetches only records modified since last sync (via LAST_MODIFIED_TIME filter).
+ * Orphan cleanup only runs on full syncs.
+ */
+async function syncTable(token, supabaseUrl, serviceKey, { tableName, tableId, mapperFn, supabaseTable, idColumn = 'airtable_id', knownFields = null }) {
+  // Get last sync time for incremental mode
+  const since = await getLastSyncTime(supabaseUrl, serviceKey, supabaseTable);
+  const isIncremental = !!since;
+  console.log(`[trigger-sync] ${tableName}: ${isIncremental ? `incremental (since ${since})` : 'full'}...`);
 
-async function syncDisplays(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, DISPLAYS_TABLE, FETCH_FIELDS.displays);
-  const rows = records.map(mapDisplay);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'airtable_displays', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'airtable_displays', records.map(r => r.id));
-  await updateSyncTime(supabaseUrl, serviceKey, 'displays', records.length, upserted);
-  console.log(`[trigger-sync] Displays: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'displays', fetched: records.length, upserted, deleted };
+  // Fetch ALL fields from Airtable (fields=null → no filter → all columns returned)
+  const records = await fetchAllAirtable(token, tableId, null, since);
+  // Map records + capture unmapped fields in extra_fields JSONB
+  const knownSet = knownFields ? new Set(knownFields) : null;
+  const rows = records.map(rec => {
+    const mapped = mapperFn(rec);
+    // Capture all fields NOT handled by the mapper into extra_fields
+    if (knownSet && rec.fields) {
+      const extra = {};
+      for (const [key, val] of Object.entries(rec.fields)) {
+        if (!knownSet.has(key) && val != null) {
+          extra[key] = val;
+        }
+      }
+      mapped.extra_fields = Object.keys(extra).length > 0 ? extra : null;
+    }
+    return mapped;
+  });
+  const upserted = rows.length > 0
+    ? await upsertToSupabase(supabaseUrl, serviceKey, supabaseTable, rows)
+    : 0;
+
+  // Only run orphan detection on full syncs (incremental doesn't fetch all records)
+  const deleted = !isIncremental
+    ? await deleteOrphansFromSupabase(supabaseUrl, serviceKey, supabaseTable, records.map(r => r.id), idColumn)
+    : 0;
+
+  await updateSyncTime(supabaseUrl, serviceKey, supabaseTable, records.length, upserted);
+  console.log(`[trigger-sync] ${tableName}: ${records.length} fetched → ${upserted} upserted${deleted ? `, ${deleted} orphans` : ''} (${isIncremental ? 'incremental' : 'full'})`);
+  return { name: supabaseTable, fetched: records.length, upserted, deleted, incremental: isIncremental };
 }
 
-async function syncAcquisition(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, TABLES.ACQUISITION, FETCH_FIELDS.acquisition);
-  const rows = records.map(mapAcquisition);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'acquisition', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'acquisition', records.map(r => r.id));
-  await updateSyncTime(supabaseUrl, serviceKey, 'acquisition', records.length, upserted);
-  console.log(`[trigger-sync] Acquisition: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'acquisition', fetched: records.length, upserted, deleted };
-}
-
-async function syncDaynScreens(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, DAYN_SCREENS_TABLE, FETCH_FIELDS.daynScreens);
-  const rows = records.map(mapDaynScreen);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'dayn_screens', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'dayn_screens', records.map(r => r.id));
-  await updateSyncTime(supabaseUrl, serviceKey, 'dayn_screens', records.length, upserted);
-  console.log(`[trigger-sync] Dayn Screens: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'dayn_screens', fetched: records.length, upserted, deleted };
-}
-
-async function syncOps(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, OPS_INVENTORY_TABLE, FETCH_FIELDS.opsInventory);
-  const rows = records.map(mapOpsInventory);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_ops', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_ops', records.map(r => r.id), 'id');
-  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_ops', records.length, upserted);
-  console.log(`[trigger-sync] OPS: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'hardware_ops', fetched: records.length, upserted, deleted };
-}
-
-async function syncSim(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, SIM_INVENTORY_TABLE, FETCH_FIELDS.simInventory);
-  const rows = records.map(mapSimInventory);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_sim', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_sim', records.map(r => r.id), 'id');
-  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_sim', records.length, upserted);
-  console.log(`[trigger-sync] SIM: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'hardware_sim', fetched: records.length, upserted, deleted };
-}
-
-async function syncDisplayInventory(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, DISPLAY_INVENTORY_TABLE, FETCH_FIELDS.displayInventory);
-  const rows = records.map(mapDisplayInventory);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_displays', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_displays', records.map(r => r.id), 'id');
-  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_displays', records.length, upserted);
-  console.log(`[trigger-sync] Display Inv: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'hardware_displays', fetched: records.length, upserted, deleted };
-}
-
-async function syncChg(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, CHG_APPROVAL_TABLE, FETCH_FIELDS.chgApproval);
-  console.log(`[trigger-sync] CHG: Fetched ${records.length} records from Airtable table ${CHG_APPROVAL_TABLE}`);
-  const rows = records.map(mapChgApproval);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'chg_approvals', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'chg_approvals', records.map(r => r.id), 'id');
-  await updateSyncTime(supabaseUrl, serviceKey, 'chg_approvals', records.length, upserted);
-  console.log(`[trigger-sync] CHG: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'chg_approvals', fetched: records.length, upserted, deleted };
-}
-
-async function syncStammdaten(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, STAMMDATEN_TABLE, FETCH_FIELDS.stammdaten);
-  const rows = records.map(mapStammdaten);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'stammdaten', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'stammdaten', records.map(r => r.id));
-  await updateSyncTime(supabaseUrl, serviceKey, 'stammdaten', records.length, upserted);
-  console.log(`[trigger-sync] Stammdaten: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'stammdaten', fetched: records.length, upserted, deleted };
-}
-
-async function syncTasks(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, TASKS_TABLE, FETCH_FIELDS.tasks);
-  const rows = records.map(mapTask);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'tasks', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'tasks', records.map(r => r.id));
-  await updateSyncTime(supabaseUrl, serviceKey, 'tasks', records.length, upserted);
-  console.log(`[trigger-sync] Tasks: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'tasks', fetched: records.length, upserted, deleted };
-}
-
-async function syncInstallationen(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, INSTALLATIONEN_TABLE, FETCH_FIELDS.installationen);
-  const rows = records.map(mapInstallation);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'installationen', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'installationen', records.map(r => r.id));
-  await updateSyncTime(supabaseUrl, serviceKey, 'installationen', records.length, upserted);
-  console.log(`[trigger-sync] Installationen: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'installationen', fetched: records.length, upserted, deleted };
-}
-
-async function syncSwaps(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, HARDWARE_SWAP_TABLE, FETCH_FIELDS.hardwareSwap);
-  const rows = records.map(mapHardwareSwap);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_swaps', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_swaps', records.map(r => r.id), 'id');
-  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_swaps', records.length, upserted);
-  console.log(`[trigger-sync] Swaps: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'hardware_swaps', fetched: records.length, upserted, deleted };
-}
-
-async function syncDeinstalls(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, DEINSTALL_TABLE, FETCH_FIELDS.deinstall);
-  const rows = records.map(mapDeinstall);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'hardware_deinstalls', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'hardware_deinstalls', records.map(r => r.id), 'id');
-  await updateSyncTime(supabaseUrl, serviceKey, 'hardware_deinstalls', records.length, upserted);
-  console.log(`[trigger-sync] Deinstalls: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'hardware_deinstalls', fetched: records.length, upserted, deleted };
-}
-
-async function syncCommunications(token, supabaseUrl, serviceKey) {
-  const records = await fetchAllAirtable(token, ACTIVITY_LOG_TABLE, FETCH_FIELDS.communications);
-  const rows = records.map(mapCommunication);
-  const upserted = await upsertToSupabase(supabaseUrl, serviceKey, 'communications', rows);
-  const deleted = await deleteOrphansFromSupabase(supabaseUrl, serviceKey, 'communications', records.map(r => r.id));
-  await updateSyncTime(supabaseUrl, serviceKey, 'communications', records.length, upserted);
-  console.log(`[trigger-sync] Communications: ${records.length} → ${upserted} upserted, ${deleted} orphans`);
-  return { name: 'communications', fetched: records.length, upserted, deleted };
-}
+/**
+ * Declarative sync configurations for all Airtable tables.
+ * Each entry maps to a syncTable() call with the given parameters.
+ * Tables with idColumn='id' use that instead of the default 'airtable_id'.
+ */
+const SYNC_CONFIGS = [
+  { tableName: 'Displays',           tableId: TABLES.DISPLAYS,             mapperFn: mapDisplay,              supabaseTable: 'airtable_displays',    knownFields: FETCH_FIELDS.displays },
+  { tableName: 'Acquisition',        tableId: TABLES.ACQUISITION,          mapperFn: mapAcquisition,          supabaseTable: 'acquisition',          knownFields: FETCH_FIELDS.acquisition },
+  { tableName: 'Dayn Screens',       tableId: TABLES.DAYN_SCREENS,         mapperFn: mapDaynScreen,           supabaseTable: 'dayn_screens',         knownFields: FETCH_FIELDS.daynScreens },
+  { tableName: 'OPS Inventory',      tableId: TABLES.OPS_INVENTORY,        mapperFn: mapOpsInventory,         supabaseTable: 'hardware_ops',         knownFields: FETCH_FIELDS.opsInventory,      idColumn: 'id' },
+  { tableName: 'SIM Inventory',      tableId: TABLES.SIM_INVENTORY,        mapperFn: mapSimInventory,         supabaseTable: 'hardware_sim',         knownFields: FETCH_FIELDS.simInventory,      idColumn: 'id' },
+  { tableName: 'Display Inventory',  tableId: TABLES.DISPLAY_INVENTORY,    mapperFn: mapDisplayInventory,     supabaseTable: 'hardware_displays',    knownFields: FETCH_FIELDS.displayInventory,  idColumn: 'id' },
+  { tableName: 'CHG Approvals',      tableId: TABLES.CHG_APPROVAL,         mapperFn: mapChgApproval,          supabaseTable: 'chg_approvals',        knownFields: FETCH_FIELDS.chgApproval,       idColumn: 'id' },
+  { tableName: 'Stammdaten',         tableId: TABLES.STAMMDATEN,           mapperFn: mapStammdaten,           supabaseTable: 'stammdaten',           knownFields: FETCH_FIELDS.stammdaten },
+  { tableName: 'Tasks',              tableId: TABLES.TASKS,                mapperFn: mapTask,                 supabaseTable: 'tasks',                knownFields: FETCH_FIELDS.tasks },
+  { tableName: 'Installationen',     tableId: TABLES.INSTALLATIONEN,       mapperFn: mapInstallation,         supabaseTable: 'installationen',       knownFields: FETCH_FIELDS.installationen },
+  { tableName: 'Hardware Swaps',     tableId: TABLES.HARDWARE_SWAP,        mapperFn: mapHardwareSwap,         supabaseTable: 'hardware_swaps',       knownFields: FETCH_FIELDS.hardwareSwap,      idColumn: 'id' },
+  { tableName: 'Deinstalls',         tableId: TABLES.DEINSTALL,            mapperFn: mapDeinstall,            supabaseTable: 'hardware_deinstalls',  knownFields: FETCH_FIELDS.deinstall,         idColumn: 'id' },
+  { tableName: 'Installationstermine', tableId: TABLES.INSTALLATIONSTERMINE, mapperFn: mapInstallationstermin, supabaseTable: 'installationstermine', knownFields: FETCH_FIELDS.installationstermine },
+  { tableName: 'Communications',     tableId: TABLES.ACTIVITY_LOG,         mapperFn: mapCommunication,        supabaseTable: 'communications',       knownFields: FETCH_FIELDS.communications },
+];
 
 async function syncHeartbeats(supabaseUrl, serviceKey) {
   const csvRes = await fetch(SHEET_CSV_URL, {
@@ -444,18 +397,14 @@ async function syncHeartbeats(supabaseUrl, serviceKey) {
       days_offline: cols[colIdx['Days Offline']] ? parseInt(cols[colIdx['Days Offline']]) || null : null,
     });
   }
-  const inserted = await insertToSupabase(supabaseUrl, serviceKey, 'display_heartbeats', heartbeatRows);
+  // Use on_conflict to upsert on (display_id, timestamp) — avoids 409 duplicate key errors
+  const inserted = await insertToSupabase(supabaseUrl, serviceKey, 'display_heartbeats', heartbeatRows, 'display_id,timestamp');
   await updateSyncTime(supabaseUrl, serviceKey, 'heartbeats', heartbeatRows.length, inserted);
-  console.log(`[trigger-sync] Heartbeats: ${heartbeatRows.length} → ${inserted} inserted`);
+  console.log(`[trigger-sync] Heartbeats: ${heartbeatRows.length} → ${inserted} upserted`);
   return { name: 'heartbeats', fetched: heartbeatRows.length, inserted };
 }
 
 /* ─── Main Handler ─── */
-
-import {
-  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
-  checkRateLimit, getClientIP, rateLimitResponse,
-} from './shared/security.js';
 
 export default async (request) => {
   const startTime = Date.now();
@@ -473,15 +422,15 @@ export default async (request) => {
     ...corsHeaders(origin),
   };
 
-  // Rate limiting — sync is expensive, limit to 5/min per IP
+  // Rate limiting — allow scheduled trigger every 5min + occasional manual triggers
   const clientIP = getClientIP(request);
-  const limit = checkRateLimit(`trigger-sync:${clientIP}`, 5, 60_000);
+  const limit = checkRateLimit(`trigger-sync:${clientIP}`, 15, 60_000);
   if (!limit.allowed) {
     return rateLimitResponse(limit.retryAfterMs, origin);
   }
 
   const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co';
+  const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!AIRTABLE_TOKEN || !SUPABASE_SERVICE_KEY) {
@@ -495,36 +444,21 @@ export default async (request) => {
     // starved smaller tables (hardware_ops, hardware_sim, etc.) of data.
     console.log('[trigger-sync] Starting batched sync of all 14 tables (max 3 concurrent)...');
 
+    // Batch layout: indices into SYNC_CONFIGS, grouped to stay under Airtable's 5 req/s limit
+    const BATCH_LAYOUT = [
+      [0, 1, 2],    // Batch 1: Displays, Acquisition, Dayn Screens
+      [3, 4, 5],    // Batch 2: OPS, SIM, Display Inventory
+      [6, 7, 8],    // Batch 3: CHG, Stammdaten, Tasks
+      [9, 10, 11],  // Batch 4: Installationen, Swaps, Deinstalls
+      [12, 13],     // Batch 5: Installationstermine, Communications
+    ];
+
     const batches = [
-      // Batch 1: Core display tables
-      [
-        () => syncDisplays(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncAcquisition(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncDaynScreens(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-      ],
-      // Batch 2: Hardware inventory tables
-      [
-        () => syncOps(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncSim(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncDisplayInventory(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-      ],
-      // Batch 3: Approvals, stammdaten, tasks
-      [
-        () => syncChg(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncStammdaten(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncTasks(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-      ],
-      // Batch 4: Installations, swaps, deinstalls
-      [
-        () => syncInstallationen(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncSwaps(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncDeinstalls(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-      ],
-      // Batch 5: Communications + heartbeats (heartbeats use Google Sheets, not Airtable)
-      [
-        () => syncCommunications(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY),
-        () => syncHeartbeats(SUPABASE_URL, SUPABASE_SERVICE_KEY),
-      ],
+      ...BATCH_LAYOUT.map(indices =>
+        indices.map(i => () => syncTable(AIRTABLE_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY, SYNC_CONFIGS[i]))
+      ),
+      // Batch 6: Heartbeats (Google Sheets, not Airtable)
+      [() => syncHeartbeats(SUPABASE_URL, SUPABASE_SERVICE_KEY)],
     ];
 
     const allSettled = [];
@@ -549,6 +483,57 @@ export default async (request) => {
         console.error('[trigger-sync] Job failed:', errMsg);
         results[`error_${Object.keys(results).length}`] = { error: errMsg };
       }
+    }
+
+    // ═══ RÜCKSYNC: installationen.status → install_bookings.status ═══
+    // Quelle der Wahrheit: Tabelle "installationen" (NICHT installationstermine!)
+    // Verhindert z.B. dass WhatsApp-Reminder an bereits aufgebaute Kunden gehen.
+    try {
+      console.log('[trigger-sync] Running installationen→install_bookings status sync...');
+      const installRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/installationen?select=id,akquise_links,status,location_name&status=in.(Installiert,Abgebrochen,Storniert)`,
+        { headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`, 'apikey': SUPABASE_SERVICE_KEY } }
+      );
+      const installationen = installRes.ok ? await installRes.json() : [];
+
+      if (installationen.length > 0) {
+        const statusByAkquise = {};
+        for (const inst of installationen) {
+          const links = Array.isArray(inst.akquise_links) ? inst.akquise_links : [];
+          for (const akqId of links) {
+            if (inst.status === 'Installiert') statusByAkquise[akqId] = 'completed';
+            else if (inst.status === 'Abgebrochen') statusByAkquise[akqId] = 'cancelled';
+            else if (inst.status === 'Storniert') statusByAkquise[akqId] = 'cancelled';
+          }
+        }
+        const openBookingsRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/install_bookings?select=id,akquise_airtable_id,status,location_name&status=in.(pending,booked,confirmed,invited)&akquise_airtable_id=not.is.null`,
+          { headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`, 'apikey': SUPABASE_SERVICE_KEY } }
+        );
+        const openBookings = openBookingsRes.ok ? await openBookingsRes.json() : [];
+        let syncedCount = 0;
+        for (const b of openBookings) {
+          const newStatus = statusByAkquise[b.akquise_airtable_id];
+          if (!newStatus) continue;
+          const patchRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/install_bookings?id=eq.${b.id}`,
+            {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`, 'apikey': SUPABASE_SERVICE_KEY, 'Prefer': 'return=minimal' },
+              body: JSON.stringify({ status: newStatus, updated_at: new Date().toISOString() }),
+            }
+          );
+          if (patchRes.ok) {
+            syncedCount++;
+            const locName = Array.isArray(b.location_name) ? b.location_name[0] : b.location_name;
+            console.log(`[trigger-sync] Rücksync: ${locName || b.id}: ${b.status} → ${newStatus}`);
+          }
+        }
+        results['ruecksync'] = { synced: syncedCount, openChecked: openBookings.length };
+        console.log(`[trigger-sync] Rücksync: ${syncedCount}/${openBookings.length} bookings updated`);
+      }
+    } catch (e) {
+      console.warn('[trigger-sync] Rücksync failed (non-fatal):', e.message);
     }
 
     const succeeded = allSettled.filter(r => r.status === 'fulfilled').length;

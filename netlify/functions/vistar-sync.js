@@ -11,6 +11,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { logApiCall, logApiCalls, estimateAirtableCost } from './shared/apiLogger.js';
+import { checkRateLimit, getClientIP } from './shared/security.js';
 
 const VISTAR_PLATFORM = 'https://platform-api.vistarmedia.com';
 const VISTAR_TRAFFICKING = 'https://trafficking.vistarmedia.com';
@@ -44,8 +45,9 @@ async function getSession() {
 }
 
 function getSupabase() {
+  if (!process.env.SUPABASE_URL) throw new Error('SUPABASE_URL not configured');
   return createClient(
-    process.env.SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co',
+    process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 }
@@ -239,10 +241,31 @@ async function logSync(supabase, syncType, status, count, startTime, errorMsg) {
 
 /* ─── Main handler ─── */
 export default async (request) => {
-  // Only allow from trusted sources
   const url = new URL(request.url);
   const syncType = url.searchParams.get('type') || 'all';
   const days = parseInt(url.searchParams.get('days') || '90', 10);
+
+  // ── Auth: require SYNC_SECRET via header only (not query param — leaks in logs) ──
+  const SYNC_SECRET = process.env.SYNC_SECRET;
+  if (SYNC_SECRET) {
+    const headerKey = request.headers.get('x-sync-key');
+    if (headerKey !== SYNC_SECRET) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  // ── Rate limiting ──
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`vistar-sync:${clientIP}`, 5, 60_000);
+  if (!limit.allowed) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': String(Math.ceil(limit.retryAfterMs / 1000)) },
+    });
+  }
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     console.error('[vistar-sync] SUPABASE_SERVICE_ROLE_KEY not configured');

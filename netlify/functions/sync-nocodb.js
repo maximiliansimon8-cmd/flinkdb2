@@ -21,12 +21,10 @@
  */
 
 import { logApiCall } from './shared/apiLogger.js';
+import { checkRateLimit, getClientIP } from './shared/security.js';
 
 const NOCODB_HOST = 'https://nocodb.e-systems.de';
 const NOCODB_BASE_ID = 'poh211rc5ugx525';
-
-const SUPABASE_URL_DEFAULT = 'https://hvgjdosdejnwkuyivnrq.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ';
 
 // NocoDB table IDs
 const TABLES = {
@@ -78,10 +76,16 @@ async function fetchAllNocoDB(token, tableId, startTime) {
     const records = data.list || [];
     allRecords = allRecords.concat(records);
 
-    if (records.length < PAGE_SIZE) {
+    // Stop if: fewer records than page size, pageInfo says last page,
+    // or next offset would exceed totalRows
+    const pageInfo = data.pageInfo || {};
+    const totalRows = pageInfo.totalRows || Infinity;
+    const nextOffset = offset + PAGE_SIZE;
+
+    if (records.length < PAGE_SIZE || pageInfo.isLastPage === true || nextOffset >= totalRows) {
       hasMore = false;
     } else {
-      offset += PAGE_SIZE;
+      offset = nextOffset;
     }
   }
 
@@ -109,7 +113,9 @@ async function upsertToSupabase(supabaseUrl, serviceKey, table, rows, onConflict
       'Prefer': 'resolution=merge-duplicates',
     };
 
-    const res = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
+    // on_conflict query param tells Supabase which column to use for merge-duplicates
+    const conflictParam = onConflict ? `?on_conflict=${onConflict}` : '';
+    const res = await fetch(`${supabaseUrl}/rest/v1/${table}${conflictParam}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(batch),
@@ -131,9 +137,9 @@ async function upsertToSupabase(supabaseUrl, serviceKey, table, rows, onConflict
  * Uses POST with merge-duplicates (upsert), falls back to PATCH.
  */
 async function updateSyncMetadata(supabaseUrl, serviceKey, source, tableName, recordCount, status, errorMsg) {
+  const fullTableName = `${source}_${tableName}`;
   const payload = {
-    table_name: `${source}_${tableName}`,
-    source: source,
+    table_name: fullTableName,
     last_sync_timestamp: new Date().toISOString(),
     records_fetched: recordCount,
     records_upserted: recordCount,
@@ -242,13 +248,33 @@ function extractKundenId(field) {
   return null;
 }
 
+/**
+ * Strip NocoDB's {"..."} or {\"...\"} wrapping from text fields.
+ * Handles: "Erfolgreich", {"Erfolgreich"}, {\"Erfolgreich\"}, null/undefined.
+ * Returns the clean string or null.
+ */
+function cleanNocoDbField(value) {
+  if (value == null) return null;
+  let str = String(value).trim();
+  if (!str) return null;
+
+  // Remove escaped-JSON wrapping: {\"...\"}
+  str = str.replace(/^\{\\?"/, '').replace(/\\?"\}$/, '');
+  // Remove plain JSON wrapping: {"..."}
+  str = str.replace(/^\{"/, '').replace(/"\}$/, '');
+  // Remove surrounding quotes if still present
+  str = str.replace(/^"(.*)"$/, '$1');
+
+  return str || null;
+}
+
 function mapVorbereitet(record) {
   return {
     nocodb_id: record.Id || record.id,
     ops_nr: record['OpsNr.'] != null ? Number(record['OpsNr.']) : null,
     venue_id: record['VenueID'] || null,
     sim_id: record['SimID'] || null,
-    kunden_nr: record['KundenNr.'] || null,
+    kunden_nr: record['KundenNr.'] ? String(record['KundenNr.']).replace(/[\r\s]+$/, '').trim() || null : null,
     fertig: record['Fertig'] === true || record['Fertig'] === 1,
     vorbereitet: record['Vorbereitet'] === true || record['Vorbereitet'] === 1,
     ops_sn: record['OPS-SN'] || null,
@@ -277,17 +303,17 @@ function mapSimKunden(record) {
 function mapLieferando(record) {
   return {
     nocodb_id: record.Id || record.id,
-    kunden_id: record['KundenID'] || null,
-    restaurant: record['Restaurant'] || null,
-    strasse: record['Strasse'] || null,
-    hausnummer: record['Hausnummer'] || null,
-    plz: record['PLZ'] || null,
-    stadt: record['Stadt'] || null,
-    akquise_status: record['AkquiseStatus'] || null,
-    standort_status: record['Standortstatus'] || null,
-    einreichdatum: record['Einreichdatum'] || null,
-    rollout_info: record['Rollout KW/Datum/Info'] || record['Rollout Info'] || record['Rollout KW'] || null,
-    installationsart: record['Installationsart'] || null,
+    kunden_id: extractKundenId(record['KundenID']),
+    restaurant: cleanNocoDbField(record['Restaurant']),
+    strasse: cleanNocoDbField(record['Strasse']),
+    hausnummer: cleanNocoDbField(record['Hausnummer']),
+    plz: cleanNocoDbField(record['PLZ']),
+    stadt: cleanNocoDbField(record['Stadt']),
+    akquise_status: cleanNocoDbField(record['AkquiseStatus']),
+    standort_status: cleanNocoDbField(record['Standortstatus']),
+    einreichdatum: cleanNocoDbField(record['Einreichdatum']),
+    rollout_info: cleanNocoDbField(record['Rollout KW/Datum/Info'] || record['Rollout Info'] || record['Rollout KW']),
+    installationsart: cleanNocoDbField(record['Installationsart']),
   };
 }
 
@@ -299,108 +325,109 @@ function mapLieferando(record) {
  * After syncing nocodb_vorbereitet, enrich the hardware_ops table by matching
  * ops_nr from nocodb_vorbereitet to hardware_ops.ops_nr.
  *
- * Updates hardware_ops with:
- *   - vistar_venue_id (from nocodb_vorbereitet.venue_id)
- *   - nocodb_sim_id   (from nocodb_vorbereitet.sim_id)
+ * Uses a Supabase SQL RPC to do the enrichment in a single database call
+ * instead of individual PATCH requests (which would timeout).
  */
 async function enrichHardwareOps(supabaseUrl, serviceKey) {
   console.log('[nocodb-sync] Enriching hardware_ops from nocodb_vorbereitet...');
 
   try {
-    // 1. Fetch all nocodb_vorbereitet records with an ops_nr
+    // Use a direct SQL UPDATE via Supabase's /rest/v1/rpc endpoint
+    // This does the entire enrichment in a single DB operation
+    const sql = `
+      UPDATE hardware_ops ho
+      SET vistar_venue_id = nv.venue_id,
+          nocodb_sim_id = nv.sim_id,
+          nocodb_kunden_nr = nv.kunden_nr,
+          nocodb_synced_at = NOW()
+      FROM nocodb_vorbereitet nv
+      WHERE nv.ops_nr IS NOT NULL
+        AND ho.ops_nr IS NOT NULL
+        AND nv.ops_nr::TEXT = ho.ops_nr
+        AND (ho.vistar_venue_id IS DISTINCT FROM nv.venue_id
+          OR ho.nocodb_sim_id IS DISTINCT FROM nv.sim_id
+          OR ho.nocodb_kunden_nr IS DISTINCT FROM nv.kunden_nr)
+    `;
+
+    // Try RPC call first (if enrich_hardware_from_nocodb RPC exists)
+    const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/enrich_hardware_from_nocodb`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey': serviceKey,
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (rpcRes.ok) {
+      const result = await rpcRes.json();
+      console.log(`[nocodb-sync] Enrichment via RPC succeeded: ${JSON.stringify(result)}`);
+      return result;
+    }
+
+    // Fallback: batch PATCH — fetch vorbereitet, group updates, do max 10 concurrent PATCHes
+    console.log('[nocodb-sync] RPC not available, using batch PATCH fallback...');
+
     const vorbereitetRes = await fetch(
-      `${supabaseUrl}/rest/v1/nocodb_vorbereitet?select=ops_nr,venue_id,sim_id&ops_nr=not.is.null&limit=1000`,
-      {
-        headers: {
-          'Authorization': `Bearer ${serviceKey}`,
-          'apikey': serviceKey,
-        },
-      }
+      `${supabaseUrl}/rest/v1/nocodb_vorbereitet?select=ops_nr,venue_id,sim_id,kunden_nr&ops_nr=not.is.null&limit=1000`,
+      { headers: { 'Authorization': `Bearer ${serviceKey}`, 'apikey': serviceKey } }
     );
 
     if (!vorbereitetRes.ok) {
-      console.error(`[nocodb-sync] Failed to fetch nocodb_vorbereitet for enrichment: ${vorbereitetRes.status}`);
+      console.error(`[nocodb-sync] Failed to fetch nocodb_vorbereitet: ${vorbereitetRes.status}`);
       return 0;
     }
 
     const vorbereitetRows = await vorbereitetRes.json();
-    if (vorbereitetRows.length === 0) {
-      console.log('[nocodb-sync] No nocodb_vorbereitet records with ops_nr found');
-      return 0;
-    }
+    if (vorbereitetRows.length === 0) return 0;
 
-    // 2. Build a map: ops_nr -> { venue_id, sim_id }
-    const opsMap = new Map();
-    for (const row of vorbereitetRows) {
-      if (row.ops_nr != null) {
-        opsMap.set(Number(row.ops_nr), {
-          venue_id: row.venue_id || null,
-          sim_id: row.sim_id || null,
-        });
-      }
-    }
-
-    // 3. Fetch all hardware_ops records that have an ops_nr
-    const hardwareRes = await fetch(
-      `${supabaseUrl}/rest/v1/hardware_ops?select=id,ops_nr&ops_nr=not.is.null&limit=1000`,
-      {
-        headers: {
-          'Authorization': `Bearer ${serviceKey}`,
-          'apikey': serviceKey,
-        },
-      }
-    );
-
-    if (!hardwareRes.ok) {
-      console.error(`[nocodb-sync] Failed to fetch hardware_ops for enrichment: ${hardwareRes.status}`);
-      return 0;
-    }
-
-    const hardwareRows = await hardwareRes.json();
+    // Build ops_nr list for a single batch PATCH per unique ops_nr
     let enriched = 0;
+    const batchSize = 20;
 
-    // 4. For each matching hardware_ops, update with venue_id and sim_id
-    for (const hw of hardwareRows) {
-      const opsNr = Number(hw.ops_nr);
-      const nocoData = opsMap.get(opsNr);
-      if (!nocoData) continue;
+    for (let i = 0; i < vorbereitetRows.length; i += batchSize) {
+      const batch = vorbereitetRows.slice(i, i + batchSize);
 
-      // Only update if there's something to set
-      const updatePayload = {};
-      if (nocoData.venue_id) updatePayload.vistar_venue_id = nocoData.venue_id;
-      if (nocoData.sim_id) updatePayload.nocodb_sim_id = nocoData.sim_id;
+      // Fire batch in parallel
+      const promises = batch.map(async (row) => {
+        if (!row.ops_nr) return false;
 
-      if (Object.keys(updatePayload).length === 0) continue;
+        const updatePayload = { nocodb_synced_at: new Date().toISOString() };
+        if (row.venue_id) updatePayload.vistar_venue_id = row.venue_id;
+        if (row.sim_id) updatePayload.nocodb_sim_id = row.sim_id;
+        if (row.kunden_nr) updatePayload.nocodb_kunden_nr = row.kunden_nr;
 
-      const patchRes = await fetch(
-        `${supabaseUrl}/rest/v1/hardware_ops?id=eq.${hw.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${serviceKey}`,
-            'apikey': serviceKey,
-            'Prefer': 'return=minimal',
-          },
-          body: JSON.stringify(updatePayload),
+        const patchRes = await fetch(
+          `${supabaseUrl}/rest/v1/hardware_ops?ops_nr=eq.${row.ops_nr}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${serviceKey}`,
+              'apikey': serviceKey,
+              'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify(updatePayload),
+          }
+        );
+
+        if (!patchRes.ok) {
+          const errText = await patchRes.text();
+          if (errText.includes('does not exist')) {
+            console.warn('[nocodb-sync] Enrichment columns missing, skipping');
+            return 'abort';
+          }
         }
-      );
+        return patchRes.ok;
+      });
 
-      if (patchRes.ok) {
-        enriched++;
-      } else {
-        // If columns don't exist yet, log once and stop trying
-        const errText = await patchRes.text();
-        if (errText.includes('does not exist')) {
-          console.warn(`[nocodb-sync] hardware_ops enrichment columns not available yet: ${errText.substring(0, 150)}`);
-          console.warn('[nocodb-sync] Skipping enrichment — add vistar_venue_id and nocodb_sim_id columns to hardware_ops table');
-          break;
-        }
-        console.error(`[nocodb-sync] hardware_ops PATCH error for ops_nr=${opsNr}: ${patchRes.status} ${errText.substring(0, 150)}`);
-      }
+      const results = await Promise.all(promises);
+      if (results.includes('abort')) break;
+      enriched += results.filter(Boolean).length;
     }
 
-    console.log(`[nocodb-sync] Enriched ${enriched}/${hardwareRows.length} hardware_ops records`);
+    console.log(`[nocodb-sync] Enriched ${enriched} hardware_ops records via batch PATCH`);
     return enriched;
   } catch (e) {
     console.error('[nocodb-sync] Enrichment error:', e.message);
@@ -415,9 +442,39 @@ async function enrichHardwareOps(supabaseUrl, serviceKey) {
 export default async (request) => {
   const startTime = Date.now();
 
+  // ── Auth: require SYNC_SECRET via header only (not query param — leaks in logs) ──
+  const SYNC_SECRET = Netlify.env.get('SYNC_SECRET');
+  if (SYNC_SECRET) {
+    const headerKey = request.headers.get('x-sync-key');
+    if (headerKey !== SYNC_SECRET) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  // ── Rate limiting ──
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`sync-nocodb:${clientIP}`, 5, 60_000);
+  if (!limit.allowed) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': String(Math.ceil(limit.retryAfterMs / 1000)) },
+    });
+  }
+
   const NOCO_TOKEN = Netlify.env.get('NOCO_TOKEN');
-  const SUPABASE_URL = Netlify.env.get('SUPABASE_URL') || SUPABASE_URL_DEFAULT;
-  const SUPABASE_SERVICE_KEY = Netlify.env.get('SUPABASE_SERVICE_ROLE_KEY') || SUPABASE_ANON_KEY;
+  const SUPABASE_URL = Netlify.env.get('SUPABASE_URL');
+  const SUPABASE_SERVICE_KEY = Netlify.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  if (!SUPABASE_URL) {
+    console.error('[nocodb-sync] Missing SUPABASE_URL environment variable');
+    return new Response(JSON.stringify({ error: 'SUPABASE_URL not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   if (!NOCO_TOKEN) {
     console.error('[nocodb-sync] Missing NOCO_TOKEN environment variable');
