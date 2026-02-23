@@ -6,7 +6,7 @@ import {
   FileText, CalendarClock, History, Bell, XCircle, Voicemail,
   StickyNote, RotateCcw, Edit3, Trash2, Plus,
 } from 'lucide-react';
-import { supabase } from '../src/utils/authService.js';
+import { supabase, getCurrentUser } from '../src/utils/authService.js';
 
 /* ===========================================================
    CONSTANTS
@@ -300,6 +300,7 @@ function CallOutcomeModal({ booking, routes, onClose, onComplete }) {
 
     try {
       const now = new Date().toISOString();
+      const currentUser = getCurrentUser();
 
       // 1. Log the call
       const logEntry = {
@@ -308,7 +309,7 @@ function CallOutcomeModal({ booking, routes, onClose, onComplete }) {
         outcome: outcome === 'phone_book' ? 'booked' : outcome,
         notes: notes.trim() || null,
         callback_date: outcome === 'callback' ? callbackDate : null,
-        caller_name: null, // Could be set from auth context
+        caller_name: currentUser?.name || null,
       };
 
       const { error: logErr } = await supabase
@@ -319,6 +320,22 @@ function CallOutcomeModal({ booking, routes, onClose, onComplete }) {
         console.warn('Call log insert failed (table may not exist yet):', logErr.message);
         // Continue anyway — the main booking update is more important
       }
+
+      // Activity log: phone call (fire-and-forget)
+      supabase.from('booking_activity_log').insert({
+        user_id:             currentUser?.id   || null,
+        user_name:           currentUser?.name || 'Unbekannt',
+        action:              'phone_call',
+        booking_id:          booking.id,
+        akquise_airtable_id: booking.akquise_airtable_id || null,
+        location_name:       booking.location_name || booking.contact_name || null,
+        city:                booking.city || null,
+        source:              'portal',
+        detail: {
+          outcome: outcome === 'phone_book' ? 'booked' : outcome,
+          notes:   notes.trim() || null,
+        },
+      }).then(() => {}).catch(() => {});
 
       // 2. Update the booking
       const updateData = {

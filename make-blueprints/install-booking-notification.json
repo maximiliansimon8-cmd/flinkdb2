@@ -1,0 +1,149 @@
+{
+  "name": "Install Booking → E-Mail an Install Team",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": null,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        },
+        "restore": {},
+        "expect": [
+          {
+            "name": "location_name",
+            "type": "text",
+            "label": "Standort Name"
+          },
+          {
+            "name": "jet_id",
+            "type": "text",
+            "label": "JET ID"
+          },
+          {
+            "name": "city",
+            "type": "text",
+            "label": "Stadt"
+          },
+          {
+            "name": "booked_date",
+            "type": "text",
+            "label": "Datum (YYYY-MM-DD)"
+          },
+          {
+            "name": "booked_time",
+            "type": "text",
+            "label": "Uhrzeit Start"
+          },
+          {
+            "name": "booked_end_time",
+            "type": "text",
+            "label": "Uhrzeit Ende"
+          },
+          {
+            "name": "installer_team",
+            "type": "text",
+            "label": "Installer Team"
+          },
+          {
+            "name": "contact_name",
+            "type": "text",
+            "label": "Kontaktperson"
+          },
+          {
+            "name": "contact_phone",
+            "type": "text",
+            "label": "Telefon"
+          },
+          {
+            "name": "notes",
+            "type": "text",
+            "label": "Anmerkungen"
+          },
+          {
+            "name": "booking_url",
+            "type": "text",
+            "label": "Buchungslink"
+          },
+          {
+            "name": "akquise_airtable_id",
+            "type": "text",
+            "label": "Airtable Record ID"
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "module": "email:ActionSendEmail",
+      "version": 3,
+      "parameters": {
+        "account": null
+      },
+      "mapper": {
+        "to": "",
+        "cc": "",
+        "subject": "📅 Neuer Installationstermin: {{1.location_name}} ({{1.city}}) — {{1.booked_date}}",
+        "content": "<html><body style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;\">\n<div style=\"background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 24px; border-radius: 12px 12px 0 0;\">\n<h1 style=\"color: white; margin: 0; font-size: 20px;\">📅 Neuer Installationstermin</h1>\n</div>\n<div style=\"background: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;\">\n\n<table style=\"width: 100%; border-collapse: collapse;\">\n<tr><td style=\"padding: 8px 0; color: #64748b; width: 140px;\">Standort:</td><td style=\"padding: 8px 0; font-weight: bold;\">{{1.location_name}}</td></tr>\n<tr><td style=\"padding: 8px 0; color: #64748b;\">JET ID:</td><td style=\"padding: 8px 0;\">{{1.jet_id}}</td></tr>\n<tr><td style=\"padding: 8px 0; color: #64748b;\">Stadt:</td><td style=\"padding: 8px 0;\">{{1.city}}</td></tr>\n<tr><td colspan=\"2\" style=\"padding: 12px 0;\"><hr style=\"border: none; border-top: 1px solid #e2e8f0;\"></td></tr>\n<tr><td style=\"padding: 8px 0; color: #64748b;\">Datum:</td><td style=\"padding: 8px 0; font-weight: bold; font-size: 16px;\">{{1.booked_date}}</td></tr>\n<tr><td style=\"padding: 8px 0; color: #64748b;\">Zeitfenster:</td><td style=\"padding: 8px 0; font-weight: bold;\">{{1.booked_time}} – {{1.booked_end_time}} Uhr</td></tr>\n<tr><td style=\"padding: 8px 0; color: #64748b;\">Team:</td><td style=\"padding: 8px 0;\">{{1.installer_team}}</td></tr>\n<tr><td colspan=\"2\" style=\"padding: 12px 0;\"><hr style=\"border: none; border-top: 1px solid #e2e8f0;\"></td></tr>\n<tr><td style=\"padding: 8px 0; color: #64748b;\">Kontakt:</td><td style=\"padding: 8px 0;\">{{1.contact_name}}</td></tr>\n<tr><td style=\"padding: 8px 0; color: #64748b;\">Telefon:</td><td style=\"padding: 8px 0;\"><a href=\"tel:{{1.contact_phone}}\">{{1.contact_phone}}</a></td></tr>\n</table>\n\n{{if(1.notes; \"<div style='margin-top: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px;'><strong>Anmerkung Standort:</strong><br>\" + 1.notes + \"</div>\"; \"\")}}\n\n<div style=\"margin-top: 24px; text-align: center;\">\n<a href=\"{{1.booking_url}}\" style=\"display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;\">Buchung ansehen</a>\n</div>\n\n<p style=\"margin-top: 24px; font-size: 12px; color: #94a3b8; text-align: center;\">Diese E-Mail wurde automatisch vom JET Dashboard Install Booker generiert.</p>\n</div>\n</body></html>",
+        "type": "html"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        },
+        "restore": {},
+        "expect": []
+      }
+    },
+    {
+      "id": 3,
+      "module": "builtin:BasicResponder",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "status": "200",
+        "body": "{\"success\": true, \"message\": \"E-Mail versendet\"}",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0
+        },
+        "restore": {}
+      }
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu2.make.com"
+  }
+}

@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Target, Search, Filter, Loader2, RefreshCw,
-  MapPin, User, FileText, Calendar, AlertTriangle,
-  CheckCircle2, XCircle, Clock, TrendingUp, Building2,
-  ChevronDown, ExternalLink, Zap, ArrowUpRight, ArrowDownRight, Minus,
+  Target, Search, Loader2, RefreshCw,
+  MapPin, FileText, AlertTriangle,
+  CheckCircle2, XCircle, TrendingUp, Building2,
+  ChevronDown, ExternalLink, Zap, ArrowUpRight, ArrowDownRight,
 } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Cell, PieChart, Pie, Legend, ReferenceLine, CartesianGrid,
-  LineChart, Line, ComposedChart, Area,
+  Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  Cell, ReferenceLine, CartesianGrid,
+  ComposedChart,
 } from 'recharts';
 import { fetchAllAcquisition } from '../utils/airtableService';
+import { isStorno, isAlreadyInstalled, isReadyForInstall, WEEKLY_BUILD_TARGET } from '../metrics';
 
 /* ─── City Targets (Gesamtziele Live Displays) ─── */
 const CITY_TARGETS = {
@@ -85,30 +86,13 @@ const recordIsApproved = (r) => {
   return false;
 };
 
-const recordIsInstalled = (r) => {
-  const ls = r.leadStatus || '';
-  if (ls === 'Live') return true;
-  if (ls === 'Installation') return true;
-  // installationsStatus alone does NOT mean installed — check for specific values
-  // Values like "Installiert", "Abgerufen" indicate actual installation
-  if (r.installationsStatus && r.installationsStatus.length > 0) {
-    const statuses = r.installationsStatus.map(s => (s || '').toLowerCase());
-    if (statuses.some(s => s.includes('installiert') || s.includes('abgerufen') || s.includes('live'))) return true;
-  }
-  return false;
-};
+/* recordIsInstalled → use isAlreadyInstalled from ../metrics (single source of truth) */
+const recordIsInstalled = isAlreadyInstalled;
 
-const recordIsSigned = (r) => {
-  return r.vertragVorhanden && r.vertragVorhanden !== 'false' && r.vertragVorhanden !== '';
-};
+const recordIsSigned = (r) =>
+  r.vertragVorhanden && r.vertragVorhanden !== 'false' && r.vertragVorhanden !== '';
 
-const recordIsLive = (r) => {
-  const ls = r.leadStatus || '';
-  // Only "Live" status = actually running and operational
-  // "Installation" is NOT live — it's in setup process
-  if (ls === 'Live') return true;
-  return false;
-};
+const recordIsLive = (r) => (r.leadStatus || '') === 'Live';
 
 /* ─── Reusable KPI Card ─── */
 function KpiCard({ label, value, icon: Icon, color, subtitle, active, onClick }) {
@@ -149,8 +133,6 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
     setLoading(true);
     try {
       const records = await fetchAllAcquisition();
-      console.log(`[AcquisitionDashboard] Loaded ${records.length} records. Status distribution:`,
-        records.reduce((acc, r) => { acc[r.leadStatus || 'NULL'] = (acc[r.leadStatus || 'NULL'] || 0) + 1; return acc; }, {}));
       setData(records);
     } catch (err) {
       console.error('[AcquisitionDashboard] Error:', err);
@@ -200,15 +182,15 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
     const total = filtered.length;
     const stornoAkquise = filtered.filter(r => r.akquiseStorno).length;
     const stornoPostInstall = filtered.filter(r => r.postInstallStorno).length;
-    const stornoTotal = filtered.filter(r => r.akquiseStorno || r.postInstallStorno).length;
+    const stornoTotal = filtered.filter(r => isStorno(r)).length;
     const active = total - stornoTotal;
-    const readyForInstall = filtered.filter(r => r.readyForInstallation && !r.akquiseStorno && !r.postInstallStorno).length;
-    const vertrag = filtered.filter(r => r.vertragVorhanden && r.vertragVorhanden !== 'false' && r.vertragVorhanden !== '' && !r.akquiseStorno && !r.postInstallStorno).length;
-    const withApproval = filtered.filter(r => r.approvalStatus && !r.akquiseStorno).length;
+    const readyForInstall = filtered.filter(r => isReadyForInstall(r) && !isStorno(r) && !isAlreadyInstalled(r)).length;
+    const vertrag = filtered.filter(r => r.vertragVorhanden && r.vertragVorhanden !== 'false' && r.vertragVorhanden !== '' && !isStorno(r)).length;
+    const withApproval = filtered.filter(r => r.approvalStatus && !isStorno(r)).length;
 
     // Avg days since acquisition
     let avgDays = null;
-    const datesValid = filtered.filter(r => r.acquisitionDate && !r.akquiseStorno && !r.postInstallStorno);
+    const datesValid = filtered.filter(r => r.acquisitionDate && !isStorno(r));
     if (datesValid.length > 0) {
       const now = Date.now();
       const totalDays = datesValid.reduce((sum, r) => {
@@ -221,8 +203,8 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
     return { total, active, stornoAkquise, stornoPostInstall, stornoTotal, readyForInstall, vertrag, withApproval, avgDays };
   }, [filtered]);
 
-  /* ─── Weekly Sign Tracking (Target: 25/week) ─── */
-  const WEEKLY_SIGN_TARGET = 25;
+  /* ─── Weekly Sign Tracking (Target from metrics constants) ─── */
+  const WEEKLY_SIGN_TARGET = WEEKLY_BUILD_TARGET;
   const weeklySignData = useMemo(() => {
     // Group signed leads by week (using vertragVorhanden + acquisitionDate or submittedAt)
     const weeks = {};
@@ -240,7 +222,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
     }
 
     for (const r of data) {
-      if (r.akquiseStorno || r.postInstallStorno) continue;
+      if (isStorno(r)) continue;
       if (!r.vertragVorhanden || r.vertragVorhanden === 'false' || r.vertragVorhanden === '') continue;
       // Use submittedAt or acquisitionDate as best proxy for sign date
       const dateStr = r.submittedAt || r.acquisitionDate;
@@ -268,7 +250,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   const cityPerformance = useMemo(() => {
     const stats = {};
     for (const r of filtered) {
-      if (r.akquiseStorno || r.postInstallStorno) continue;
+      if (isStorno(r)) continue;
       const cities = r.city || [];
       for (const rawCity of cities) {
         if (!rawCity) continue;
@@ -308,7 +290,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   /* ─── Conversion / Churn Metrics ─── */
   const conversionMetrics = useMemo(() => {
     // All leads (non-cancelled)
-    const active = data.filter(r => !r.akquiseStorno && !r.postInstallStorno);
+    const active = data.filter(r => !isStorno(r));
     const total = active.length;
     const signed = active.filter(r => recordIsSigned(r)).length;
     const approved = active.filter(r => recordIsApproved(r)).length;
@@ -316,8 +298,8 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
     const live = active.filter(r => recordIsLive(r)).length;
     const cancelledAkquise = data.filter(r => r.akquiseStorno).length;
     const cancelledPostInstall = data.filter(r => r.postInstallStorno).length;
-    // Use OR-based count to avoid double-counting records with both flags
-    const cancelledTotal = data.filter(r => r.akquiseStorno || r.postInstallStorno).length;
+    // Use isStorno predicate (covers akquiseStorno + postInstallStorno + leadStatus-based storno)
+    const cancelledTotal = data.filter(r => isStorno(r)).length;
 
     // ─── Store-Besuche (alle Leads die über "New Lead" hinaus sind) ───
     const storeVisits = data.filter(r => {
@@ -326,7 +308,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
     }).length;
     // Erfolgreiche Besuche = signed ODER approved
     const successfulVisits = data.filter(r => {
-      if (r.akquiseStorno || r.postInstallStorno) return false;
+      if (isStorno(r)) return false;
       return recordIsSigned(r) || recordIsApproved(r);
     }).length;
     const noInterest = cancelledAkquise;
@@ -350,7 +332,6 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
 
     const dropoutRate = totalPipeline > 0 ? cancelledTotal / totalPipeline : 0;
 
-    const WEEKLY_BUILD_TARGET = 25;
     const requiredWeeklyAcquisitions = overallConversion > 0
       ? Math.ceil(WEEKLY_BUILD_TARGET / overallConversion)
       : WEEKLY_BUILD_TARGET;
@@ -367,7 +348,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
         };
         const cc = cityConversion[c];
         const ls = r.leadStatus || '';
-        const isCancelled = r.akquiseStorno || r.postInstallStorno;
+        const isCancelled = isStorno(r);
 
         // Store visit = not New Lead
         if (ls !== 'New Lead' && ls !== '') cc.storeVisits++;
@@ -423,7 +404,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   const funnelData = useMemo(() => {
     const statusCounts = {};
     for (const r of filtered) {
-      if (r.akquiseStorno || r.postInstallStorno) continue;
+      if (isStorno(r)) continue;
       const s = r.leadStatus || 'Unbekannt';
       statusCounts[s] = (statusCounts[s] || 0) + 1;
     }
@@ -436,7 +417,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   const partnerData = useMemo(() => {
     const stats = {};
     for (const r of filtered) {
-      if (r.akquiseStorno || r.postInstallStorno) continue;
+      if (isStorno(r)) continue;
       if (r.leadStatus === 'New Lead') continue;
       const p = r.acquisitionPartner || 'Unbekannt';
       if (!stats[p]) stats[p] = { total: 0, signed: 0, accepted: 0, installed: 0 };
@@ -460,7 +441,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   const acquirerData = useMemo(() => {
     const stats = {};
     for (const r of filtered) {
-      if (r.akquiseStorno || r.postInstallStorno) continue;
+      if (isStorno(r)) continue;
       if (r.leadStatus === 'New Lead') continue;
       const a = r.submittedBy || 'Unbekannt';
       if (!stats[a]) stats[a] = { total: 0, signed: 0, accepted: 0, installed: 0 };
@@ -506,7 +487,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
     const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(now.getDate() - 30);
 
     // All cancellations
-    const allCancelled = data.filter(r => r.akquiseStorno || r.postInstallStorno);
+    const allCancelled = data.filter(r => isStorno(r));
 
     // Recent cancellations (by acquisitionDate or submittedAt)
     const getDate = (r) => {
@@ -515,11 +496,6 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
       const parsed = new Date(d);
       return isNaN(parsed.getTime()) ? null : parsed;
     };
-
-    console.log('[StornoAnalyse] allCancelled:', allCancelled.length, 'sample dates:', allCancelled.slice(0, 3).map(r => ({
-      acq: r.acquisitionDate, sub: r.submittedAt, cre: r.createdAt, parsed: getDate(r)?.toISOString(),
-      storno: r.akquiseStorno ? 'akquise' : 'postInstall',
-    })));
 
     const last7 = allCancelled.filter(r => { const d = getDate(r); return d && d >= sevenDaysAgo; });
     const last30 = allCancelled.filter(r => { const d = getDate(r); return d && d >= thirtyDaysAgo; });
@@ -647,7 +623,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   }, [cityPerformance]);
 
   // Total live = only leadStatus "Live" (actually operational), no Installation or Stornos
-  const totalLive = useMemo(() => data.filter(r => recordIsLive(r) && !r.akquiseStorno && !r.postInstallStorno).length, [data]);
+  const totalLive = useMemo(() => data.filter(r => recordIsLive(r) && !isStorno(r)).length, [data]);
 
   const sections = [
     { id: 'netzwerk', label: '🎯 Netzwerk-Aufbau' },
@@ -1414,7 +1390,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
       {activeSection === 'pipeline' && (
         <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-200/60">
-            <span className="text-xs font-medium text-slate-500">{filtered.filter(r => !r.akquiseStorno && !r.postInstallStorno).length} aktive Leads</span>
+            <span className="text-xs font-medium text-slate-500">{filtered.filter(r => !isStorno(r)).length} aktive Leads</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -1426,7 +1402,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
                 </tr>
               </thead>
               <tbody>
-                {filtered.filter(r => !r.akquiseStorno && !r.postInstallStorno).map(r => {
+                {filtered.filter(r => !isStorno(r)).map(r => {
                   const sc = getStatusConfig(r.leadStatus);
                   return (
                     <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
@@ -1469,7 +1445,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
               </tbody>
             </table>
           </div>
-          {filtered.filter(r => !r.akquiseStorno && !r.postInstallStorno).length === 0 && (
+          {filtered.filter(r => !isStorno(r)).length === 0 && (
             <div className="text-xs text-slate-500 text-center py-10">Keine aktiven Leads gefunden</div>
           )}
         </div>
@@ -1508,7 +1484,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.filter(r => r.akquiseStorno || r.postInstallStorno).map(r => (
+                  {filtered.filter(r => isStorno(r)).map(r => (
                     <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/50">
                       <td className="px-3 py-2 font-mono text-slate-700">{r.akquiseId || '–'}</td>
                       <td className="px-3 py-2 text-slate-700 max-w-[200px] truncate">{r.locationName || '–'}</td>

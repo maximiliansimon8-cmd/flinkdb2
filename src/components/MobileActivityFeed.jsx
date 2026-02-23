@@ -14,6 +14,8 @@ import {
   CheckCheck,
 } from 'lucide-react';
 import { supabase } from '../utils/authService';
+import { isStorno, isAlreadyInstalled, isReadyForInstall } from '../metrics';
+import { MapPin as MapPinIcon } from 'lucide-react';
 
 /* ─── Shared "last read" timestamp (synced via localStorage) ─── */
 const LAST_READ_KEY = 'jet_liveticker_last_read';
@@ -112,7 +114,7 @@ async function loadActivitiesFromSupabase() {
 
   try {
     // 1. Recent Tasks (parallel queries)
-    const [tasksResult, heartbeatsResult, syncResult] = await Promise.all([
+    const [tasksResult, heartbeatsResult, syncResult, acquisitionResult] = await Promise.all([
       // Tasks from last 30 days
       supabase
         .from('tasks')
@@ -135,6 +137,14 @@ async function loadActivitiesFromSupabase() {
         .select('table_name, last_sync_timestamp, last_sync_status, records_fetched, records_upserted')
         .order('last_sync_timestamp', { ascending: false })
         .limit(14),
+
+      // Aufbaubereite Standorte (Won/Signed, recent)
+      supabase
+        .from('acquisition')
+        .select('id, airtable_id, lead_status, approval_status, vertrag_vorhanden, akquise_storno, post_install_storno, installations_status, display_location_status, location_name, city, created_at')
+        .eq('lead_status', 'Won / Signed')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .limit(500),
     ]);
 
     // Process Tasks → Activities
@@ -220,6 +230,39 @@ async function loadActivitiesFromSupabase() {
         icon: RefreshCw,
         tag: failedCount > 0 ? 'Fehler' : 'OK',
         tagColor: failedCount > 0 ? '#ef4444' : '#22c55e',
+      });
+    }
+
+    // Process Acquisition → Ready-for-Install Activities
+    const acqRecords = acquisitionResult.data || [];
+    for (const rec of acqRecords) {
+      const normalized = {
+        leadStatus: rec.lead_status,
+        approvalStatus: rec.approval_status,
+        vertragVorhanden: rec.vertrag_vorhanden,
+        akquiseStorno: rec.akquise_storno,
+        postInstallStorno: rec.post_install_storno,
+        installationsStatus: rec.installations_status || [],
+        displayLocationStatus: rec.display_location_status || [],
+      };
+      if (isStorno(normalized) || isAlreadyInstalled(normalized) || !isReadyForInstall(normalized)) continue;
+
+      const ts = rec.created_at ? new Date(rec.created_at) : null;
+      if (!ts || isNaN(ts.getTime()) || ts < thirtyDaysAgo) continue;
+
+      const city = Array.isArray(rec.city) ? rec.city[0] : (rec.city || '');
+      const name = rec.location_name || 'Unbekannter Standort';
+      const suffix = city ? ` (${city})` : '';
+
+      activities.push({
+        id: `ready-install-${rec.airtable_id || rec.id}`,
+        type: ACTIVITY_TYPES.NEU,
+        title: 'Aufbaubereit',
+        description: `${name}${suffix} — bereit für Installation`,
+        timestamp: ts,
+        icon: MapPinIcon,
+        tag: city || null,
+        tagColor: '#22c55e',
       });
     }
 

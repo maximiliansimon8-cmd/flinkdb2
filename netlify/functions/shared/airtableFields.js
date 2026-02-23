@@ -35,6 +35,7 @@ export const TABLES = {
   DEINSTALL:          'tbltdxgzDeNz9d0ZC',   // "Deinstallationen"
   HARDWARE_SWAP:      'tblzFHk0HhB4bNYJ4',   // "Hardware Swap"
   ACQUISITION:        'tblqFMBAeKQ1NbSI8',   // "Acquisition_DB"
+  INSTALLATIONSTERMINE: 'tblZrFRRg3iKxlXFJ', // "Installationstermine"
 };
 
 // ═══════════════════════════════════════════════
@@ -58,7 +59,7 @@ export const STAMMDATEN_FIELDS = {
   POSTAL_CODE:         'Postal Code',
   CITY:                'City',
   LEAD_STATUS_LOOKUP:  'Lead Status  (from Akquise)',  // ⚠️ DOUBLE SPACE!
-  STATUS:              'Status',
+  // REMOVED: 'Status' — does not exist in Airtable Stammdaten
 };
 
 /** Live Display Locations fields */
@@ -87,7 +88,7 @@ export const TASK_FIELDS = {
   TITLE:                    'Task Title',
   TASK_TYPE:                'Task Type',
   PARTNER:                  'Partner',
-  COMPANY_FROM_PARTNER:     'Company (from Partner)',
+  // REMOVED: 'Company (from Partner)' — does not exist in Airtable Tasks
   STATUS:                   'Status',
   PRIORITY:                 'Priority',
   DUE_DATE:                 'Due Date',
@@ -113,10 +114,10 @@ export const TASK_FIELDS = {
   INSTALL_TYPE_LOOKUP:      'Installationsart (from Installation)',
   // Task meta
   EXTERNAL_VISIBILITY:      'external_visiblity',  // ⚠️ TYPO in Airtable!
-  NACHARBEIT_KOMMENTAR:     'Kommentar Nacharbeit',
+  NACHARBEIT_KOMMENTAR:     'Kommentar Nacharbeit ',  // trailing space in Airtable
   SUPERCHAT:                'Superchat',
   STATUS_CHANGED_BY:        'Status changed by',
-  STATUS_CHANGED_DATE:      'Status changed date',
+  STATUS_CHANGED_DATE:      'Status changed date ',   // trailing space in Airtable
   JET_ID_LOOKUP:            'JET ID (from Locations)',
   CITY_LOOKUP:              'City (from Locations)',
 };
@@ -148,11 +149,32 @@ export const ACQUISITION_FIELDS = {
   SUBMITTED_BY:             'Submitted By',
   SUBMITTED_AT:             'Submitted At',
   VERTRAG_VORHANDEN:        'Vertrag PDF vorhanden',
+  UNTERSCHRIFTSDATUM:       'Unterschriftsdatum',
+  VERTRAGSNUMMER:           'Vertragsnummer',
   AKQUISE_STORNO:           'Akquise Storno',
   POST_INSTALL_STORNO:      'Post\u2011Install Storno',       // ⚠️ U+2011 non-breaking hyphen!
   POST_INSTALL_STORNO_GRUND: 'Post\u2011Install Storno Grund', // ⚠️ U+2011!
   READY_FOR_INSTALLATION:   'ready_for_installation',
   CREATED:                  'Created',
+  LATITUDE:                 'Latitude',
+  LONGITUDE:                'Longitude',
+  // Extended fields (previously only in DETAIL)
+  VERTRAG_PDF:              'Vertrag (PDF)',
+  IMAGES:                   'images_akquise',
+  FAW_DATA_ATTACHMENT:      'FAW_data_attachment',
+  AKQUISE_KOMMENTAR:        'Akquise Kommentar',
+  KOMMENTAR_INSTALLATIONEN: 'Kommentar aus Installationen',
+  FREQUENCY_APPROVAL_COMMENT: 'frequency_approval_comment',
+  // dVAC & Impressions
+  DVAC_MONTH:               'dVAC / Month',
+  DVAC_DAY:                 'dVAC per Day',
+  // Location details
+  HINDERNISSE_BESCHREIBUNG: 'Hindernisse Beschreibung',
+  FENSTERBREITE:            'Fensterbreite ausreichend',
+  STECKDOSE:                'Steckdose mit Strom 6-22 Uhr?',
+  // Booking fields (set by install-booker-invite.js)
+  // REMOVED: 'Booking Status', 'Booking Token', 'Booking Link Sent At'
+  // → These fields come from linked Installationstermine, not Acquisition_DB directly
 };
 
 /**
@@ -218,6 +240,14 @@ export const INSTALLATION_FIELDS = {
   REMARKS:                  'Allgemeine Bemerkungen',
   PARTNER_NAME:             'Abnahme Partner (Name)',
   DISPLAY_TABLE_ID_LOOKUP:  'Display Table ID (from Link to Display ID )', // ⚠️ trailing space before )
+  // Linked records & lookups for Standort-Zuordnung
+  AKQUISE_LINK:             'Akquise',
+  JET_ID_LOOKUP:            'JET ID (from Akquise)',
+  LOCATION_NAME_LOOKUP:     'Location Name',
+  CITY_LOOKUP:              'City',
+  STREET_LOOKUP:            'Street',
+  STREET_NUMBER_LOOKUP:     'Street Number',
+  POSTAL_CODE_LOOKUP:       'Postal Code',
 };
 
 /** Dayn Screens fields */
@@ -274,7 +304,7 @@ export const SIM_FIELDS = {
   SIM_ID:           'SimID',
   ACTIVATE_DATE:    'activate_date',
   OPS_LINK:         'OPS_Player_inventory 2',
-  STATUS:           'status',
+  // REMOVED: 'status' — field does not exist in current Airtable schema
 };
 
 /** Display Inventory fields */
@@ -282,7 +312,7 @@ export const DISPLAY_INV_FIELDS = {
   SERIAL_NUMBER:    'display_serial_number',
   LOCATION:         'location',
   OPS_LINK:         'OPS_Player_inventory',
-  STATUS:           'status',
+  // REMOVED: 'status' — field does not exist in current Airtable schema
 };
 
 /** CHG Approval fields */
@@ -309,7 +339,7 @@ export const CHG_FIELDS = {
 
 /** Hardware Swap fields */
 export const SWAP_FIELDS = {
-  SWAP_ID:              'Tausch-ID',
+  // REMOVED: 'Tausch-ID' — field renamed to 'Name' in Airtable
   DISPLAY_LOCATION:     'Live Display Location',
   SWAP_TYPE:            'Tausch-Typ',
   SWAP_DATE:            'Tausch-Datum',
@@ -320,24 +350,57 @@ export const SWAP_FIELDS = {
   NEW_HARDWARE:         'NEUE Hardware',
   DEFECT_DESCRIPTION:   'Defekt-Beschreibung',
   STATUS:               'Status',
-  LOCATION_NAME_LOOKUP: 'Location Name (from Live Display Location)',
-  CITY_LOOKUP:          'City (from Live Display Location)',
+  // REMOVED: 'Location Name (from Live Display Location)' — does not exist
+  // REMOVED: 'City (from Live Display Location)' — does not exist
 };
 
 /** Deinstallationen fields */
 export const DEINSTALL_FIELDS = {
-  DEINSTALL_ID:         'Deinstallations-ID',
+  // REMOVED: 'Deinstallations-ID' — field renamed to 'Name' in Airtable
   DISPLAY_LOCATION:     'Live Display Location',
   OPS_HARDWARE_SET:     'OPS-Nr / Hardware-Set',
   DEINSTALL_DATE:       'Deinstallationsdatum',
   REASON:               'Grund',
-  PARTNER:              'Partner',
+  // REMOVED: 'Partner' — field renamed to 'Integrator' in Airtable
   TECHNICIAN:           'Techniker',
   HARDWARE_CONDITION:   'Hardware-Zustand',
   CONDITION_DESC:       'Zustandsbeschreibung',
   STATUS:               'Status',
-  LOCATION_NAME_LOOKUP: 'Location Name (from Live Display Location)',
-  CITY_LOOKUP:          'City (from Live Display Location)',
+  // REMOVED: 'Location Name (from Live Display Location)' — does not exist
+  // REMOVED: 'City (from Live Display Location)' — does not exist
+};
+
+/** Installationstermine fields */
+export const INSTALLATIONSTERMINE_FIELDS = {
+  INSTALL_DATE_ID:          'Install_Date_ID',
+  INSTALLATIONSDATUM:       'Installationsdatum',
+  ERINNERUNGSDATUM:         'Erinnerungsdatum',
+  INSTALLATIONSZEIT:        'Installationszeit',
+  GRUND_NOTIZ:              'Grund /Notiz',
+  NAECHSTE_SCHRITT:         'Nächste Schritt',
+  KW_GEPLANT:               'KW Geplant',
+  WOCHENTAG:                'Wochentag',
+  INSTALLATIONSDATUM_NUR_DATUM: 'Installationsdatum (nur Datum)',
+  TERMINSTATUS:             'Terminstatus',
+  JET_ID:                   'JET ID',
+  LOCATION_NAME:            'Location Name',
+  AKQUISE:                  'Akquise',
+  STREET:                   'Street_new (from Akquise)',
+  STREET_NUMBER:            'Street Number_new (from Akquise)',
+  POSTAL_CODE:              'Postal Code_new (from Akquise)',
+  CITY:                     'City_new (from Akquise)',
+  CONTACT_EMAIL:            'Contact Email (from Stammdaten)',
+  STAMMDATEN:               'Stammdaten',
+  INSTALLATIONEN:           'Installationen',
+  STATUS_INSTALLATION:      'Status Installation (from Installationen)',
+  // REMOVED: These lookup fields no longer exist in Airtable Installationstermine:
+  // 'Company (from Integrator) (from Installationen)', 'Name (from Technikers) (from Installationen)',
+  // 'Installationsart (from Installationen)', 'Aufbau Datum (from Installationen)',
+  // 'Abnahme Partner (Name) (from Installationen)', 'Akquisition Partner Name (from Akquise)',
+  // 'Contact Person (from Stammdaten)', 'Contact Phone (from Stammdaten)'
+  // Audit fields
+  CREATED:                  'Created',
+  CREATED_BY:               'created by',  // ⚠️ lowercase in Airtable!
 };
 
 /** Activity Log / Communications fields */
@@ -379,6 +442,7 @@ export const FETCH_FIELDS = {
   hardwareSwap: Object.values(SWAP_FIELDS),
   deinstall: Object.values(DEINSTALL_FIELDS),
   communications: Object.values(COMMUNICATION_FIELDS),
+  installationstermine: Object.values(INSTALLATIONSTERMINE_FIELDS),
 };
 
 // ═══════════════════════════════════════════════
@@ -422,6 +486,15 @@ export const VALUES = {
   ONLINE_STATUS: {
     ONLINE:           'online',
     OFFLINE:          'offline',
+  },
+
+  /** Terminstatus possible values (Installationstermine) */
+  TERMINSTATUS: {
+    GEPLANT:        'Geplant',
+    ABGESAGT:       'Abgesagt',
+    VERSCHOBEN:     'Verschoben',
+    NO_SHOW:        'No-Show',
+    DURCHGEFUEHRT:  'Durchgeführt',
   },
 
   /** ready_for_installation values (checkbox → string!) */
@@ -504,6 +577,7 @@ export const SUPABASE_TABLES = {
   HARDWARE_SWAPS:   'hardware_swaps',
   HARDWARE_DEINSTALLS: 'hardware_deinstalls',
   HEARTBEATS:       'display_heartbeats',
+  INSTALLATIONSTERMINE: 'installationstermine',
 };
 
 // ═══════════════════════════════════════════════

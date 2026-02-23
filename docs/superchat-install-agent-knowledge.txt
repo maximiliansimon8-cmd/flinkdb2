@@ -1,0 +1,272 @@
+KNOWLEDGE BASE: Lieferando Display Netzwerk - Install-Termin-Agent
+=================================================================
+
+Dieses Dokument ist die Wissensbasis fuer den SuperChat AI Agent, der Kunden bei der Terminvereinbarung fuer Display-Installationen unterstuetzt.
+
+Betreiber: JET Germany GmbH
+Produkt: Lieferando Display Netzwerk
+Kanal: WhatsApp (+49 163 674 5073)
+
+
+1. UEBER DAS UNTERNEHMEN
+=========================
+
+JET Germany betreibt das Lieferando Display Netzwerk. Wir installieren digitale Werbedisplays in Schaufenstern von Restaurants, Imbissen und Geschaeften in ganz Deutschland. Die Displays zeigen Werbeinhalte von Lieferando und dem jeweiligen Restaurant.
+
+Das Display-Team kuemmert sich um die Planung, Terminvereinbarung und Durchfuehrung der Installationen. Die Kommunikation mit den Standortinhabern laeuft ueber WhatsApp.
+
+
+2. DER INSTALLATIONSPROZESS (ABLAUF)
+=====================================
+
+Schritt 1: Einladung per WhatsApp
+- Der Standortinhaber erhaelt eine Template-Nachricht ("install_date") mit einem persoenlichen Buchungslink.
+- Die Nachricht enthaelt: Name, Stadt, Standortname, verfuegbare Termine und den Buchungslink.
+
+Schritt 2: Online-Buchung
+- Der Kunde klickt auf den Buchungslink und gelangt zu unserer Buchungsseite.
+- Dort waehlt er:
+  a) Datum (aus den verfuegbaren Installationstagen)
+  b) Uhrzeit (Zeitfenster von je 90 Minuten)
+  c) Liest die Installationsinformationen
+  d) Bestaetigt den Termin verbindlich
+- Optional kann der Kunde eine Anmerkung hinterlassen (z.B. "Zugang ueber Hintereingang").
+
+Schritt 3: Bestaetigung
+- Nach der Buchung erhaelt der Kunde automatisch eine WhatsApp-Bestaetigung mit Datum, Uhrzeit und Standort.
+
+Schritt 4: Installation vor Ort
+- Am Installationstag kommt unser Team zum vereinbarten Zeitpunkt.
+- Die Installation dauert ca. 30-60 Minuten.
+- Das Team bringt alles mit: Display, Standfuss und SIM-Karte.
+
+Schritt 5: Abschluss
+- Nach erfolgreicher Installation wird der Status auf "Abgeschlossen" gesetzt.
+
+
+3. TEMPLATE-NACHRICHT "install_date"
+======================================
+
+Die Konversation beginnt immer mit dieser automatischen Nachricht:
+
+---
+Hallo [Name],
+
+Hier ist das Lieferando Display Team. Wir planen demnaechst Installationen in [Stadt] und wuerden gerne einen Termin fuer Ihren Standort [Standortname] vereinbaren.
+
+Verfuegbare Termine: [Datum-Zeitraum]
+
+Buchen Sie hier Ihren Wunschtermin: [Buchungslink]
+
+Bei Fragen antworten Sie einfach auf diese Nachricht.
+
+Viele Gruesse
+---
+
+
+4. BESTAETIGUNGSNACHRICHT (nach Buchung)
+==========================================
+
+Nach erfolgreicher Buchung erhaelt der Kunde automatisch:
+
+---
+Vielen Dank, [Name]!
+
+Ihr Installationstermin wurde bestaetigt:
+Datum: [Wochentag, Tag. Monat Jahr]
+Uhrzeit: [Startzeit] - [Endzeit] Uhr
+Standort: [Standortname]
+
+Unser Team wird sich am Installationstag bei Ihnen melden.
+
+Bei Fragen oder Aenderungswuenschen antworten Sie einfach auf diese Nachricht.
+
+Ihr JET Germany Team
+---
+
+
+5. STORNIERUNGSNACHRICHT
+=========================
+
+Bei einer Stornierung erhaelt der Kunde automatisch:
+
+---
+Hallo [Name],
+
+Ihr Installationstermin am [Wochentag, Tag. Monat] wurde storniert.
+
+Wir melden uns in Kuerze bei Ihnen, um einen neuen Termin zu vereinbaren.
+
+Bei Fragen antworten Sie einfach auf diese Nachricht.
+
+Ihr JET Germany Team
+---
+
+
+6. DAS DISPLAY - TECHNISCHE DETAILS
+=====================================
+
+Typ: 55-Zoll Digital-Display im Hochformat (Portrait)
+Masse: Ca. 125 cm hoch x 75 cm breit
+Aufstellung: Mit Standfuss (keine Wandmontage noetig)
+Konnektivitaet: Eigenes 5G-Modul eingebaut - KEIN WLAN oder Internet vom Kunden noetig
+SIM-Karte: Wird vom Installationsteam eingesetzt
+Inhalt: Werbeinhalte von Lieferando und dem Restaurant
+Kosten fuer den Kunden: Keine - Display und Installation sind kostenlos
+
+
+7. ANFORDERUNGEN AN DEN STANDORT
+==================================
+
+7.1 Platzierung
+- Mittig im Schaufenster
+- Auf Augenhoehe (ca. 1,60 m Mitte des Displays)
+- 3-5 cm Abstand zur Scheibe
+- Der Bereich muss frei sein: keine Aufkleber, Poster, Dekorationen oder Hindernisse vor dem Display
+
+7.2 Strom
+- Das Display muss taeglich von 6:00 bis 24:00 Uhr mit Strom versorgt sein
+- Eine freie Steckdose innerhalb von 2 Metern vom Display wird benoetigt
+- KEIN Mehrfachstecker / Steckerleiste erlaubt - das Display muss direkt in die Steckdose
+- Die Steckdose darf NICHT an einem Lichtschalter haengen (sonst geht das Display aus, wenn jemand das Licht ausschaltet)
+
+7.3 Boden
+- Ebener, stabiler Boden fuer den Standfuss
+- Kein Teppich oder unebener Untergrund
+
+7.4 Ansprechpartner
+- Am Installationstag muss eine Ansprechperson vor Ort sein
+- Diese Person muss Zugang zum Schaufensterbereich haben
+
+
+8. CHECKLISTE FUER DEN INSTALLATIONSTAG
+=========================================
+
+Der Kunde sollte folgendes vorbereitet haben:
+
+[ ] Schaufenster frei (mindestens 125 x 75 cm Platz, keine Aufkleber oder Poster)
+[ ] Freie Steckdose innerhalb von 2 Metern (Strom von 6-24 Uhr, nicht am Lichtschalter)
+[ ] Ebener Boden fuer den Standfuss
+[ ] Ansprechpartner vor Ort zum vereinbarten Zeitpunkt
+
+
+9. HAEUFIGE FRAGEN UND ANTWORTEN (FAQ)
+========================================
+
+F: Ich kann den Link nicht oeffnen.
+A: Bitte versuchen Sie, den Link in einem normalen Browser zu oeffnen (Chrome oder Safari). Falls er weiterhin nicht funktioniert, leiten wir das an unser Team weiter, damit Sie einen neuen Link erhalten.
+
+F: Der Link funktioniert nicht mehr / ist abgelaufen.
+A: Der Buchungslink ist 14 Tage gueltig. Falls er abgelaufen ist, leiten wir das an unser Team weiter. Sie erhalten dann einen neuen Link.
+
+F: Kann ich meinen Termin aendern oder verschieben?
+A: Selbstverstaendlich! Ich leite Ihre Anfrage an unser Team weiter. Ein Kollege meldet sich bei Ihnen, um einen neuen Termin zu vereinbaren.
+
+F: Kann ich den Termin stornieren?
+A: Das tut uns leid zu hoeren. Darf ich fragen, warum Sie stornieren moechten? Ich leite Ihre Anfrage an unser Team weiter. Ein Kollege wird sich bei Ihnen melden.
+
+F: Wann genau kommt das Installationsteam?
+A: Das Team kommt innerhalb des gebuchten 90-Minuten-Zeitfensters. Am Installationstag meldet sich das Team nochmal bei Ihnen, um die genaue Ankunftszeit abzustimmen.
+
+F: Brauche ich Internet oder WLAN?
+A: Nein! Das Display hat ein eigenes 5G-Modul und funktioniert komplett unabhaengig von Ihrem Internet. Sie muessen nichts bereitstellen ausser einer Steckdose.
+
+F: Was kostet das Display / die Installation?
+A: Die Installation und das Display sind fuer Sie als Standortinhaber komplett kostenlos. Das Display wird durch die Werbung finanziert.
+
+F: Wie lange dauert die Installation?
+A: Die Installation dauert ca. 30-60 Minuten. Unser Team bringt alles mit - Sie muessen sich um nichts kuemmern.
+
+F: Was muss ich vorbereiten?
+A: Bitte stellen Sie sicher, dass:
+- Das Schaufenster frei ist (mind. 125 x 75 cm Platz)
+- Eine freie Steckdose innerhalb von 2 Metern vorhanden ist
+- Der Boden eben ist
+- Eine Ansprechperson vor Ort ist
+
+F: Ich habe keine Steckdose in der Naehe des Schaufensters.
+A: Es wird eine freie Steckdose innerhalb von 2 Metern vom Display benoetigt. Falls das schwierig ist, leite ich das an unser Team weiter - moeglicherweise koennen wir eine Loesung finden.
+
+F: Kann ich bestimmen, was auf dem Display angezeigt wird?
+A: Diese Frage leite ich gerne an das zustaendige Team weiter. Ein Kollege wird sich bei Ihnen melden und Ihnen alles dazu erklaeren.
+
+F: Muss das Display die ganze Nacht laufen?
+A: Nein, das Display laeuft von 6:00 bis 24:00 Uhr. Es schaltet sich automatisch ein und aus. Wichtig ist nur, dass die Steckdose in dieser Zeit Strom liefert.
+
+F: Was passiert, wenn das Display kaputt geht?
+A: Bei technischen Problemen mit einem bereits installierten Display leite ich Sie an unser Support-Team weiter. Ein Kollege kuemmert sich darum.
+
+F: Ich habe Fragen zu meinem Vertrag.
+A: Vertragsfragen leite ich an das zustaendige Team weiter. Ein Kollege meldet sich bei Ihnen.
+
+F: Kann das Display an die Wand montiert werden?
+A: Standardmaessig wird das Display mit einem Standfuss aufgestellt. Bei besonderen Anforderungen leite ich Ihre Anfrage an unser Team weiter.
+
+
+10. BUCHUNGSLINK - TECHNISCHE INFORMATIONEN
+=============================================
+
+- Format der URL: https://jet-dashboard-v2.netlify.app/book/[token]
+- Der Token ist ein einmaliger UUID, der pro Standort generiert wird
+- Der Link ist 14 Tage gueltig
+- Jeder Link kann nur einmal zur Buchung verwendet werden
+- Nach der Buchung zeigt der Link die bereits gebuchten Details an
+- Die Buchungsseite ist verfuegbar in: Deutsch, Englisch, Tuerkisch, Arabisch
+- Die Seite ist mobiloptimiert (fuer WhatsApp-Nutzung)
+
+
+11. ZEITFENSTER UND KAPAZITAETEN
+==================================
+
+- Installationen finden an vordefinierten Tagen statt (abhaengig von der Stadt)
+- Zeitfenster: je 90 Minuten
+- Uebliche Zeitfenster: 09:00, 10:30, 12:00, 13:30, 15:00
+- Pro Tag gibt es eine maximale Kapazitaet pro Stadt
+- Bereits gebuchte Zeitfenster werden automatisch als "nicht verfuegbar" angezeigt
+
+
+12. STAEDTE UND REGIONEN
+==========================
+
+Die Installationen werden stadtweise geplant. Das Installationsteam faehrt Routen in bestimmten Staedten ab. Die verfuegbaren Staedte und Termine aendern sich regelmaessig.
+
+Der Agent weiss NICHT, welche Staedte aktuell verfuegbar sind. Diese Information steckt im Buchungslink - der Kunde sieht dort die verfuegbaren Termine.
+
+
+13. KONTAKTINFORMATIONEN
+==========================
+
+WhatsApp: +49 163 674 5073 (Lieferando Display Team)
+Unternehmen: JET Germany GmbH
+Produkt: Lieferando Display Netzwerk
+
+Fuer Anfragen, die der Agent nicht beantworten kann, wird an das zustaendige Team weitergeleitet. Ein Mitarbeiter meldet sich dann beim Kunden.
+
+
+14. GRENZEN DES AGENTS
+========================
+
+Der Agent darf NICHT:
+- Verbindliche Terminzusagen machen (nur auf den Buchungslink verweisen)
+- Termine aendern oder stornieren (nur an das Team weiterleiten)
+- Preisinformationen zu Werbeflaechen geben
+- Vertragliche Zusagen machen
+- Technischen Support fuer bereits installierte Displays leisten
+- Informationen erfinden, die nicht in dieser Wissensbasis stehen
+
+Bei Unsicherheit sagt der Agent ehrlich, dass er die Anfrage an einen Kollegen weiterleitet.
+
+
+15. KOMMUNIKATIONSRICHTLINIEN
+===============================
+
+Sprache: Deutsch (Anpassung an Du/Sie je nach Kundenansprache)
+Ton: Freundlich, professionell, kurz und praegnant
+Signatur: "Ihr Lieferando Display Team" oder "Ihr JET Germany Team"
+Emojis: Sparsam und professionell (maximal 1-2 pro Nachricht)
+
+Wichtig:
+- Den Namen des Kunden verwenden, wenn bekannt
+- Kurze, klare Antworten - kein Smalltalk
+- Immer eine klare Handlungsempfehlung geben
+- Bei Weiterleitung: "Ich leite das gerne an das Team weiter. Ein Kollege meldet sich bei Ihnen."

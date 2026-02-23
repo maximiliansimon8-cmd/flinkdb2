@@ -8,6 +8,8 @@
  * admin data, or revenue/Vistar data in any context sent to the AI.
  */
 
+import { isStorno, isAlreadyInstalled, isReadyForInstall } from '../metrics';
+
 const CITY_NAMES = [
   'Berlin', 'Koeln', 'Köln', 'München', 'Muenchen',
   'Hamburg', 'Düsseldorf', 'Duesseldorf', 'Frankfurt',
@@ -769,6 +771,9 @@ function buildAcquisitionSummary(acquisition) {
   let gewonnenCount = 0;
   let abgerufenCount = 0;
   let pipelineCount = 0; // aktiv bearbeitete Leads (ohne New Leads, ohne Stornos)
+  let aufbaubereitCount = 0; // Won/Signed + Approved + nicht aufgebaut + nicht storniert
+  const aufbaubereitList = []; // Detail-Liste der aufbaubereiten Standorte
+  const recentSignedList = []; // Letzte Vertragsunterschriften
 
   // Time-based tracking
   const now = new Date();
@@ -794,15 +799,10 @@ function buildAcquisitionSummary(acquisition) {
     const ls = a.leadStatus || 'Unbekannt';
     byLeadStatus[ls] = (byLeadStatus[ls] || 0) + 1;
 
-    const isCancelled = a.akquiseStorno || a.postInstallStorno;
+    const isCancelled = isStorno(a);
     const isSigned = a.vertragVorhanden && a.vertragVorhanden !== 'false' && a.vertragVorhanden !== '';
     const isLive = ls === 'Live';
-    // isInstalled: Live, Installation status, or installationsStatus with real values
-    const isInstalled = isLive || ls === 'Installation' || (a.installationsStatus && a.installationsStatus.length > 0 &&
-      a.installationsStatus.some(s => {
-        const sl = (s || '').toLowerCase();
-        return sl.includes('installiert') || sl.includes('abgerufen') || sl.includes('live');
-      }));
+    const isInstalled = isAlreadyInstalled(a);
 
     // Compute install timing (days from acquisitionDate to dvacWeek or when status became Live/Installation)
     const acqDate = a.acquisitionDate ? new Date(a.acquisitionDate) : null;
@@ -900,14 +900,47 @@ function buildAcquisitionSummary(acquisition) {
     // Pipeline = aktiv bearbeitete Leads (nicht New Lead, nicht Live, nicht storniert)
     if (!isCancelled && ls !== 'New Lead' && ls !== 'Live' && ls !== 'Unbekannt') pipelineCount++;
 
+    // Aufbaubereit: Won/Signed + Approved + NICHT bereits aufgebaut + NICHT storniert
+    const isWonSigned = ls === 'Won / Signed' || ls === 'Won/Signed';
+    const isApprovedStatus = (a.approvalStatus || '').toLowerCase() === 'accepted' || (a.approvalStatus || '').toLowerCase() === 'approved';
+    const hasDisplayId = (a.displayLocationStatus || []).length > 0;
+    const hasInstalliertStatus = (a.installationsStatus || []).some(s => {
+      const sl = (s || '').toLowerCase();
+      return sl.includes('installiert') || sl.includes('live') || sl.includes('abgebrochen');
+    });
+    const isAufbaubereit = isWonSigned && isApprovedStatus && !hasInstalliertStatus && !isCancelled;
+    if (isAufbaubereit) {
+      aufbaubereitCount++;
+      aufbaubereitList.push({
+        location: a.locationName || a.akquiseId || '–',
+        city: (a.city || []).join(', '),
+        acquisitionDate: a.acquisitionDate || null,
+        unterschriftsdatum: a.unterschriftsdatum || null,
+        readyForInstallation: a.readyForInstallation || false,
+      });
+    }
+
+    // Track recent contract signatures (Won/Signed with Unterschriftsdatum in last 30 days)
+    if (isWonSigned && a.unterschriftsdatum) {
+      const signDate = new Date(a.unterschriftsdatum);
+      if (!isNaN(signDate.getTime()) && signDate >= thirtyDaysAgo) {
+        recentSignedList.push({
+          location: a.locationName || a.akquiseId || '–',
+          city: (a.city || []).join(', '),
+          unterschriftsdatum: a.unterschriftsdatum,
+          approved: isApprovedStatus,
+        });
+      }
+    }
+
     // "Gewonnen" = Live status (successfully installed and running)
     if (isLive) gewonnenCount++;
 
     // "Abgerufen" = has installation and is actually live/deployed
     if (ls === 'Live' || ls === 'Installation') abgerufenCount++;
 
-    // Ready for installation (only non-cancelled)
-    if (a.readyForInstallation && !isCancelled) readyForInstall++;
+    // Ready for installation (canonical predicate: Won/Signed + Approved + Vertrag)
+    if (isReadyForInstall(a) && !isCancelled) readyForInstall++;
 
     // Has contract (isSigned already checks vertragVorhanden correctly)
     if (isSigned && !isCancelled) withContract++;
@@ -974,6 +1007,17 @@ function buildAcquisitionSummary(acquisition) {
     // Time-based (neue Leads)
     last7Days: { count: last7Days, byLeadStatus: last7ByStatus },
     last30Days: { count: last30Days, byLeadStatus: last30ByStatus },
+    // Aufbaubereit: Won/Signed + Approved + nicht aufgebaut/storniert
+    aufbaubereit: {
+      count: aufbaubereitCount,
+      hinweis: 'Won/Signed + Approved + NICHT bereits installiert/abgebrochen + NICHT storniert = bereit für Aufbau',
+      standorte: aufbaubereitList.slice(0, 30),
+    },
+    // Letzte Vertragsunterschriften (Won/Signed mit Unterschriftsdatum in letzten 30 Tagen)
+    recentSigned: recentSignedList.length > 0 ? {
+      count: recentSignedList.length,
+      standorte: recentSignedList.sort((a, b) => (b.unterschriftsdatum || '').localeCompare(a.unterschriftsdatum || '')).slice(0, 20),
+    } : undefined,
     // Time-based Stornos
     stornos: {
       gesamt: stornoCount,

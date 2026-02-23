@@ -6,12 +6,7 @@ import {
   ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, History,
   Hash, Calendar, Filter, X,
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ'
-);
+import { supabase } from '../utils/authService';
 
 // ─── Constants ───
 
@@ -722,43 +717,53 @@ export default function TrackingDashboard() {
   const [activePosition, setActivePosition] = useState(null);
 
   // ─── Load current positions ───
-  const loadPositions = useCallback(async () => {
+  const loadPositions = useCallback(async (signal) => {
     setLoadingPositions(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('hardware_positions')
         .select('*')
         .eq('is_current', true)
         .order('created_at', { ascending: false })
         .limit(2000);
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (!error) setPositions(data || []);
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[TrackingDashboard] Load positions error:', e);
     } finally {
-      setLoadingPositions(false);
+      if (!signal?.aborted) setLoadingPositions(false);
     }
   }, []);
 
   // ─── Load recent movements ───
-  const loadMovements = useCallback(async () => {
+  const loadMovements = useCallback(async (signal) => {
     setLoadingMovements(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('hardware_positions')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(20);
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (!error) setMovements(data || []);
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[TrackingDashboard] Load movements error:', e);
     } finally {
-      setLoadingMovements(false);
+      if (!signal?.aborted) setLoadingMovements(false);
     }
   }, []);
 
   useEffect(() => {
-    loadPositions();
-    loadMovements();
+    const controller = new AbortController();
+    loadPositions(controller.signal);
+    loadMovements(controller.signal);
+    return () => controller.abort();
   }, [loadPositions, loadMovements]);
 
   // ─── Derived: position counts ───

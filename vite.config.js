@@ -1,12 +1,10 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { resolve } from 'path'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const SHEETS_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1MGqJAGgROYohc_SwR3NhW-BEyJXixLKQZhS9yUOH8_s/export?format=csv&gid=0'
-
-const AIRTABLE_TOKEN = '***REMOVED_AIRTABLE_PAT***'
 
 function googleSheetsProxy() {
   return {
@@ -34,7 +32,7 @@ function googleSheetsProxy() {
   }
 }
 
-function airtableProxy() {
+function airtableProxy(AIRTABLE_TOKEN) {
   return {
     name: 'airtable-proxy',
     configureServer(server) {
@@ -79,9 +77,7 @@ function airtableProxy() {
   }
 }
 
-const SUPERCHAT_API_KEY = '16c33577-443e-4290-ac25-2493a5d6fd0e'
-
-function superchatProxy() {
+function superchatProxy(SUPERCHAT_API_KEY) {
   return {
     name: 'superchat-proxy',
     configureServer(server) {
@@ -158,24 +154,32 @@ function installBookerProxy() {
   }
 }
 
-export default defineConfig({
-  plugins: [react(), tailwindcss(), googleSheetsProxy(), airtableProxy(), superchatProxy(), installBookerProxy()],
-  build: {
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html'),
-        booking: resolve(__dirname, 'booking/index.html'),
-        scheduling: resolve(__dirname, 'scheduling/index.html'),
-      },
-      output: {
-        manualChunks(id) {
-          // Split heavy vendor libraries into separate cacheable chunks
-          if (id.includes('node_modules/@supabase')) return 'vendor-supabase';
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-recharts';
-          if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
-          if (id.includes('node_modules/react-dom') || (id.includes('node_modules/react/') && !id.includes('react-'))) return 'vendor-react';
+export default defineConfig(({ mode }) => {
+  // Load env files (.env, .env.local, etc.) – empty prefix '' loads all variables, not just VITE_*
+  const env = loadEnv(mode, process.cwd(), '')
+
+  const AIRTABLE_TOKEN = env.AIRTABLE_TOKEN || ''
+  const SUPERCHAT_API_KEY = env.SUPERCHAT_API_KEY || ''
+
+  return {
+    plugins: [react(), tailwindcss(), googleSheetsProxy(), airtableProxy(AIRTABLE_TOKEN), superchatProxy(SUPERCHAT_API_KEY), installBookerProxy()],
+    build: {
+      // Disable Vite's modulepreload polyfill — it causes TDZ errors
+      // ("Cannot access 'f' before initialization") because the polyfill creates
+      // <link rel="modulepreload"> tags but does NOT wait for JS deps to finish
+      // executing (only CSS gets load-event listeners). On slower networks or with
+      // large chunks (Supabase 173KB, Recharts 321KB), import() resolves before
+      // dependencies have completed their export binding initialization.
+      // Modern browsers (Chrome 89+, Safari 15+) handle native modulepreload correctly.
+      modulePreload: false,
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html'),
+          install: resolve(__dirname, 'install.html'),
+          booking: resolve(__dirname, 'booking/index.html'),
+          scheduling: resolve(__dirname, 'scheduling/index.html'),
         },
       },
     },
-  },
+  }
 })

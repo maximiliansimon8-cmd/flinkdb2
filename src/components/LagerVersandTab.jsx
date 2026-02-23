@@ -6,12 +6,7 @@ import {
   ChevronDown, ChevronUp, Link2, Box, ShoppingCart, Cpu, Monitor,
   Grip, AlertCircle,
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ'
-);
+import { supabase } from '../utils/authService';
 
 // ─── Constants ───
 const COMPONENT_TYPES = {
@@ -103,16 +98,19 @@ function LagerbestandTab() {
   const [savingAlert, setSavingAlert] = useState(false);
 
   // ─── Load stock data ───
-  const loadStock = useCallback(async () => {
+  const loadStock = useCallback(async (signal) => {
     setLoading(true);
     try {
       // Fetch available stock (position = lager)
-      const { data: lagerData, error: lagerErr } = await supabase
+      let lagerQuery = supabase
         .from('hardware_positions')
         .select('component_type')
         .eq('is_current', true)
         .eq('position', 'lager');
+      if (signal) lagerQuery = lagerQuery.abortSignal(signal);
+      const { data: lagerData, error: lagerErr } = await lagerQuery;
 
+      if (signal?.aborted) return;
       if (lagerErr) throw lagerErr;
 
       // Count by component_type
@@ -132,12 +130,15 @@ function LagerbestandTab() {
       setStockData(stock);
 
       // Fetch defect items (position = reparatur)
-      const { data: defectData } = await supabase
+      let defectQuery = supabase
         .from('hardware_positions')
         .select('component_type')
         .eq('is_current', true)
         .eq('position', 'reparatur');
+      if (signal) defectQuery = defectQuery.abortSignal(signal);
+      const { data: defectData } = await defectQuery;
 
+      if (signal?.aborted) return;
       const dCounts = {};
       (defectData || []).forEach(item => {
         const t = item.component_type || 'unknown';
@@ -146,12 +147,15 @@ function LagerbestandTab() {
       setDefectCounts(dCounts);
 
       // Fetch reserved items (position = versand, still pending)
-      const { data: reservedData } = await supabase
+      let reservedQuery = supabase
         .from('hardware_positions')
         .select('component_type')
         .eq('is_current', true)
         .eq('position', 'versand');
+      if (signal) reservedQuery = reservedQuery.abortSignal(signal);
+      const { data: reservedData } = await reservedQuery;
 
+      if (signal?.aborted) return;
       const rCounts = {};
       (reservedData || []).forEach(item => {
         const t = item.component_type || 'unknown';
@@ -159,48 +163,59 @@ function LagerbestandTab() {
       });
       setReservedCounts(rCounts);
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[Lagerbestand] Load error:', e);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
   // ─── Load warehouse locations ───
-  const loadLocations = useCallback(async () => {
+  const loadLocations = useCallback(async (signal) => {
     setLoadingLocations(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('warehouse_locations')
         .select('*')
         .order('warehouse', { ascending: true });
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (!error) setLocations(data || []);
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[Lagerpl\u00e4tze] Load error:', e);
     } finally {
-      setLoadingLocations(false);
+      if (!signal?.aborted) setLoadingLocations(false);
     }
   }, []);
 
   // ─── Load stock alerts ───
-  const loadAlerts = useCallback(async () => {
+  const loadAlerts = useCallback(async (signal) => {
     setLoadingAlerts(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('stock_alerts')
         .select('*')
         .order('created_at', { ascending: false });
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (!error) setAlerts(data || []);
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[Stock Alerts] Load error:', e);
     } finally {
-      setLoadingAlerts(false);
+      if (!signal?.aborted) setLoadingAlerts(false);
     }
   }, []);
 
   useEffect(() => {
-    loadStock();
-    loadLocations();
-    loadAlerts();
+    const controller = new AbortController();
+    loadStock(controller.signal);
+    loadLocations(controller.signal);
+    loadAlerts(controller.signal);
+    return () => controller.abort();
   }, [loadStock, loadLocations, loadAlerts]);
 
   // ─── Save warehouse location ───
@@ -612,23 +627,31 @@ function VersandTab() {
   const [trackingNumber, setTrackingNumber] = useState('');
 
   // ─── Load shipping orders ───
-  const loadOrders = useCallback(async () => {
+  const loadOrders = useCallback(async (signal) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('shipping_orders')
         .select('*, shipping_order_items(count)')
         .order('created_at', { ascending: false })
         .limit(200);
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (!error) setOrders(data || []);
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[Versand] Load error:', e);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadOrders(); }, [loadOrders]);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadOrders(controller.signal);
+    return () => controller.abort();
+  }, [loadOrders]);
 
   // ─── KPIs ───
   const kpis = useMemo(() => {
@@ -1236,23 +1259,31 @@ function RuecksendungenTab() {
   ]);
 
   // ─── Load returns ───
-  const loadReturns = useCallback(async () => {
+  const loadReturns = useCallback(async (signal) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('return_orders')
         .select('*, return_order_items(count)')
         .order('created_at', { ascending: false })
         .limit(200);
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (!error) setReturns(data || []);
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[R\u00fccksendungen] Load error:', e);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadReturns(); }, [loadReturns]);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadReturns(controller.signal);
+    return () => controller.abort();
+  }, [loadReturns]);
 
   // ─── KPIs ───
   const kpis = useMemo(() => {

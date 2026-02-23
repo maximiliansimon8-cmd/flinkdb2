@@ -19,6 +19,9 @@ import {
   CheckCheck,
 } from 'lucide-react';
 import { fetchAllTasks } from '../utils/airtableService';
+import { supabase } from '../utils/authService';
+import { isStorno, isAlreadyInstalled, isReadyForInstall } from '../metrics';
+import { MapPin as MapPinIcon } from 'lucide-react';
 
 /* ─── Shared "last read" timestamp (synced via localStorage with Mobile) ─── */
 const LAST_READ_KEY = 'jet_liveticker_last_read';
@@ -343,6 +346,55 @@ function generateSystemActivities(rawData) {
   return activities;
 }
 
+/**
+ * Generate activity items for acquisition records that are ready-for-install.
+ * Shows recently synced locations that became aufbaubereit (Won/Signed + Approved + Vertrag).
+ * Uses `created_at` (Airtable record creation date) as event timestamp, capped to last 30 days.
+ */
+function generateReadyForInstallActivities(records) {
+  if (!records || !Array.isArray(records)) return [];
+
+  const activities = [];
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+
+  for (const rec of records) {
+    // Normalize field names from Supabase snake_case to predicate camelCase
+    const normalized = {
+      leadStatus: rec.lead_status,
+      approvalStatus: rec.approval_status,
+      vertragVorhanden: rec.vertrag_vorhanden,
+      akquiseStorno: rec.akquise_storno,
+      postInstallStorno: rec.post_install_storno,
+      installationsStatus: rec.installations_status || [],
+      displayLocationStatus: rec.display_location_status || [],
+    };
+
+    // Apply canonical predicates
+    if (isStorno(normalized) || isAlreadyInstalled(normalized) || !isReadyForInstall(normalized)) continue;
+
+    // Use created_at as the best available "became ready" timestamp
+    const ts = rec.created_at ? new Date(rec.created_at) : null;
+    if (!ts || isNaN(ts.getTime()) || ts < thirtyDaysAgo) continue;
+
+    const city = Array.isArray(rec.city) ? rec.city[0] : (rec.city || '');
+    const name = rec.location_name || 'Unbekannter Standort';
+    const suffix = city ? ` (${city})` : '';
+
+    activities.push({
+      id: `ready-install-${rec.airtable_id || rec.id}`,
+      type: ACTIVITY_TYPES.NEU,
+      title: 'Aufbaubereit',
+      description: `${name}${suffix} — bereit für Installation`,
+      timestamp: ts,
+      icon: MapPinIcon,
+      tag: city || null,
+      tagColor: '#22c55e',
+    });
+  }
+
+  return activities;
+}
+
 /* ──────────────────────── Components ──────────────────────── */
 
 /**
@@ -512,6 +564,7 @@ function SummaryStats({ activities }) {
 
 export default function ActivityFeed({ rawData }) {
   const [tasks, setTasks] = useState([]);
+  const [acquisitionRecords, setAcquisitionRecords] = useState([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [activeFilters, setActiveFilters] = useState(new Set());
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -523,15 +576,27 @@ export default function ActivityFeed({ rawData }) {
     setLastRead(new Date());
   }, []);
 
-  // Load tasks from Supabase
+  // Load tasks + acquisition data from Supabase
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const allTasks = await fetchAllTasks();
-        if (!cancelled) setTasks(allTasks);
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+        const [allTasks, acqResult] = await Promise.all([
+          fetchAllTasks(),
+          supabase
+            .from('acquisition')
+            .select('id, airtable_id, lead_status, approval_status, vertrag_vorhanden, akquise_storno, post_install_storno, installations_status, display_location_status, location_name, city, created_at')
+            .eq('lead_status', 'Won / Signed')
+            .gte('created_at', thirtyDaysAgo)
+            .limit(500),
+        ]);
+        if (!cancelled) {
+          setTasks(allTasks);
+          setAcquisitionRecords(acqResult.data || []);
+        }
       } catch (err) {
-        console.error('[ActivityFeed] Failed to load tasks:', err);
+        console.error('[ActivityFeed] Failed to load data:', err);
       } finally {
         if (!cancelled) setLoadingTasks(false);
       }
@@ -544,8 +609,9 @@ export default function ActivityFeed({ rawData }) {
     const taskActivities = generateTaskActivities(tasks);
     const displayActivities = generateDisplayActivities(rawData?.displays);
     const systemActivities = generateSystemActivities(rawData);
+    const readyForInstallActivities = generateReadyForInstallActivities(acquisitionRecords);
 
-    const combined = [...taskActivities, ...displayActivities, ...systemActivities];
+    const combined = [...taskActivities, ...displayActivities, ...systemActivities, ...readyForInstallActivities];
 
     // Sort by timestamp descending (newest first)
     combined.sort((a, b) => {
@@ -555,7 +621,7 @@ export default function ActivityFeed({ rawData }) {
     });
 
     return combined;
-  }, [tasks, rawData]);
+  }, [tasks, rawData, acquisitionRecords]);
 
   // Compute per-type counts (always from full set, ignoring filters)
   const typeCounts = useMemo(() => {

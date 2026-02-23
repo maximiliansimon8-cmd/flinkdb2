@@ -487,6 +487,9 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
         status: pendingTask.status || 'New',
         priority: pendingTask.priority || 'Medium',
         dueDate: pendingTask.dueDate || null,
+        displayId: pendingTask.displayId || null,
+        jetId: pendingTask.jetId || null,
+        locations: pendingTask.locations || null,
       });
       // Refresh tasks cache
       fetchAllTasks().then(t => setTasks(t)).catch(() => {});

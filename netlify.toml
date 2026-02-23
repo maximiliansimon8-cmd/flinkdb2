@@ -8,10 +8,13 @@
 
 # ─── Scheduled Functions ──────────────────────────────────────────
 [functions."sync-airtable"]
-  schedule = "0 */2 * * *"
+  schedule = "*/5 * * * *"
 
 [functions."sync-attachments-scheduled"]
-  schedule = "*/30 * * * *"
+  schedule = "*/15 * * * *"
+
+[functions."install-booker-reminder"]
+  schedule = "@hourly"
 
 # All redirects are in public/_redirects (copied to dist/ at build time)
 # _redirects takes priority over netlify.toml redirects
@@ -31,6 +34,6 @@
     # Disable unnecessary browser features
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
     # Content Security Policy
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.airtableusercontent.com https://api.mapbox.com https://*.tile.openstreetmap.org; connect-src 'self' https://*.supabase.co https://api.airtable.com https://api.superchat.com https://api.anthropic.com wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.airtableusercontent.com https://api.mapbox.com https://*.tile.openstreetmap.org https://*.google.com https://*.googleapis.com https://*.gstatic.com; connect-src 'self' https://*.supabase.co https://api.airtable.com https://api.superchat.com https://api.anthropic.com wss://*.supabase.co; frame-src https://maps.google.com https://www.google.com https://*.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     # Prevent XSS (legacy header, still useful)
     X-XSS-Protection = "1; mode=block"

@@ -10,9 +10,10 @@
 
 import { logApiCall } from './shared/apiLogger.js';
 import {
-  checkRateLimit, getClientIP, rateLimitResponse,
-  sanitizeString,
+  checkRateLimit, getClientIP,
+  sanitizeString, normalizePhone,
 } from './shared/security.js';
+import { slotsOverlap, calculateEndTime, normalizeCity, TIME_WINDOWS, TIME_WINDOW_KEYS, assignSlotInWindow } from './shared/slotUtils.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -20,7 +21,13 @@ const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 const AKQUISE_TABLE = 'tblqFMBAeKQ1NbSI8';
-const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
+const INSTALLATIONSTERMINE_TABLE = 'tblZrFRRg3iKxlXFJ';
+
+const SUPERCHAT_BASE = 'https://api.superchat.com/v1.0';
+
+/** SuperChat contact attribute IDs */
+const SC_BOOKING_LINK_ATTR_ID = 'ca_cb868yUGScrsohM7y2kwv';
+const SC_BOOKING_DATE_ATTR_ID = 'ca_RU9o1ZWjIByskrY9mM9aK';
 
 const PUBLIC_CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -44,12 +51,108 @@ async function supabaseRequest(path, options = {}) {
   return { ok: res.ok, status: res.status, data: text ? JSON.parse(text) : null };
 }
 
-/** Calculate end time (1.5 hours after start) */
-function calculateEndTime(startTime) {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const endMinutes = minutes + 90;
-  const endHours = hours + Math.floor(endMinutes / 60);
-  return `${String(endHours).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
+/** Fire-and-forget write to booking_activity_log (non-fatal) */
+async function writeActivityLog(entry) {
+  try {
+    await supabaseRequest('booking_activity_log', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify({
+        user_id:             entry.user_id             || null,
+        user_name:           entry.user_name            || 'System',
+        action:              entry.action,
+        booking_id:          entry.booking_id           || null,
+        akquise_airtable_id: entry.akquise_airtable_id || null,
+        location_name:       entry.location_name        || null,
+        city:                entry.city                 || null,
+        detail:              entry.detail               || {},
+        source:              entry.source               || 'portal',
+      }),
+    });
+  } catch (e) {
+    console.warn('[writeActivityLog] Failed (non-fatal):', e.message);
+  }
+}
+
+// calculateEndTime imported from shared/slotUtils.js
+
+/** Check SuperChat flags: enabled + optional test phone override */
+async function getSuperchatConfig() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    });
+    if (!res.ok) return { enabled: false, testPhone: null };
+    const data = await res.json();
+    const enabledFlag = data.find(f => f.key === 'superchat_enabled');
+    const testPhoneFlag = data.find(f => f.key === 'superchat_test_phone');
+    return {
+      enabled: enabledFlag?.enabled === true,
+      testPhone: testPhoneFlag?.enabled ? (testPhoneFlag.description || null) : null,
+    };
+  } catch { return { enabled: false, testPhone: null }; }
+}
+
+/** SuperChat API helper */
+async function superchatRequest(path, options = {}) {
+  const res = await fetch(`${SUPERCHAT_BASE}/${path}`, {
+    ...options,
+    headers: {
+      'X-API-KEY': SUPERCHAT_API_KEY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = text; }
+  return { ok: res.ok, status: res.status, data };
+}
+
+/** Format date as DD.MM.YYYY for SuperChat contact attribute */
+function formatDateDE(dateStr) {
+  const [y, m, d] = dateStr.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+/** Update Install Booking Date + Link attributes on a SuperChat contact */
+async function updateContactAttributes(phone, bookingDate, bookingLink) {
+  if (!SUPERCHAT_API_KEY || !phone) return;
+  try {
+    // Search for contact by phone
+    const searchResult = await superchatRequest('contacts/search', {
+      method: 'POST',
+      body: JSON.stringify({
+        query: { value: [{ field: 'phone', operator: '=', value: phone }] },
+      }),
+    });
+    const contacts = searchResult.data?.results || searchResult.data;
+    if (!Array.isArray(contacts) || contacts.length === 0) {
+      console.log(`[install-booker-book] No SuperChat contact found for ${phone}`);
+      return;
+    }
+    const contactId = contacts[0].id;
+
+    // Build attribute updates
+    const customAttributes = [];
+    if (SC_BOOKING_LINK_ATTR_ID && bookingLink) {
+      customAttributes.push({ id: SC_BOOKING_LINK_ATTR_ID, value: bookingLink });
+    }
+    if (SC_BOOKING_DATE_ATTR_ID && bookingDate) {
+      customAttributes.push({ id: SC_BOOKING_DATE_ATTR_ID, value: formatDateDE(bookingDate) });
+    }
+
+    if (customAttributes.length === 0) return;
+
+    const updateResult = await superchatRequest(`contacts/${contactId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ custom_attributes: customAttributes }),
+    });
+    console.log(`[install-booker-book] Updated SC contact ${contactId} attrs: ${updateResult.ok ? 'OK' : 'FAILED'}`);
+  } catch (e) {
+    console.error(`[install-booker-book] SC contact update failed for ${phone}:`, e.message);
+  }
 }
 
 export default async (request, context) => {
@@ -79,11 +182,14 @@ export default async (request, context) => {
 
   try {
     const body = await request.json();
-    const { token, date, time, notes: rawNotes } = body;
+    const { token, date, notes: rawNotes } = body;
+    let { time } = body;
+    const windowKey = body.window || null; // 'morning', 'afternoon', 'evening'
     const notes = rawNotes ? sanitizeString(rawNotes, 500) : null;
 
-    if (!token || !date || !time) {
-      return new Response(JSON.stringify({ error: 'token, date, and time are required' }), {
+    // Either time or window must be provided
+    if (!token || !date || (!time && !windowKey)) {
+      return new Response(JSON.stringify({ error: 'token, date, and either time or window are required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
       });
@@ -100,8 +206,21 @@ export default async (request, context) => {
         status: 400, headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
       });
     }
-    if (!/^\d{2}:\d{2}$/.test(time)) {
+    if (time && !/^\d{2}:\d{2}$/.test(time)) {
       return new Response(JSON.stringify({ error: 'Ungültiges Zeitformat (HH:MM erwartet)' }), {
+        status: 400, headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+      });
+    }
+    if (windowKey && !TIME_WINDOW_KEYS.includes(windowKey)) {
+      return new Response(JSON.stringify({ error: 'Ungültiges Zeitfenster', validWindows: TIME_WINDOW_KEYS }), {
+        status: 400, headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+      });
+    }
+
+    // Reject past dates
+    const today = new Date().toISOString().split('T')[0];
+    if (date < today) {
+      return new Response(JSON.stringify({ error: 'past_date', message: 'Termine in der Vergangenheit können nicht gebucht werden.' }), {
         status: 400, headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
       });
     }
@@ -132,39 +251,86 @@ export default async (request, context) => {
       });
     }
 
-    // 2. Verify slot is still available
-    const routeResult = await supabaseRequest(
-      `install_routen?city=eq.${encodeURIComponent(booking.city)}&schedule_date=eq.${date}&status=eq.open&select=*&limit=1`
+    // 2. Verify slot is still available — check ALL routes for this city+date
+    //    Use ilike to match city name variants (e.g. "Frankfurt" vs "Frankfurt am Main")
+    const cityBase = normalizeCity(booking.city);
+    const routesResult = await supabaseRequest(
+      `install_routen?city=ilike.${encodeURIComponent(cityBase)}*&schedule_date=eq.${date}&status=eq.open&select=*`
     );
 
-    if (!routeResult.ok || !routeResult.data?.length) {
+    if (!routesResult.ok || !routesResult.data?.length) {
       return new Response(JSON.stringify({ error: 'slot_unavailable', message: 'Dieser Termin ist leider nicht mehr verfügbar.' }), {
         status: 409,
         headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
       });
     }
 
-    const route = routeResult.data[0];
-
-    // Check capacity
-    const existingBookings = await supabaseRequest(
-      `install_bookings?city=eq.${encodeURIComponent(booking.city)}&booked_date=eq.${date}&booked_time=eq.${encodeURIComponent(time)}&status=in.(booked,confirmed)&select=id`
+    // Get all bookings for this city+date to check capacity across routes
+    const dayBookingsResult = await supabaseRequest(
+      `install_bookings?city=ilike.${encodeURIComponent(cityBase)}*&booked_date=eq.${date}&status=in.(booked,confirmed)&select=id,booked_time,route_id`
     );
+    const dayBookings = dayBookingsResult.data || [];
 
-    if (existingBookings.data?.length > 0) {
-      return new Response(JSON.stringify({ error: 'slot_taken', message: 'Diese Uhrzeit ist leider bereits vergeben. Bitte wählen Sie eine andere Zeit.' }), {
-        status: 409,
-        headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
-      });
+    // Find a route that has capacity AND the requested time slot available
+    let route = null;
+
+    // If window-based booking: auto-assign the best slot within the window
+    if (windowKey && !time) {
+      for (const candidateRoute of routesResult.data) {
+        let timeSlots = [];
+        try {
+          if (Array.isArray(candidateRoute.time_slots)) {
+            timeSlots = candidateRoute.time_slots;
+          } else if (typeof candidateRoute.time_slots === 'string') {
+            let parsed = JSON.parse(candidateRoute.time_slots);
+            if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+            timeSlots = Array.isArray(parsed) ? parsed : [];
+          }
+        } catch { timeSlots = []; }
+
+        const routeBookings = dayBookings.filter(b => b.route_id === candidateRoute.id);
+        if (routeBookings.length >= candidateRoute.max_capacity) continue;
+
+        const routeBookedTimes = routeBookings.map(b => b.booked_time);
+        const assignedSlot = assignSlotInWindow(windowKey, routeBookedTimes, timeSlots);
+        if (assignedSlot) {
+          time = assignedSlot;
+          route = candidateRoute;
+          break;
+        }
+      }
+    } else {
+      // Explicit time-based booking (legacy / internal)
+      for (const candidateRoute of routesResult.data) {
+        let timeSlots = [];
+        try {
+          if (Array.isArray(candidateRoute.time_slots)) {
+            timeSlots = candidateRoute.time_slots;
+          } else if (typeof candidateRoute.time_slots === 'string') {
+            let parsed = JSON.parse(candidateRoute.time_slots);
+            if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+            timeSlots = Array.isArray(parsed) ? parsed : [];
+          }
+        } catch { timeSlots = []; }
+
+        if (!timeSlots.includes(time)) continue;
+
+        const routeBookings = dayBookings.filter(b => b.route_id === candidateRoute.id);
+        if (routeBookings.length >= candidateRoute.max_capacity) continue;
+
+        const routeBookedTimes = routeBookings.map(b => b.booked_time);
+        if (slotsOverlap(time, routeBookedTimes)) continue;
+
+        route = candidateRoute;
+        break;
+      }
     }
 
-    // Check total capacity for the day
-    const dayBookings = await supabaseRequest(
-      `install_bookings?city=eq.${encodeURIComponent(booking.city)}&booked_date=eq.${date}&status=in.(booked,confirmed)&select=id`
-    );
-
-    if ((dayBookings.data?.length || 0) >= route.max_capacity) {
-      return new Response(JSON.stringify({ error: 'day_full', message: 'Dieser Tag ist leider ausgebucht. Bitte wählen Sie einen anderen Tag.' }), {
+    if (!route || !time) {
+      const msg = windowKey
+        ? `Im Zeitfenster "${TIME_WINDOWS[windowKey]?.label?.de || windowKey}" ist leider kein Termin mehr frei.`
+        : 'Diese Uhrzeit ist leider bereits vergeben. Bitte wählen Sie eine andere Zeit.';
+      return new Response(JSON.stringify({ error: 'slot_taken', message: msg }), {
         status: 409,
         headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
       });
@@ -180,9 +346,11 @@ export default async (request, context) => {
           booked_date: date,
           booked_time: time,
           booked_end_time: endTime,
+          booked_window: windowKey || null,
           route_id: route.id,
-          status: 'booked',
+          status: 'confirmed',
           booked_at: new Date().toISOString(),
+          confirmed_at: new Date().toISOString(),
           notes: notes || null,
         }),
       }
@@ -192,16 +360,27 @@ export default async (request, context) => {
       throw new Error('Failed to update booking');
     }
 
-    // 4. Create Airtable record in existing Installationen table
+    // Activity log: self-booking by customer (fire-and-forget)
+    writeActivityLog({
+      user_id:             null,
+      user_name:           'Selbst-Buchung (Kunde)',
+      action:              'booking_confirmed',
+      booking_id:          booking.id,
+      akquise_airtable_id: booking.akquise_airtable_id || null,
+      location_name:       booking.location_name,
+      city:                booking.city,
+      source:              'self_booking',
+      detail: { booked_date: date, booked_time: time, booked_window: windowKey || null },
+    });
+
+    // 4. Create Airtable record in Installationstermine table
     let terminAirtableId = null;
     if (AIRTABLE_TOKEN) {
       try {
-        const installFields = {
-          'Installationsstart': `${date}T${time}:00.000Z`,
-          'Status Installation': 'Termin gebucht',
-          'Aufbau Datum': date,
-          'Installationsart': 'Wandmontage',
-          'Allgemeine Bemerkungen': [
+        const terminFields = {
+          'Installationsdatum': `${date}T${time}:00.000Z`,
+          'Terminstatus': 'Geplant',
+          'Grund /Notiz': [
             `Selbst-Buchung via Install Date Booker`,
             `Zeitfenster: ${time} – ${endTime} Uhr`,
             route.installer_team ? `Team: ${route.installer_team}` : '',
@@ -211,18 +390,23 @@ export default async (request, context) => {
 
         // Link to Akquise record if we have one
         if (booking.akquise_airtable_id) {
-          installFields['Akquise'] = [booking.akquise_airtable_id];
+          terminFields['Akquise'] = [booking.akquise_airtable_id];
         }
 
-        const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${INSTALLATIONEN_TABLE}`, {
+        const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${INSTALLATIONSTERMINE_TABLE}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ records: [{ fields: installFields }] }),
+          body: JSON.stringify({ records: [{ fields: terminFields }] }),
         });
         const terminData = await terminRes.json();
+
+        if (terminData.error) {
+          console.error('[install-booker-book] Airtable Installationstermine create error:', JSON.stringify(terminData.error));
+        }
+
         terminAirtableId = terminData.records?.[0]?.id;
 
         // Store the Airtable ID back in Supabase
@@ -231,16 +415,20 @@ export default async (request, context) => {
             method: 'PATCH',
             body: JSON.stringify({ termin_airtable_id: terminAirtableId }),
           });
+        } else {
+          console.error('[install-booker-book] No Airtable record ID returned. Response:', JSON.stringify(terminData));
         }
       } catch (e) {
-        console.error('[install-booker-book] Airtable Installationen create failed:', e.message);
+        console.error('[install-booker-book] Airtable Installationstermine create failed:', e.message);
       }
     }
 
-    // 5. Update Airtable Akquise record
+    // 5. Update Airtable Akquise record — set Lead_Status to reflect booking
     if (AIRTABLE_TOKEN && booking.akquise_airtable_id) {
       try {
-        await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${booking.akquise_airtable_id}`, {
+        // Note: We only update fields that exist in Airtable Akquise table
+        // Lead_Status is the status field, no custom Booking fields exist
+        const akquiseRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${booking.akquise_airtable_id}`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -248,53 +436,170 @@ export default async (request, context) => {
           },
           body: JSON.stringify({
             fields: {
-              'Booking Status': 'booked',
-              'Booking Date': date,
-              'Booking Time': time,
+              'Lead_Status': 'Won / Signed',
             },
           }),
         });
+        const akquiseData = await akquiseRes.json();
+        if (akquiseData.error) {
+          console.error('[install-booker-book] Airtable Akquise update error:', JSON.stringify(akquiseData.error));
+        }
       } catch (e) {
         console.error('[install-booker-book] Airtable Akquise update failed:', e.message);
       }
     }
 
-    // 6. Send WhatsApp confirmation via SuperChat
-    if (SUPERCHAT_API_KEY && booking.contact_phone) {
+    // 6. Update SuperChat contact attributes FIRST (Install Booking Date + Link)
+    //    Must happen BEFORE sending the template, because the template reads
+    //    {{Install Booking Date}} from the contact attribute.
+    const bookingLinkUrl = `${process.env.BOOKING_BASE_URL || 'https://tools.dimension-outdoor.com/book'}/${booking.booking_token}`;
+    const actualPhoneForSC = normalizePhone(booking.contact_phone);
+    if (actualPhoneForSC) {
       try {
-        const formattedDate = new Date(date).toLocaleDateString('de-DE', {
-          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-        });
-        const confirmationText = [
-          `Vielen Dank${booking.contact_name ? `, ${booking.contact_name}` : ''}!`,
-          '',
-          `Ihr Installationstermin wurde bestätigt:`,
-          `Datum: ${formattedDate}`,
-          `Uhrzeit: ${time} - ${endTime} Uhr`,
-          `Standort: ${booking.location_name || booking.city}`,
-          '',
-          `Unser Team wird sich am Installationstag bei Ihnen melden.`,
-          '',
-          `Bei Fragen oder Änderungswünschen antworten Sie einfach auf diese Nachricht.`,
-          '',
-          `Ihr JET Germany Team`,
-        ].join('\n');
+        await updateContactAttributes(actualPhoneForSC, date, bookingLinkUrl);
+      } catch (e) {
+        console.error('[install-booker-book] SC contact attribute update failed:', e.message);
+      }
+    }
 
-        await fetch('https://api.superchat.com/v1.0/messages', {
+    // 7. Send WhatsApp booking confirmation via SuperChat approved template
+    const CONFIRMATION_TEMPLATE_ID = 'tn_ZogGREMwedmaZwXJz6iyZ'; // install_booking_confirmation
+    const WA_CHANNEL = process.env.SUPERCHAT_WA_CHANNEL_ID || 'mc_cy5HABDnpRhRtosxckRzb';
+    const scConfig = await getSuperchatConfig();
+    if (SUPERCHAT_API_KEY && booking.contact_phone && scConfig.enabled) {
+      try {
+        // Test mode: override recipient phone with test number
+        const actualPhone = normalizePhone(scConfig.testPhone || booking.contact_phone);
+        if (scConfig.testPhone) {
+          console.log(`[install-booker-book] TEST MODE — redirecting WA confirmation from ${booking.contact_phone} to ${scConfig.testPhone}`);
+        }
+
+        const firstName = booking.contact_name || 'Hallo';
+
+        // Send approved template (variables: position 1 = FirstName static, position 2 = BookingDate contact_attribute)
+        const templatePayload = {
+          to: [{ identifier: actualPhone }],
+          from: { channel_id: WA_CHANNEL },
+          content: {
+            type: 'whats_app_template',
+            template: {
+              id: CONFIRMATION_TEMPLATE_ID,
+              variables: [
+                { position: 1, value: firstName },
+                // position 2 is contact_attribute (Install Booking Date) — SC reads automatically
+              ],
+            },
+          },
+        };
+
+        const templateRes = await fetch('https://api.superchat.com/v1.0/messages', {
           method: 'POST',
           headers: {
             'X-API-KEY': SUPERCHAT_API_KEY,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          body: JSON.stringify({
-            contactHandle: booking.contact_phone,
-            channelType: 'whats_app',
-            body: confirmationText,
-          }),
+          body: JSON.stringify(templatePayload),
         });
+
+        const templateResult = await templateRes.json();
+        if (templateRes.ok) {
+          console.log(`[install-booker-book] WA confirmation template sent to ${actualPhone}`);
+        } else {
+          console.error(`[install-booker-book] WA confirmation template failed:`, JSON.stringify(templateResult));
+        }
       } catch (e) {
         console.error('[install-booker-book] WhatsApp confirmation failed:', e.message);
+      }
+    } else if (!scConfig.enabled) {
+      console.log('[install-booker-book] WhatsApp confirmation SKIPPED — superchat_enabled=false');
+    }
+
+    // 8. Notifications — Slack + Make.com (fire-and-forget)
+    const bookingUrl = `${process.env.BOOKING_BASE_URL || 'https://tools.dimension-outdoor.com/book'}/${booking.booking_token}`;
+    const notifPayload = {
+      location_name: booking.location_name || '',
+      jet_id: booking.jet_id || '',
+      city: booking.city || '',
+      booked_date: date,
+      booked_time: time,
+      booked_end_time: endTime,
+      installer_team: route.installer_team || '',
+      contact_name: booking.contact_name || '',
+      contact_phone: booking.contact_phone || '',
+      notes: notes || '',
+      booking_url: bookingUrl,
+      akquise_airtable_id: booking.akquise_airtable_id || '',
+    };
+
+    // 8a. Slack notification — direct webhook (no Make.com dependency)
+    const SLACK_WEBHOOK = process.env.SLACK_INSTALL_WEBHOOK;
+    if (SLACK_WEBHOOK) {
+      try {
+        const slackMsg = {
+          blocks: [
+            {
+              type: 'header',
+              text: { type: 'plain_text', text: `📅 Neuer Installationstermin`, emoji: true },
+            },
+            {
+              type: 'section',
+              fields: [
+                { type: 'mrkdwn', text: `*Standort:*\n${notifPayload.location_name}` },
+                { type: 'mrkdwn', text: `*Stadt:*\n${notifPayload.city}` },
+                { type: 'mrkdwn', text: `*Datum:*\n${notifPayload.booked_date}` },
+                { type: 'mrkdwn', text: `*Zeit:*\n${notifPayload.booked_time} – ${notifPayload.booked_end_time}` },
+                { type: 'mrkdwn', text: `*Kontakt:*\n${notifPayload.contact_name}` },
+                { type: 'mrkdwn', text: `*Telefon:*\n${notifPayload.contact_phone}` },
+              ],
+            },
+            ...(notifPayload.installer_team ? [{
+              type: 'section',
+              fields: [{ type: 'mrkdwn', text: `*Team:*\n${notifPayload.installer_team}` }],
+            }] : []),
+            ...(notifPayload.notes ? [{
+              type: 'section',
+              text: { type: 'mrkdwn', text: `*Anmerkung:*\n${notifPayload.notes}` },
+            }] : []),
+            {
+              type: 'actions',
+              elements: [{
+                type: 'button',
+                text: { type: 'plain_text', text: '🔗 Buchung ansehen', emoji: true },
+                url: notifPayload.booking_url,
+              }],
+            },
+            {
+              type: 'context',
+              elements: [{ type: 'mrkdwn', text: `JET-ID: ${notifPayload.jet_id} | Gebucht: ${new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}` }],
+            },
+          ],
+        };
+        await fetch(SLACK_WEBHOOK, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(slackMsg),
+        });
+        console.log('[install-booker-book] Slack notification sent successfully');
+      } catch (e) {
+        console.error('[install-booker-book] Slack notification failed:', e.message);
+      }
+    } else {
+      console.warn('[install-booker-book] SLACK_INSTALL_WEBHOOK not set — skipping Slack');
+    }
+
+    // 8b. Make.com webhook — E-Mail notification (optional, kept for backward compat)
+    const MAKE_WEBHOOK_URL = process.env.MAKE_INSTALL_BOOKING_WEBHOOK;
+    if (MAKE_WEBHOOK_URL) {
+      try {
+        await fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(notifPayload),
+        });
+        console.log('[install-booker-book] Make.com webhook triggered successfully');
+      } catch (e) {
+        console.error('[install-booker-book] Make.com webhook failed:', e.message);
       }
     }
 
@@ -308,6 +613,13 @@ export default async (request, context) => {
       success: true,
     });
 
+    // Build window info for response (if window-based booking)
+    const windowInfo = windowKey && TIME_WINDOWS[windowKey] ? {
+      window: windowKey,
+      windowLabel: TIME_WINDOWS[windowKey].label,
+      windowRange: TIME_WINDOWS[windowKey].rangeLabel,
+    } : {};
+
     return new Response(JSON.stringify({
       success: true,
       booking: {
@@ -317,6 +629,7 @@ export default async (request, context) => {
         locationName: booking.location_name,
         city: booking.city,
         contactName: booking.contact_name,
+        ...windowInfo,
       },
     }), {
       status: 200,
@@ -332,7 +645,7 @@ export default async (request, context) => {
       durationMs: Date.now() - apiStart,
       statusCode: 500,
       success: false,
-      error: err.message,
+      errorMessage: err.message,
     });
 
     return new Response(JSON.stringify({ error: 'Buchung fehlgeschlagen. Bitte versuchen Sie es erneut.' }), {

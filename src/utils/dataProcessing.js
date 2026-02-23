@@ -1,5 +1,3 @@
-// --- Native helper functions (replaces lodash) ---
-
 /**
  * Returns the element in `arr` for which `fn(element)` is smallest.
  * Returns undefined for empty arrays.
@@ -83,11 +81,8 @@ function uniqBy(arr, fn) {
   return result;
 }
 
-// --- End native helpers ---
-
-// City code mapping
-// City code mapping — each city has ONE canonical code, duplicates removed.
-// Previous duplicates: HH+HAM→Hamburg (kept HAM), DO+DTM→Dortmund (kept DTM)
+// City code mapping -- each city has ONE canonical code.
+// Aliases: HH+HAM -> Hamburg, DO+DTM -> Dortmund (both codes exist in data)
 const CITY_MAP = {
   'CGN': 'Köln',
   'BER': 'Berlin',
@@ -129,14 +124,19 @@ export function getCityCodeFromDisplayId(displayId) {
   return parts.length >= 3 ? parts[2] : '???';
 }
 
-// Parse DD.MM.YYYY HH:MM → Date (also accepts ISO 8601 from Supabase)
+// Parse DD.MM.YYYY HH:MM → Date (also accepts ISO 8601 and YYYY-MM-DD from Supabase)
 export function parseGermanDate(str) {
   if (!str || typeof str !== 'string') return null;
   const trimmed = str.trim();
-  // ISO 8601: 2025-01-15T10:30:00+00:00 or 2025-01-15T10:30:00.000Z
+  // ISO 8601 with T: 2025-01-15T10:30:00+00:00 or 2025-01-15T10:30:00.000Z
   if (trimmed.match(/^\d{4}-\d{2}-\d{2}T/)) {
     const d = new Date(trimmed);
     return isNaN(d.getTime()) ? null : d;
+  }
+  // ISO date only: 2025-01-15 (from Supabase RPC, SQL DATE type)
+  if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [y, m, d] = trimmed.split('-');
+    return new Date(+y, +m - 1, +d, 12, 0); // noon to avoid timezone edge cases
   }
   // DD.MM.YYYY HH:MM
   const match = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})$/);
@@ -226,7 +226,6 @@ export function formatDuration(hours) {
 
 export function formatDate(date) {
   if (!date) return '–';
-  // Support both Date objects and date strings
   const dt = date instanceof Date ? date : new Date(date);
   if (isNaN(dt.getTime())) return typeof date === 'string' ? date : '–';
   const d = dt.getDate().toString().padStart(2, '0');
@@ -237,7 +236,6 @@ export function formatDate(date) {
 
 export function formatDateTime(date) {
   if (!date) return '–';
-  // Support both Date objects and date strings
   const dt = date instanceof Date ? date : new Date(date);
   if (isNaN(dt.getTime())) return typeof date === 'string' ? date : '–';
   const d = dt.getDate().toString().padStart(2, '0');

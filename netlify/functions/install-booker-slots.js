@@ -9,6 +9,7 @@
 
 import { logApiCall } from './shared/apiLogger.js';
 import { checkRateLimit, getClientIP } from './shared/security.js';
+import { slotsOverlap, normalizeCity, TIME_WINDOWS, getWindowForTime } from './shared/slotUtils.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -88,13 +89,16 @@ export default async (request, context) => {
 
     const booking = bookingResult.data[0];
 
-    // Check if already booked
-    if (booking.status === 'booked' || booking.status === 'confirmed') {
+    // Check if already booked or not in a bookable state
+    // Align with book.js: only 'pending' status allows booking
+    if (booking.status !== 'pending') {
+      const isBooked = booking.status === 'booked' || booking.status === 'confirmed';
       return new Response(JSON.stringify({
-        error: 'already_booked',
-        message: 'Ihr Termin wurde bereits gebucht.',
-        bookedDate: booking.booked_date,
-        bookedTime: booking.booked_time,
+        error: isBooked ? 'already_booked' : 'not_bookable',
+        message: isBooked
+          ? 'Ihr Termin wurde bereits gebucht.'
+          : 'Dieser Buchungslink ist nicht mehr gültig.',
+        ...(isBooked && { bookedDate: booking.booked_date, bookedTime: booking.booked_time }),
       }), {
         status: 409,
         headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
@@ -116,9 +120,12 @@ export default async (request, context) => {
     }
 
     // 2. Get available routes for this city
+    //    Use ilike with wildcard to match city name variants
+    //    e.g. "Frankfurt" matches "Frankfurt am Main" and vice versa
     const today = new Date().toISOString().split('T')[0];
+    const cityBase = normalizeCity(booking.city);
     const routesResult = await supabaseRequest(
-      `install_routen?city=eq.${encodeURIComponent(booking.city)}&schedule_date=gte.${today}&status=eq.open&order=schedule_date.asc`
+      `install_routen?city=ilike.${encodeURIComponent(cityBase)}*&schedule_date=gte.${today}&status=eq.open&order=schedule_date.asc`
     );
 
     if (!routesResult.ok || !routesResult.data?.length) {
@@ -133,57 +140,108 @@ export default async (request, context) => {
       });
     }
 
-    // 3. For each route, count existing bookings to determine remaining capacity
+    // 3. Aggregate slots from ALL routes per day (supports multiple teams per city/day)
     const routes = routesResult.data;
+
+    // Group routes by date — multiple teams can serve the same city on the same day
+    const routesByDate = {};
+    for (const route of routes) {
+      const d = route.schedule_date;
+      if (!routesByDate[d]) routesByDate[d] = [];
+      routesByDate[d].push(route);
+    }
+
+    // Get ALL booked times for this city in one query (more efficient than per-route)
+    // Use ilike to match city name variants
+    const allBookedResult = await supabaseRequest(
+      `install_bookings?city=ilike.${encodeURIComponent(cityBase)}*&status=in.(booked,confirmed)&select=booked_date,booked_time,route_id`
+    );
+    const allBooked = allBookedResult.data || [];
+
     const availableDates = [];
 
-    for (const route of routes) {
-      // Count booked slots for this date in this city
-      const bookedResult = await supabaseRequest(
-        `install_bookings?city=eq.${encodeURIComponent(route.city)}&booked_date=eq.${route.schedule_date}&status=in.(booked,confirmed)&select=booked_time`
-      );
+    for (const [date, dateRoutes] of Object.entries(routesByDate)) {
+      // Bookings for this date
+      const dayBookings = allBooked.filter(b => b.booked_date === date);
+      const dayBookedTimes = dayBookings.map(b => b.booked_time);
 
-      const bookedTimes = (bookedResult.data || []).map(b => b.booked_time);
+      // Collect all unique time slots from ALL routes on this date
+      // Track which route offers each slot for assignment during booking
+      const slotMap = new Map(); // time → { routeIds: [], available: bool }
 
-      // Robust time_slots parsing (handles double-encoded JSON strings)
-      let timeSlots = [];
-      try {
-        if (Array.isArray(route.time_slots)) {
-          timeSlots = route.time_slots;
-        } else if (typeof route.time_slots === 'string') {
-          let parsed = JSON.parse(route.time_slots);
-          // Handle double-encoded: if parsed result is still a string, parse again
-          if (typeof parsed === 'string') parsed = JSON.parse(parsed);
-          timeSlots = Array.isArray(parsed) ? parsed : [];
+      for (const route of dateRoutes) {
+        // Count bookings specifically assigned to this route
+        const routeBookings = dayBookings.filter(b => b.route_id === route.id);
+        const routeBookedCount = routeBookings.length;
+        const routeHasCapacity = routeBookedCount < route.max_capacity;
+
+        if (!routeHasCapacity) continue; // This route is full for the day
+
+        // Robust time_slots parsing (handles double-encoded JSON strings)
+        let timeSlots = [];
+        try {
+          if (Array.isArray(route.time_slots)) {
+            timeSlots = route.time_slots;
+          } else if (typeof route.time_slots === 'string') {
+            let parsed = JSON.parse(route.time_slots);
+            if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+            timeSlots = Array.isArray(parsed) ? parsed : [];
+          }
+        } catch (e) {
+          console.error(`[install-booker-slots] Failed to parse time_slots for route ${route.id}:`, e.message);
+          timeSlots = [];
         }
-      } catch (e) {
-        console.error(`[install-booker-slots] Failed to parse time_slots for route ${route.id}:`, e.message);
-        timeSlots = [];
+
+        // Collect booked start times for this route to check overlaps
+      const routeBookedTimes = routeBookings.map(b => b.booked_time);
+
+      for (const time of timeSlots) {
+          // Check if this slot overlaps with any existing booking (90min duration + 30min buffer)
+          if (slotsOverlap(time, routeBookedTimes)) continue;
+
+          if (!slotMap.has(time)) {
+            slotMap.set(time, { routeIds: [], available: true });
+          }
+          // This time slot is available on this route
+          slotMap.get(time).routeIds.push(route.id);
+        }
       }
 
-      // Count bookings per time slot
-      const slots = timeSlots.map(time => {
-        const bookedCount = bookedTimes.filter(t => t === time).length;
-        // Each time slot can have max 1 booking (1 installation per slot)
-        return {
+      // Convert slotMap to sorted array
+      const slots = [...slotMap.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([time, info]) => ({
           time,
-          available: bookedCount === 0,
-        };
-      });
+          available: true,
+          routeId: info.routeIds[0], // Primary route for booking assignment
+        }));
 
-      // Also check total capacity
-      const totalBooked = bookedTimes.length;
-      const hasCapacity = totalBooked < route.max_capacity;
+      if (slots.length > 0) {
+        // Build time windows summary — group slots by window
+        const windows = Object.entries(TIME_WINDOWS).map(([key, w]) => {
+          const windowSlots = slots.filter(s => getWindowForTime(s.time) === key);
+          return {
+            key,
+            label: w.label,
+            range: `${w.start}–${w.end}`,
+            rangeLabel: w.rangeLabel,
+            available: windowSlots.length > 0,
+            slotCount: windowSlots.length,
+          };
+        });
 
-      if (hasCapacity && slots.some(s => s.available)) {
         availableDates.push({
-          date: route.schedule_date,
-          routeId: route.id,
-          installerTeam: route.installer_team,
-          slots: slots.filter(s => s.available),
+          date,
+          slots,
+          windows,
+          // Include all route IDs for this date (for booking assignment)
+          routeIds: dateRoutes.map(r => r.id),
         });
       }
     }
+
+    // Sort by date
+    availableDates.sort((a, b) => a.date.localeCompare(b.date));
 
     logApiCall({
       functionName: 'install-booker-slots',
@@ -202,7 +260,11 @@ export default async (request, context) => {
       availableDates,
     }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'max-age=30, stale-while-revalidate=60',
+        ...PUBLIC_CORS,
+      },
     });
 
   } catch (err) {
@@ -214,7 +276,7 @@ export default async (request, context) => {
       durationMs: Date.now() - apiStart,
       statusCode: 500,
       success: false,
-      error: err.message,
+      errorMessage: err.message,
     });
 
     console.error('[install-booker-slots] Error:', err.message);

@@ -31,5 +31,11 @@ docs-screenshots/
 create-docs.mjs
 crop-sections.mjs
 
+# Environment variables
+.env
+.env.*
+.env.local
+.env.production
+
 # Local Netlify folder
 .netlify

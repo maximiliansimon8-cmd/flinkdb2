@@ -5,12 +5,7 @@ import {
   Trash2, ShoppingCart, ClipboardList, Calendar, Truck,
   ArrowRight, Hash, FileText, DollarSign,
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ'
-);
+import { supabase } from '../utils/authService';
 
 // ─── Constants ───
 const STATUS_CONFIG = {
@@ -58,33 +53,43 @@ export default function BestellwesenTab() {
   const [formItems, setFormItems] = useState([{ ...EMPTY_ITEM }]);
 
   // ─── Load orders ───
-  const loadOrders = useCallback(async () => {
+  const loadOrders = useCallback(async (signal) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('purchase_orders')
         .select('*, purchase_order_items(*)')
         .order('created_at', { ascending: false })
         .limit(300);
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (error) {
         // Fallback without join
-        const { data: d2 } = await supabase
+        let fallback = supabase
           .from('purchase_orders')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(300);
-        setOrders(d2 || []);
+        if (signal) fallback = fallback.abortSignal(signal);
+        const { data: d2 } = await fallback;
+        if (!signal?.aborted) setOrders(d2 || []);
       } else {
         setOrders(data || []);
       }
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[Bestellwesen] Load error:', e);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadOrders(); }, [loadOrders]);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadOrders(controller.signal);
+    return () => controller.abort();
+  }, [loadOrders]);
 
   // ─── KPIs ───
   const kpis = useMemo(() => ({

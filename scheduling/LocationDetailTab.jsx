@@ -8,6 +8,7 @@ import {
   Eye, Maximize2, MinusCircle, PlusCircle, Zap, Hash,
 } from 'lucide-react';
 import { supabase } from '../src/utils/authService.js';
+import { resolveRecordImages } from '../src/utils/attachmentResolver.js';
 
 /* =================================================================
    CONSTANTS
@@ -711,8 +712,20 @@ function LocationDetail({ location, loading }) {
     return type;
   };
 
-  // Determine images
-  const images = loc.images_akquise || loc.images || [];
+  // Determine images — resolve from Supabase cache (Airtable URLs expire after ~2h)
+  const rawImages = loc.images_akquise || loc.images || [];
+  const [images, setImages] = useState(rawImages);
+
+  useEffect(() => {
+    const recordId = loc.airtable_id || loc.id;
+    if (!recordId || rawImages.length === 0) {
+      setImages(rawImages);
+      return;
+    }
+    resolveRecordImages(recordId, rawImages, 'images_akquise')
+      .then(setImages)
+      .catch(() => setImages(rawImages));
+  }, [loc.airtable_id, loc.id, rawImages]);
 
   // Determine approval readiness based on actual status
   const currentStatus = normalizeStatus(loc.status || loc.lead_status, loc);

@@ -198,7 +198,7 @@ const DATA_SOURCES = [
       { airtable: 'Akquise Storno', supabase: 'akquise_storno', type: 'text', synced: true, interpretation: 'Stornierung vor Installation (Grund/Status)' },
       { airtable: 'Post\u2011Install Storno', supabase: 'post_install_storno', type: 'text', synced: true, quirk: 'U+2011 Non-Breaking Hyphen', interpretation: 'Stornierung nach Installation (Non-Breaking Hyphen beachten!)' },
       { airtable: 'Post\u2011Install Storno Grund', supabase: 'post_install_storno_grund', type: 'array', synced: true, quirk: 'U+2011 Non-Breaking Hyphen', interpretation: 'Grund fuer Post-Install Stornierung (Multi-Select)' },
-      { airtable: 'ready_for_installation', supabase: 'ready_for_installation', type: 'text', synced: true, interpretation: 'ACHTUNG: String "checked" statt Boolean!' },
+      { airtable: 'ready_for_installation', supabase: 'ready_for_installation', type: 'text', synced: true, interpretation: 'Airtable-Formel (NICHT MEHR als Predicate — kanonisch: lead_status + approval_status + vertrag_vorhanden)' },
       { airtable: 'Created', supabase: 'created_at', type: 'date', synced: true, interpretation: 'Erstellungsdatum des Akquise-Eintrags' },
       // ── Detail-only Fields (ACQUISITION_DETAIL_FIELDS → transformAkquiseDetail) ──
       // These are fetched on-demand by install-booker-detail.js, NOT in scheduled sync
@@ -636,12 +636,107 @@ const KPI_AUDIT_DATA = [
   },
 ];
 
+// ─── Installation & Akquise KPI Definitions (from src/metrics/) ─────
+const INSTALL_KPI_AUDIT_DATA = [
+  {
+    id: 'is_storno', label: 'isStorno (Predicate)', component: 'src/metrics/predicates.js', location: 'Alle Install + Akquise Views',
+    formula: 'akquiseStorno === true ODER postInstallStorno === true ODER leadStatus includes "storno|cancelled|lost"',
+    formulaDetail: 'Prueft 3 Bedingungen: (1) akquiseStorno boolean, (2) postInstallStorno boolean, (3) leadStatus String-Match. ODER-Verknuepfung.',
+    dataSource: 'acquisition', fields: ['akquise_storno', 'post_install_storno', 'lead_status'],
+    interpretation: 'Ob ein Akquise-Record storniert/abgebrochen ist. Single Source of Truth fuer alle Komponenten.',
+    issues: ['akquiseStorno kann "true" (String) oder true (Boolean) sein', 'leadStatus "lost" = auch Storno', 'postInstallStorno hat Non-Breaking Hyphen U+2011 in Airtable'],
+    category: 'predicates',
+  },
+  {
+    id: 'is_already_installed', label: 'isAlreadyInstalled (Predicate)', component: 'src/metrics/predicates.js', location: 'Alle Install Views',
+    formula: 'installationsStatus includes "installiert|live|abgebrochen" ODER leadStatus === "live|installation" ODER displayLocationStatus hat Eintraege',
+    formulaDetail: 'Breiteste Pruefung (Union aller Varianten): Status-Array (inkl. abgebrochene), Lead-Status und Display-Location-Status.',
+    dataSource: 'acquisition', fields: ['installations_status', 'lead_status', 'display_location_status'],
+    interpretation: 'Ob ein Standort bereits installiert/live ist oder einen Installations-Versuch hatte (abgebrochen). Schliesst diese aus dem Aufbau-Pool aus.',
+    issues: ['installationsStatus ist Array mit verschiedenen Werten', 'displayLocationStatus kann leere Strings enthalten', 'leadStatus "installation" = in Arbeit, zaehlt als installiert'],
+    category: 'predicates',
+  },
+  {
+    id: 'is_ready_for_install', label: 'isReadyForInstall (Predicate)', component: 'src/metrics/predicates.js', location: 'Install Views',
+    formula: 'leadStatus === "Won / Signed" AND approvalStatus === "Accepted/Approved" AND vertragVorhanden',
+    formulaDetail: 'UND-Verknuepfung: Vertrag unterschrieben + Genehmigung erteilt + Vertrag PDF vorhanden. Storno/Installiert-Checks vom Aufrufer.',
+    dataSource: 'acquisition', fields: ['lead_status', 'approval_status', 'vertrag_vorhanden'],
+    interpretation: 'Ob ein Record aufbaubereit ist. Kanonischer Check auf Pipeline-Status, Genehmigung und Vertrag.',
+    issues: ['vertragVorhanden kann true, "true" oder "checked" sein'],
+    category: 'predicates',
+  },
+  {
+    id: 'overdue_pending', label: 'Ueberfaellig: Keine Antwort', component: 'src/metrics/computations/installation.js', location: 'BookingsDashboard, ExecutiveDashboard, PhoneWorkbench',
+    formula: 'status === "pending" AND (now - whatsapp_sent_at) > PENDING_NO_RESPONSE_HOURS (48h)',
+    formulaDetail: 'Threshold aus OVERDUE_THRESHOLDS.PENDING_NO_RESPONSE_HOURS = 48 Stunden. Severity: warning.',
+    dataSource: 'install_bookings', fields: ['status', 'whatsapp_sent_at'],
+    interpretation: 'Einladung per WhatsApp gesendet, aber keine Buchung nach 48h. Telefonisches Follow-up noetig.',
+    issues: ['Nur wenn whatsapp_sent_at gesetzt (manche Bookings ohne WhatsApp)'],
+    category: 'installation',
+  },
+  {
+    id: 'overdue_unconfirmed', label: 'Ueberfaellig: Nicht bestaetigt', component: 'src/metrics/computations/installation.js', location: 'BookingsDashboard, ExecutiveDashboard',
+    formula: 'status === "booked" AND installDate within +-UNCONFIRMED_BEFORE_INSTALL_HOURS (24h) of now',
+    formulaDetail: 'Threshold aus OVERDUE_THRESHOLDS.UNCONFIRMED_BEFORE_INSTALL_HOURS = 24 Stunden. Severity: critical.',
+    dataSource: 'install_bookings', fields: ['status', 'booked_date'],
+    interpretation: 'Termin in weniger als 24h aber noch nicht bestaetigt. Dringend Bestaetigung einholen!',
+    issues: ['Auch Termine in der Vergangenheit (< -24h) werden nicht als overdue gezaehlt'],
+    category: 'installation',
+  },
+  {
+    id: 'confirmation_call', label: 'Bestaetigungsanruf noetig', component: 'InstallationPhoneWorkbench.jsx', location: 'PhoneWorkbench Follow-Up Queue',
+    formula: 'status === "booked" AND installDate within CONFIRMATION_CALL_WITHIN_HOURS (72h)',
+    formulaDetail: 'Threshold aus OVERDUE_THRESHOLDS.CONFIRMATION_CALL_WITHIN_HOURS = 72 Stunden.',
+    dataSource: 'install_bookings', fields: ['status', 'booked_date', 'contact_phone'],
+    interpretation: 'Termin in weniger als 3 Tagen, noch nicht bestaetigt. Confirmation Call empfohlen.',
+    issues: [],
+    category: 'installation',
+  },
+  {
+    id: 'conversion_rate', label: 'Einladung-zu-Buchung Rate', component: 'src/metrics/computations/installation.js', location: 'ExecutiveDashboard',
+    formula: '(booked + confirmed + completed) / (pending + booked + confirmed + completed) * 100',
+    formulaDetail: 'Cancelled und No-Show werden aus dem Nenner ausgeschlossen (haben Funnel verlassen).',
+    dataSource: 'install_bookings', fields: ['status'],
+    interpretation: 'Wie viel Prozent der eingeladenen Standorte tatsaechlich einen Termin buchen.',
+    issues: ['Nur fuer Buchungen mit Status, nicht fuer Akquise-Pipeline'],
+    category: 'installation',
+  },
+  {
+    id: 'no_show_rate', label: 'No-Show Rate', component: 'src/metrics/computations/installation.js', location: 'ExecutiveDashboard',
+    formula: 'noShow / (completed + noShow) * 100',
+    formulaDetail: 'Nur Records die das Terminstadium erreicht haben (completed oder no_show).',
+    dataSource: 'install_bookings', fields: ['status'],
+    interpretation: 'Prozent der Termine die als No-Show enden (Kunde nicht angetroffen).',
+    issues: [],
+    category: 'installation',
+  },
+  {
+    id: 'weekly_build_target', label: 'Woechentliches Aufbauziel', component: 'src/metrics/constants.js', location: 'AcquisitionDashboard, ExecutiveDashboard',
+    formula: 'WEEKLY_BUILD_TARGET = 25',
+    dataSource: 'Konstante', fields: [],
+    interpretation: 'Ziel: 25 Installationen pro Woche. Basis fuer Conversion-Berechnung und Pipeline-Planung.',
+    issues: ['Hardcoded Wert, sollte ggf. konfigurierbar sein'],
+    category: 'installation',
+  },
+  {
+    id: 'pipeline_readyForInstall', label: 'Pipeline: Aufbaubereit', component: 'AcquisitionDashboard, ExecutiveDashboard', location: 'Akquise + Install Views',
+    formula: 'isReadyForInstall(r) AND NOT isStorno(r) AND NOT isAlreadyInstalled(r) AND kein aktives Booking',
+    formulaDetail: 'Won/Signed + Approved + Vertrag vorhanden MINUS bereits installierte MINUS stornierte MINUS solche die schon ein Booking haben.',
+    dataSource: 'acquisition + install_bookings', fields: ['lead_status', 'approval_status', 'vertrag_vorhanden', 'akquise_storno', 'installations_status'],
+    interpretation: 'Standorte die fuer Installation bereit sind und noch keinen Termin haben. Basis fuer PhoneWorkbench Queue.',
+    issues: [],
+    category: 'predicates',
+  },
+];
+
 const KPI_CATEGORY_INFO = {
   core: { label: 'Kern-KPIs', color: '#3b82f6' },
   status: { label: 'Status-KPIs', color: '#f59e0b' },
   tracking: { label: 'Tracking', color: '#8b5cf6' },
   operations: { label: 'Operations', color: '#06b6d4' },
   revenue: { label: 'Revenue', color: '#10b981' },
+  predicates: { label: 'Predicates (Source of Truth)', color: '#ec4899' },
+  installation: { label: 'Installations-KPIs', color: '#f97316' },
 };
 
 /* ─── Component ─── */
@@ -899,7 +994,7 @@ export default function DataMappingPanel() {
           <BarChart3 size={16} />
           KPI Audit
           <span className={`font-mono text-xs px-1.5 py-0.5 rounded ${showKPIAudit ? 'bg-blue-100 text-blue-600' : 'bg-slate-100/80 text-slate-400'}`}>
-            {KPI_AUDIT_DATA.length}
+            {KPI_AUDIT_DATA.length + INSTALL_KPI_AUDIT_DATA.length}
           </span>
           <ChevronDown size={14} className={`transition-transform ${showKPIAudit ? 'rotate-180' : ''}`} />
         </button>
@@ -922,7 +1017,7 @@ export default function DataMappingPanel() {
             </div>
 
             {Object.entries(KPI_CATEGORY_INFO).map(([catKey, catInfo]) => {
-              const kpis = KPI_AUDIT_DATA.filter(k => k.category === catKey);
+              const kpis = [...KPI_AUDIT_DATA, ...INSTALL_KPI_AUDIT_DATA].filter(k => k.category === catKey);
               if (kpis.length === 0) return null;
               return (
                 <div key={catKey}>

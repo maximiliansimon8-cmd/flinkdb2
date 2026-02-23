@@ -23,28 +23,59 @@ import {
   SWAP_FIELDS as SW,
   DEINSTALL_FIELDS as DE,
   COMMUNICATION_FIELDS as CF,
+  INSTALLATIONSTERMINE_FIELDS as IT,
   unwrap,
+  first,
+  lookupArray,
 } from './airtableFields.js';
 
 // ═══════════════════════════════════════════════
-//  HELPER: safe array/lookup access
+//  HELPERS
 // ═══════════════════════════════════════════════
 
-/** Get first value from lookup array or scalar */
-function first(fields, fieldName) {
-  const v = fields[fieldName];
-  return Array.isArray(v) ? (v[0] || null) : (v || null);
-}
-
-/** Get lookup field as filtered array */
-function lookupArray(fields, fieldName) {
-  const v = fields[fieldName];
-  return Array.isArray(v) ? v.filter(Boolean) : [];
-}
-
-/** Safely ensure array */
+/** Safely ensure value is an array */
 function ensureArray(v) {
   return Array.isArray(v) ? v : (v ? [v] : []);
+}
+
+/**
+ * Sanitize Airtable formula field values that can return error objects.
+ * Handles {error: "#ERROR!"}, {state: "error"/"empty"}, and "#ERROR" strings.
+ */
+function safeFieldValue(v) {
+  if (!v) return null;
+  if (typeof v === 'object' && (v.error || v.state)) return null;
+  if (typeof v === 'string' && (v.includes('#ERROR') || v.includes('"state":'))) return null;
+  return v;
+}
+
+/**
+ * Map Airtable attachment array to a simplified object array.
+ * @param {Array} attachments - Raw Airtable attachment array
+ * @param {{ thumbnails?: boolean, id?: boolean }} options - Which optional fields to include
+ */
+function mapAttachments(attachments, options = {}) {
+  if (!Array.isArray(attachments)) return [];
+  return attachments.map(att => {
+    const mapped = {
+      url: att.url || '',
+      filename: att.filename || '',
+      size: att.size || 0,
+      type: att.type || '',
+    };
+    if (options.id) mapped.id = att.id || '';
+    if (options.thumbnails) mapped.thumbnails = att.thumbnails || null;
+    return mapped;
+  });
+}
+
+/**
+ * Convert Airtable "TRUE"/"FALSE" strings to boolean or null.
+ */
+function boolFromString(v) {
+  if (v === 'TRUE') return true;
+  if (v === 'FALSE') return false;
+  return null;
 }
 
 // ═══════════════════════════════════════════════
@@ -107,7 +138,7 @@ export function mapTask(rec) {
   return {
     id: rec.id, airtable_id: rec.id,
     title: f[TF.TITLE] || null,
-    task_type: f[TF.COMPANY_FROM_PARTNER] || f[TF.PARTNER] || f[TF.TASK_TYPE] || [],
+    task_type: f[TF.PARTNER] || f[TF.TASK_TYPE] || [],
     task_type_select: ensureArray(f[TF.TASK_TYPE]),
     status: f[TF.STATUS] || null,
     priority: f[TF.PRIORITY] || null,
@@ -143,13 +174,7 @@ export function mapTask(rec) {
     cities: f[TF.CITY_LOOKUP] || [],
     // Attachments: JSONB column — must exist in Supabase tasks table.
     // Run sql/fix-tasks-missing-columns.sql if this column is missing.
-    attachments: Array.isArray(f[TF.ATTACHMENTS])
-      ? f[TF.ATTACHMENTS].map(att => ({
-          url: att.url || '', filename: att.filename || '',
-          size: att.size || 0, type: att.type || '', id: att.id || '',
-          thumbnails: att.thumbnails || null,
-        }))
-      : [],
+    attachments: mapAttachments(f[TF.ATTACHMENTS], { id: true, thumbnails: true }),
     updated_at: new Date().toISOString(),
   };
 }
@@ -183,11 +208,30 @@ export function mapAcquisition(rec) {
     submitted_by: f[AF.SUBMITTED_BY] || null,
     submitted_at: f[AF.SUBMITTED_AT] || null,
     vertrag_vorhanden: f[AF.VERTRAG_VORHANDEN] || null,
+    unterschriftsdatum: safeFieldValue(f[AF.UNTERSCHRIFTSDATUM]) || null,
+    vertragsnummer: safeFieldValue(f[AF.VERTRAGSNUMMER]) || null,
     akquise_storno: f[AF.AKQUISE_STORNO] || false,
     post_install_storno: f[AF.POST_INSTALL_STORNO] || false,
     post_install_storno_grund: ensureArray(f[AF.POST_INSTALL_STORNO_GRUND]),
     ready_for_installation: f[AF.READY_FOR_INSTALLATION] || false,
     created_at: f[AF.CREATED] || null,
+    latitude: f[AF.LATITUDE] != null ? Number(f[AF.LATITUDE]) : null,
+    longitude: f[AF.LONGITUDE] != null ? Number(f[AF.LONGITUDE]) : null,
+    // Attachments as JSONB
+    vertrag_pdf: mapAttachments(f[AF.VERTRAG_PDF]),
+    images: mapAttachments(f[AF.IMAGES], { thumbnails: true }),
+    faw_data_attachment: mapAttachments(f[AF.FAW_DATA_ATTACHMENT]),
+    akquise_kommentar: f[AF.AKQUISE_KOMMENTAR] || null,
+    kommentar_installationen: first(f, AF.KOMMENTAR_INSTALLATIONEN),
+    frequency_approval_comment: f[AF.FREQUENCY_APPROVAL_COMMENT] || null,
+    // dVAC fields
+    dvac_month: f[AF.DVAC_MONTH] != null ? Number(f[AF.DVAC_MONTH]) : null,
+    dvac_day: f[AF.DVAC_DAY] != null ? Number(f[AF.DVAC_DAY]) : null,
+    // Location detail fields
+    hindernisse_beschreibung: f[AF.HINDERNISSE_BESCHREIBUNG] || null,
+    fensterbreite: f[AF.FENSTERBREITE] || null,
+    steckdose: f[AF.STECKDOSE] || null,
+    // Booking state is tracked in Supabase install_bookings, not in Airtable Acquisition_DB
     updated_at: new Date().toISOString(),
   };
 }
@@ -303,8 +347,8 @@ export function mapDaynScreen(rec) {
     max_video_length: f[DN.MAX_VIDEO_LENGTH] || null,
     min_video_length: f[DN.MIN_VIDEO_LENGTH] || null,
     static_duration: f[DN.STATIC_DURATION] || null,
-    static_supported: f[DN.STATIC_SUPPORTED] === 'TRUE' ? true : f[DN.STATIC_SUPPORTED] === 'FALSE' ? false : null,
-    video_supported: f[DN.VIDEO_SUPPORTED] === 'TRUE' ? true : f[DN.VIDEO_SUPPORTED] === 'FALSE' ? false : null,
+    static_supported: boolFromString(f[DN.STATIC_SUPPORTED]),
+    video_supported: boolFromString(f[DN.VIDEO_SUPPORTED]),
     dvac_week: f[DN.DVAC_WEEK] != null ? Number(f[DN.DVAC_WEEK]) : null,
     dvac_month: f[DN.DVAC_MONTH] != null ? Number(f[DN.DVAC_MONTH]) : null,
     dvac_day: f[DN.DVAC_DAY] != null ? Number(f[DN.DVAC_DAY]) : null,
@@ -323,6 +367,13 @@ export function mapInstallation(rec) {
   const protocol = Array.isArray(f[IF_.PROTOCOL]) && f[IF_.PROTOCOL][0]
     ? f[IF_.PROTOCOL][0] : null;
   const displayIds = ensureArray(f[IF_.DISPLAY_TABLE_ID_LOOKUP]);
+  const akquiseLinks = ensureArray(f[IF_.AKQUISE_LINK]);
+  const jetIds = ensureArray(f[IF_.JET_ID_LOOKUP]);
+  const locationNames = ensureArray(f[IF_.LOCATION_NAME_LOOKUP]);
+  const cities = ensureArray(f[IF_.CITY_LOOKUP]);
+  const streets = ensureArray(f[IF_.STREET_LOOKUP]);
+  const streetNumbers = ensureArray(f[IF_.STREET_NUMBER_LOOKUP]);
+  const postalCodes = ensureArray(f[IF_.POSTAL_CODE_LOOKUP]);
   return {
     id: rec.id, airtable_id: rec.id,
     display_ids: displayIds,
@@ -340,6 +391,14 @@ export function mapInstallation(rec) {
     install_end: f[IF_.INSTALL_END] || null,
     remarks: f[IF_.REMARKS] || null,
     partner_name: f[IF_.PARTNER_NAME] || null,
+    // Standort-Zuordnung (Lookups from Akquise)
+    akquise_links: akquiseLinks,
+    jet_id: jetIds[0] || null,
+    location_name: locationNames[0] || null,
+    city: cities[0] || null,
+    street: streets[0] || null,
+    street_number: streetNumbers[0] || null,
+    postal_code: postalCodes[0] || null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -497,6 +556,49 @@ export function mapCommunication(rec) {
     display_ids: f[CF.DISPLAY_ID_LOOKUP] || [],
     jet_ids: f[CF.JET_ID_LOOKUP] || [],
     related_task: f[CF.RELATED_TASK] || [],
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export function mapInstallationstermin(rec) {
+  const f = rec.fields;
+  return {
+    id: rec.id,
+    airtable_id: rec.id,
+    install_date_id: f[IT.INSTALL_DATE_ID] || null,
+    installationsdatum: safeFieldValue(f[IT.INSTALLATIONSDATUM]) || null,
+    erinnerungsdatum: safeFieldValue(f[IT.ERINNERUNGSDATUM]) || null,
+    installationszeit: safeFieldValue(f[IT.INSTALLATIONSZEIT]) || null,
+    grund_notiz: f[IT.GRUND_NOTIZ] || null,
+    naechste_schritt: f[IT.NAECHSTE_SCHRITT] || null,
+    kw_geplant: safeFieldValue(f[IT.KW_GEPLANT]) || null,
+    wochentag: safeFieldValue(f[IT.WOCHENTAG]) || null,
+    installationsdatum_nur_datum: safeFieldValue(f[IT.INSTALLATIONSDATUM_NUR_DATUM]) || null,
+    terminstatus: f[IT.TERMINSTATUS] || null,
+    jet_id_links: ensureArray(f[IT.JET_ID]),
+    location_name: ensureArray(f[IT.LOCATION_NAME]),
+    akquise_links: ensureArray(f[IT.AKQUISE]),
+    street: ensureArray(f[IT.STREET]),
+    street_number: ensureArray(f[IT.STREET_NUMBER]),
+    postal_code: ensureArray(f[IT.POSTAL_CODE]),
+    city: ensureArray(f[IT.CITY]),
+    contact_email: ensureArray(f[IT.CONTACT_EMAIL]),
+    stammdaten_links: ensureArray(f[IT.STAMMDATEN]),
+    installationen_links: ensureArray(f[IT.INSTALLATIONEN]),
+    status_installation: ensureArray(f[IT.STATUS_INSTALLATION]),
+    // Partner / Integrator / Technician lookups (from linked Installationen & Akquise)
+    integrator: ensureArray(f[IT.INTEGRATOR]),
+    technicians: ensureArray(f[IT.TECHNICIANS]),
+    installationsart: ensureArray(f[IT.INSTALLATIONSART]),
+    aufbau_datum: ensureArray(f[IT.AUFBAU_DATUM]),
+    abnahme_partner: ensureArray(f[IT.ABNAHME_PARTNER]),
+    acquisition_partner: ensureArray(f[IT.ACQUISITION_PARTNER]),
+    // Contact lookups from Stammdaten
+    contact_person: ensureArray(f[IT.CONTACT_PERSON]),
+    contact_phone: ensureArray(f[IT.CONTACT_PHONE]),
+    // Audit fields
+    created_at: f[IT.CREATED] || null,
+    created_by: f[IT.CREATED_BY]?.name || f[IT.CREATED_BY] || null,
     updated_at: new Date().toISOString(),
   };
 }

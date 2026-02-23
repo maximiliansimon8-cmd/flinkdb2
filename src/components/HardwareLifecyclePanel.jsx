@@ -7,13 +7,8 @@ import {
   ArrowRight, Clock, Hash, Calendar, Upload, FileText, Link2,
   Check, Eye,
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../utils/authService';
 import QRCodeLib from 'qrcode';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ'
-);
 
 // ─── Constants ───
 const POSITIONS = {
@@ -114,29 +109,39 @@ function WareneingangTab() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
 
-  const loadReceipts = useCallback(async () => {
+  const loadReceipts = useCallback(async (signal) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('goods_receipts')
         .select('*, hardware_qr_codes!goods_receipts_qr_code_id_fkey(qr_code)')
         .order('created_at', { ascending: false })
         .limit(200);
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (error) {
         // Fallback without join if FK doesn't exist
-        const { data: d2 } = await supabase.from('goods_receipts').select('*').order('created_at', { ascending: false }).limit(200);
-        setReceipts(d2 || []);
+        let fallback = supabase.from('goods_receipts').select('*').order('created_at', { ascending: false }).limit(200);
+        if (signal) fallback = fallback.abortSignal(signal);
+        const { data: d2 } = await fallback;
+        if (!signal?.aborted) setReceipts(d2 || []);
       } else {
         setReceipts(data || []);
       }
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[Wareneingang] Load error:', e);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadReceipts(); }, [loadReceipts]);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadReceipts(controller.signal);
+    return () => controller.abort();
+  }, [loadReceipts]);
 
   // ─── Single receipt + auto QR ───
   const handleSubmit = async (e) => {
@@ -644,23 +649,31 @@ function QRCodeTab() {
   const [assignType, setAssignType] = useState('ops');
   const printFrameRef = useRef(null);
 
-  const loadCodes = useCallback(async () => {
+  const loadCodes = useCallback(async (signal) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('hardware_qr_codes')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(500);
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (!error) setCodes(data || []);
     } catch (e) {
+      if (e?.name === 'AbortError') return;
       console.error('[QR] Load error:', e);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadCodes(); }, [loadCodes]);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadCodes(controller.signal);
+    return () => controller.abort();
+  }, [loadCodes]);
 
   const generateBulk = async () => {
     setGenerating(true);
@@ -958,19 +971,30 @@ function PositionenTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPosition, setFilterPosition] = useState('');
 
-  const loadPositions = useCallback(async () => {
+  const loadPositions = useCallback(async (signal) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('hardware_positions').select('*')
         .eq('is_current', true)
         .order('created_at', { ascending: false }).limit(500);
+      if (signal) query = query.abortSignal(signal);
+      const { data, error } = await query;
+      if (signal?.aborted) return;
       if (!error) setPositions(data || []);
-    } catch (e) { console.error('[Positionen] Load error:', e); }
-    finally { setLoading(false); }
+    } catch (e) {
+      if (e?.name === 'AbortError') return;
+      console.error('[Positionen] Load error:', e);
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { loadPositions(); }, [loadPositions]);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadPositions(controller.signal);
+    return () => controller.abort();
+  }, [loadPositions]);
 
   const filtered = useMemo(() => {
     let list = positions;

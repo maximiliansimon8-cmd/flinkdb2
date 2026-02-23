@@ -1,9 +1,10 @@
-import { StrictMode, Component } from 'react'
+import { StrictMode, Component, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-// Global error boundary to prevent white screen on crash
+const MonteurView = lazy(() => import('./pages/MonteurView.jsx'));
+
 class GlobalErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { hasError: false, error: null }; }
   static getDerivedStateFromError(error) { return { hasError: true, error }; }
@@ -35,7 +36,6 @@ class GlobalErrorBoundary extends Component {
   }
 }
 
-// Catch unhandled errors that slip past React
 window.addEventListener('error', (e) => {
   console.error('[Window Error]', e.error || e.message);
 });
@@ -43,10 +43,22 @@ window.addEventListener('unhandledrejection', (e) => {
   console.error('[Unhandled Promise]', e.reason);
 });
 
+const isMonteurRoute = window.location.pathname === '/monteur';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <GlobalErrorBoundary>
-      <App />
+      {isMonteurRoute ? (
+        <Suspense fallback={
+          <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 40, height: 40, border: '4px solid #FFE0B2', borderTopColor: '#FF8000', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          </div>
+        }>
+          <MonteurView />
+        </Suspense>
+      ) : (
+        <App />
+      )}
     </GlobalErrorBoundary>
   </StrictMode>,
 )

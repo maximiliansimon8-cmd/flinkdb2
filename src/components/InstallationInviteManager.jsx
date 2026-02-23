@@ -2,10 +2,16 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Send, Search, Filter, MapPin, Phone, User, CheckCircle, Clock, AlertCircle,
   ChevronDown, ChevronUp, RefreshCw, Users, Eye, Image, Building, Wrench,
-  CalendarCheck, ExternalLink, X, Check, Info, Loader2, Inbox, ChevronRight,
-  CheckSquare, Square, AlertTriangle, ArrowRight, History,
+  CalendarCheck, ExternalLink, X, XCircle, Check, Info, Loader2, Inbox, ChevronRight,
+  CheckSquare, Square, AlertTriangle, ArrowRight, History, FileText, Download,
+  MessageSquare, Zap, Map as MapIcon, Calendar, Copy,
 } from 'lucide-react';
-import { fetchAllAcquisition } from '../utils/airtableService';
+import { fetchAllAcquisition, fetchAllInstallationstermine } from '../utils/airtableService';
+import { isStorno, isAlreadyInstalled, isReadyForInstall } from '../metrics';
+import { INSTALL_API, formatDateYear as formatDate, formatDateTime, triggerSyncAndReload } from '../utils/installUtils';
+import { getCurrentUser } from '../utils/authService';
+import UnifiedStandortDetail from './UnifiedStandortDetail';
+import SuperChatHistory from './SuperChatHistory';
 
 const MOUNT_TYPES = [
   { value: '', label: 'Alle Montagearten' },
@@ -15,13 +21,14 @@ const MOUNT_TYPES = [
 ];
 
 const STATUS_BADGES = {
-  not_invited: { label: 'Nicht eingeladen', color: 'bg-gray-100 text-gray-600 border-gray-200', icon: Clock },
-  invited:     { label: 'Eingeladen',       color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Send },
-  pending:     { label: 'Eingeladen',       color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Send },
-  booked:      { label: 'Gebucht',          color: 'bg-blue-100 text-blue-700 border-blue-200', icon: CalendarCheck },
-  confirmed:   { label: 'Bestaetigt',       color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
-  completed:   { label: 'Abgeschlossen',    color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
-  cancelled:   { label: 'Storniert',        color: 'bg-red-100 text-red-700 border-red-200', icon: X },
+  not_invited:   { label: 'Nicht eingeladen', color: 'bg-gray-100 text-gray-600 border-gray-200', icon: Clock },
+  invited:       { label: 'Eingeladen',       color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Send },
+  pending:       { label: 'Eingeladen',       color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Send },
+  invite_failed: { label: 'Senden fehlgeschlagen', color: 'bg-red-100 text-red-700 border-red-200', icon: AlertCircle },
+  booked:        { label: 'Eingebucht',       color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
+  confirmed:     { label: 'Eingebucht',       color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
+  completed:     { label: 'Abgeschlossen',    color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
+  cancelled:     { label: 'Storniert',        color: 'bg-red-100 text-red-700 border-red-200', icon: X },
 };
 
 function StatusBadge({ status }) {
@@ -34,18 +41,20 @@ function StatusBadge({ status }) {
   );
 }
 
-function formatDate(d) {
-  if (!d) return '--';
-  return new Date(d).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function formatDateTime(d) {
-  if (!d) return '--';
-  return new Date(d).toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-}
-
 /* ── Detail Drawer ── */
 function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) {
+  // Build Google Maps Streetview link
+  const streetviewUrl = standort.street && standort.city?.[0]
+    ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${encodeURIComponent(
+        `${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}`
+      )}`
+    : null;
+  const mapsUrl = standort.street && standort.city?.[0]
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${standort.locationName || ''} ${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}`
+      )}`
+    : null;
+
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex justify-end animate-fade-in" onClick={onClose}>
       <div className="bg-white w-full max-w-lg h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -62,16 +71,47 @@ function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) 
           </button>
         </div>
 
-        <div className="p-5 space-y-5">
-          {/* Status */}
-          <div className="flex items-center gap-3">
+        <div className="p-5 space-y-4">
+          {/* Status + Quick Links */}
+          <div className="flex items-center gap-3 flex-wrap">
             <StatusBadge status={bookingInfo?.status || 'not_invited'} />
             {bookingInfo?.whatsapp_sent_at && (
               <span className="text-xs text-gray-400">
                 WhatsApp: {formatDateTime(bookingInfo.whatsapp_sent_at)}
               </span>
             )}
+            {mapsUrl && (
+              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                <MapPin size={11} /> Maps
+              </a>
+            )}
+            {streetviewUrl && (
+              <a href={streetviewUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors">
+                <Eye size={11} /> Streetview
+              </a>
+            )}
           </div>
+
+          {/* Embedded Mini-Map */}
+          {standort.street && standort.city?.[0] && (() => {
+            const mapQuery = encodeURIComponent(`${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}, Germany`);
+            const mapEmbedUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
+            return (
+              <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                <iframe
+                  src={mapEmbedUrl}
+                  width="100%"
+                  height="200"
+                  style={{ border: 0, borderRadius: '16px' }}
+                  allowFullScreen
+                  loading="lazy"
+                  title="Standort Karte"
+                />
+              </div>
+            );
+          })()}
 
           {/* Contact */}
           <div className="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
@@ -93,7 +133,58 @@ function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) 
               </div>
               <div>
                 <div className="text-gray-400 text-xs">JET ID</div>
-                <div className="text-gray-900 font-mono text-sm">{standort.jetId || '--'}</div>
+                <div className="text-gray-900 font-mono text-sm">{standort.jetId && !standort.jetId.startsWith('rec') ? standort.jetId : '--'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* WhatsApp Chat History */}
+          {standort.contactPhone && (
+            <SuperChatHistory
+              contactPhone={standort.contactPhone}
+              contactName={standort.contactPerson || standort.locationName}
+              collapsed={true}
+              maxHeight="300px"
+            />
+          )}
+
+          {/* Akquise-Daten */}
+          <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
+            <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
+              <Building size={14} /> Akquise-Daten
+            </h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-orange-400 text-xs">Akquise-Partner</div>
+                <div className="text-gray-900">{standort.acquisitionPartner || '--'}</div>
+              </div>
+              <div>
+                <div className="text-orange-400 text-xs">Akquise-ID</div>
+                <div className="text-gray-900 font-mono text-xs">{standort.akquiseId || standort.id?.substring(0, 12) || '--'}</div>
+              </div>
+              <div>
+                <div className="text-orange-400 text-xs">Akquise-Datum</div>
+                <div className="text-gray-900">{standort.acquisitionDate ? formatDate(standort.acquisitionDate) : '--'}</div>
+              </div>
+              <div>
+                <div className="text-orange-400 text-xs">Eingereicht von</div>
+                <div className="text-gray-900">{standort.submittedBy || '--'}</div>
+              </div>
+              <div>
+                <div className="text-orange-400 text-xs">Lead Status</div>
+                <div className="text-gray-900 font-medium">{standort.leadStatus || '--'}</div>
+              </div>
+              <div>
+                <div className="text-orange-400 text-xs">Approval Status</div>
+                <div className="text-gray-900">{standort.approvalStatus || '--'}</div>
+              </div>
+              <div>
+                <div className="text-orange-400 text-xs">Frequency Approval</div>
+                <div className="text-gray-900">{standort.frequencyApproval || '--'}</div>
+              </div>
+              <div>
+                <div className="text-orange-400 text-xs">DVAC Woche</div>
+                <div className="text-gray-900">{standort.dvacWeek || '--'}</div>
               </div>
             </div>
           </div>
@@ -113,23 +204,181 @@ function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) 
                 <div className="text-gray-900">{standort.schaufenster || '--'}</div>
               </div>
               <div>
-                <div className="text-gray-400 text-xs">Vertrag</div>
-                <div className="text-gray-900">{standort.vertragVorhanden || '--'}</div>
+                <div className="text-gray-400 text-xs">Vertrag vorhanden</div>
+                <div className="text-gray-900 flex items-center gap-1">
+                  {(standort.vertragVorhanden === 'true' || standort.vertragVorhanden === true || standort.vertragVorhanden === 'YES' || standort.vertragVorhanden === 'yes' || standort.vertragVorhanden === 'checked') ? (
+                    <><CheckCircle size={12} className="text-green-500" /> Ja</>
+                  ) : (
+                    <span className="text-gray-400">Nein</span>
+                  )}
+                </div>
               </div>
               <div>
-                <div className="text-gray-400 text-xs">Akquise-Partner</div>
-                <div className="text-gray-900">{standort.acquisitionPartner || '--'}</div>
+                <div className="text-gray-400 text-xs">Vertragsnummer</div>
+                <div className="text-gray-900 font-mono text-xs">{standort.vertragsnummer || '--'}</div>
+              </div>
+              <div>
+                <div className="text-gray-400 text-xs">Unterschriftsdatum</div>
+                <div className="text-gray-900">{standort.unterschriftsdatum ? formatDate(standort.unterschriftsdatum) : '--'}</div>
+              </div>
+              <div>
+                <div className="text-gray-400 text-xs">Install Approval</div>
+                <div className="text-gray-900">{standort.installApproval || '--'}</div>
               </div>
             </div>
-            {standort.hindernisse && (
-              <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                <div className="text-xs font-medium text-amber-700 flex items-center gap-1">
-                  <AlertCircle size={12} /> Hindernisse / Hinweise
+
+            {/* Installations Status */}
+            {Array.isArray(standort.installationsStatus) && standort.installationsStatus.length > 0 && standort.installationsStatus[0] && (
+              <div className="mt-2">
+                <div className="text-gray-400 text-xs mb-1">Installations-Status</div>
+                <div className="flex flex-wrap gap-1">
+                  {standort.installationsStatus.filter(Boolean).map((s, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-medium">
+                      {s}
+                    </span>
+                  ))}
                 </div>
-                <div className="text-xs text-amber-600 mt-0.5">{standort.hindernisse}</div>
+              </div>
+            )}
+
+            {/* Display Location Status */}
+            {Array.isArray(standort.displayLocationStatus) && standort.displayLocationStatus.length > 0 && standort.displayLocationStatus[0] && (
+              <div className="mt-2">
+                <div className="text-gray-400 text-xs mb-1">Display Status</div>
+                <div className="flex flex-wrap gap-1">
+                  {standort.displayLocationStatus.filter(Boolean).map((s, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-medium">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Hindernisse + Tech Details */}
+            {(standort.hindernisse || standort.hindernisseBeschreibung || standort.fensterbreite || standort.steckdose) && (
+              <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5">
+                <div className="text-xs font-medium text-amber-700 flex items-center gap-1">
+                  <AlertCircle size={12} /> Hindernisse / Technische Details
+                </div>
+                {standort.hindernisse && <div className="text-xs text-amber-600 whitespace-pre-wrap">{standort.hindernisse}</div>}
+                {standort.hindernisseBeschreibung && <div className="text-xs text-amber-600 whitespace-pre-wrap">{standort.hindernisseBeschreibung}</div>}
+                <div className="flex gap-3 text-xs">
+                  {standort.fensterbreite && (
+                    <span className="inline-flex items-center gap-1 text-green-600">
+                      <CheckCircle size={11} /> Fensterbreite: {standort.fensterbreite === true ? 'Ja' : standort.fensterbreite}
+                    </span>
+                  )}
+                  {standort.steckdose && (
+                    <span className="inline-flex items-center gap-1 text-green-600">
+                      <Zap size={11} /> Steckdose: {standort.steckdose === true ? 'Ja' : standort.steckdose}
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>
+
+          {/* Fotos */}
+          {standort.images && standort.images.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                <Image size={14} /> Standort-Fotos ({standort.images.length})
+              </h4>
+              <div className="grid grid-cols-3 gap-2">
+                {standort.images.slice(0, 6).map((img, i) => (
+                  <a key={i} href={img.url} target="_blank" rel="noopener noreferrer" className="block">
+                    <img
+                      src={img.thumbnails?.large?.url || img.thumbnails?.small?.url || img.url}
+                      alt={img.filename || `Foto ${i + 1}`}
+                      className="w-full h-20 object-cover rounded-xl border border-gray-100 hover:border-cyan-300 transition-colors"
+                      loading="lazy"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dokumente */}
+          {((standort.vertragPdf && standort.vertragPdf.length > 0) || (standort.fawDataAttachment && standort.fawDataAttachment.length > 0)) && (
+            <div className="bg-slate-50 rounded-2xl p-4 space-y-2 border border-slate-200">
+              <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                <FileText size={14} /> Dokumente
+              </h4>
+              <div className="space-y-1.5">
+                {standort.vertragPdf && standort.vertragPdf.map((doc, i) => (
+                  <a key={`pdf-${i}`} href={doc.url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50/50 transition-colors group">
+                    <FileText size={14} className="text-green-500 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-gray-900 truncate">{doc.filename || 'Vertrag PDF'}</div>
+                      {doc.size > 0 && <div className="text-[10px] text-gray-400">{(doc.size / 1024).toFixed(0)} KB</div>}
+                    </div>
+                    <Download size={12} className="text-gray-300 group-hover:text-green-500 shrink-0" />
+                  </a>
+                ))}
+                {standort.fawDataAttachment && standort.fawDataAttachment.map((doc, i) => (
+                  <a key={`faw-${i}`} href={doc.url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group">
+                    <FileText size={14} className="text-blue-500 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-gray-900 truncate">{doc.filename || 'FAW Daten'}</div>
+                      {doc.size > 0 && <div className="text-[10px] text-gray-400">{(doc.size / 1024).toFixed(0)} KB</div>}
+                    </div>
+                    <Download size={12} className="text-gray-300 group-hover:text-blue-500 shrink-0" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Kommentare */}
+          {(standort.akquiseKommentar || standort.kommentarInstallationen || standort.frequencyApprovalComment) && (
+            <div className="bg-sky-50/50 rounded-2xl p-4 space-y-3 border border-sky-100">
+              <h4 className="text-sm font-semibold text-sky-700 flex items-center gap-1.5">
+                <MessageSquare size={14} /> Kommentare
+              </h4>
+              {standort.akquiseKommentar && (
+                <div>
+                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Akquise</div>
+                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.akquiseKommentar}</div>
+                </div>
+              )}
+              {standort.kommentarInstallationen && (
+                <div>
+                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Installationen</div>
+                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.kommentarInstallationen}</div>
+                </div>
+              )}
+              {standort.frequencyApprovalComment && (
+                <div>
+                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">FAW Pruefung</div>
+                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.frequencyApprovalComment}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Storno-Info */}
+          {(standort.akquiseStorno || standort.postInstallStorno) && (
+            <div className="bg-red-50 rounded-2xl p-4 space-y-2 border border-red-200">
+              <h4 className="text-sm font-semibold text-red-700 flex items-center gap-1.5">
+                <XCircle size={14} /> Storno
+              </h4>
+              {standort.akquiseStorno && (
+                <div className="text-xs text-red-600">Akquise-Storno aktiv</div>
+              )}
+              {standort.postInstallStorno && (
+                <div className="text-xs text-red-600">Post-Install Storno aktiv</div>
+              )}
+              {Array.isArray(standort.postInstallStornoGrund) && standort.postInstallStornoGrund.length > 0 && (
+                <div className="text-xs text-red-500">
+                  Grund: {standort.postInstallStornoGrund.join(', ')}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Booking Info */}
           {bookingInfo && (
@@ -158,17 +407,41 @@ function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) 
                 )}
                 {bookingInfo.booked_at && (
                   <div>
-                    <div className="text-blue-400 text-xs">Gebucht am</div>
+                    <div className="text-blue-400 text-xs">Bestätigt am</div>
                     <div className="text-blue-900">{formatDateTime(bookingInfo.booked_at)}</div>
                   </div>
                 )}
               </div>
               {bookingInfo.booking_token && (
-                <div className="mt-2">
-                  <a href={`/book/${bookingInfo.booking_token}`} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">
-                    <ExternalLink size={11} /> Buchungsseite oeffnen
-                  </a>
+                <div className="mt-3 space-y-1">
+                  <div className="text-xs font-medium text-gray-500">Buchungslink</div>
+                  <div className="flex items-center gap-1.5">
+                    <code className="flex-1 text-xs bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-gray-700 break-all select-all">
+                      {`https://tools.dimension-outdoor.com/book/${bookingInfo.booking_token}`}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://tools.dimension-outdoor.com/book/${bookingInfo.booking_token}`);
+                        const btn = document.activeElement;
+                        const orig = btn.innerHTML;
+                        btn.innerHTML = '✓';
+                        setTimeout(() => { btn.innerHTML = orig; }, 1500);
+                      }}
+                      className="shrink-0 p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Link kopieren"
+                    >
+                      <Copy size={12} />
+                    </button>
+                    <a
+                      href={`/book/${bookingInfo.booking_token}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Buchungsseite oeffnen"
+                    >
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
@@ -176,7 +449,7 @@ function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) 
 
           {/* Actions */}
           <div className="pt-2 flex gap-3">
-            {(!bookingInfo || bookingInfo.status === 'not_invited') && standort.contactPhone && (
+            {(!bookingInfo || bookingInfo.status === 'not_invited') && standort.contactPhone && isReadyForInstall(standort) && (
               <button
                 onClick={() => onInvite([standort])}
                 disabled={inviting}
@@ -185,6 +458,12 @@ function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) 
                 {inviting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                 {inviting ? 'Wird gesendet...' : 'Einladung senden'}
               </button>
+            )}
+            {(!bookingInfo || bookingInfo.status === 'not_invited') && standort.contactPhone && !isReadyForInstall(standort) && (
+              <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2.5 rounded-xl w-full border border-amber-200">
+                <AlertCircle size={16} />
+                Nicht aufbaubereit (Approval/Vertrag fehlt)
+              </div>
             )}
             {!standort.contactPhone && (
               <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2.5 rounded-xl w-full border border-amber-200">
@@ -199,10 +478,21 @@ function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) 
   );
 }
 
-/* ── Batch Invite Confirm Modal with Progress ── */
-function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, progress }) {
+/* ── Batch Invite Confirm Modal with Progress + Template Selection + Route Selection ── */
+function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, progress, templates, selectedTemplate, onTemplateChange, routes, selectedRouteId, onRouteChange }) {
   const withPhone = selectedStandorte.filter(s => s.contactPhone);
   const withoutPhone = selectedStandorte.filter(s => !s.contactPhone);
+  const [showPreview, setShowPreview] = useState(false);
+  const activeTemplate = templates?.find(t => t.id === selectedTemplate);
+
+  // Format route label: "Frankfurt am Main - 17.02.2026 (e-Systems Team 1, 3/5 frei)"
+  const formatRouteLabel = (route) => {
+    const dateStr = route.schedule_date
+      ? new Date(route.schedule_date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : '--';
+    const team = route.installer_team || 'Kein Team';
+    return `${route.city || 'Unbekannt'} - ${dateStr} (${team}, ${route.frei}/${route.capacity} frei)`;
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
@@ -213,6 +503,94 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
             {withPhone.length} von {selectedStandorte.length} Standorte koennen eingeladen werden.
           </p>
         </div>
+
+        {/* Route/Tour Selector */}
+        {routes && routes.length > 0 && (
+          <div className="px-5 pt-4 pb-2">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+              <Calendar size={12} /> Route / Tour zuordnen
+            </label>
+            <select
+              value={selectedRouteId || ''}
+              onChange={(e) => onRouteChange(e.target.value)}
+              disabled={inviting}
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 disabled:opacity-50"
+            >
+              <option value="">Keine Route zuordnen (optional)</option>
+              {routes.map(r => (
+                <option key={r.id} value={r.id}>{formatRouteLabel(r)}</option>
+              ))}
+            </select>
+            {selectedRouteId && (() => {
+              const sel = routes.find(r => r.id === parseInt(selectedRouteId) || r.id === selectedRouteId);
+              if (!sel) return null;
+              return (
+                <div className="mt-2 flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+                  <Calendar size={12} className="shrink-0" />
+                  <span>
+                    Standorte werden der Tour <strong>{sel.city}</strong> am{' '}
+                    <strong>{new Date(sel.schedule_date + 'T00:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</strong> zugeordnet.
+                    {sel.frei < withPhone.length && (
+                      <span className="text-amber-600 font-medium ml-1">
+                        Achtung: Nur {sel.frei} Plaetze frei, aber {withPhone.length} ausgewaehlt!
+                      </span>
+                    )}
+                  </span>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Template Selector */}
+        {templates && templates.length > 0 && (
+          <div className="px-5 pt-4 pb-2">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">WhatsApp Template</label>
+            <select
+              value={selectedTemplate || ''}
+              onChange={(e) => onTemplateChange(e.target.value)}
+              disabled={inviting}
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 disabled:opacity-50"
+            >
+              {templates.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+            {activeTemplate && (
+              <button
+                onClick={() => setShowPreview(!showPreview)}
+                className="text-xs text-orange-600 hover:text-orange-700 mt-1.5 flex items-center gap-1"
+              >
+                <FileText size={10} />
+                {showPreview ? 'Vorschau ausblenden' : 'Vorschau anzeigen'}
+              </button>
+            )}
+            {showPreview && activeTemplate && (
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600 leading-relaxed whitespace-pre-wrap border border-gray-100">
+                {(() => {
+                  // Fill template placeholders with example values from first selected standort
+                  const example = withPhone[0];
+                  if (!example) return activeTemplate.body;
+                  const firstName = example.contactPerson ? example.contactPerson.split(' ')[0] : 'Standortinhaber/in';
+                  const city = (example.city || [])[0] || 'Stadt';
+                  const locName = example.locationName || example.jetId || city;
+                  const previewBody = activeTemplate.body
+                    .replace(/\{\{1\}\}/g, firstName)
+                    .replace(/\{\{2\}\}/g, city)
+                    .replace(/\{\{3\}\}/g, locName)
+                    .replace(/\{\{4\}\}/g, 'Verf. Termine')
+                    .replace(/\{\{5\}\}/g, 'tools.dimension-outdoor.com/book/...');
+                  return previewBody;
+                })()}
+                {withPhone.length > 1 && (
+                  <div className="mt-2 pt-2 border-t border-gray-200 text-[10px] text-gray-400 italic">
+                    Vorschau fuer: {withPhone[0].locationName} | {withPhone.length - 1} weitere werden individuell angepasst
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="p-5 space-y-3 max-h-60 overflow-y-auto">
           {withPhone.map(s => (
@@ -272,39 +650,375 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
 }
 
 
+/* ── Einladungs-Historie (Invitation History) ── */
+function InvitationHistorySection({ bookings, routes }) {
+  const [expandedGroups, setExpandedGroups] = useState(new Set());
+  const [historySearch, setHistorySearch] = useState('');
+
+  const routeMap = useMemo(() => {
+    const map = new Map();
+    for (const r of (routes || [])) {
+      if (r.id) map.set(r.id, r);
+    }
+    return map;
+  }, [routes]);
+
+  // Group bookings that have whatsapp_sent_at by route_id (or city+booked_date fallback)
+  const historyGroups = useMemo(() => {
+    const sentBookings = (bookings || []).filter(b => b.whatsapp_sent_at);
+    if (sentBookings.length === 0) return [];
+
+    const groupMap = new Map();
+    for (const b of sentBookings) {
+      const route = b.route_id ? routeMap.get(b.route_id) : null;
+      let groupKey, groupCity, groupDate, groupTeam;
+
+      if (route) {
+        groupKey = `route-${route.id}`;
+        groupCity = route.city || b.city || 'Unbekannt';
+        groupDate = route.schedule_date || b.booked_date || '';
+        groupTeam = route.installer_team || b.installer_team || '';
+      } else {
+        const sentDate = b.whatsapp_sent_at ? b.whatsapp_sent_at.slice(0, 10) : '';
+        groupCity = b.city || 'Unbekannt';
+        groupDate = b.booked_date || sentDate;
+        groupTeam = b.installer_team || '';
+        groupKey = `${groupCity}-${groupDate}-${groupTeam}`;
+      }
+
+      if (!groupMap.has(groupKey)) {
+        groupMap.set(groupKey, {
+          key: groupKey, city: groupCity, date: groupDate,
+          team: groupTeam, routeId: route?.id || null, items: [],
+        });
+      }
+      groupMap.get(groupKey).items.push(b);
+    }
+
+    const groups = [...groupMap.values()].sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return b.date.localeCompare(a.date);
+    });
+    for (const g of groups) {
+      g.items.sort((a, b) => new Date(b.whatsapp_sent_at) - new Date(a.whatsapp_sent_at));
+    }
+    return groups;
+  }, [bookings, routeMap]);
+
+  const filteredGroups = useMemo(() => {
+    if (!historySearch) return historyGroups;
+    const q = historySearch.toLowerCase();
+    return historyGroups.filter(g =>
+      (g.city || '').toLowerCase().includes(q) ||
+      (g.team || '').toLowerCase().includes(q) ||
+      (g.date || '').includes(q) ||
+      g.items.some(b =>
+        (b.location_name || '').toLowerCase().includes(q) ||
+        (b.contact_name || '').toLowerCase().includes(q) ||
+        (b.contact_phone || '').includes(q)
+      )
+    );
+  }, [historyGroups, historySearch]);
+
+  const toggleGroup = (key) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+  const expandAll = () => setExpandedGroups(new Set(filteredGroups.map(g => g.key)));
+  const collapseAll = () => setExpandedGroups(new Set());
+
+  const fmtDateDot = (dateStr) => {
+    if (!dateStr) return '--';
+    try {
+      const d = new Date(dateStr + (dateStr.length === 10 ? 'T00:00:00' : ''));
+      return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch { return dateStr; }
+  };
+  const fmtTime = (dateStr) => {
+    if (!dateStr) return '--';
+    try { return new Date(dateStr).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); }
+    catch { return '--'; }
+  };
+
+  if (historyGroups.length === 0) {
+    return (
+      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-8 shadow-sm">
+        <div className="flex flex-col items-center justify-center text-gray-400 gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center">
+            <History size={28} className="text-gray-300" />
+          </div>
+          <div className="text-center">
+            <p className="font-medium text-gray-600">Keine Einladungs-Historie</p>
+            <p className="text-xs text-gray-400 mt-1">Sobald Einladungen gesendet werden, erscheinen sie hier.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const totalInvitations = historyGroups.reduce((sum, g) => sum + g.items.length, 0);
+
+  return (
+    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
+      {/* Section Header */}
+      <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center">
+              <History size={18} className="text-indigo-600" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-900">Einladungs-Historie</h3>
+              <p className="text-xs text-gray-500">
+                {totalInvitations} Einladung{totalInvitations !== 1 ? 'en' : ''} in {historyGroups.length} Tour{historyGroups.length !== 1 ? 'en' : ''}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={expandAll}
+              className="px-2.5 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors">
+              Alle oeffnen
+            </button>
+            <button onClick={collapseAll}
+              className="px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+              Alle schliessen
+            </button>
+          </div>
+        </div>
+        {/* History Search */}
+        <div className="relative mt-3">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={historySearch}
+            onChange={(e) => setHistorySearch(e.target.value)}
+            placeholder="Historie durchsuchen (Stadt, Team, Standort...)"
+            className="w-full pl-9 pr-4 py-2 bg-white/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-sm transition-all"
+          />
+          {historySearch && (
+            <button onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Accordion Groups */}
+      <div className="divide-y divide-gray-100">
+        {filteredGroups.map(group => {
+          const isExpanded = expandedGroups.has(group.key);
+          const sCounts = {};
+          for (const b of group.items) { sCounts[b.status || 'pending'] = (sCounts[b.status || 'pending'] || 0) + 1; }
+
+          return (
+            <div key={group.key}>
+              <button
+                onClick={() => toggleGroup(group.key)}
+                className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/80 transition-colors text-left"
+              >
+                <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${isExpanded ? 'bg-indigo-100' : 'bg-gray-100'}`}>
+                  {isExpanded ? <ChevronDown size={14} className="text-indigo-600" /> : <ChevronRight size={14} className="text-gray-500" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm text-gray-900">{fmtDateDot(group.date)}</span>
+                    <span className="text-sm text-gray-400">&mdash;</span>
+                    <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                      <MapPin size={12} className="text-gray-400 shrink-0" /> Tour {group.city}
+                    </span>
+                    {group.team && (
+                      <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-full font-medium">
+                        {group.team}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {(sCounts.booked || sCounts.confirmed) ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-[10px] font-medium">
+                      <CheckCircle size={10} /> {(sCounts.booked || 0) + (sCounts.confirmed || 0)}
+                    </span>
+                  ) : null}
+                  {sCounts.pending ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-full text-[10px] font-medium">
+                      <Clock size={10} /> {sCounts.pending}
+                    </span>
+                  ) : null}
+                  {sCounts.cancelled ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-[10px] font-medium">
+                      <XCircle size={10} /> {sCounts.cancelled}
+                    </span>
+                  ) : null}
+                  <span className="text-xs text-gray-400 font-mono ml-1">{group.items.length} Einl.</span>
+                </div>
+              </button>
+
+              {isExpanded && (
+                <div className="px-5 pb-4">
+                  <div className="bg-gray-50/80 rounded-xl border border-gray-100 overflow-hidden">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200/60">
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Standort</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Stadt</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Kontakt</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Telefon</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Eingeladen um</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {group.items.map(b => {
+                          const stCfg = STATUS_BADGES[b.status] || STATUS_BADGES.not_invited;
+                          const StIcon = stCfg.icon;
+                          return (
+                            <tr key={b.id} className="hover:bg-white/60 transition-colors">
+                              <td className="px-4 py-2.5">
+                                <div className="text-sm font-medium text-gray-900 truncate max-w-[180px]">{b.location_name || 'Unbekannt'}</div>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <div className="text-sm text-gray-600 flex items-center gap-1">
+                                  <MapPin size={11} className="text-gray-400 shrink-0" /> {b.city || '--'}
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5"><div className="text-sm text-gray-700">{b.contact_name || '--'}</div></td>
+                              <td className="px-4 py-2.5">
+                                <div className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                                  <Phone size={10} className="text-gray-400" /> {b.contact_phone || '--'}
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${stCfg.color}`}>
+                                  <StIcon size={10} /> {stCfg.label}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar size={11} className="text-gray-400 shrink-0" />
+                                  <span className="text-xs text-gray-500 font-mono">{fmtDateDot(b.whatsapp_sent_at?.slice(0, 10))}</span>
+                                  <span className="text-xs text-gray-400 font-mono">{fmtTime(b.whatsapp_sent_at)}</span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {historySearch && filteredGroups.length === 0 && (
+        <div className="px-5 py-8 text-center text-gray-400">
+          <Search size={20} className="mx-auto mb-2 text-gray-300" />
+          <p className="text-sm">Keine Ergebnisse fuer &quot;{historySearch}&quot;</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 /* ── Main Component ── */
-export default function InstallationInviteManager({ onNavigateToDetail }) {
+export default function InstallationInviteManager({ onNavigateToDetail, filterCity: filterCityProp, campaignSelection, onCampaignConsumed }) {
   const [acquisitionData, setAcquisitionData] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [installationstermine, setInstallationstermine] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCity, setFilterCity] = useState('');
+
+  // Sync global city filter from parent
+  useEffect(() => {
+    if (filterCityProp !== undefined) setFilterCity(filterCityProp);
+  }, [filterCityProp]);
   const [filterMountType, setFilterMountType] = useState('');
   const [filterContract, setFilterContract] = useState('');
-  const [filterStatus, setFilterStatus] = useState('ready'); // 'ready', 'invited', 'all'
+  const [filterStatus, setFilterStatus] = useState('not_invited'); // 'not_invited', 'invited', 'booked', 'reschedule', 'all'
   const [selected, setSelected] = useState(new Set());
+  const [campaignBanner, setCampaignBanner] = useState(null); // { count, source }
+
+  // Consume campaign selection from MapView
+  useEffect(() => {
+    if (campaignSelection && campaignSelection.ids && campaignSelection.ids.size > 0) {
+      setSelected(new Set(campaignSelection.ids));
+      setFilterStatus('all'); // Show all so selected items are visible
+      setCampaignBanner({ count: campaignSelection.ids.size, source: campaignSelection.source });
+      onCampaignConsumed?.();
+    }
+  }, [campaignSelection]); // eslint-disable-line react-hooks/exhaustive-deps
   const [detailStandort, setDetailStandort] = useState(null);
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [inviteResult, setInviteResult] = useState(null);
   const [inviteProgress, setInviteProgress] = useState(null);
   const [toast, setToast] = useState(null);
+  const [whatsappEnabled, setWhatsappEnabled] = useState(null); // null = loading
+  const [waTemplates, setWaTemplates] = useState([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState(null);
+  const [availableRoutes, setAvailableRoutes] = useState([]);
+  const [allRoutes, setAllRoutes] = useState([]);
+  const [selectedRouteId, setSelectedRouteId] = useState('');
+
+  // Load WhatsApp feature flag + templates
+  useEffect(() => {
+    fetch(INSTALL_API.FLAGS)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.flags?.superchat_enabled) {
+          setWhatsappEnabled(data.flags.superchat_enabled.enabled);
+        } else {
+          setWhatsappEnabled(false);
+        }
+      })
+      .catch(() => setWhatsappEnabled(false));
+
+    // Load available WhatsApp templates from SuperChat
+    fetch(INSTALL_API.TEMPLATES)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const templates = data?.templates || [];
+        setWaTemplates(templates);
+        if (templates.length > 0 && !selectedTemplateId) {
+          setSelectedTemplateId(templates[0].id);
+        }
+      })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 5000);
   }, []);
 
+  const [syncing, setSyncing] = useState(false);
+
   // Load data
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [acqData, bookRes] = await Promise.all([
+      const today = new Date().toISOString().split('T')[0];
+      const [acqData, bookRes, terminData, routeRes, allRouteRes] = await Promise.all([
         fetchAllAcquisition(),
-        fetch('/api/install-booker/status?').then(r => r.json()).catch(() => []),
+        fetch(INSTALL_API.BOOKINGS).then(r => r.json()).catch(() => []),
+        fetchAllInstallationstermine().catch(() => []),
+        fetch(`${INSTALL_API.SCHEDULE}?from=${today}&status=open`).then(r => r.json()).catch(() => []),
+        fetch(INSTALL_API.SCHEDULE).then(r => r.json()).catch(() => []),
       ]);
       setAcquisitionData(acqData || []);
       setBookings(Array.isArray(bookRes) ? bookRes : []);
+      setInstallationstermine(Array.isArray(terminData) ? terminData : []);
+      setAvailableRoutes(Array.isArray(routeRes) ? routeRes : []);
+      setAllRoutes(Array.isArray(allRouteRes) ? allRouteRes : []);
     } catch (e) {
       console.error('Failed to load data:', e);
       showToast('Daten konnten nicht geladen werden.', 'error');
@@ -315,51 +1029,137 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  const handleRefresh = useCallback(async () => {
+    setSyncing(true);
+    await triggerSyncAndReload(loadData, showToast);
+    setSyncing(false);
+  }, [loadData, showToast]);
+
   // Booking lookup
   const bookingByAkquise = useMemo(() => {
+    // Bei mehreren Bookings pro Standort: das mit dem "aktivsten" Status gewinnt
+    // Priorität: confirmed/booked > pending > cancelled/no_show > completed
+    const STATUS_PRIORITY = { confirmed: 1, booked: 1, pending: 2, cancelled: 3, no_show: 3, completed: 4 };
     const map = new Map();
     for (const b of bookings) {
-      if (b.akquise_airtable_id) map.set(b.akquise_airtable_id, b);
+      if (!b.akquise_airtable_id) continue;
+      const existing = map.get(b.akquise_airtable_id);
+      if (!existing) {
+        map.set(b.akquise_airtable_id, b);
+      } else {
+        // Behalte das Booking mit höherer Priorität (niedrigere Zahl = wichtiger)
+        const existPrio = STATUS_PRIORITY[existing.status] ?? 99;
+        const newPrio = STATUS_PRIORITY[b.status] ?? 99;
+        if (newPrio < existPrio) map.set(b.akquise_airtable_id, b);
+      }
     }
     return map;
   }, [bookings]);
 
-  // Helpers
-  const isReadyForInstall = (a) => {
-    if (a.readyForInstallation === true || a.readyForInstallation === 'checked' || a.readyForInstallation === 'true') return true;
-    const ls = (a.leadStatus || '').toLowerCase();
-    const as = (a.approvalStatus || '').toLowerCase();
-    if ((ls === 'won / signed' || ls === 'won/signed') && as === 'accepted') return true;
-    if (ls.includes('ready') || ls.includes('installation')) return true;
-    return false;
-  };
+  // Enrich routes with booking counts for dropdown display
+  const enrichedRoutes = useMemo(() => {
+    return availableRoutes.map(route => {
+      const routeBookings = bookings.filter(
+        b => b.route_id === route.id && ['booked', 'confirmed', 'completed', 'pending'].includes(b.status)
+      );
+      const booked = routeBookings.length;
+      const capacity = route.max_capacity || 4;
+      const frei = Math.max(0, capacity - booked);
+      return { ...route, booked, capacity, frei };
+    }).filter(r => r.frei > 0) // Only show routes with available slots
+      .sort((a, b) => a.schedule_date.localeCompare(b.schedule_date) || (a.city || '').localeCompare(b.city || ''));
+  }, [availableRoutes, bookings]);
 
-  const isStorno = (a) => {
-    if (a.akquiseStorno === true || a.akquiseStorno === 'true') return true;
-    if (a.postInstallStorno === true || a.postInstallStorno === 'true') return true;
-    const ls = (a.leadStatus || '').toLowerCase();
-    return ls.includes('storno') || ls.includes('cancelled') || ls.includes('lost');
-  };
+  // Build a Set of akquise IDs that have an "active" Airtable Installationstermin.
+  // Active means any non-storniert termin. This prevents re-inviting standorte
+  // that already had a termin (even if "Geplant" is in the past — the status may
+  // just not have been updated to "Durchgeführt" yet in Airtable).
+  // Only explicitly "Storniert" termine are excluded.
+  const activeTerminIds = useMemo(() => {
+    const set = new Set();
+    for (const t of installationstermine) {
+      const status = (t.terminstatus || '').toLowerCase();
+      // Only skip explicitly cancelled termine
+      if (status === 'storniert' || status === 'cancelled') continue;
+      // Everything else counts as active (Durchgeführt, Geplant, etc.)
+      for (const akqId of (t.akquiseLinks || [])) {
+        set.add(akqId);
+      }
+    }
+    return set;
+  }, [installationstermine]);
 
-  const isAlreadyInstalled = (a) => {
-    const statuses = Array.isArray(a.installationsStatus) ? a.installationsStatus : [];
-    if (statuses.some(s => (s || '').toLowerCase().includes('installiert') || (s || '').toLowerCase().includes('live'))) return true;
-    return (a.leadStatus || '').toLowerCase() === 'live';
-  };
+  // Predicates imported from src/metrics (isStorno, isAlreadyInstalled, isReadyForInstall)
+
+  // Build set of acquisition IDs for fast lookup
+  const acquisitionIds = useMemo(() => new Set(acquisitionData.map(a => a.id)), [acquisitionData]);
+
+  // Bookings whose akquise_airtable_id is NOT in acquisitionData (missing due to pagination, sync gaps, etc.)
+  // We create minimal pseudo-acquisition records so they still appear in the filtered list.
+  // SAFETY: Only include bookings that are still active (pending/booked/confirmed) — skip completed/cancelled
+  // and skip those with an active Airtable Installationstermin (they're already handled).
+  const orphanBookingRecords = useMemo(() => {
+    return bookings
+      .filter(b => b.akquise_airtable_id && !acquisitionIds.has(b.akquise_airtable_id))
+      .filter(b => ['pending', 'booked', 'confirmed'].includes(b.status)) // only active bookings
+      .filter(b => !activeTerminIds.has(b.akquise_airtable_id)) // skip if Airtable termin exists
+      .map(b => ({
+        id: b.akquise_airtable_id,
+        locationName: b.location_name || 'Unbekannt',
+        city: b.city ? [b.city] : [],
+        contactName: b.contact_name || '',
+        contactPhone: b.contact_phone || '',
+        contactEmail: '',
+        jetId: b.jet_id || '',
+        street: '',
+        streetNumber: '',
+        postalCode: '',
+        leadStatus: 'Won / Signed',
+        approvalStatus: 'Accepted',
+        vertragVorhanden: 'YES',
+        installationsStatus: [],
+        displayLocationStatus: [],
+        akquiseStorno: false,
+        postInstallStorno: false,
+        _isOrphanBooking: true, // marker for debugging
+      }));
+  }, [bookings, acquisitionIds, activeTerminIds]);
 
   // Filter records
+  // A standort counts as "invited" if it has an install_bookings entry OR if Airtable Booking Status is set
   const readyStandorte = useMemo(() => {
-    return acquisitionData.filter(a => {
+    // Merge real acquisition data with orphan booking records
+    const allRecords = [...acquisitionData, ...orphanBookingRecords];
+    return allRecords.filter(a => {
       if (isStorno(a)) return false;
       if (isAlreadyInstalled(a)) return false;
       const booking = bookingByAkquise.get(a.id);
       const ready = isReadyForInstall(a);
       const hasBooking = !!booking;
-      if (filterStatus === 'ready') return ready && !hasBooking;
-      if (filterStatus === 'invited') return hasBooking;
-      return ready || hasBooking;
+      const hasActiveTermin = activeTerminIds.has(a.id);
+      // Airtable Booking Status fallback — standort was invited/booked outside of install_bookings
+      const atBookingStatus = a.bookingStatus;
+      const hasAirtableInvite = !!atBookingStatus && !hasBooking;
+      // A booking is "done" if status is completed — standort should not appear in invite flow
+      const bookingCompleted = hasBooking && booking.status === 'completed';
+      if (bookingCompleted) return false; // always hide completed bookings from entire invite view
+
+      if (filterStatus === 'not_invited') {
+        if (hasActiveTermin) return false;
+        if (!ready) return false; // must be aufbaubereit (Won/Signed + Approved + Vertrag)
+        // If booking exists with booked/confirmed status → they HAVE an appointment, not "not invited"
+        if (hasBooking && (booking.status === 'booked' || booking.status === 'confirmed')) return false;
+        if (!hasBooking && !hasAirtableInvite) return true; // no booking at all → not invited
+        if (hasBooking && booking.status === 'pending' && !booking.whatsapp_sent_at) return true; // booking but no WA
+        if (hasBooking && booking.status === 'invite_failed') return true; // WhatsApp fehlgeschlagen → erneut einladen
+        return false;
+      }
+      if (filterStatus === 'invited') return (hasBooking && booking.status === 'pending' && !!booking.whatsapp_sent_at) || (hasAirtableInvite && atBookingStatus === 'invited');
+      if (filterStatus === 'booked') return (hasBooking && (booking.status === 'booked' || booking.status === 'confirmed')) || (hasAirtableInvite && (atBookingStatus === 'confirmed' || atBookingStatus === 'booked'));
+      if (filterStatus === 'reschedule') return hasBooking && (booking.status === 'cancelled' || booking.status === 'no_show');
+      return ready || hasBooking || hasAirtableInvite;
     });
-  }, [acquisitionData, bookingByAkquise, filterStatus]);
+  }, [acquisitionData, orphanBookingRecords, bookingByAkquise, activeTerminIds, filterStatus]);
 
   // Apply search + filters
   const filtered = useMemo(() => {
@@ -377,28 +1177,66 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
     }
     if (filterCity) list = list.filter(s => (s.city || []).includes(filterCity));
     if (filterMountType) list = list.filter(s => (s.mountType || '').toLowerCase().includes(filterMountType.toLowerCase()));
-    if (filterContract === 'yes') list = list.filter(s => s.vertragVorhanden === 'true' || s.vertragVorhanden === true);
+    if (filterContract === 'yes') list = list.filter(s => s.vertragVorhanden === 'true' || s.vertragVorhanden === true || s.vertragVorhanden === 'YES' || s.vertragVorhanden === 'checked');
     else if (filterContract === 'no') list = list.filter(s => !s.vertragVorhanden || s.vertragVorhanden === 'false' || s.vertragVorhanden === false);
     return list;
   }, [readyStandorte, search, filterCity, filterMountType, filterContract]);
 
-  // Cities
+  // Cities — derived from all eligible acquisition data (not just current tab) for consistent filtering
   const cities = useMemo(() => {
     const set = new Set();
-    readyStandorte.forEach(s => (s.city || []).forEach(c => set.add(c)));
+    acquisitionData
+      .filter(a => !isStorno(a) && !isAlreadyInstalled(a))
+      .forEach(s => (s.city || []).forEach(c => set.add(c)));
     return [...set].sort();
-  }, [readyStandorte]);
+  }, [acquisitionData]);
 
   // KPIs
   const kpis = useMemo(() => {
     const eligible = acquisitionData.filter(a => !isStorno(a) && !isAlreadyInstalled(a));
-    const ready = eligible.filter(a => isReadyForInstall(a) && !bookingByAkquise.has(a.id));
-    const invited = bookings.filter(b => b.status === 'pending');
-    const booked = bookings.filter(b => b.status === 'booked');
-    const confirmed = bookings.filter(b => b.status === 'confirmed');
-    const withoutPhone = ready.filter(a => !a.contactPhone);
-    return { ready: ready.length, invited: invited.length, booked: booked.length, confirmed: confirmed.length, noPhone: withoutPhone.length };
-  }, [acquisitionData, bookings, bookingByAkquise]);
+    // "Bereit (gesamt)" = all aufbaubereit, regardless of booking/termin status
+    const totalReady = eligible.filter(a => isReadyForInstall(a)).length;
+    // Count unique Standorte (by akquise_airtable_id) per status — not total bookings
+    const uniqueByStatus = (statusFilter) => {
+      const seen = new Set();
+      for (const b of bookings) {
+        if (statusFilter(b) && b.akquise_airtable_id) seen.add(b.akquise_airtable_id);
+      }
+      return seen.size;
+    };
+    // "Eingeladen" = WhatsApp was sent, status still pending
+    let invited = uniqueByStatus(b => b.status === 'pending' && !!b.whatsapp_sent_at);
+    // "Gebucht" = all bookings with an active appointment (booked or confirmed)
+    let booked = uniqueByStatus(b => b.status === 'booked' || b.status === 'confirmed');
+    // "Reschedule" = cancelled/no_show bookings that need a new appointment
+    const needsReschedule = uniqueByStatus(b => b.status === 'cancelled' || b.status === 'no_show');
+    // Also count Airtable-only invites (no install_bookings entry but Airtable Booking Status set)
+    let airtableOnlyInvited = 0;
+    let airtableOnlyBooked = 0;
+    for (const a of eligible) {
+      if (a.bookingStatus && !bookingByAkquise.has(a.id) && !activeTerminIds.has(a.id)) {
+        if (a.bookingStatus === 'invited') airtableOnlyInvited++;
+        else if (a.bookingStatus === 'confirmed' || a.bookingStatus === 'booked') airtableOnlyBooked++;
+      }
+    }
+    invited += airtableOnlyInvited;
+    booked += airtableOnlyBooked;
+    // "Nicht eingeladen" = aufbaubereit but NO WhatsApp sent yet
+    // Includes: (a) no booking at all + (b) booking exists but whatsapp_sent_at is null + (c) invite_failed
+    const notInvited = eligible.filter(a => {
+      if (!isReadyForInstall(a)) return false;
+      if (activeTerminIds.has(a.id)) return false;
+      const bk = bookingByAkquise.get(a.id);
+      if (!bk && !a.bookingStatus) return true; // no booking, no Airtable status → not invited
+      if (bk && bk.status === 'pending' && !bk.whatsapp_sent_at) return true; // booking but no WA sent
+      if (bk && bk.status === 'invite_failed') return true; // WhatsApp fehlgeschlagen → erneut einladen
+      return false;
+    }).length;
+    const withoutPhone = eligible.filter(a =>
+      isReadyForInstall(a) && !bookingByAkquise.has(a.id) && !activeTerminIds.has(a.id) && !a.bookingStatus && !a.contactPhone
+    ).length;
+    return { totalReady, notInvited, invited, booked, reschedule: needsReschedule, noPhone: withoutPhone };
+  }, [acquisitionData, bookings, bookingByAkquise, activeTerminIds]);
 
   // Recently sent invites
   const recentInvites = useMemo(() => {
@@ -435,20 +1273,51 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
     });
   };
 
-  // Send invites with progress
-  const sendInvites = async (standorte) => {
+  // Send invites with progress — only approved+ready Standorte
+  const sendInvites = async (standorte, routeId) => {
+    // Safety: filter out any non-approved Standorte
+    const approvedStandorte = standorte.filter(s => isReadyForInstall(s));
+    if (approvedStandorte.length < standorte.length) {
+      console.warn(`[sendInvites] Filtered out ${standorte.length - approvedStandorte.length} non-approved Standorte`);
+    }
+    if (approvedStandorte.length === 0) {
+      showToast('Keine aufbaubereiten Standorte ausgewählt (Approval/Vertrag fehlt).', 'error');
+      return;
+    }
+
+    // Duplikat-Prüfung: Standorte mit offenen Bookings herausfiltern
+    const alreadyInvited = approvedStandorte.filter(s => {
+      const b = bookingByAkquise.get(s.id);
+      return b && ['pending', 'booked', 'confirmed'].includes(b.status);
+    });
+    const freshStandorte = approvedStandorte.filter(s => {
+      const b = bookingByAkquise.get(s.id);
+      return !b || !['pending', 'booked', 'confirmed'].includes(b.status);
+    });
+    if (alreadyInvited.length > 0 && freshStandorte.length === 0) {
+      showToast(`Alle ${alreadyInvited.length} Standorte haben bereits offene Einladungen. Keine neuen Einladungen gesendet.`, 'error');
+      return;
+    }
+    if (alreadyInvited.length > 0) {
+      const skipNames = alreadyInvited.map(s => s.locationName).join(', ');
+      showToast(`${alreadyInvited.length} bereits eingeladene Standorte übersprungen: ${skipNames}`, 'error');
+    }
+    // Verwende nur die frischen Standorte für den Versand
+    const toSend = freshStandorte.length > 0 ? freshStandorte : approvedStandorte;
+
     setInviting(true);
     setInviteResult(null);
-    setInviteProgress({ sent: 0, total: standorte.length, failed: 0, failedItems: [] });
+    setInviteProgress({ sent: 0, total: toSend.length, failed: 0, failedItems: [] });
 
+    const currentUser = getCurrentUser();
     let successCount = 0;
     let failCount = 0;
     const failedItems = [];
 
-    for (let i = 0; i < standorte.length; i++) {
-      const s = standorte[i];
+    for (let i = 0; i < toSend.length; i++) {
+      const s = toSend[i];
       try {
-        const res = await fetch('/api/install-booker/invite', {
+        const res = await fetch(INSTALL_API.INVITE, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -458,24 +1327,46 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
             locationName: s.locationName || '',
             city: (s.city || [])[0] || '',
             jetId: s.jetId || '',
+            templateId: selectedTemplateId || undefined,
+            routeId: routeId || undefined,
+            created_by_user_id: currentUser?.id || null,
+            created_by_user_name: currentUser?.name || null,
           }),
         });
         if (res.ok) {
-          successCount++;
+          const data = await res.json().catch(() => ({}));
+          if (data.whatsappSent) {
+            successCount++;
+          } else if (data.whatsappSkipped) {
+            // Booking created but WhatsApp disabled
+            successCount++;
+          } else {
+            // Booking created but WhatsApp failed
+            failCount++;
+            failedItems.push(`${s.locationName || s.id} (WhatsApp: ${data.whatsappError || 'Senden fehlgeschlagen'})`);
+          }
+        } else if (res.status === 409) {
+          // Duplikat — bereits eingeladen
+          const errData = await res.json().catch(() => ({}));
+          failCount++;
+          failedItems.push(`${s.locationName || s.id} (bereits eingeladen)`);
+          console.warn(`[sendInvites] Duplikat: ${s.locationName}`, errData.message);
         } else {
           failCount++;
-          failedItems.push(s.locationName || s.id);
+          const errData = await res.json().catch(() => ({}));
+          failedItems.push(`${s.locationName || s.id}${errData.message ? ` (${errData.message})` : ''}`);
         }
       } catch {
         failCount++;
         failedItems.push(s.locationName || s.id);
       }
-      setInviteProgress({ sent: i + 1, total: standorte.length, failed: failCount, failedItems });
+      setInviteProgress({ sent: i + 1, total: toSend.length, failed: failCount, failedItems });
     }
 
     setInviting(false);
     setShowBatchModal(false);
     setSelected(new Set());
+    setSelectedRouteId('');
     setInviteResult({ success: successCount, failed: failCount, failedItems });
     setInviteProgress(null);
 
@@ -522,11 +1413,11 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
             </button>
           )}
           <button
-            onClick={loadData}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl hover:bg-white/80 text-gray-700 text-sm transition-colors"
+            onClick={handleRefresh}
+            disabled={loading || syncing}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl hover:bg-white/80 text-gray-700 text-sm transition-colors disabled:opacity-50"
           >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+            {(loading || syncing) ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             Aktualisieren
           </button>
         </div>
@@ -559,13 +1450,53 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
         </div>
       )}
 
+      {/* WhatsApp Status Banner */}
+      {whatsappEnabled === false && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm">
+          <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+          <div>
+            <span className="font-medium text-amber-800">WhatsApp ist deaktiviert.</span>{' '}
+            <span className="text-amber-700">Einladungen werden erstellt, aber <strong>keine WhatsApp-Nachrichten</strong> gesendet. Aktiviere WhatsApp im Header-Toggle.</span>
+          </div>
+        </div>
+      )}
+      {whatsappEnabled === true && (
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-green-50 border border-green-200 rounded-xl text-sm">
+          <CheckCircle size={16} className="text-green-600 shrink-0" />
+          <span className="text-green-800"><strong>WhatsApp aktiv</strong> — Einladungen werden per WhatsApp an Kunden gesendet.</span>
+        </div>
+      )}
+
+      {/* Campaign Banner (when locations imported from MapView) */}
+      {campaignBanner && selected.size > 0 && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl text-sm animate-fade-in">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+              <MapIcon size={16} className="text-indigo-600" />
+            </div>
+            <div>
+              <span className="font-semibold text-indigo-800">{campaignBanner.count} Standorte aus Karte uebernommen</span>
+              <span className="text-indigo-600 ml-2">— Klicke &quot;Kampagne starten&quot; um Einladungen zu senden</span>
+            </div>
+          </div>
+          <button
+            onClick={() => { setCampaignBanner(null); setSelected(new Set()); }}
+            className="p-1.5 hover:bg-indigo-100 rounded-lg text-indigo-400 hover:text-indigo-600 transition-colors"
+            title="Auswahl aufheben"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: 'Bereit', value: kpis.ready, color: 'text-blue-600', bgColor: 'bg-blue-100', icon: Building, onClick: () => setFilterStatus('ready') },
+          { label: 'Bereit (gesamt)', value: kpis.totalReady, color: 'text-blue-600', bgColor: 'bg-blue-100', icon: Building, onClick: () => setFilterStatus('all') },
+          { label: 'Nicht eingeladen', value: kpis.notInvited, color: 'text-slate-600', bgColor: 'bg-slate-100', icon: Clock, onClick: () => setFilterStatus('not_invited') },
           { label: 'Eingeladen', value: kpis.invited, color: 'text-yellow-600', bgColor: 'bg-yellow-100', icon: Send, onClick: () => setFilterStatus('invited') },
-          { label: 'Gebucht', value: kpis.booked, color: 'text-indigo-600', bgColor: 'bg-indigo-100', icon: CalendarCheck, onClick: () => setFilterStatus('invited') },
-          { label: 'Bestaetigt', value: kpis.confirmed, color: 'text-green-600', bgColor: 'bg-green-100', icon: CheckCircle, onClick: () => setFilterStatus('invited') },
+          { label: 'Termin gebucht', value: kpis.booked, color: 'text-green-600', bgColor: 'bg-green-100', icon: CheckCircle, onClick: () => setFilterStatus('booked') },
+          { label: 'Reschedule', value: kpis.reschedule, color: 'text-orange-600', bgColor: 'bg-orange-100', icon: History, onClick: () => setFilterStatus('reschedule'), highlight: kpis.reschedule > 0 },
           { label: 'Ohne Telefon', value: kpis.noPhone, color: 'text-red-600', bgColor: 'bg-red-100', icon: AlertTriangle, onClick: () => {} },
         ].map(k => {
           const Icon = k.icon;
@@ -573,7 +1504,9 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
             <button
               key={k.label}
               onClick={k.onClick}
-              className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 text-left hover:bg-white/80 hover:shadow-md transition-all"
+              className={`backdrop-blur-xl rounded-2xl p-4 text-left hover:shadow-md transition-all ${
+                k.highlight ? 'bg-orange-50/80 border-2 border-orange-300 ring-1 ring-orange-200' : 'bg-white/60 border border-slate-200/60 hover:bg-white/80'
+              }`}
             >
               <div className="flex items-center gap-2 mb-2">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${k.bgColor}`}>
@@ -592,8 +1525,10 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
         {/* Status tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
           {[
-            { id: 'ready', label: 'Bereit', count: kpis.ready },
-            { id: 'invited', label: 'Eingeladen', count: kpis.invited + kpis.booked + kpis.confirmed },
+            { id: 'not_invited', label: 'Nicht eingeladen', count: kpis.notInvited },
+            { id: 'invited', label: 'Eingeladen', count: kpis.invited },
+            { id: 'booked', label: 'Termin gebucht', count: kpis.booked },
+            { id: 'reschedule', label: 'Reschedule', count: kpis.reschedule, warn: kpis.reschedule > 0 },
             { id: 'all', label: 'Alle' },
           ].map(tab => (
             <button
@@ -606,7 +1541,9 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
               }`}
             >
               {tab.label}
-              {tab.count !== undefined && <span className="ml-1 opacity-60">({tab.count})</span>}
+              {tab.count !== undefined && (
+                <span className={`ml-1 ${tab.warn ? 'text-orange-600 font-bold' : 'opacity-60'}`}>({tab.count})</span>
+              )}
             </button>
           ))}
         </div>
@@ -758,7 +1695,7 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={(e) => { e.stopPropagation(); onNavigateToDetail?.(s.id, s.locationName); }}
+                          onClick={(e) => { e.stopPropagation(); setDetailStandort(s); }}
                           className="text-left group"
                         >
                           <div className="font-medium text-gray-900 text-sm truncate max-w-[200px] group-hover:text-orange-600 transition-colors">{s.locationName || '--'}</div>
@@ -789,7 +1726,7 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
                         {s.mountType || '--'}
                       </td>
                       <td className="px-4 py-3">
-                        {(s.vertragVorhanden === 'true' || s.vertragVorhanden === true) ? (
+                        {(s.vertragVorhanden === 'true' || s.vertragVorhanden === true || s.vertragVorhanden === 'YES' || s.vertragVorhanden === 'yes' || s.vertragVorhanden === 'checked') ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-medium">
                             <CheckCircle size={10} /> Ja
                           </span>
@@ -861,14 +1798,15 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
         </div>
       )}
 
-      {/* Detail Drawer */}
+      {/* Einladungs-Historie */}
+      <InvitationHistorySection bookings={bookings} routes={allRoutes} />
+
+      {/* Detail Drawer — Unified */}
       {detailStandort && (
-        <StandortDetail
+        <UnifiedStandortDetail
           standort={detailStandort}
-          bookingInfo={bookingByAkquise.get(detailStandort.id)}
+          booking={bookingByAkquise.get(detailStandort.id)}
           onClose={() => setDetailStandort(null)}
-          onInvite={sendInvites}
-          inviting={inviting}
         />
       )}
 
@@ -876,10 +1814,16 @@ export default function InstallationInviteManager({ onNavigateToDetail }) {
       {showBatchModal && (
         <BatchInviteModal
           selectedStandorte={selectedStandorte}
-          onConfirm={sendInvites}
-          onCancel={() => setShowBatchModal(false)}
+          onConfirm={(standorte) => sendInvites(standorte, selectedRouteId)}
+          onCancel={() => { setShowBatchModal(false); setSelectedRouteId(''); }}
           inviting={inviting}
           progress={inviteProgress}
+          templates={waTemplates}
+          selectedTemplate={selectedTemplateId}
+          onTemplateChange={setSelectedTemplateId}
+          routes={enrichedRoutes}
+          selectedRouteId={selectedRouteId}
+          onRouteChange={setSelectedRouteId}
         />
       )}
     </div>

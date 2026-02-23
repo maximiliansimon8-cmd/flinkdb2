@@ -346,7 +346,7 @@ const API_DATA = [
           { airtable: 'Akquise Storno', supabase: 'akquise_storno', type: 'text', synced: true, interpretation: 'Akquise storniert?' },
           { airtable: 'Post\u2011Install Storno', supabase: 'post_install_storno', type: 'text', synced: true, interpretation: 'NON-BREAKING HYPHEN U+2011!' },
           { airtable: 'Post\u2011Install Storno Grund', supabase: 'post_install_storno_grund', type: 'text', synced: true, interpretation: 'Grund fuer Post-Install Storno (NON-BREAKING HYPHEN U+2011!)' },
-          { airtable: 'ready_for_installation', supabase: 'ready_for_installation', type: 'text', synced: true, interpretation: 'ACHTUNG: String "checked" statt Boolean!' },
+          { airtable: 'ready_for_installation', supabase: 'ready_for_installation', type: 'text', synced: true, interpretation: 'Airtable-Formel (NICHT MEHR als Predicate verwendet — kanonisch: lead_status + approval_status + vertrag_vorhanden)' },
           { airtable: 'Created', supabase: 'created_at', type: 'text', synced: true, interpretation: 'Erstellungsdatum des Records' },
           // ── Synced in DETAIL view only (ACQUISITION_DETAIL_FIELDS) ──
           { airtable: 'Hindernisse Beschreibung', supabase: 'hindernisse_beschreibung', type: 'text', synced: true, interpretation: 'Beschreibung der Hindernisse (Detail)' },

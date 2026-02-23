@@ -164,11 +164,39 @@ export default async (request, context) => {
 
   const url = new URL(request.url);
   const bookingId = url.searchParams.get('bookingId');
+  const akquiseId = url.searchParams.get('akquiseId');
   const city = url.searchParams.get('city');
   const all = url.searchParams.get('all');
   const apiStart = Date.now();
 
   try {
+    // ── Direct Akquise lookup (for Airtable-sourced bookings) ──
+    if (akquiseId && AIRTABLE_TOKEN) {
+      try {
+        const record = await fetchAkquiseRecord(akquiseId);
+        const akquise = transformAkquiseRecord(record);
+        logApiCall({
+          functionName: 'install-booker-detail',
+          service: 'airtable',
+          method: 'GET',
+          endpoint: `akquise/${akquiseId}`,
+          durationMs: Date.now() - apiStart,
+          statusCode: 200,
+          success: true,
+        });
+        return new Response(JSON.stringify({ akquise }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      } catch (e) {
+        console.error('[install-booker-detail] Direct Akquise fetch failed:', e.message);
+        return new Response(JSON.stringify({ error: 'Akquise record not found', akquise: null }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...cors },
+        });
+      }
+    }
+
     // ── Single booking detail ──
     if (bookingId) {
       // 1. Get the booking from Supabase
@@ -246,10 +274,10 @@ export default async (request, context) => {
       let akquiseRecords = [];
       if (AIRTABLE_TOKEN) {
         try {
-          // Fetch all Won/Signed records for this city
+          // Fetch all Won/Signed + Approved records for this city (no Display yet)
           const safeCity = sanitizeForAirtableFormula(city);
           const rawRecords = await fetchAkquiseRecords(
-            `AND({City}='${safeCity}', {Lead_Status}='Won / Signed')`,
+            `AND({City}='${safeCity}', {Lead_Status}='Won / Signed', {approval_status}='Accepted')`,
             500
           );
           akquiseRecords = rawRecords.map(transformAkquiseRecord);
@@ -316,12 +344,12 @@ export default async (request, context) => {
 
       // 2. Query Airtable for ALL relevant Akquise records
       //    Real Airtable values: Lead_Status="Won / Signed", approval_status="Accepted"
-      //    Broadly fetch all Won/Signed records; frontend handles display filtering
+      //    Filter: Won/Signed + Approved — frontend further filters for no Display ID / no Installation
       let akquiseRecords = [];
       if (AIRTABLE_TOKEN) {
         try {
           const rawRecords = await fetchAkquiseRecords(
-            `{Lead_Status}='Won / Signed'`,
+            `AND({Lead_Status}='Won / Signed', {approval_status}='Accepted')`,
             1000
           );
           akquiseRecords = rawRecords.map(transformAkquiseRecord);

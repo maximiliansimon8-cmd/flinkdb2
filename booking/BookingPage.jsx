@@ -5,7 +5,7 @@ const API = window.location.hostname === 'localhost'
   ? ''
   : '';
 
-/* ── Liefernado CI Colors ─────────────────────────────────── */
+/* ── Lieferando CI Colors ─────────────────────────────────── */
 const BRAND = {
   orange: '#FF8000',
   orangeLight: '#FFF3E6',
@@ -25,7 +25,7 @@ const BRAND = {
   yellowLight: '#FFFBEB',
 };
 
-/* ── Liefernado Logo (inline SVG) ─────────────────────────── */
+/* ── Lieferando Logo (inline SVG) ─────────────────────────── */
 function LieferandoLogo({ className = '' }) {
   return (
     <svg viewBox="0 0 520 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -55,17 +55,20 @@ const LANGS = {
 
 const T = {
   de: {
-    stepDate: 'Datum', stepTime: 'Uhrzeit', stepInfo: 'Info', stepBook: 'Buchen',
+    stepDate: 'Datum', stepTime: 'Zeitfenster', stepInfo: 'Info', stepBook: 'Buchen',
     loading: 'Verfügbare Termine werden geladen...',
     noSlots: 'Keine Termine verfügbar', expired: 'Link abgelaufen',
     invalidLink: 'Ungültiger Link', connectionError: 'Verbindungsfehler',
     hello: 'Hallo', selectDate: 'Termin auswählen',
-    selectDateDesc: 'Wählen Sie einen Installationstermin für Ihr Liefernado Display.',
+    selectDateDesc: 'Wählen Sie einen Installationstermin für Ihr Lieferando Display.',
     availableDays: 'Verfügbare Tage', slotsAvail: 'Zeitfenster verfügbar', free: 'frei',
     noSlotsMsg: 'Momentan sind keine Termine verfügbar.',
-    otherDate: 'Anderes Datum wählen', selectTime: 'Wählen Sie eine Uhrzeit für die Installation.',
+    otherDate: 'Anderes Datum wählen', selectWindow: 'Wählen Sie ein Zeitfenster für die Installation.',
     slotGone: 'Dieses Zeitfenster ist leider nicht mehr verfügbar.',
-    otherTime: 'Andere Uhrzeit wählen',
+    otherWindow: 'Anderes Zeitfenster wählen',
+    windowUnavailable: 'Nicht verfügbar',
+    confirmTime: 'zwischen',
+    confirmTimeEnd: 'Uhr',
     howItWorks: 'So funktioniert die Installation',
     readInfo: 'Bitte lesen Sie diese Informationen, damit am Installationstag alles reibungslos abläuft.',
     theDisplay: 'Das Display',
@@ -95,19 +98,23 @@ const T = {
     whatsappConfirm: 'Sie erhalten in Kürze eine Bestätigung per WhatsApp.',
     teamContact: 'Unser Team meldet sich am Installationstag bei Ihnen.',
     location: 'Standort',
+    clockSuffix: 'Uhr',
   },
   en: {
-    stepDate: 'Date', stepTime: 'Time', stepInfo: 'Info', stepBook: 'Book',
+    stepDate: 'Date', stepTime: 'Time slot', stepInfo: 'Info', stepBook: 'Book',
     loading: 'Loading available dates...',
     noSlots: 'No appointments available', expired: 'Link expired',
     invalidLink: 'Invalid link', connectionError: 'Connection error',
     hello: 'Hello', selectDate: 'Select appointment',
-    selectDateDesc: 'Choose an installation date for your Liefernado display.',
+    selectDateDesc: 'Choose an installation date for your Lieferando display.',
     availableDays: 'Available days', slotsAvail: 'time slots available', free: 'free',
     noSlotsMsg: 'No appointments are currently available.',
-    otherDate: 'Choose another date', selectTime: 'Choose a time for the installation.',
+    otherDate: 'Choose another date', selectWindow: 'Choose a time slot for the installation.',
     slotGone: 'This time slot is no longer available.',
-    otherTime: 'Choose another time',
+    otherWindow: 'Choose another time slot',
+    windowUnavailable: 'Unavailable',
+    confirmTime: 'between',
+    confirmTimeEnd: '',
     howItWorks: 'How the installation works',
     readInfo: 'Please read this information so everything runs smoothly on installation day.',
     theDisplay: 'The display',
@@ -137,19 +144,23 @@ const T = {
     whatsappConfirm: 'You will receive a confirmation via WhatsApp shortly.',
     teamContact: 'Our team will contact you on installation day.',
     location: 'Location',
+    clockSuffix: '',
   },
   tr: {
-    stepDate: 'Tarih', stepTime: 'Saat', stepInfo: 'Bilgi', stepBook: 'Rezerve',
+    stepDate: 'Tarih', stepTime: 'Zaman dilimi', stepInfo: 'Bilgi', stepBook: 'Rezerve',
     loading: 'Mevcut randevular yükleniyor...',
     noSlots: 'Randevu mevcut değil', expired: 'Link süresi dolmuş',
     invalidLink: 'Geçersiz link', connectionError: 'Bağlantı hatası',
     hello: 'Merhaba', selectDate: 'Randevu seçin',
-    selectDateDesc: 'Liefernado ekranınız için bir kurulum tarihi seçin.',
+    selectDateDesc: 'Lieferando ekranınız için bir kurulum tarihi seçin.',
     availableDays: 'Mevcut günler', slotsAvail: 'zaman dilimi mevcut', free: 'boş',
     noSlotsMsg: 'Şu anda mevcut randevu bulunmamaktadır.',
-    otherDate: 'Başka bir tarih seçin', selectTime: 'Kurulum için bir saat seçin.',
+    otherDate: 'Başka bir tarih seçin', selectWindow: 'Kurulum için bir zaman dilimi seçin.',
     slotGone: 'Bu zaman dilimi artık mevcut değil.',
-    otherTime: 'Başka bir saat seçin',
+    otherWindow: 'Başka bir zaman dilimi seçin',
+    windowUnavailable: 'Mevcut değil',
+    confirmTime: 'saat',
+    confirmTimeEnd: 'arası',
     howItWorks: 'Kurulum nasıl yapılır',
     readInfo: 'Kurulum gününde her şeyin sorunsuz ilerlemesi için bu bilgileri okuyun.',
     theDisplay: 'Ekran',
@@ -179,9 +190,10 @@ const T = {
     whatsappConfirm: 'Kısa süre içinde WhatsApp ile onay alacaksınız.',
     teamContact: 'Ekibimiz kurulum günü sizinle iletişime geçecek.',
     location: 'Konum',
+    clockSuffix: '',
   },
   ar: {
-    stepDate: 'التاريخ', stepTime: 'الوقت', stepInfo: 'معلومات', stepBook: 'حجز',
+    stepDate: 'التاريخ', stepTime: 'الفترة الزمنية', stepInfo: 'معلومات', stepBook: 'حجز',
     loading: '...جاري تحميل المواعيد المتاحة',
     noSlots: 'لا توجد مواعيد متاحة', expired: 'الرابط منتهي الصلاحية',
     invalidLink: 'رابط غير صالح', connectionError: 'خطأ في الاتصال',
@@ -189,9 +201,12 @@ const T = {
     selectDateDesc: 'اختر موعد تركيب شاشة ليفراندو الخاصة بك.',
     availableDays: 'الأيام المتاحة', slotsAvail: 'فترات زمنية متاحة', free: 'متاح',
     noSlotsMsg: 'لا توجد مواعيد متاحة حالياً.',
-    otherDate: 'اختر تاريخاً آخر', selectTime: 'اختر وقتاً للتركيب.',
+    otherDate: 'اختر تاريخاً آخر', selectWindow: 'اختر فترة زمنية للتركيب.',
     slotGone: 'هذا الموعد لم يعد متاحاً.',
-    otherTime: 'اختر وقتاً آخر',
+    otherWindow: 'اختر فترة زمنية أخرى',
+    windowUnavailable: 'غير متاح',
+    confirmTime: 'بين',
+    confirmTimeEnd: '',
     howItWorks: 'كيف يتم التركيب',
     readInfo: 'يرجى قراءة هذه المعلومات لضمان سير عملية التركيب بسلاسة.',
     theDisplay: 'الشاشة',
@@ -221,6 +236,7 @@ const T = {
     whatsappConfirm: 'ستتلقى تأكيداً عبر واتساب قريباً.',
     teamContact: 'سيتواصل فريقنا معك في يوم التركيب.',
     location: 'الموقع',
+    clockSuffix: '',
   },
 };
 
@@ -279,7 +295,7 @@ function InstallInfoSection({ onContinue, onBack, t = T.de }) {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          {t.otherTime}
+          {t.otherWindow}
         </button>
         <h2 className="text-lg font-bold" style={{ color: BRAND.text }}>
           {t.howItWorks}
@@ -401,7 +417,7 @@ export default function BookingPage() {
 
   // user selections
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedWindow, setSelectedWindow] = useState(null); // 'morning' | 'afternoon' | 'evening'
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -471,7 +487,7 @@ export default function BookingPage() {
 
   /* ── book ────────────────────────────────────────────────── */
   async function handleBook() {
-    if (!selectedDate || !selectedTime) return;
+    if (!selectedDate || !selectedWindow) return;
     setSubmitting(true);
 
     try {
@@ -481,7 +497,7 @@ export default function BookingPage() {
         body: JSON.stringify({
           token,
           date: selectedDate,
-          time: selectedTime,
+          window: selectedWindow,
           notes: notes.trim() || undefined,
         }),
       });
@@ -491,9 +507,9 @@ export default function BookingPage() {
       if (data.success) {
         setBookingResult(data.booking);
         setStep(STEP.DONE);
-      } else if (data.error === 'slot_taken' || data.error === 'day_full') {
+      } else if (data.error === 'slot_taken' || data.error === 'window_full' || data.error === 'day_full') {
         setError({ type: 'slot_gone', message: data.message });
-        setSelectedTime(null);
+        setSelectedWindow(null);
         setStep(STEP.TIME);
         const refreshRes = await fetch(`${API}/api/install-booker/slots?token=${encodeURIComponent(token)}`);
         const refreshData = await refreshRes.json();
@@ -616,7 +632,7 @@ export default function BookingPage() {
               {availableDates.map(d => (
                 <button
                   key={d.date}
-                  onClick={() => { setSelectedDate(d.date); setSelectedTime(null); setStep(STEP.TIME); }}
+                  onClick={() => { setSelectedDate(d.date); setSelectedWindow(null); setStep(STEP.TIME); }}
                   className="w-full bg-white rounded-xl border-2 p-4 flex items-center justify-between
                     transition-all hover:shadow-md active:scale-[0.98]"
                   style={{
@@ -627,13 +643,13 @@ export default function BookingPage() {
                   <div className="text-left">
                     <p className="font-semibold" style={{ color: BRAND.text }}>{formatDateShortLocale(d.date, lang)}</p>
                     <p className="text-xs mt-0.5" style={{ color: BRAND.textLight }}>
-                      {d.slots.filter(s => s.available !== false).length} {t.slotsAvail}
+                      {(d.windows || []).filter(w => w.available).length} {t.slotsAvail}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium px-2 py-1 rounded-full"
                       style={{ color: BRAND.orange, backgroundColor: BRAND.orangeLight }}>
-                      {d.slots.filter(s => s.available !== false).length} {t.free}
+                      {(d.windows || []).filter(w => w.available).length} {t.free}
                     </span>
                     <svg className="w-5 h-5" style={{ color: BRAND.textMuted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -652,12 +668,12 @@ export default function BookingPage() {
           </div>
         )}
 
-        {/* ── STEP 2: TIME ─────────────────────────── */}
+        {/* ── STEP 2: TIME WINDOW ─────────────────── */}
         {step === STEP.TIME && selectedDateData && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl shadow-sm border p-5" style={{ borderColor: '#FED7AA' }}>
               <button
-                onClick={() => { setStep(STEP.DATE); setSelectedTime(null); setError(null); }}
+                onClick={() => { setStep(STEP.DATE); setSelectedWindow(null); setError(null); }}
                 className="flex items-center gap-1 text-sm mb-3 hover:underline"
                 style={{ color: BRAND.orange }}
               >
@@ -667,7 +683,7 @@ export default function BookingPage() {
                 {t.otherDate}
               </button>
               <h2 className="text-lg font-bold" style={{ color: BRAND.text }}>{formatDateLocale(selectedDate, lang)}</h2>
-              <p className="text-sm" style={{ color: BRAND.textLight }}>{t.selectTime}</p>
+              <p className="text-sm" style={{ color: BRAND.textLight }}>{t.selectWindow}</p>
             </div>
 
             {error?.type === 'slot_gone' && (
@@ -677,37 +693,73 @@ export default function BookingPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
-              {selectedDateData.slots.filter(s => s.available !== false).map(slot => (
-                <button
-                  key={slot.time}
-                  onClick={() => { setSelectedTime(slot.time); setError(null); setStep(STEP.INFO); }}
-                  className="bg-white rounded-xl border-2 p-4 text-center transition-all
-                    hover:shadow-md active:scale-[0.97]"
-                  style={{
-                    borderColor: selectedTime === slot.time ? BRAND.orange : '#F3F4F6',
-                    backgroundColor: selectedTime === slot.time ? BRAND.orangeLight : BRAND.white,
-                  }}
-                >
-                  <p className="text-lg font-bold" style={{ color: BRAND.text }}>{slot.time}</p>
-                  <p className="text-xs mt-0.5" style={{ color: BRAND.textLight }}>{slot.time} – {endTime(slot.time)} Uhr</p>
-                </button>
-              ))}
+            {/* Time Window Cards */}
+            <div className="space-y-3">
+              {(selectedDateData.windows || []).map(w => {
+                const isAvailable = w.available;
+                const isSelected = selectedWindow === w.key;
+                const windowEmoji = w.key === 'morning' ? '\u{1F305}' : w.key === 'afternoon' ? '\u2600\uFE0F' : '\u{1F319}';
+
+                return (
+                  <button
+                    key={w.key}
+                    onClick={() => {
+                      if (!isAvailable) return;
+                      setSelectedWindow(w.key);
+                      setError(null);
+                      setStep(STEP.INFO);
+                    }}
+                    disabled={!isAvailable}
+                    className={`w-full rounded-xl border-2 p-5 text-left transition-all ${
+                      isAvailable ? 'hover:shadow-md active:scale-[0.98]' : 'opacity-50 cursor-not-allowed'
+                    }`}
+                    style={{
+                      borderColor: isSelected ? BRAND.orange : isAvailable ? '#F3F4F6' : '#E5E7EB',
+                      backgroundColor: isSelected ? BRAND.orangeLight : BRAND.white,
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{windowEmoji}</span>
+                        <div>
+                          <p className="text-base font-bold" style={{ color: isAvailable ? BRAND.text : BRAND.textMuted }}>
+                            {w.label?.[lang] || w.label?.de || w.label}
+                          </p>
+                          <p className="text-sm mt-0.5" style={{ color: isAvailable ? BRAND.textLight : BRAND.textMuted }}>
+                            {w.rangeLabel?.[lang] || w.rangeLabel?.de || w.range}
+                          </p>
+                        </div>
+                      </div>
+                      {isAvailable ? (
+                        <span className="text-xs font-medium px-3 py-1.5 rounded-full"
+                          style={{ color: BRAND.orange, backgroundColor: BRAND.orangeLight }}>
+                          {w.slotCount} {t.free}
+                        </span>
+                      ) : (
+                        <span className="text-xs font-medium px-3 py-1.5 rounded-full"
+                          style={{ color: BRAND.textMuted, backgroundColor: '#F3F4F6' }}>
+                          {t.windowUnavailable}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* ── STEP 2.5: INFO ─────────────────────────── */}
-        {step === STEP.INFO && selectedDate && selectedTime && (
+        {step === STEP.INFO && selectedDate && selectedWindow && (
           <InstallInfoSection
             onContinue={() => setStep(STEP.CONFIRM)}
-            onBack={() => { setStep(STEP.TIME); setSelectedTime(null); }}
+            onBack={() => { setStep(STEP.TIME); setSelectedWindow(null); }}
             t={t}
           />
         )}
 
         {/* ── STEP 3: CONFIRM ─────────────────────── */}
-        {step === STEP.CONFIRM && selectedDate && selectedTime && (
+        {step === STEP.CONFIRM && selectedDate && selectedWindow && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl shadow-sm border p-5" style={{ borderColor: '#FED7AA' }}>
               <button
@@ -734,7 +786,14 @@ export default function BookingPage() {
                   </div>
                   <div>
                     <p className="text-sm font-bold" style={{ color: BRAND.text }}>{formatDateLocale(selectedDate, lang)}</p>
-                    <p className="text-sm" style={{ color: BRAND.textLight }}>{selectedTime} – {endTime(selectedTime)} Uhr</p>
+                    <p className="text-sm" style={{ color: BRAND.textLight }}>
+                      {(() => {
+                        const wd = selectedDateData?.windows?.find(w => w.key === selectedWindow);
+                        const wLabel = wd?.label?.[lang] || wd?.label?.de || selectedWindow;
+                        const wRange = wd?.rangeLabel?.[lang] || wd?.rangeLabel?.de || wd?.range || '';
+                        return `${wLabel} (${wRange})`;
+                      })()}
+                    </p>
                   </div>
                 </div>
                 {locationName && (
@@ -793,7 +852,7 @@ export default function BookingPage() {
               )}
             </button>
 
-            {error?.type === 'book_failed' && (
+            {(error?.type === 'book_failed' || error?.type === 'network') && (
               <div className="rounded-xl p-3 text-sm text-center border"
                 style={{ backgroundColor: BRAND.redLight, borderColor: '#FECACA', color: '#B91C1C' }}>
                 {error.message}
@@ -828,7 +887,10 @@ export default function BookingPage() {
                   <div>
                     <p className="text-sm font-bold" style={{ color: BRAND.text }}>{formatDateLocale(bookingResult.date, lang)}</p>
                     <p className="text-sm" style={{ color: BRAND.textLight }}>
-                      {bookingResult.time} – {bookingResult.endTime || endTime(bookingResult.time)} Uhr
+                      {bookingResult.windowLabel?.[lang] || bookingResult.windowLabel?.de
+                        ? `${bookingResult.windowLabel[lang] || bookingResult.windowLabel.de} (${bookingResult.windowRange?.[lang] || bookingResult.windowRange?.de || ''})`
+                        : `${bookingResult.time} – ${bookingResult.endTime || endTime(bookingResult.time)}${t.clockSuffix ? ` ${t.clockSuffix}` : ''}`
+                      }
                     </p>
                   </div>
                 </div>
@@ -863,7 +925,7 @@ export default function BookingPage() {
         {/* Footer */}
         <div className="text-center mt-8 pb-8">
           <p className="text-xs" style={{ color: BRAND.textMuted }}>
-            Liefernado Display Netzwerk — powered by JET Germany
+            Lieferando Display Netzwerk — powered by JET Germany
           </p>
         </div>
       </main>

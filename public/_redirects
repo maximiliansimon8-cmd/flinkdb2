@@ -5,11 +5,16 @@
 /api/sync        /.netlify/functions/sync-airtable    200!
 /api/trigger-sync /.netlify/functions/trigger-sync-background    200!
 /api/sync-attachments /.netlify/functions/sync-attachments 200!
+/api/sync-attachments-trigger /.netlify/functions/trigger-sync-attachments-background 200!
 /api/users/*     /.netlify/functions/user-management/:splat 200!
 /api/vistar-sync  /.netlify/functions/vistar-sync       200!
 /api/vistar/*    /.netlify/functions/vistar-proxy/:splat 200!
 /api/bank-import /.netlify/functions/bank-import       200!
 /api/chat-proxy  /.netlify/functions/chat-proxy         200!
+
+# Data proxies
+/api/supabase-proxy  /.netlify/functions/supabase-proxy  200!
+/api/sync-nocodb     /.netlify/functions/sync-nocodb      200!
 
 # Install Booker APIs
 /api/install-schedule    /.netlify/functions/install-schedule    200!
@@ -21,12 +26,30 @@
 /api/install-booker/detail/* /.netlify/functions/install-booker-detail   200!
 /api/install-booker/status   /.netlify/functions/install-booker-status   200!
 /api/install-booker/status/* /.netlify/functions/install-booker-status   200!
+/api/install-booker/templates /.netlify/functions/install-booker-templates 200!
+/api/install-booker/send-reminder /.netlify/functions/install-booker-send-reminder 200!
+
+# Install Monteur APIs (mobile monteur interface)
+/api/install-monteur/link     /.netlify/functions/install-monteur     200!
+/api/install-monteur/status   /.netlify/functions/install-monteur-status  200!
+/api/install-monteur          /.netlify/functions/install-monteur     200!
+
+# Feature Flags API
+/api/feature-flags      /.netlify/functions/feature-flags    200!
+/api/feature-flags/*    /.netlify/functions/feature-flags    200!
 
 # Booking page (public, separate SPA)
 /book/*  /booking/index.html  200
 
+# Installations-Tool (standalone SPA, separate login)
+/install     /install.html  200
+/install/*   /install.html  200
+
 # Scheduling tool (standalone SPA, auth required)
 /scheduling/*  /scheduling/index.html  200
+
+# Monteur mobile view (public, token-based auth)
+/monteur  /index.html  200
 
 # SPA fallback
 /*  /index.html  200

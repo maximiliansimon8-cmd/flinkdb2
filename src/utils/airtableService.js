@@ -42,9 +42,54 @@ const cache = {
   partnersTimestamp: null,
   allAcquisition: null,
   allAcquisitionTimestamp: null,
+  allInstallationstermine: null,
+  allInstallationstermineTimestamp: null,
 };
 
-const CACHE_TTL = 1 * 60 * 1000; // 1 minute – other teams work on Airtable, keep data fresh
+// Supabase syncs every 15 min, so 5 min TTL is safe and prevents redundant fetches
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/* ═══════════════════════════════════════════════════════════
+ *  REQUEST DEDUPLICATION
+ *  Prevents duplicate fetches when multiple components mount simultaneously
+ * ═══════════════════════════════════════════════════════════ */
+
+const _inflight = {};
+
+/* ═══════════════════════════════════════════════════════════
+ *  localStorage PERSISTENCE LAYER
+ *  Shows cached data instantly on reload, refreshes in background
+ * ═══════════════════════════════════════════════════════════ */
+
+const PERSIST_TTL = 10 * 60 * 1000; // 10 minutes for localStorage
+
+function loadFromPersist(key) {
+  try {
+    const raw = localStorage.getItem(`jet_cache_${key}`);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > PERSIST_TTL) {
+      localStorage.removeItem(`jet_cache_${key}`);
+      return null;
+    }
+    return data;
+  } catch { return null; }
+}
+
+function saveToPersist(key, data) {
+  try {
+    localStorage.setItem(`jet_cache_${key}`, JSON.stringify({ data, ts: Date.now() }));
+  } catch { /* quota exceeded — ignore */ }
+}
+
+/**
+ * Invalidate a specific cache key (call after writes/updates).
+ */
+export function invalidateCache(key) {
+  if (cache[key] !== undefined) cache[key] = null;
+  if (cache[key + 'Timestamp'] !== undefined) cache[key + 'Timestamp'] = null;
+  try { localStorage.removeItem(`jet_cache_${key}`); } catch {}
+}
 
 /* ═══════════════════════════════════════════════════════════
  *  READ: STAMMDATEN (from Supabase)
@@ -133,6 +178,25 @@ export async function fetchAllStammdaten() {
     return cache.allStammdaten;
   }
 
+  // Request deduplication
+  if (_inflight.allStammdaten) return _inflight.allStammdaten;
+
+  _inflight.allStammdaten = _fetchAllStammdatenImpl();
+  try {
+    return await _inflight.allStammdaten;
+  } finally {
+    _inflight.allStammdaten = null;
+  }
+}
+
+async function _fetchAllStammdatenImpl() {
+  // localStorage instant fallback
+  const persisted = loadFromPersist('allStammdaten');
+  if (persisted && !cache.allStammdaten) {
+    cache.allStammdaten = persisted;
+    cache.allStammdatenTimestamp = Date.now() - CACHE_TTL + 10_000;
+  }
+
   try {
     // Supabase returns max 1000 rows by default, we need pagination
     let allRows = [];
@@ -173,11 +237,11 @@ export async function fetchAllStammdaten() {
 
     cache.allStammdaten = locations;
     cache.allStammdatenTimestamp = Date.now();
-    console.log(`[fetchAllStammdaten] Loaded ${locations.length} locations from Supabase`);
+    saveToPersist('allStammdaten', locations);
     return locations;
   } catch (err) {
     console.error('Supabase fetchAllStammdaten error:', err);
-    return cache.allStammdaten || [];
+    return cache.allStammdaten || loadFromPersist('allStammdaten') || [];
   }
 }
 
@@ -226,6 +290,18 @@ export async function fetchAllTasks() {
     return cache.allTasks;
   }
 
+  // Request deduplication
+  if (_inflight.allTasks) return _inflight.allTasks;
+
+  _inflight.allTasks = _fetchAllTasksImpl();
+  try {
+    return await _inflight.allTasks;
+  } finally {
+    _inflight.allTasks = null;
+  }
+}
+
+async function _fetchAllTasksImpl() {
   try {
     let allRows = [];
     let from = 0;
@@ -249,7 +325,6 @@ export async function fetchAllTasks() {
 
     cache.allTasks = tasks;
     cache.allTasksTimestamp = Date.now();
-    console.log(`[fetchAllTasks] Loaded ${tasks.length} tasks from Supabase`);
     return tasks;
   } catch (err) {
     console.error('Supabase fetchAllTasks error:', err);
@@ -432,10 +507,36 @@ export async function createTask(taskData) {
     }
     if (taskData.description) fields['Description'] = taskData.description;
     if (taskData.displays && taskData.displays.length > 0) fields['Displays'] = taskData.displays;
-    // Only send Locations if they are valid Airtable record IDs (start with "rec")
+    // Locations: resolve from displayId/jetId OR use direct Airtable record IDs
     if (taskData.locations && taskData.locations.length > 0) {
       const validLocIds = taskData.locations.filter(id => typeof id === 'string' && id.startsWith('rec'));
       if (validLocIds.length > 0) fields['Locations'] = validLocIds;
+    }
+    // Auto-resolve displayId → Airtable Location record ID (used by Chat AI task creation)
+    if (!fields['Locations'] && taskData.displayId) {
+      try {
+        const { data: locData } = await supabase
+          .from('airtable_displays')
+          .select('id')
+          .eq('display_id', taskData.displayId)
+          .limit(1);
+        if (locData && locData.length > 0 && locData[0].id?.startsWith('rec')) {
+          fields['Locations'] = [locData[0].id];
+        }
+      } catch (e) { console.warn('[createTask] displayId→location resolve failed:', e.message); }
+    }
+    // Auto-resolve jetId → Airtable Location record ID
+    if (!fields['Locations'] && taskData.jetId) {
+      try {
+        const { data: locData } = await supabase
+          .from('airtable_displays')
+          .select('id')
+          .eq('jet_id', String(taskData.jetId))
+          .limit(1);
+        if (locData && locData.length > 0 && locData[0].id?.startsWith('rec')) {
+          fields['Locations'] = [locData[0].id];
+        }
+      } catch (e) { console.warn('[createTask] jetId→location resolve failed:', e.message); }
     }
     // Responsible User is a Collaborator field – must send { email: "..." }
     if (taskData.assignedUserEmail) {
@@ -566,7 +667,7 @@ function syncTaskToSupabase(airtableRecord, partnerName) {
     completed_by: f['completed_task_by'] || null,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'airtable_id' })
-    .then(() => console.log('[sync] Task synced to Supabase:', airtableRecord.id))
+    .then(() => {})
     .catch(err => console.error('[sync] Task sync error:', err));
 }
 
@@ -587,6 +688,18 @@ export async function fetchAllCommunications() {
     return cache.allCommunications;
   }
 
+  // Request deduplication
+  if (_inflight.allCommunications) return _inflight.allCommunications;
+
+  _inflight.allCommunications = _fetchAllCommunicationsImpl();
+  try {
+    return await _inflight.allCommunications;
+  } finally {
+    _inflight.allCommunications = null;
+  }
+}
+
+async function _fetchAllCommunicationsImpl() {
   try {
     let allRows = [];
     let from = 0;
@@ -610,7 +723,6 @@ export async function fetchAllCommunications() {
 
     cache.allCommunications = communications;
     cache.allCommunicationsTimestamp = Date.now();
-    console.log(`[fetchAllCommunications] Loaded ${communications.length} from Supabase`);
     return communications;
   } catch (err) {
     console.error('Supabase fetchAllCommunications error:', err);
@@ -736,7 +848,7 @@ function syncCommunicationToSupabase(airtableRecord) {
     related_task: f['Related Task'] || [],
     updated_at: new Date().toISOString(),
   }, { onConflict: 'airtable_id' })
-    .then(() => console.log('[sync] Communication synced to Supabase:', airtableRecord.id))
+    .then(() => {})
     .catch(err => console.error('[sync] Communication sync error:', err));
 }
 
@@ -798,6 +910,7 @@ export async function fetchHardwareByLocationId(displayLocationId) {
     }
 
     // 3. Find Displays linked to these OPS players
+    //    (hardware_displays is empty — fallback handled by enrichment below)
     let displays = [];
     if (opsIds.length > 0) {
       const { data: dispData } = await supabase
@@ -807,13 +920,163 @@ export async function fetchHardwareByLocationId(displayLocationId) {
       displays = (dispData || []).map(mapDisplayFromSupabase);
     }
 
-    const result = { ops, sims, displays };
-    cache.hardware.set(cacheKey, result);
+    // 4. ENRICH: Cross-reference with nocodb_vorbereitet for real SIM data
+    //    (hardware_sim has junk data — identical SIM IDs due to Airtable precision loss)
+    const enrichedResult = await enrichHardwareWithNocoDB({ ops, sims, displays });
+
+    cache.hardware.set(cacheKey, enrichedResult);
     cache.hardwareTimestamp.set(cacheKey, Date.now());
-    return result;
+    return enrichedResult;
   } catch (err) {
     console.error('[fetchHardwareByLocationId] Error:', err);
     return null;
+  }
+}
+
+/**
+ * Fallback: Fetch hardware set by OPS number (from installation data).
+ * Used when fetchHardwareByLocationId() returns empty results but
+ * installation data has opsNr/simId.
+ */
+export async function fetchHardwareByOpsNr(opsNr) {
+  if (!opsNr) return null;
+
+  try {
+    const { data: opsData } = await supabase
+      .from('hardware_ops')
+      .select('*')
+      .eq('ops_nr', String(opsNr))
+      .limit(1);
+
+    if (!opsData || opsData.length === 0) return null;
+
+    const ops = opsData.map(mapOpsFromSupabase);
+    const opsIds = ops.map(o => o.id).filter(Boolean);
+
+    let sims = [];
+    if (opsIds.length > 0) {
+      const { data: simData } = await supabase
+        .from('hardware_sim')
+        .select('*')
+        .in('ops_record_id', opsIds);
+      sims = (simData || []).map(mapSimFromSupabase);
+    }
+
+    let displays = [];
+    if (opsIds.length > 0) {
+      const { data: dispData } = await supabase
+        .from('hardware_displays')
+        .select('*')
+        .in('ops_record_id', opsIds);
+      displays = (dispData || []).map(mapDisplayFromSupabase);
+    }
+
+    // Enrich with NocoDB data (real SIM IDs, venue IDs, customer numbers)
+    return enrichHardwareWithNocoDB({ ops, sims, displays });
+  } catch (err) {
+    console.error('[fetchHardwareByOpsNr] Error:', err);
+    return null;
+  }
+}
+
+/**
+ * HARDWARE ENRICHMENT: Cross-reference hardware data with NocoDB sources
+ * to build a complete picture.
+ *
+ * Problem: hardware_sim has junk data (identical SIM IDs due to Airtable precision loss)
+ *          hardware_displays is empty (0 rows)
+ *          hardware_ops.sim_id is not individual
+ *
+ * Solution: nocodb_vorbereitet has the REAL data — individual SIM IDs, venue IDs, customer numbers
+ *           nocodb_sim_kunden has activation dates and customer IDs
+ *
+ * @param {{ ops: Array, sims: Array, displays: Array }} hw - Raw hardware data
+ * @returns {Promise<{ ops: Array, sims: Array, displays: Array, enrichment: Object }>}
+ */
+async function enrichHardwareWithNocoDB(hw) {
+  if (!hw || !hw.ops || hw.ops.length === 0) return hw;
+
+  try {
+    const opsNrs = hw.ops.map(o => o.opsNr).filter(Boolean);
+    if (opsNrs.length === 0) return hw;
+
+    // Parallel: fetch NocoDB data for these OPS numbers
+    const [nocoResult, simKundenResult] = await Promise.all([
+      supabase
+        .from('nocodb_vorbereitet')
+        .select('ops_nr, venue_id, sim_id, kunden_nr, ops_sn, fertig, vorbereitet')
+        .in('ops_nr', opsNrs),
+      // We'll look up SIM customer data after we know the SIM IDs
+      Promise.resolve(null),
+    ]);
+
+    const nocoData = nocoResult.data || [];
+    const nocoByOps = new Map(nocoData.map(n => [String(n.ops_nr), n]));
+
+    // Enrich OPS with NocoDB data
+    const enrichedOps = hw.ops.map(ops => {
+      const noco = nocoByOps.get(ops.opsNr);
+      if (!noco) return ops;
+      return {
+        ...ops,
+        // Override SIM ID with real value from NocoDB (if Airtable value looks like junk)
+        simId: (ops.simIdImprecise || !ops.simId || ops.simId === '89882280000121950000')
+          ? (noco.sim_id || ops.simId)
+          : ops.simId,
+        simIdImprecise: false, // NocoDB has the real value
+        // Add enrichment fields
+        nocoVenueId: noco.venue_id || '',
+        nocoKundenNr: noco.kunden_nr || '',
+        nocoOpsSn: noco.ops_sn || '',
+        nocoFertig: noco.fertig || false,
+        nocoVorbereitet: noco.vorbereitet || false,
+        _enriched: true,
+      };
+    });
+
+    // Build better SIM data from NocoDB
+    const realSimIds = nocoData.map(n => n.sim_id).filter(Boolean);
+    let enrichedSims = hw.sims;
+
+    if (realSimIds.length > 0) {
+      // Look up activation dates from nocodb_sim_kunden
+      const { data: simKunden } = await supabase
+        .from('nocodb_sim_kunden')
+        .select('karten_nr, kunden_id, aktivierungsdatum')
+        .in('karten_nr', realSimIds);
+
+      const simKundenMap = new Map((simKunden || []).map(s => [s.karten_nr, s]));
+
+      // Build proper SIM entries from NocoDB data
+      enrichedSims = nocoData
+        .filter(n => n.sim_id)
+        .map(n => {
+          const kundenInfo = simKundenMap.get(n.sim_id);
+          // Check if there's a matching OPS for linking
+          const linkedOps = enrichedOps.find(o => o.opsNr === String(n.ops_nr));
+          return {
+            id: `noco-sim-${n.ops_nr}`,
+            simId: n.sim_id,
+            simIdImprecise: false,
+            activateDate: kundenInfo?.aktivierungsdatum || null,
+            kundenId: kundenInfo?.kunden_id || n.kunden_nr || '',
+            opsRecordId: linkedOps?.id || '',
+            status: kundenInfo?.aktivierungsdatum ? 'active' : '',
+            _source: 'nocodb',
+          };
+        });
+    }
+
+    return {
+      ops: enrichedOps,
+      sims: enrichedSims,
+      displays: hw.displays,
+      _enriched: true,
+      _nocoMatches: nocoData.length,
+    };
+  } catch (err) {
+    console.warn('[enrichHardwareWithNocoDB] Enrichment failed (non-critical):', err.message);
+    return hw; // Return original data if enrichment fails
   }
 }
 
@@ -848,7 +1111,6 @@ export async function fetchAllOpsInventory() {
     const ops = allRows.map(mapOpsFromSupabase);
     cache.allOps = ops;
     cache.allOpsTimestamp = Date.now();
-    console.log(`[fetchAllOpsInventory] Loaded ${ops.length} OPS units from Supabase`);
     return ops;
   } catch (err) {
     console.error('[fetchAllOpsInventory] Error:', err);
@@ -940,7 +1202,6 @@ export async function fetchAllSimInventory() {
     const sims = allRows.map(mapSimFromSupabase);
     cache.allSim = sims;
     cache.allSimTimestamp = Date.now();
-    console.log(`[fetchAllSimInventory] Loaded ${sims.length} SIM cards from Supabase`);
     return sims;
   } catch (err) {
     console.error('[fetchAllSimInventory] Error:', err);
@@ -974,7 +1235,6 @@ export async function fetchAllDisplayInventory() {
     const displays = allRows.map(mapDisplayFromSupabase);
     cache.allDisplayInv = displays;
     cache.allDisplayInvTimestamp = Date.now();
-    console.log(`[fetchAllDisplayInventory] Loaded ${displays.length} displays from Supabase`);
     return displays;
   } catch (err) {
     console.error('[fetchAllDisplayInventory] Error:', err);
@@ -1099,7 +1359,6 @@ export async function fetchAllLeasingData() {
     const result = { chg, bank };
     cache.allLeasing = result;
     cache.allLeasingTimestamp = Date.now();
-    console.log(`[fetchAllLeasingData] Loaded ${chg.length} CHG + ${bank.length} bank records`);
     return result;
   } catch (err) {
     console.error('[fetchAllLeasingData] Error:', err);
@@ -1204,7 +1463,6 @@ export async function fetchAllDisplayLocations() {
 
     cache.allDisplayLocations = locations;
     cache.allDisplayLocationsTimestamp = Date.now();
-    console.log(`[fetchAllDisplayLocations] Loaded ${locations.length} display locations`);
     return locations;
   } catch (err) {
     console.error('[fetchAllDisplayLocations] Error:', err);
@@ -1247,7 +1505,6 @@ export async function fetchAllInstallationen() {
     const installations = allRows.map(mapInstallationFromSupabase);
     cache.allInstallationen = installations;
     cache.allInstallationenTimestamp = Date.now();
-    console.log(`[fetchAllInstallationen] Loaded ${installations.length} installations`);
     return installations;
   } catch (err) {
     console.error('[fetchAllInstallationen] Error:', err);
@@ -1275,6 +1532,14 @@ function mapInstallationFromSupabase(row) {
     installEnd: row.install_end || null,
     remarks: row.remarks || '',
     partnerName: row.partner_name || '',
+    // Standort-Zuordnung (from enrichment)
+    jetId: row.jet_id || '',
+    city: row.city || '',
+    locationName: row.location_name || '',
+    street: row.street || '',
+    streetNumber: row.street_number || '',
+    postalCode: row.postal_code || '',
+    akquiseLinks: row.akquise_links || [],
   };
 }
 
@@ -1414,7 +1679,7 @@ function syncSwapToSupabase(airtableRecord, swapData) {
     city: swapData?.city || null,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'id' })
-    .then(() => console.log('[sync] Swap synced to Supabase:', airtableRecord.id))
+    .then(() => {})
     .catch(err => console.error('[sync] Swap sync error:', err));
 }
 
@@ -1549,7 +1814,7 @@ function syncDeinstallToSupabase(airtableRecord, deinstallData) {
     city: deinstallData?.city || null,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'id' })
-    .then(() => console.log('[sync] Deinstall synced to Supabase:', airtableRecord.id))
+    .then(() => {})
     .catch(err => console.error('[sync] Deinstall sync error:', err));
 }
 
@@ -2029,6 +2294,52 @@ export async function fetchAirtableDisplayByDisplayId(displayId) {
 }
 
 /**
+ * Clear ALL in-memory and localStorage caches.
+ * Used by triggerSyncAndReload to force fresh data from Supabase after Airtable sync.
+ */
+export function clearAirtableCache() {
+  // Reset all in-memory timestamps and data
+  cache.stammdaten.clear();
+  cache.tasks.clear();
+  cache.installation.clear();
+  cache.allTasks = null;
+  cache.allTasksTimestamp = null;
+  cache.allStammdaten = null;
+  cache.allStammdatenTimestamp = null;
+  cache.allCommunications = null;
+  cache.allCommunicationsTimestamp = null;
+  cache.hardware.clear();
+  cache.hardwareTimestamp.clear();
+  cache.leasing.clear();
+  cache.leasingTimestamp.clear();
+  cache.allOps = null;
+  cache.allOpsTimestamp = null;
+  cache.allSim = null;
+  cache.allSimTimestamp = null;
+  cache.allDisplayInv = null;
+  cache.allDisplayInvTimestamp = null;
+  cache.allLeasing = null;
+  cache.allLeasingTimestamp = null;
+  cache.swaps.clear();
+  cache.deinstalls.clear();
+  cache.allAcquisition = null;
+  cache.allAcquisitionTimestamp = null;
+  cache.allDisplayLocations = null;
+  cache.allDisplayLocationsTimestamp = null;
+  cache.allInstallationen = null;
+  cache.allInstallationenTimestamp = null;
+  cache.allInstallationstermine = null;
+  cache.allInstallationstermineTimestamp = null;
+  cache.partners = null;
+  cache.partnersTimestamp = null;
+  // Clear localStorage persistence
+  try {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('jet_cache_'));
+    keys.forEach(k => localStorage.removeItem(k));
+  } catch {}
+}
+
+/**
  * Clear cache for a display (useful when refreshing)
  */
 export function clearCache(displayId) {
@@ -2098,19 +2409,160 @@ function mapAcquisitionFromSupabase(row) {
     submittedBy: row.submitted_by || '',
     submittedAt: row.submitted_at || null,
     vertragVorhanden: row.vertrag_vorhanden || '',
+    unterschriftsdatum: (row.unterschriftsdatum && typeof row.unterschriftsdatum === 'string' && row.unterschriftsdatum.startsWith('{')) ? null : (row.unterschriftsdatum || null),
+    vertragsnummer: (row.vertragsnummer && typeof row.vertragsnummer === 'string' && row.vertragsnummer.startsWith('{')) ? null : (row.vertragsnummer || null),
     akquiseStorno: row.akquise_storno || false,
     postInstallStorno: row.post_install_storno || false,
     postInstallStornoGrund: row.post_install_storno_grund || [],
     readyForInstallation: row.ready_for_installation || false,
     createdAt: row.created_at || null,
+    latitude: row.latitude != null ? Number(row.latitude) : null,
+    longitude: row.longitude != null ? Number(row.longitude) : null,
+    // Extended fields - attachments
+    vertragPdf: row.vertrag_pdf || [],
+    images: row.images || [],
+    fawDataAttachment: row.faw_data_attachment || [],
+    installationsprotokoll: row.installationsprotokoll || [],
+    // Comments
+    akquiseKommentar: row.akquise_kommentar || '',
+    kommentarInstallationen: row.kommentar_installationen || '',
+    frequencyApprovalComment: row.frequency_approval_comment || '',
+    // dVAC
+    dvacMonth: row.dvac_month != null ? Number(row.dvac_month) : null,
+    dvacDay: row.dvac_day != null ? Number(row.dvac_day) : null,
+    // Location details
+    hindernisseBeschreibung: row.hindernisse_beschreibung || '',
+    fensterbreite: row.fensterbreite || '',
+    steckdose: row.steckdose || '',
+    // Booking fields (synced from Airtable)
+    bookingStatus: row.booking_status || null,
+    bookingToken: row.booking_token || null,
+    bookingLinkSentAt: row.booking_link_sent_at || null,
   };
 }
 
 export async function fetchAllAcquisition() {
+  // 1. Return from in-memory cache if fresh
   if (cache.allAcquisition && cache.allAcquisitionTimestamp && Date.now() - cache.allAcquisitionTimestamp < CACHE_TTL) {
     return cache.allAcquisition;
   }
 
+  // 2. Request deduplication — if a fetch is already in flight, piggyback on it
+  if (_inflight.allAcquisition) return _inflight.allAcquisition;
+
+  _inflight.allAcquisition = _fetchAllAcquisitionImpl();
+  try {
+    return await _inflight.allAcquisition;
+  } finally {
+    _inflight.allAcquisition = null;
+  }
+}
+
+async function _fetchAllAcquisitionImpl() {
+  // 3. Try localStorage as instant fallback (show stale data while fetching fresh)
+  const persisted = loadFromPersist('allAcquisition');
+  if (persisted && !cache.allAcquisition) {
+    cache.allAcquisition = persisted;
+    cache.allAcquisitionTimestamp = Date.now() - CACHE_TTL + 10_000; // expire in 10s to trigger background refresh
+  }
+
+  try {
+    // Strategy 1: Try proxy (bypasses RLS) — paginate with larger pages to avoid
+    // PostgREST offset-pagination gaps (proxy allows up to 15000 rows for acquisition)
+    let allRows = [];
+    try {
+      let offset = 0;
+      const pageSize = 5000;
+      const MAX_PAGES = 10; // safety limit
+      let pageCount = 0;
+      while (pageCount < MAX_PAGES) {
+        const proxyRes = await fetch(`/api/supabase-proxy?table=acquisition&limit=${pageSize}&offset=${offset}&order=created_at.desc`);
+        if (!proxyRes.ok) break;
+        const page = await proxyRes.json();
+        if (!page || page.length === 0) break;
+        allRows = allRows.concat(page);
+        pageCount++;
+        if (page.length < pageSize) break;
+        offset += pageSize;
+      }
+      // Proxy returned data successfully
+    } catch (proxyErr) {
+      console.warn('[fetchAllAcquisition] Proxy failed, trying direct Supabase:', proxyErr.message);
+    }
+
+    // Strategy 2: Fallback to direct Supabase (may return 0 due to RLS)
+    if (allRows.length === 0) {
+      let from = 0;
+      const pageSize = 1000;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('acquisition')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        allRows = allRows.concat(data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+    }
+
+    // Deduplicate by airtable_id (or id fallback) — Supabase can have duplicate rows
+    const seen = new Set();
+    const deduped = [];
+    for (const row of allRows) {
+      const key = row.airtable_id || row.id;
+      if (key && seen.has(key)) continue;
+      if (key) seen.add(key);
+      deduped.push(row);
+    }
+    if (deduped.length < allRows.length) {
+      console.warn(`[fetchAllAcquisition] Removed ${allRows.length - deduped.length} duplicate rows (${allRows.length} → ${deduped.length})`);
+    }
+
+    const records = deduped.map(mapAcquisitionFromSupabase);
+    cache.allAcquisition = records;
+    cache.allAcquisitionTimestamp = Date.now();
+    saveToPersist('allAcquisition', records);
+    return records;
+  } catch (err) {
+    console.error('[fetchAllAcquisition] Error:', err);
+    return cache.allAcquisition || loadFromPersist('allAcquisition') || [];
+  }
+}
+
+/* ===============================================================
+ *  READ: INSTALLATIONSTERMINE (from Supabase)
+ * =============================================================== */
+
+/**
+ * Fetch ALL Installationstermine from Supabase.
+ * Cached for 1 minute. Used for installation scheduling views.
+ */
+export async function fetchAllInstallationstermine() {
+  if (
+    cache.allInstallationstermine &&
+    cache.allInstallationstermineTimestamp &&
+    Date.now() - cache.allInstallationstermineTimestamp < CACHE_TTL
+  ) {
+    return cache.allInstallationstermine;
+  }
+
+  // Request deduplication
+  if (_inflight.allInstallationstermine) return _inflight.allInstallationstermine;
+
+  _inflight.allInstallationstermine = _fetchAllInstallationstermineImpl();
+  try {
+    return await _inflight.allInstallationstermine;
+  } finally {
+    _inflight.allInstallationstermine = null;
+  }
+}
+
+async function _fetchAllInstallationstermineImpl() {
   try {
     let allRows = [];
     let from = 0;
@@ -2118,9 +2570,9 @@ export async function fetchAllAcquisition() {
 
     while (true) {
       const { data, error } = await supabase
-        .from('acquisition')
+        .from('installationstermine')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('installationsdatum', { ascending: false })
         .range(from, from + pageSize - 1);
 
       if (error) throw error;
@@ -2130,13 +2582,56 @@ export async function fetchAllAcquisition() {
       from += pageSize;
     }
 
-    const records = allRows.map(mapAcquisitionFromSupabase);
-    cache.allAcquisition = records;
-    cache.allAcquisitionTimestamp = Date.now();
-    console.log(`[fetchAllAcquisition] Loaded ${records.length} acquisition records from Supabase`);
+    const records = allRows.map(mapInstallationsterminFromSupabase);
+    cache.allInstallationstermine = records;
+    cache.allInstallationstermineTimestamp = Date.now();
     return records;
   } catch (err) {
-    console.error('[fetchAllAcquisition] Error:', err);
-    return cache.allAcquisition || [];
+    console.error('[fetchAllInstallationstermine] Error:', err);
+    return cache.allInstallationstermine || [];
   }
+}
+
+/**
+ * Map Supabase installationstermine row -> component-compatible format.
+ */
+function mapInstallationsterminFromSupabase(row) {
+  return {
+    id: row.id,
+    airtableId: row.airtable_id || row.id,
+    installDateId: row.install_date_id || null,
+    installationsdatum: row.installationsdatum || null,
+    erinnerungsdatum: row.erinnerungsdatum || null,
+    installationszeit: row.installationszeit || '',
+    grundNotiz: row.grund_notiz || '',
+    naechsteSchritt: row.naechste_schritt || '',
+    kwGeplant: row.kw_geplant || '',
+    wochentag: row.wochentag || '',
+    installationsdatumNurDatum: row.installationsdatum_nur_datum || '',
+    terminstatus: row.terminstatus || '',
+    jetIdLinks: row.jet_id_links || [],
+    locationName: row.location_name || [],
+    akquiseLinks: row.akquise_links || [],
+    street: row.street || [],
+    streetNumber: row.street_number || [],
+    postalCode: row.postal_code || [],
+    city: row.city || [],
+    contactEmail: row.contact_email || [],
+    stammdatenLinks: row.stammdaten_links || [],
+    installationenLinks: row.installationen_links || [],
+    statusInstallation: row.status_installation || [],
+    // Partner / Integrator / Technician info (from linked Installationen & Akquise)
+    integrator: row.integrator || [],
+    technicians: row.technicians || [],
+    installationsart: row.installationsart || [],
+    aufbauDatum: row.aufbau_datum || [],
+    abnahmePartner: row.abnahme_partner || [],
+    acquisitionPartner: row.acquisition_partner || [],
+    // Contact info from Stammdaten
+    contactPerson: row.contact_person || [],
+    contactPhone: row.contact_phone || [],
+    // Audit
+    createdAt: row.created_at || null,
+    createdBy: row.created_by || null,
+  };
 }

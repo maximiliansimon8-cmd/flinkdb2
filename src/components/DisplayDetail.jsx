@@ -68,6 +68,7 @@ import {
   fetchAllCommunications,
   fetchAirtableDisplayByDisplayId,
   fetchHardwareByLocationId,
+  fetchHardwareByOpsNr,
   fetchLeaseByJetId,
   fetchSwapsByLocationId,
   fetchDeinstallsByLocationId,
@@ -1432,19 +1433,38 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
                 <Cpu size={12} className="text-blue-500" />
                 <span className="text-xs font-mono font-medium text-slate-500 uppercase">OPS Player</span>
               </div>
-              {statusBadge(ops.status)}
+              <div className="flex items-center gap-1.5">
+                {ops._enriched && (
+                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-mono text-blue-600 bg-blue-50 border border-blue-200/50">NocoDB</span>
+                )}
+                {statusBadge(ops.status)}
+              </div>
             </div>
             <div className="space-y-1">
               {ops.opsNr && <div className="text-xs"><span className="text-slate-500">Nr: </span><span className="font-mono text-slate-700">{ops.opsNr}</span></div>}
               {ops.opsSn && <div className="text-xs"><span className="text-slate-500">SN: </span><span className="font-mono text-slate-700 text-[11px]">{ops.opsSn}</span></div>}
               {ops.hardwareType && <div className="text-xs"><span className="text-slate-500">Typ: </span><span className="text-slate-700">{ops.hardwareType}</span></div>}
+              {ops.nocoKundenNr && <div className="text-xs"><span className="text-slate-500">Kunden-Nr: </span><span className="font-mono text-slate-700">{ops.nocoKundenNr}</span></div>}
             </div>
             {reassignmentForSn('opsSn', ops.opsSn)}
             <div onClick={(e) => e.stopPropagation()}>
               {historyButton('opsSn', ops.opsSn, `OPS ${ops.opsNr || ops.opsSn}`)}
             </div>
           </div>
-        )) : (
+        )) : installation?.opsNr ? (
+          <div className="bg-amber-50/60 border border-amber-200/40 rounded-lg p-3 min-h-[80px]">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <Cpu size={12} className="text-amber-500" />
+                <span className="text-xs font-mono font-medium text-amber-600 uppercase">OPS Player</span>
+              </div>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-100 text-amber-700 border border-amber-200">aus Protokoll</span>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs"><span className="text-amber-600">Nr: </span><span className="font-mono text-amber-800">{installation.opsNr}</span></div>
+            </div>
+          </div>
+        ) : (
           <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
             <Cpu size={16} className="text-slate-300 mb-1" />
             <span className="text-xs text-slate-400 font-mono">OPS Player</span>
@@ -1464,27 +1484,46 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
                 <CardSim size={12} className="text-green-500" />
                 <span className="text-xs font-mono font-medium text-slate-500 uppercase">SIM-Karte</span>
               </div>
-              {statusBadge(sim.status)}
+              <div className="flex items-center gap-1.5">
+                {sim._source === 'nocodb' && (
+                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-mono text-blue-600 bg-blue-50 border border-blue-200/50">NocoDB</span>
+                )}
+                {statusBadge(sim.status)}
+              </div>
             </div>
             <div className="space-y-1">
               {sim.simId && (
                 <div className="text-xs">
                   <span className="text-slate-500">ICCID: </span>
                   {sim.simIdImprecise ? (
-                    <span className="text-amber-500 text-xs" title="ICCID ungenau – Airtable speichert als Zahl (Pr\u00e4zisionsverlust)">⚠ ungenau</span>
+                    <span className="text-amber-500 text-xs" title="ICCID ungenau – Airtable speichert als Zahl (Präzisionsverlust)">⚠ ungenau</span>
                   ) : (
                     <span className="font-mono text-slate-700 text-[11px]">{sim.simId}</span>
                   )}
                 </div>
               )}
               {sim.activateDate && <div className="text-xs"><span className="text-slate-500">Aktiv seit: </span><span className="font-mono text-slate-700">{new Date(sim.activateDate).toLocaleDateString('de-DE')}</span></div>}
+              {sim.kundenId && <div className="text-xs"><span className="text-slate-500">Kunden-Nr: </span><span className="font-mono text-slate-700">{sim.kundenId}</span></div>}
             </div>
             {sim.simId && !sim.simIdImprecise && reassignmentForSn('simId', sim.simId)}
             <div onClick={(e) => e.stopPropagation()}>
               {sim.simId && !sim.simIdImprecise && historyButton('simId', sim.simId, `SIM ${sim.simId.substring(0, 10)}...`)}
             </div>
           </div>
-        )) : (
+        )) : installation?.simId ? (
+          <div className="bg-amber-50/60 border border-amber-200/40 rounded-lg p-3 min-h-[80px]">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <CardSim size={12} className="text-amber-500" />
+                <span className="text-xs font-mono font-medium text-amber-600 uppercase">SIM-Karte</span>
+              </div>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-100 text-amber-700 border border-amber-200">aus Protokoll</span>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs"><span className="text-amber-600">ICCID: </span><span className="font-mono text-amber-800 text-[11px]">{installation.simId}</span></div>
+            </div>
+          </div>
+        ) : (
           <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
             <CardSim size={16} className="text-slate-300 mb-1" />
             <span className="text-xs text-slate-400 font-mono">SIM-Karte</span>
@@ -2389,6 +2428,31 @@ function DisplayDetailInner({ display, onClose }) {
 
     return () => { cancelled = true; };
   }, [display.displayId, display.locationName]);
+
+  // Fallback: If hardware loaded with no OPS but installation has opsNr, try via OPS number
+  useEffect(() => {
+    if (hardwareLoading || installationLoading) return;
+    if (!installation?.opsNr) return;
+    if (hardwareSet && hardwareSet.ops.length > 0) return;
+
+    let cancelled = false;
+    setHardwareLoading(true);
+    fetchHardwareByOpsNr(installation.opsNr).then((hwFallback) => {
+      if (cancelled) return;
+      if (hwFallback && hwFallback.ops.length > 0) {
+        setHardwareSet((prev) => ({
+          ops: hwFallback.ops,
+          sims: hwFallback.sims.length > 0 ? hwFallback.sims : (prev?.sims || []),
+          displays: hwFallback.displays.length > 0 ? hwFallback.displays : (prev?.displays || []),
+          _fallbackSource: 'installation_ops_nr',
+        }));
+      }
+      setHardwareLoading(false);
+    }).catch(() => {
+      if (!cancelled) setHardwareLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [hardwareLoading, installationLoading, installation?.opsNr, hardwareSet?.ops?.length]);
 
   const statusColor = getStatusColor(display.status);
   const statusLabel = getStatusLabel(display.status);

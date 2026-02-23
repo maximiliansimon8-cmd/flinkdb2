@@ -2,21 +2,41 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Database, Search, RefreshCw, Loader2, CheckCircle2, XCircle,
   Copy, Clock, BarChart3, CreditCard, MapPin, Layers,
-  AlertTriangle, ArrowUpDown, Monitor,
+  AlertTriangle, ArrowUpDown, Monitor, Link2, Eye, ChevronLeft,
+  ChevronRight, Store, FileWarning, Zap, Wrench, Calendar,
 } from 'lucide-react';
 import { supabase } from '../utils/authService';
 
 /* ═══════════════════════════════════════════════════════════════════
    NocoDB Panel — Cached NocoDB data from Supabase
-   Sub-tabs: Übersicht, Vorbereitet, SIM-Karten, Vistar/Navori
+   Sub-tabs: Übersicht, Gesamtzuordnung, Vorbereitet, SIM-Karten,
+             Vistar/Navori, Lieferando, Warnings
    ═══════════════════════════════════════════════════════════════════ */
 
 const SUB_TABS = [
-  { key: 'overview',    label: 'Übersicht',      icon: BarChart3 },
-  { key: 'vorbereitet', label: 'Vorbereitet',     icon: Layers },
-  { key: 'sim',         label: 'SIM-Karten',      icon: CreditCard },
-  { key: 'vistar',      label: 'Vistar/Navori',   icon: Monitor },
+  { key: 'overview',      label: 'Übersicht',         icon: BarChart3 },
+  { key: 'matching',      label: 'Gesamtzuordnung',   icon: Link2 },
+  { key: 'vorbereitet',   label: 'Vorbereitet',       icon: Layers },
+  { key: 'sim',           label: 'SIM-Karten',        icon: CreditCard },
+  { key: 'vistar',        label: 'Vistar/Navori',     icon: Monitor },
+  { key: 'lieferando',    label: 'Lieferando',        icon: Store },
+  { key: 'warnings',      label: 'Datenqualität',     icon: FileWarning },
 ];
+
+/* ─── Helpers ──────────────────────────────────────────────────── */
+
+/** Strip NocoDB's {"..."} or {\"...\"} wrapping from display */
+function clean(v) {
+  if (v == null) return null;
+  let s = String(v).trim();
+  if (!s) return null;
+  s = s.replace(/^\{\\?"/, '').replace(/\\?"\}$/, '');
+  s = s.replace(/^\{"/, '').replace(/"\}$/, '');
+  s = s.replace(/^"(.*)"$/, '$1');
+  return s || null;
+}
+
+const PAGE_SIZE = 50;
 
 /* ─── KPI Card ──────────────────────────────────────────────────── */
 
@@ -38,33 +58,12 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }) {
   );
 }
 
-/* ─── Empty State ───────────────────────────────────────────────── */
-
-function EmptyState({ onSync, syncing }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <Database size={48} className="text-slate-300 mb-4" />
-      <p className="text-slate-500 text-sm mb-4 max-w-md">
-        Noch keine NocoDB-Daten synchronisiert. Klicke &apos;Sync jetzt&apos; um die Daten abzurufen.
-      </p>
-      <button
-        onClick={onSync}
-        disabled={syncing}
-        className="px-4 py-2 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-      >
-        {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-        Sync jetzt
-      </button>
-    </div>
-  );
-}
-
 /* ─── Copyable Cell ─────────────────────────────────────────────── */
 
 function CopyCell({ value, truncate }) {
   const [copied, setCopied] = useState(false);
   const display = truncate && value && value.length > truncate
-    ? value.slice(0, truncate) + '...'
+    ? value.slice(0, truncate) + '…'
     : value || '–';
 
   const handleCopy = () => {
@@ -99,16 +98,36 @@ function BoolBadge({ value }) {
   return <XCircle size={16} className="text-slate-300" />;
 }
 
-/* ─── Matched Badge ─────────────────────────────────────────────── */
+/* ─── Source Badge ──────────────────────────────────────────────── */
 
-function MatchBadge({ matched }) {
+function SourceBadge({ source }) {
+  const config = {
+    airtable: { label: 'Airtable', color: 'bg-blue-100 text-blue-700' },
+    nocodb: { label: 'NocoDB', color: 'bg-purple-100 text-purple-700' },
+    vorbereitet: { label: 'Vorbereitet', color: 'bg-indigo-100 text-indigo-700' },
+    sim: { label: 'SIM', color: 'bg-violet-100 text-violet-700' },
+    vistar: { label: 'Vistar', color: 'bg-amber-100 text-amber-700' },
+    lieferando: { label: 'Lieferando', color: 'bg-red-100 text-red-700' },
+    hardware_ops: { label: 'HW-OPS', color: 'bg-green-100 text-green-700' },
+  };
+  const c = config[source] || { label: source, color: 'bg-slate-100 text-slate-600' };
+  return (
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider ${c.color}`}>
+      {c.label}
+    </span>
+  );
+}
+
+/* ─── Match Status Badge ───────────────────────────────────────── */
+
+function MatchBadge({ matched, label }) {
   return matched ? (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">
-      <CheckCircle2 size={10} /> Matched
+      <CheckCircle2 size={10} /> {label || 'Matched'}
     </span>
   ) : (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700">
-      <AlertTriangle size={10} /> Unmatched
+      <AlertTriangle size={10} /> {label || 'Unmatched'}
     </span>
   );
 }
@@ -151,8 +170,8 @@ function FilterSelect({ value, onChange, options, label }) {
 
 /* ─── Shared Sort Hook ─────────────────────────────────────────── */
 
-function useSort() {
-  const [sortCol, setSortCol] = useState(null);
+function useSort(defaultCol) {
+  const [sortCol, setSortCol] = useState(defaultCol || null);
   const [sortDir, setSortDir] = useState('asc');
   const toggle = (col) => {
     if (sortCol === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -184,15 +203,51 @@ function SortHeader({ col, sortCol, onToggle, children }) {
   );
 }
 
-/* ─── Table Overflow Footer ────────────────────────────────────── */
+/* ─── Pagination ───────────────────────────────────────────────── */
 
-const MAX_ROWS = 200;
-
-function TableOverflow({ total }) {
-  if (total <= MAX_ROWS) return null;
+function Pagination({ page, totalPages, total, onPageChange }) {
+  if (totalPages <= 1) return null;
   return (
-    <div className="px-4 py-2 bg-slate-50/80 border-t border-slate-200/60 text-xs text-slate-500 text-center">
-      Zeige {MAX_ROWS} von {total} Einträgen. Nutze die Suche zum Filtern.
+    <div className="flex items-center justify-between px-4 py-2 bg-slate-50/80 border-t border-slate-200/60">
+      <span className="text-xs text-slate-500">
+        Seite {page + 1} von {totalPages} ({total} Einträge)
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 0}
+          className="p-1 rounded hover:bg-slate-200/60 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        >
+          <ChevronLeft size={16} className="text-slate-600" />
+        </button>
+        {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+          let pageNum;
+          if (totalPages <= 7) pageNum = i;
+          else if (page < 3) pageNum = i;
+          else if (page > totalPages - 4) pageNum = totalPages - 7 + i;
+          else pageNum = page - 3 + i;
+          return (
+            <button
+              key={pageNum}
+              onClick={() => onPageChange(pageNum)}
+              className={`w-7 h-7 rounded text-xs font-medium transition ${
+                pageNum === page
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              {pageNum + 1}
+            </button>
+          );
+        })}
+        <button
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages - 1}
+          className="p-1 rounded hover:bg-slate-200/60 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        >
+          <ChevronRight size={16} className="text-slate-600" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -207,7 +262,7 @@ function isTruthy(v) {
    OVERVIEW TAB
    ═══════════════════════════════════════════════════════════════════ */
 
-function OverviewTab({ vorbereitet, simKunden, vistarNavori, syncMeta, opsData, onSync, syncing }) {
+function OverviewTab({ vorbereitet, simKunden, vistarNavori, lieferando, syncMeta, opsData, onSync, syncing }) {
   const totalVorbereitet = vorbereitet.length;
   const matchedOps = useMemo(() => {
     if (!opsData || opsData.length === 0) return 0;
@@ -216,14 +271,25 @@ function OverviewTab({ vorbereitet, simKunden, vistarNavori, syncMeta, opsData, 
   }, [vorbereitet, opsData]);
   const totalSim = simKunden.length;
   const totalVistar = vistarNavori.length;
+  const totalLieferando = lieferando.length;
 
-  const lastSync = syncMeta?.last_synced_at
-    ? new Date(syncMeta.last_synced_at).toLocaleString('de-DE')
+  const lastSync = (syncMeta?.last_sync_timestamp || syncMeta?.updated_at)
+    ? new Date(syncMeta.last_sync_timestamp || syncMeta.updated_at).toLocaleString('de-DE')
     : 'Nie';
 
   const matchRate = totalVorbereitet > 0
     ? Math.round((matchedOps / totalVorbereitet) * 100)
     : 0;
+
+  // Lieferando stats
+  const lieferandoErfolgreich = lieferando.filter(l => {
+    const s = clean(l.akquise_status);
+    return s && s.toLowerCase().includes('erfolgreich');
+  }).length;
+  const lieferandoInstalliert = lieferando.filter(l => {
+    const s = clean(l.standort_status);
+    return s && s.toLowerCase().includes('installiert');
+  }).length;
 
   return (
     <div className="space-y-6">
@@ -233,12 +299,7 @@ function OverviewTab({ vorbereitet, simKunden, vistarNavori, syncMeta, opsData, 
         <KpiCard label="Matched OPS" value={matchedOps} icon={CheckCircle2} color="#22c55e" subtitle={`${matchRate}% Match-Rate`} />
         <KpiCard label="SIM-Karten" value={totalSim} icon={CreditCard} color="#8b5cf6" />
         <KpiCard label="Vistar Venues" value={totalVistar} icon={Monitor} color="#f59e0b" />
-        <KpiCard
-          label="Lieferando"
-          value={vistarNavori.filter((v) => (v.name || '').toLowerCase().includes('lieferando')).length}
-          icon={MapPin}
-          color="#ef4444"
-        />
+        <KpiCard label="Lieferando" value={totalLieferando} icon={Store} color="#ef4444" subtitle={`${lieferandoErfolgreich} erfolgreich`} />
         <KpiCard label="Letzter Sync" value={lastSync === 'Nie' ? '–' : ''} icon={Clock} color="#64748b" subtitle={lastSync} />
       </div>
 
@@ -260,11 +321,11 @@ function OverviewTab({ vorbereitet, simKunden, vistarNavori, syncMeta, opsData, 
             {syncing ? 'Synchronisiere...' : 'Sync jetzt'}
           </button>
         </div>
-        {syncMeta?.status && (
+        {syncMeta?.last_sync_status && (
           <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-            <span className={`w-2 h-2 rounded-full ${syncMeta.status === 'success' ? 'bg-green-400' : syncMeta.status === 'running' ? 'bg-blue-400 animate-pulse' : 'bg-red-400'}`} />
-            Status: {syncMeta.status === 'success' ? 'Erfolgreich' : syncMeta.status === 'running' ? 'Laufend...' : syncMeta.status}
-            {syncMeta.records_synced != null && ` | ${syncMeta.records_synced} Records`}
+            <span className={`w-2 h-2 rounded-full ${syncMeta.last_sync_status === 'success' ? 'bg-green-400' : syncMeta.last_sync_status === 'running' ? 'bg-blue-400 animate-pulse' : 'bg-red-400'}`} />
+            Status: {syncMeta.last_sync_status === 'success' ? 'Erfolgreich' : syncMeta.last_sync_status === 'running' ? 'Laufend...' : syncMeta.last_sync_status}
+            {syncMeta.records_fetched != null && ` | ${syncMeta.records_fetched} Records`}
           </div>
         )}
       </div>
@@ -275,28 +336,35 @@ function OverviewTab({ vorbereitet, simKunden, vistarNavori, syncMeta, opsData, 
           <BarChart3 size={16} className="text-blue-500" />
           Matching-Qualität
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Vorbereitet vs OPS */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-500">Vorbereitet vs. OPS</span>
+              <span className="text-slate-500">Vorbereitet → OPS</span>
               <span className="font-medium text-slate-800">{matchedOps}/{totalVorbereitet}</span>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-500 rounded-full transition-all duration-500"
-                style={{ width: `${matchRate}%` }}
-              />
+              <div className="h-full bg-green-500 rounded-full transition-all duration-500" style={{ width: `${matchRate}%` }} />
             </div>
           </div>
-          {/* SIM Matching */}
+          {/* Lieferando Erfolgreich */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-500">SIM-Karten zugeordnet</span>
-              <span className="font-medium text-slate-800">{totalSim}</span>
+              <span className="text-slate-500">Lieferando erfolgreich</span>
+              <span className="font-medium text-slate-800">{lieferandoErfolgreich}/{totalLieferando}</span>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-purple-500 rounded-full" style={{ width: '100%' }} />
+              <div className="h-full bg-red-500 rounded-full" style={{ width: `${totalLieferando > 0 ? Math.round((lieferandoErfolgreich / totalLieferando) * 100) : 0}%` }} />
+            </div>
+          </div>
+          {/* Lieferando Installiert */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-500">Standorte installiert</span>
+              <span className="font-medium text-slate-800">{lieferandoInstalliert}/{totalLieferando}</span>
+            </div>
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-amber-500 rounded-full" style={{ width: `${totalLieferando > 0 ? Math.round((lieferandoInstalliert / totalLieferando) * 100) : 0}%` }} />
             </div>
           </div>
           {/* Vistar Venues */}
@@ -306,10 +374,287 @@ function OverviewTab({ vorbereitet, simKunden, vistarNavori, syncMeta, opsData, 
               <span className="font-medium text-slate-800">{totalVistar}</span>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-amber-500 rounded-full" style={{ width: '100%' }} />
+              <div className="h-full bg-purple-500 rounded-full" style={{ width: '100%' }} />
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GESAMTZUORDNUNG TAB — Complete matching overview
+   Shows per-device: OPS-Nr, SN, JET-ID, Venue-ID, SIM, Standort + data sources
+   ═══════════════════════════════════════════════════════════════════ */
+
+function MatchingTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData }) {
+  const [search, setSearch] = useState('');
+  const [matchFilter, setMatchFilter] = useState('all');
+  const [page, setPage] = useState(0);
+  const { sortCol, toggle, apply } = useSort('ops_nr');
+
+  // Build a unified lookup from all data sources
+  const mergedData = useMemo(() => {
+    // Index maps
+    const simByKartenNr = new Map();
+    simKunden.forEach(s => { if (s.karten_nr) simByKartenNr.set(s.karten_nr, s); });
+
+    const vistarByVenueId = new Map();
+    vistarNavori.forEach(v => { if (v.venue_id) vistarByVenueId.set(v.venue_id, v); });
+
+    const vistarByKundenId = new Map();
+    vistarNavori.forEach(v => {
+      const kid = clean(v.kunden_id);
+      if (kid) vistarByKundenId.set(kid, v);
+    });
+
+    const lieferandoByKundenId = new Map();
+    lieferando.forEach(l => {
+      const kid = clean(l.kunden_id);
+      if (kid) lieferandoByKundenId.set(kid, l);
+    });
+
+    const opsMap = new Map();
+    (opsData || []).forEach(o => {
+      if (o.ops_nr) opsMap.set(String(o.ops_nr), o);
+    });
+
+    // Start from Vorbereitet as base (every device should be there)
+    const result = [];
+    const seenOps = new Set();
+
+    vorbereitet.forEach(v => {
+      const opsNr = v.ops_nr ? String(v.ops_nr) : null;
+      if (opsNr) seenOps.add(opsNr);
+
+      const ops = opsNr ? opsMap.get(opsNr) : null;
+      const sim = v.sim_id ? simByKartenNr.get(v.sim_id) : null;
+      const vistar = v.venue_id ? vistarByVenueId.get(v.venue_id) : null;
+
+      // Get KundenID from SIM → look up in Lieferando
+      const kundenIdFromSim = sim ? clean(sim.kunden_id) : null;
+      const kundenIdFromVorbereitet = v.kunden_nr ? clean(v.kunden_nr) : null;
+      const kundenId = kundenIdFromSim || kundenIdFromVorbereitet || (vistar ? clean(vistar.kunden_id) : null);
+
+      const lief = kundenId ? lieferandoByKundenId.get(kundenId) : null;
+      // Also try vistar match by kunden_id
+      const vistarByKid = kundenId && !vistar ? vistarByKundenId.get(kundenId) : null;
+      const finalVistar = vistar || vistarByKid;
+
+      // Sources tracking
+      const sources = ['vorbereitet'];
+      if (ops) sources.push('hardware_ops');
+      if (sim) sources.push('sim');
+      if (finalVistar) sources.push('vistar');
+      if (lief) sources.push('lieferando');
+
+      const completeness = sources.length;
+      const maxCompleteness = 5;
+
+      result.push({
+        ops_nr: opsNr,
+        ops_sn: v.ops_sn || (ops ? ops.serial_number || ops.sn : null) || null,
+        hardware_type: ops?.hardware_type || ops?.type || null,
+        ops_status: ops?.status || null,
+        venue_id: v.venue_id || null,
+        sim_id: v.sim_id || null,
+        kunden_id: kundenId,
+        jet_id: kundenId, // JET-ID = KundenID
+        fertig: v.fertig,
+        vorbereitet: v.vorbereitet,
+        // Vistar data
+        vistar_name: finalVistar?.name || null,
+        do_id: finalVistar?.do_id || null,
+        // Lieferando data
+        restaurant: lief ? clean(lief.restaurant) : null,
+        stadt: lief ? clean(lief.stadt) : null,
+        strasse: lief ? clean(lief.strasse) : null,
+        hausnummer: lief ? clean(lief.hausnummer) : null,
+        akquise_status: lief ? clean(lief.akquise_status) : null,
+        standort_status: lief ? clean(lief.standort_status) : null,
+        // Matching
+        sources,
+        completeness,
+        matchPct: Math.round((completeness / maxCompleteness) * 100),
+        hasOps: !!ops,
+        hasSim: !!sim,
+        hasVistar: !!finalVistar,
+        hasLieferando: !!lief,
+      });
+    });
+
+    // Also add OPS that are NOT in Vorbereitet (orphans)
+    (opsData || []).forEach(o => {
+      const opsNr = o.ops_nr ? String(o.ops_nr) : null;
+      if (!opsNr || seenOps.has(opsNr)) return;
+
+      result.push({
+        ops_nr: opsNr,
+        ops_sn: o.serial_number || o.sn || null,
+        hardware_type: o.hardware_type || o.type || null,
+        ops_status: o.status || null,
+        venue_id: null,
+        sim_id: null,
+        kunden_id: null,
+        jet_id: null,
+        fertig: false,
+        vorbereitet: false,
+        vistar_name: null,
+        do_id: null,
+        restaurant: null,
+        stadt: null,
+        strasse: null,
+        hausnummer: null,
+        akquise_status: null,
+        standort_status: null,
+        sources: ['hardware_ops'],
+        completeness: 1,
+        matchPct: 20,
+        hasOps: true,
+        hasSim: false,
+        hasVistar: false,
+        hasLieferando: false,
+      });
+    });
+
+    return result;
+  }, [vorbereitet, simKunden, vistarNavori, lieferando, opsData]);
+
+  const filtered = useMemo(() => {
+    let rows = mergedData;
+    if (search) {
+      const q = search.toLowerCase();
+      rows = rows.filter(r =>
+        String(r.ops_nr || '').includes(q) ||
+        String(r.ops_sn || '').toLowerCase().includes(q) ||
+        String(r.venue_id || '').toLowerCase().includes(q) ||
+        String(r.sim_id || '').toLowerCase().includes(q) ||
+        String(r.kunden_id || '').toLowerCase().includes(q) ||
+        String(r.restaurant || '').toLowerCase().includes(q) ||
+        String(r.vistar_name || '').toLowerCase().includes(q) ||
+        String(r.stadt || '').toLowerCase().includes(q)
+      );
+    }
+    if (matchFilter === 'complete') rows = rows.filter(r => r.completeness >= 4);
+    else if (matchFilter === 'partial') rows = rows.filter(r => r.completeness >= 2 && r.completeness < 4);
+    else if (matchFilter === 'orphan') rows = rows.filter(r => r.completeness <= 1);
+    else if (matchFilter === 'no-standort') rows = rows.filter(r => !r.hasLieferando && !r.hasVistar);
+
+    return apply(rows);
+  }, [mergedData, search, matchFilter, apply]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  // Reset page when filter changes
+  useEffect(() => { setPage(0); }, [search, matchFilter]);
+
+  // Stats
+  const completeCount = mergedData.filter(r => r.completeness >= 4).length;
+  const partialCount = mergedData.filter(r => r.completeness >= 2 && r.completeness < 4).length;
+  const orphanCount = mergedData.filter(r => r.completeness <= 1).length;
+
+  return (
+    <div className="space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <KpiCard label="Gesamt-Geräte" value={mergedData.length} icon={Layers} color="#3b82f6" />
+        <KpiCard label="Vollständig (4+)" value={completeCount} icon={CheckCircle2} color="#22c55e" subtitle={`${mergedData.length > 0 ? Math.round((completeCount / mergedData.length) * 100) : 0}%`} />
+        <KpiCard label="Teilweise (2-3)" value={partialCount} icon={AlertTriangle} color="#f59e0b" />
+        <KpiCard label="Nur 1 Quelle" value={orphanCount} icon={XCircle} color="#ef4444" />
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1">
+          <SearchBar value={search} onChange={setSearch} placeholder="OPS-Nr, SN, Venue-ID, SIM, KundenID, Restaurant, Stadt..." />
+        </div>
+        <FilterSelect label="Status" value={matchFilter} onChange={setMatchFilter}
+          options={[
+            { value: 'all', label: `Alle (${mergedData.length})` },
+            { value: 'complete', label: `Vollständig (${completeCount})` },
+            { value: 'partial', label: `Teilweise (${partialCount})` },
+            { value: 'orphan', label: `Nur 1 Quelle (${orphanCount})` },
+            { value: 'no-standort', label: 'Kein Standort' },
+          ]} />
+      </div>
+
+      <div className="text-xs text-slate-500">{filtered.length} Geräte</div>
+
+      {/* Table */}
+      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead className="bg-slate-50/80 border-b border-slate-200/60">
+              <tr>
+                <SortHeader col="ops_nr" sortCol={sortCol} onToggle={toggle}>OPS Nr.</SortHeader>
+                <SortHeader col="ops_sn" sortCol={sortCol} onToggle={toggle}>Seriennummer</SortHeader>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">JET-ID</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Venue-ID</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">SIM (ICCID)</th>
+                <SortHeader col="restaurant" sortCol={sortCol} onToggle={toggle}>Standort</SortHeader>
+                <SortHeader col="stadt" sortCol={sortCol} onToggle={toggle}>Stadt</SortHeader>
+                <SortHeader col="standort_status" sortCol={sortCol} onToggle={toggle}>Status</SortHeader>
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase">Match</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Quellen</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100/60">
+              {pageRows.length === 0 ? (
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-slate-400">Keine Einträge gefunden</td></tr>
+              ) : pageRows.map((row, i) => (
+                <tr key={`${row.ops_nr}-${i}`} className="hover:bg-blue-50/30 transition-colors">
+                  <td className="px-3 py-2 font-mono font-bold text-slate-800">{row.ops_nr || '–'}</td>
+                  <td className="px-3 py-2"><CopyCell value={row.ops_sn} truncate={18} /></td>
+                  <td className="px-3 py-2 font-mono text-slate-600">{row.jet_id || '–'}</td>
+                  <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={12} /></td>
+                  <td className="px-3 py-2 font-mono text-slate-500">{row.sim_id ? '…' + String(row.sim_id).slice(-8) : '–'}</td>
+                  <td className="px-3 py-2 text-slate-800 font-medium max-w-[180px] truncate" title={row.restaurant || row.vistar_name || ''}>
+                    {row.restaurant || row.vistar_name || '–'}
+                  </td>
+                  <td className="px-3 py-2 text-slate-600">{row.stadt || '–'}</td>
+                  <td className="px-3 py-2">
+                    {row.standort_status ? (
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        row.standort_status.toLowerCase().includes('installiert') ? 'bg-green-100 text-green-700' :
+                        row.standort_status.toLowerCase().includes('klärung') ? 'bg-amber-100 text-amber-700' :
+                        'bg-slate-100 text-slate-600'
+                      }`}>
+                        {row.standort_status}
+                      </span>
+                    ) : (row.akquise_status ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-600">
+                        {row.akquise_status}
+                      </span>
+                    ) : '–')}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    <div className="flex items-center gap-1 justify-center" title={`${row.completeness}/5 Quellen`}>
+                      <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            row.matchPct >= 80 ? 'bg-green-500' :
+                            row.matchPct >= 40 ? 'bg-amber-500' :
+                            'bg-red-500'
+                          }`}
+                          style={{ width: `${row.matchPct}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-mono text-slate-500">{row.completeness}/5</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-wrap gap-0.5">
+                      {row.sources.map(s => <SourceBadge key={s} source={s} />)}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} total={filtered.length} onPageChange={setPage} />
       </div>
     </div>
   );
@@ -323,6 +668,7 @@ function VorbereitetTab({ data, opsData }) {
   const [search, setSearch] = useState('');
   const [fertigFilter, setFertigFilter] = useState('all');
   const [vorbereitetFilter, setVorbereitetFilter] = useState('all');
+  const [page, setPage] = useState(0);
   const { sortCol, toggle, apply } = useSort();
 
   const opsSet = useMemo(() => {
@@ -338,7 +684,8 @@ function VorbereitetTab({ data, opsData }) {
         String(r.ops_nr || '').toLowerCase().includes(q) ||
         String(r.kunden_nr || '').toLowerCase().includes(q) ||
         String(r.sim_id || '').toLowerCase().includes(q) ||
-        String(r.venue_id || '').toLowerCase().includes(q)
+        String(r.venue_id || '').toLowerCase().includes(q) ||
+        String(r.ops_sn || '').toLowerCase().includes(q)
       );
     }
     if (fertigFilter !== 'all') {
@@ -352,6 +699,11 @@ function VorbereitetTab({ data, opsData }) {
     return apply(rows);
   }, [data, search, fertigFilter, vorbereitetFilter, apply]);
 
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  useEffect(() => { setPage(0); }, [search, fertigFilter, vorbereitetFilter]);
+
   const thStatic = "px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider";
   const thCenter = "px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider";
 
@@ -359,7 +711,7 @@ function VorbereitetTab({ data, opsData }) {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1">
-          <SearchBar value={search} onChange={setSearch} placeholder="OpsNr, KundenNr, SimID, VenueID..." />
+          <SearchBar value={search} onChange={setSearch} placeholder="OpsNr, KundenNr, SimID, VenueID, SN..." />
         </div>
         <div className="flex items-center gap-3">
           <FilterSelect label="Fertig" value={fertigFilter} onChange={setFertigFilter}
@@ -385,14 +737,14 @@ function VorbereitetTab({ data, opsData }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/60">
-              {filtered.length === 0 ? (
+              {pageRows.length === 0 ? (
                 <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">Keine Einträge gefunden</td></tr>
-              ) : filtered.slice(0, MAX_ROWS).map((row, i) => (
+              ) : pageRows.map((row, i) => (
                 <tr key={row.id || i} className="hover:bg-blue-50/30 transition-colors">
                   <td className="px-3 py-2 font-mono font-medium text-slate-800">{row.ops_nr || '–'}</td>
                   <td className="px-3 py-2 font-mono text-slate-600">{row.ops_sn || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={12} /></td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{row.sim_id ? '...' + String(row.sim_id).slice(-6) : '–'}</td>
+                  <td className="px-3 py-2 font-mono text-slate-600">{row.sim_id ? '…' + String(row.sim_id).slice(-6) : '–'}</td>
                   <td className="px-3 py-2 font-mono text-slate-600">{row.kunden_nr || '–'}</td>
                   <td className="px-3 py-2 text-center"><BoolBadge value={row.fertig} /></td>
                   <td className="px-3 py-2 text-center"><BoolBadge value={row.vorbereitet} /></td>
@@ -402,7 +754,7 @@ function VorbereitetTab({ data, opsData }) {
             </tbody>
           </table>
         </div>
-        <TableOverflow total={filtered.length} />
+        <Pagination page={page} totalPages={totalPages} total={filtered.length} onPageChange={setPage} />
       </div>
     </div>
   );
@@ -412,14 +764,16 @@ function VorbereitetTab({ data, opsData }) {
    SIM-KARTEN TAB
    ═══════════════════════════════════════════════════════════════════ */
 
-function SimKartenTab({ data, simInventory }) {
+function SimKartenTab({ data, vorbereitet }) {
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
   const { sortCol, toggle, apply } = useSort();
 
+  // Match SIM to vorbereitet via sim_id
   const simSet = useMemo(() => {
-    if (!simInventory?.length) return new Set();
-    return new Set(simInventory.map((s) => String(s.iccid || s.sim_id || s.kartenNr || '')).filter(Boolean));
-  }, [simInventory]);
+    if (!vorbereitet?.length) return new Set();
+    return new Set(vorbereitet.map(v => v.sim_id).filter(Boolean));
+  }, [vorbereitet]);
 
   const filtered = useMemo(() => {
     let rows = data;
@@ -432,6 +786,11 @@ function SimKartenTab({ data, simInventory }) {
     }
     return apply(rows);
   }, [data, search, apply]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  useEffect(() => { setPage(0); }, [search]);
 
   return (
     <div className="space-y-4">
@@ -449,28 +808,28 @@ function SimKartenTab({ data, simInventory }) {
             <thead className="bg-slate-50/80 border-b border-slate-200/60">
               <tr>
                 <SortHeader col="karten_nr" sortCol={sortCol} onToggle={toggle}>Karten Nr. (ICCID)</SortHeader>
-                <SortHeader col="kunden_id" sortCol={sortCol} onToggle={toggle}>KundenID</SortHeader>
+                <SortHeader col="kunden_id" sortCol={sortCol} onToggle={toggle}>KundenID (JET-ID)</SortHeader>
                 <SortHeader col="aktivierungsdatum" sortCol={sortCol} onToggle={toggle}>Aktivierungsdatum</SortHeader>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Matched</th>
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Zugeordnet</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/60">
-              {filtered.length === 0 ? (
+              {pageRows.length === 0 ? (
                 <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">Keine SIM-Karten gefunden</td></tr>
-              ) : filtered.slice(0, MAX_ROWS).map((row, i) => (
+              ) : pageRows.map((row, i) => (
                 <tr key={row.id || i} className="hover:bg-blue-50/30 transition-colors">
                   <td className="px-3 py-2"><CopyCell value={row.karten_nr} /></td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{row.kunden_id || '–'}</td>
+                  <td className="px-3 py-2 font-mono text-slate-600">{clean(row.kunden_id) || '–'}</td>
                   <td className="px-3 py-2 text-slate-600">
                     {row.aktivierungsdatum ? new Date(row.aktivierungsdatum).toLocaleDateString('de-DE') : '–'}
                   </td>
-                  <td className="px-3 py-2 text-center"><MatchBadge matched={simSet.has(String(row.karten_nr || ''))} /></td>
+                  <td className="px-3 py-2 text-center"><MatchBadge matched={simSet.has(row.karten_nr)} label={simSet.has(row.karten_nr) ? 'Zugeordnet' : 'Frei'} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <TableOverflow total={filtered.length} />
+        <Pagination page={page} totalPages={totalPages} total={filtered.length} onPageChange={setPage} />
       </div>
     </div>
   );
@@ -482,6 +841,7 @@ function SimKartenTab({ data, simInventory }) {
 
 function VistarNavoriTab({ data }) {
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
   const { sortCol, toggle, apply } = useSort();
 
   const filtered = useMemo(() => {
@@ -497,6 +857,11 @@ function VistarNavoriTab({ data }) {
     }
     return apply(rows);
   }, [data, search, apply]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  useEffect(() => { setPage(0); }, [search]);
 
   return (
     <div className="space-y-4">
@@ -520,21 +885,759 @@ function VistarNavoriTab({ data }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/60">
-              {filtered.length === 0 ? (
+              {pageRows.length === 0 ? (
                 <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">Keine Venues gefunden</td></tr>
-              ) : filtered.slice(0, MAX_ROWS).map((row, i) => (
+              ) : pageRows.map((row, i) => (
                 <tr key={row.id || i} className="hover:bg-blue-50/30 transition-colors">
                   <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={16} /></td>
                   <td className="px-3 py-2 text-slate-800 font-medium">{row.name || '–'}</td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{row.kunden_id || '–'}</td>
+                  <td className="px-3 py-2 font-mono text-slate-600">{clean(row.kunden_id) || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.do_id} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <TableOverflow total={filtered.length} />
+        <Pagination page={page} totalPages={totalPages} total={filtered.length} onPageChange={setPage} />
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIEFERANDO TAB
+   ═══════════════════════════════════════════════════════════════════ */
+
+function LieferandoTab({ data, simKunden }) {
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(0);
+  const { sortCol, toggle, apply } = useSort();
+
+  // Build KundenID→SIM mapping to check if Lieferando location has a matched device
+  const kundenIdSet = useMemo(() => {
+    return new Set(simKunden.map(s => clean(s.kunden_id)).filter(Boolean));
+  }, [simKunden]);
+
+  const filtered = useMemo(() => {
+    let rows = data;
+    if (search) {
+      const q = search.toLowerCase();
+      rows = rows.filter(r =>
+        String(clean(r.restaurant) || '').toLowerCase().includes(q) ||
+        String(clean(r.stadt) || '').toLowerCase().includes(q) ||
+        String(clean(r.strasse) || '').toLowerCase().includes(q) ||
+        String(clean(r.kunden_id) || '').toLowerCase().includes(q) ||
+        String(clean(r.akquise_status) || '').toLowerCase().includes(q) ||
+        String(clean(r.standort_status) || '').toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter === 'erfolgreich') rows = rows.filter(r => (clean(r.akquise_status) || '').toLowerCase().includes('erfolgreich'));
+    else if (statusFilter === 'installiert') rows = rows.filter(r => (clean(r.standort_status) || '').toLowerCase().includes('installiert'));
+    else if (statusFilter === 'offen') rows = rows.filter(r => !(clean(r.standort_status) || '').toLowerCase().includes('installiert'));
+    else if (statusFilter === 'matched') rows = rows.filter(r => kundenIdSet.has(clean(r.kunden_id)));
+    else if (statusFilter === 'unmatched') rows = rows.filter(r => !kundenIdSet.has(clean(r.kunden_id)));
+
+    return apply(rows);
+  }, [data, search, statusFilter, apply, kundenIdSet]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  useEffect(() => { setPage(0); }, [search, statusFilter]);
+
+  const erfolgreichCount = data.filter(r => (clean(r.akquise_status) || '').toLowerCase().includes('erfolgreich')).length;
+  const installiertCount = data.filter(r => (clean(r.standort_status) || '').toLowerCase().includes('installiert')).length;
+  const matchedCount = data.filter(r => kundenIdSet.has(clean(r.kunden_id))).length;
+
+  return (
+    <div className="space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <KpiCard label="Gesamt" value={data.length} icon={Store} color="#ef4444" />
+        <KpiCard label="Erfolgreich" value={erfolgreichCount} icon={CheckCircle2} color="#22c55e" subtitle={`${data.length > 0 ? Math.round((erfolgreichCount / data.length) * 100) : 0}%`} />
+        <KpiCard label="Installiert" value={installiertCount} icon={MapPin} color="#3b82f6" />
+        <KpiCard label="SIM-Matched" value={matchedCount} icon={Zap} color="#8b5cf6" subtitle={`${data.length > 0 ? Math.round((matchedCount / data.length) * 100) : 0}%`} />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1">
+          <SearchBar value={search} onChange={setSearch} placeholder="Restaurant, Stadt, Straße, KundenID, Status..." />
+        </div>
+        <FilterSelect label="Filter" value={statusFilter} onChange={setStatusFilter}
+          options={[
+            { value: 'all', label: `Alle (${data.length})` },
+            { value: 'erfolgreich', label: `Erfolgreich (${erfolgreichCount})` },
+            { value: 'installiert', label: `Installiert (${installiertCount})` },
+            { value: 'offen', label: 'Offen' },
+            { value: 'matched', label: `SIM-Matched (${matchedCount})` },
+            { value: 'unmatched', label: 'Unmatched' },
+          ]} />
+      </div>
+      <div className="text-xs text-slate-500">{filtered.length} Standorte</div>
+
+      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead className="bg-slate-50/80 border-b border-slate-200/60">
+              <tr>
+                <SortHeader col="restaurant" sortCol={sortCol} onToggle={toggle}>Restaurant</SortHeader>
+                <SortHeader col="stadt" sortCol={sortCol} onToggle={toggle}>Stadt</SortHeader>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Adresse</th>
+                <SortHeader col="kunden_id" sortCol={sortCol} onToggle={toggle}>JET-ID</SortHeader>
+                <SortHeader col="akquise_status" sortCol={sortCol} onToggle={toggle}>Akquise</SortHeader>
+                <SortHeader col="standort_status" sortCol={sortCol} onToggle={toggle}>Standort-Status</SortHeader>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Rollout</th>
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase">SIM</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100/60">
+              {pageRows.length === 0 ? (
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">Keine Standorte gefunden</td></tr>
+              ) : pageRows.map((row, i) => {
+                const kid = clean(row.kunden_id);
+                const hasSimMatch = kid && kundenIdSet.has(kid);
+                return (
+                  <tr key={row.id || i} className="hover:bg-blue-50/30 transition-colors">
+                    <td className="px-3 py-2 text-slate-800 font-medium max-w-[200px] truncate" title={clean(row.restaurant) || ''}>
+                      {clean(row.restaurant) || '–'}
+                    </td>
+                    <td className="px-3 py-2 text-slate-600">{clean(row.stadt) || '–'}</td>
+                    <td className="px-3 py-2 text-slate-500">
+                      {[clean(row.strasse), clean(row.hausnummer)].filter(Boolean).join(' ') || '–'}
+                      {clean(row.plz) && <span className="text-slate-400 ml-1">{clean(row.plz)}</span>}
+                    </td>
+                    <td className="px-3 py-2 font-mono text-slate-600">{kid || '–'}</td>
+                    <td className="px-3 py-2">
+                      {clean(row.akquise_status) ? (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                          clean(row.akquise_status).toLowerCase().includes('erfolgreich') ? 'bg-green-100 text-green-700' :
+                          clean(row.akquise_status).toLowerCase().includes('abgelehnt') ? 'bg-red-100 text-red-700' :
+                          'bg-slate-100 text-slate-600'
+                        }`}>
+                          {clean(row.akquise_status)}
+                        </span>
+                      ) : '–'}
+                    </td>
+                    <td className="px-3 py-2">
+                      {clean(row.standort_status) ? (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                          clean(row.standort_status).toLowerCase().includes('installiert') ? 'bg-green-100 text-green-700' :
+                          clean(row.standort_status).toLowerCase().includes('klärung') ? 'bg-amber-100 text-amber-700' :
+                          'bg-blue-100 text-blue-600'
+                        }`}>
+                          {clean(row.standort_status)}
+                        </span>
+                      ) : '–'}
+                    </td>
+                    <td className="px-3 py-2 text-slate-500 text-[10px]">{clean(row.rollout_info) || clean(row.einreichdatum) || '–'}</td>
+                    <td className="px-3 py-2 text-center">
+                      <MatchBadge matched={hasSimMatch} label={hasSimMatch ? 'Ja' : 'Nein'} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={page} totalPages={totalPages} total={filtered.length} onPageChange={setPage} />
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   WARNINGS / DATA QUALITY TAB
+   Each warning is expandable and shows full related records as a table.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/** Detail row for a single record inside an expanded warning */
+function WarningDetailRow({ label, value, mono }) {
+  if (value == null || value === '') return null;
+  return (
+    <div className="flex items-start gap-2 py-1">
+      <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-28 flex-shrink-0 pt-0.5">{label}</span>
+      <span className={`text-xs text-slate-800 ${mono ? 'font-mono' : ''} break-all`}>{String(value)}</span>
+    </div>
+  );
+}
+
+/** Card showing full details for one affected record */
+function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden, installationen, tasks }) {
+  // Lookup related records based on the warning type
+  const simMatch = record.sim_id ? simKunden.find(s => s.karten_nr === record.sim_id) : null;
+  const vistarMatch = record.venue_id ? vistarNavori.find(v => v.venue_id === record.venue_id) : null;
+  const kundenId = clean(simMatch?.kunden_id) || clean(record.kunden_nr);
+  const liefMatch = kundenId ? lieferando.find(l => clean(l.kunden_id) === kundenId) : null;
+
+  // Find installations for this OPS
+  const opsNrStr = record.ops_nr ? String(record.ops_nr) : null;
+  const instMatches = opsNrStr
+    ? (installationen || []).filter(inst => String(inst.ops_nr || '') === opsNrStr)
+    : [];
+
+  // Find tasks linked to the same display_ids as the installations
+  const relatedDisplayIds = new Set();
+  instMatches.forEach(inst => {
+    (Array.isArray(inst.display_ids) ? inst.display_ids : []).forEach(did => relatedDisplayIds.add(did));
+  });
+  const taskMatches = relatedDisplayIds.size > 0
+    ? (tasks || []).filter(t =>
+        (Array.isArray(t.display_ids) ? t.display_ids : []).some(did => relatedDisplayIds.has(did))
+      )
+    : [];
+
+  return (
+    <div className="bg-white/80 border border-slate-200/60 rounded-lg p-3 space-y-0.5">
+      {/* OPS Info */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs font-bold text-slate-800">OPS {record.ops_nr || '–'}</span>
+        {record.ops_sn && <span className="text-[10px] font-mono text-slate-500">{record.ops_sn}</span>}
+        {record.status && (
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase ${
+            record.status === 'active' ? 'bg-green-100 text-green-700' :
+            record.status === 'defect' ? 'bg-red-100 text-red-700' :
+            'bg-slate-100 text-slate-600'
+          }`}>{record.status}</span>
+        )}
+        {instMatches.length > 0 && (
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-100 text-emerald-700">
+            <Wrench size={9} /> {instMatches.length} Installation{instMatches.length > 1 ? 'en' : ''}
+          </span>
+        )}
+        {instMatches.length === 0 && (
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-500">
+            Keine Installation
+          </span>
+        )}
+      </div>
+
+      {/* Vorbereitet Data */}
+      <WarningDetailRow label="Venue-ID" value={record.venue_id} mono />
+      <WarningDetailRow label="SIM-ID" value={record.sim_id} mono />
+      <WarningDetailRow label="Kunden-Nr" value={record.kunden_nr} mono />
+      <WarningDetailRow label="Fertig" value={record.fertig ? 'Ja' : 'Nein'} />
+      <WarningDetailRow label="Vorbereitet" value={record.vorbereitet ? 'Ja' : 'Nein'} />
+
+      {/* Installation Data from Airtable — enriched with DO-ID + Vistar/Navori status */}
+      {instMatches.length > 0 && instMatches.map((inst, ii) => {
+        // Determine display IDs from this installation
+        const instDisplayIds = Array.isArray(inst.display_ids) ? inst.display_ids : [];
+
+        // Check Vistar/Navori presence via venue_id from the Vorbereitet record
+        const venueVistar = record.venue_id
+          ? vistarNavori.find(v => v.venue_id === record.venue_id)
+          : null;
+
+        // Also try matching via kunden_id if venue_id didn't match
+        const kundenVistar = !venueVistar && kundenId
+          ? vistarNavori.find(v => clean(v.kunden_id) === kundenId)
+          : null;
+        const vistarEntry = venueVistar || kundenVistar;
+
+        return (
+          <div key={ii} className="mt-2 pt-2 border-t border-emerald-200/60">
+            <div className="flex items-center gap-1 mb-1 flex-wrap">
+              <Wrench size={10} className="text-emerald-600" />
+              <span className="text-[10px] font-bold text-emerald-700 uppercase">
+                Installation {instMatches.length > 1 ? `#${ii + 1}` : ''} (Airtable)
+              </span>
+              {inst.status && (
+                <span className={`ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                  (inst.status || '').toLowerCase().includes('done') || (inst.status || '').toLowerCase().includes('erledigt') || (inst.status || '').toLowerCase().includes('install')
+                    ? 'bg-green-100 text-green-700'
+                    : (inst.status || '').toLowerCase().includes('cancel') || (inst.status || '').toLowerCase().includes('abge')
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-blue-100 text-blue-600'
+                }`}>{inst.status}</span>
+              )}
+              {/* Vistar/Navori presence badge */}
+              {vistarEntry ? (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-100 text-amber-700">
+                  <Monitor size={9} /> Vistar ✓
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-500">
+                  <Monitor size={9} /> Vistar ✗
+                </span>
+              )}
+            </div>
+            <WarningDetailRow label="Status" value={inst.status} />
+            <WarningDetailRow label="Datum" value={inst.install_date ? new Date(inst.install_date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null} />
+            <WarningDetailRow label="Art" value={inst.installation_type} />
+            <WarningDetailRow label="Integrator" value={inst.integrator} />
+            <WarningDetailRow label="Techniker" value={Array.isArray(inst.technicians) ? inst.technicians.join(', ') : inst.technicians} />
+            <WarningDetailRow label="Start" value={inst.install_start ? new Date(inst.install_start).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null} />
+            <WarningDetailRow label="Ende" value={inst.install_end ? new Date(inst.install_end).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null} />
+            <WarningDetailRow label="Screen" value={[inst.screen_type, inst.screen_size].filter(Boolean).join(' – ') || null} />
+            <WarningDetailRow label="SIM (Install)" value={inst.sim_id} mono />
+            {/* DO-IDs from installation */}
+            {instDisplayIds.length > 0 && (
+              <WarningDetailRow label="DO-ID (Install)" value={instDisplayIds.join(', ')} mono />
+            )}
+            {/* Vistar/Navori DO-ID if matched */}
+            {vistarEntry && (
+              <>
+                <WarningDetailRow label="DO-ID (Vistar)" value={vistarEntry.do_id} mono />
+                <WarningDetailRow label="Vistar Name" value={vistarEntry.name} />
+                <WarningDetailRow label="Vistar KundenID" value={clean(vistarEntry.kunden_id)} mono />
+              </>
+            )}
+            {!vistarEntry && (
+              <WarningDetailRow label="Vistar/Navori" value="Kein Eintrag gefunden" />
+            )}
+            <WarningDetailRow label="Bemerkungen" value={inst.remarks} />
+          </div>
+        );
+      })}
+
+      {/* SIM Data */}
+      {simMatch && (
+        <div className="mt-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-1 mb-1">
+            <CreditCard size={10} className="text-violet-500" />
+            <span className="text-[10px] font-bold text-violet-600 uppercase">SIM-Karte</span>
+          </div>
+          <WarningDetailRow label="ICCID" value={simMatch.karten_nr} mono />
+          <WarningDetailRow label="JET-ID" value={clean(simMatch.kunden_id)} mono />
+          <WarningDetailRow label="Aktiviert" value={simMatch.aktivierungsdatum ? new Date(simMatch.aktivierungsdatum).toLocaleDateString('de-DE') : null} />
+        </div>
+      )}
+
+      {/* Vistar Data */}
+      {vistarMatch && (
+        <div className="mt-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-1 mb-1">
+            <Monitor size={10} className="text-amber-500" />
+            <span className="text-[10px] font-bold text-amber-600 uppercase">Vistar/Navori</span>
+          </div>
+          <WarningDetailRow label="Name" value={vistarMatch.name} />
+          <WarningDetailRow label="Kunden-ID" value={clean(vistarMatch.kunden_id)} mono />
+          <WarningDetailRow label="DO-ID" value={vistarMatch.do_id} mono />
+        </div>
+      )}
+
+      {/* Lieferando Data */}
+      {liefMatch && (
+        <div className="mt-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-1 mb-1">
+            <Store size={10} className="text-red-500" />
+            <span className="text-[10px] font-bold text-red-600 uppercase">Lieferando Standort</span>
+          </div>
+          <WarningDetailRow label="Restaurant" value={clean(liefMatch.restaurant)} />
+          <WarningDetailRow label="Adresse" value={[clean(liefMatch.strasse), clean(liefMatch.hausnummer)].filter(Boolean).join(' ')} />
+          <WarningDetailRow label="PLZ / Stadt" value={[clean(liefMatch.plz), clean(liefMatch.stadt)].filter(Boolean).join(' ')} />
+          <WarningDetailRow label="Akquise" value={clean(liefMatch.akquise_status)} />
+          <WarningDetailRow label="Standort" value={clean(liefMatch.standort_status)} />
+          <WarningDetailRow label="Einreichdatum" value={clean(liefMatch.einreichdatum)} />
+          <WarningDetailRow label="Rollout" value={clean(liefMatch.rollout_info)} />
+          <WarningDetailRow label="Installation" value={clean(liefMatch.installationsart)} />
+        </div>
+      )}
+
+      {/* Tasks linked to same Display IDs */}
+      {taskMatches.length > 0 && (
+        <div className="mt-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-1 mb-1">
+            <Calendar size={10} className="text-blue-500" />
+            <span className="text-[10px] font-bold text-blue-600 uppercase">
+              Tasks ({taskMatches.length})
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            {taskMatches.slice(0, 5).map((task, ti) => (
+              <div key={ti} className="flex items-start gap-2 py-1 px-2 bg-blue-50/50 rounded-md">
+                <span className={`flex-shrink-0 mt-0.5 w-2 h-2 rounded-full ${
+                  task.status === 'Completed' ? 'bg-green-500' :
+                  task.status === 'In Progress' ? 'bg-blue-500' :
+                  task.priority === 'Urgent' ? 'bg-red-500' :
+                  task.priority === 'High' ? 'bg-orange-500' :
+                  'bg-slate-400'
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] font-medium text-slate-800 truncate">{task.title}</span>
+                    <span className={`inline-flex items-center px-1 py-0 rounded text-[8px] font-bold uppercase ${
+                      task.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                      task.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                      task.status === 'Follow Up' ? 'bg-amber-100 text-amber-700' :
+                      'bg-slate-100 text-slate-600'
+                    }`}>{task.status}</span>
+                    {task.priority && (
+                      <span className={`inline-flex items-center px-1 py-0 rounded text-[8px] font-bold uppercase ${
+                        task.priority === 'Urgent' ? 'bg-red-100 text-red-700' :
+                        task.priority === 'High' ? 'bg-orange-100 text-orange-700' :
+                        'bg-slate-100 text-slate-500'
+                      }`}>{task.priority}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 mt-0.5 text-[10px] text-slate-500">
+                    {task.responsible_user && <span>Verantwortlich: {task.responsible_user}</span>}
+                    {task.due_date && <span>Fällig: {new Date(task.due_date).toLocaleDateString('de-DE')}</span>}
+                    {task.install_date && <span>Install: {new Date(task.install_date).toLocaleDateString('de-DE')}</span>}
+                  </div>
+                  {task.nacharbeit_kommentar && (
+                    <p className="text-[10px] text-slate-500 mt-0.5 italic">Nacharbeit: {task.nacharbeit_kommentar}</p>
+                  )}
+                  {task.install_remarks && (
+                    <p className="text-[10px] text-slate-500 mt-0.5 italic">Install-Bemerkung: {task.install_remarks}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+            {taskMatches.length > 5 && (
+              <p className="text-[10px] text-slate-400 italic px-2">+ {taskMatches.length - 5} weitere Tasks</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* If no related data found at all */}
+      {!simMatch && !vistarMatch && !liefMatch && instMatches.length === 0 && taskMatches.length === 0 && !record.venue_id && !record.sim_id && (
+        <div className="text-[10px] text-slate-400 italic mt-1">Keine verknüpften Daten gefunden</div>
+      )}
+    </div>
+  );
+}
+
+function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData, installationen, tasks }) {
+  const [expanded, setExpanded] = useState({});
+
+  const toggleExpand = (idx) => {
+    setExpanded(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  // Build lookup maps for enrichment
+  const opsMap = useMemo(() => {
+    const m = new Map();
+    (opsData || []).forEach(o => { if (o.ops_nr) m.set(String(o.ops_nr), o); });
+    return m;
+  }, [opsData]);
+
+  const vorbMap = useMemo(() => {
+    const m = new Map();
+    vorbereitet.forEach(v => { if (v.ops_nr) m.set(String(v.ops_nr), v); });
+    return m;
+  }, [vorbereitet]);
+
+  const warnings = useMemo(() => {
+    const w = [];
+
+    // 1. Duplicate SIM assignments (same SIM in multiple Vorbereitet entries)
+    const simCounts = new Map();
+    vorbereitet.forEach(v => {
+      if (v.sim_id) {
+        if (!simCounts.has(v.sim_id)) simCounts.set(v.sim_id, []);
+        simCounts.get(v.sim_id).push(v);
+      }
+    });
+    simCounts.forEach((records, simId) => {
+      if (records.length > 1) {
+        w.push({
+          type: 'duplicate_sim',
+          severity: 'error',
+          message: `SIM …${simId.slice(-8)} ist ${records.length} OPS zugeordnet`,
+          detail: `OPS-Nummern: ${records.map(r => r.ops_nr).join(', ')} — gleiche SIM-Karte darf nur einem Gerät zugeordnet sein.`,
+          records: records.map(r => ({
+            ...r,
+            status: opsMap.get(String(r.ops_nr))?.status || null,
+            hardware_type: opsMap.get(String(r.ops_nr))?.hardware_type || null,
+          })),
+          affectedCount: records.length,
+        });
+      }
+    });
+
+    // 2. Duplicate Venue assignments (same Venue → multiple OPS)
+    const venueCounts = new Map();
+    vorbereitet.forEach(v => {
+      if (v.venue_id) {
+        if (!venueCounts.has(v.venue_id)) venueCounts.set(v.venue_id, []);
+        venueCounts.get(v.venue_id).push(v);
+      }
+    });
+    venueCounts.forEach((records, venueId) => {
+      if (records.length > 1) {
+        w.push({
+          type: 'duplicate_venue',
+          severity: 'warning',
+          message: `Venue ${venueId.slice(0, 12)}… hat ${records.length} OPS-Geräte`,
+          detail: `OPS-Nummern: ${records.map(r => r.ops_nr).join(', ')} — nur ein Gerät pro Venue erwartet.`,
+          records: records.map(r => ({
+            ...r,
+            status: opsMap.get(String(r.ops_nr))?.status || null,
+          })),
+          affectedCount: records.length,
+        });
+      }
+    });
+
+    // 3. OPS in NocoDB (Vorbereitet) but not in Airtable (hardware_ops)
+    const opsSet = new Set((opsData || []).map(o => String(o.ops_nr || '')).filter(Boolean));
+    const unmatchedVorbereitet = vorbereitet.filter(v => v.ops_nr && !opsSet.has(String(v.ops_nr)));
+    if (unmatchedVorbereitet.length > 0) {
+      w.push({
+        type: 'unmatched_ops',
+        severity: 'warning',
+        message: `${unmatchedVorbereitet.length} OPS in NocoDB aber nicht in Airtable`,
+        detail: 'Diese Geräte existieren in NocoDB-Vorbereitet, haben aber keinen Eintrag in hardware_ops (Airtable).',
+        records: unmatchedVorbereitet.slice(0, 20),
+        affectedCount: unmatchedVorbereitet.length,
+      });
+    }
+
+    // 4. OPS in Airtable but not in NocoDB
+    const vorbOpsSet = new Set(vorbereitet.map(v => String(v.ops_nr || '')).filter(Boolean));
+    const unmatchedHwOps = (opsData || []).filter(o => o.ops_nr && !vorbOpsSet.has(String(o.ops_nr)));
+    if (unmatchedHwOps.length > 0) {
+      w.push({
+        type: 'unmatched_hw',
+        severity: 'info',
+        message: `${unmatchedHwOps.length} OPS in Airtable aber nicht in NocoDB`,
+        detail: 'Diese Geräte existieren in hardware_ops (Airtable), haben aber keinen Eintrag in NocoDB-Vorbereitet.',
+        records: unmatchedHwOps.slice(0, 20).map(o => ({
+          ops_nr: o.ops_nr,
+          ops_sn: o.serial_number || o.sn || null,
+          status: o.status,
+          hardware_type: o.hardware_type,
+        })),
+        affectedCount: unmatchedHwOps.length,
+      });
+    }
+
+    // 5. Lieferando KundenID still dirty
+    const dirtyLieferando = lieferando.filter(l => {
+      const kid = String(l.kunden_id || '');
+      return kid.includes('{') || kid.includes('"');
+    });
+    if (dirtyLieferando.length > 0) {
+      w.push({
+        type: 'dirty_kunden_id',
+        severity: 'warning',
+        message: `${dirtyLieferando.length} Lieferando-Einträge mit unsauberer KundenID`,
+        detail: 'KundenID im Format {"..."} in der DB. Wird im Frontend bereinigt, sollte aber auch in der DB normalisiert werden.',
+        records: dirtyLieferando.slice(0, 10).map(l => ({
+          ops_nr: null,
+          restaurant: clean(l.restaurant),
+          stadt: clean(l.stadt),
+          kunden_id_raw: l.kunden_id,
+          kunden_id_clean: clean(l.kunden_id),
+          standort_status: clean(l.standort_status),
+        })),
+        affectedCount: dirtyLieferando.length,
+      });
+    }
+
+    // 6. Vorbereitet without SIM
+    const noSim = vorbereitet.filter(v => !v.sim_id && v.ops_nr);
+    if (noSim.length > 0) {
+      w.push({
+        type: 'missing_sim',
+        severity: 'info',
+        message: `${noSim.length} Vorbereitet-Einträge ohne SIM-ID`,
+        detail: 'Diesen OPS-Geräten ist keine SIM-Karte zugeordnet.',
+        records: noSim.slice(0, 20).map(v => ({
+          ...v,
+          status: opsMap.get(String(v.ops_nr))?.status || null,
+        })),
+        affectedCount: noSim.length,
+      });
+    }
+
+    // 7. Vorbereitet without Venue
+    const noVenue = vorbereitet.filter(v => !v.venue_id && v.ops_nr);
+    if (noVenue.length > 0) {
+      w.push({
+        type: 'missing_venue',
+        severity: 'info',
+        message: `${noVenue.length} Vorbereitet-Einträge ohne Venue-ID`,
+        detail: 'Diesen OPS-Geräten ist kein Standort (Venue) zugeordnet.',
+        records: noVenue.slice(0, 20).map(v => ({
+          ...v,
+          status: opsMap.get(String(v.ops_nr))?.status || null,
+        })),
+        affectedCount: noVenue.length,
+      });
+    }
+
+    // Sort: errors first, then warnings, then info
+    const severityOrder = { error: 0, warning: 1, info: 2 };
+    w.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+
+    return w;
+  }, [vorbereitet, simKunden, vistarNavori, lieferando, opsData, opsMap]);
+
+  const errorCount = warnings.filter(w => w.severity === 'error').length;
+  const warnCount = warnings.filter(w => w.severity === 'warning').length;
+  const infoCount = warnings.filter(w => w.severity === 'info').length;
+
+  const severityConfig = {
+    error: { bg: 'bg-red-50 border-red-200', bgExpanded: 'bg-red-50/50', icon: XCircle, iconColor: 'text-red-500', label: 'Fehler' },
+    warning: { bg: 'bg-amber-50 border-amber-200', bgExpanded: 'bg-amber-50/50', icon: AlertTriangle, iconColor: 'text-amber-500', label: 'Warnung' },
+    info: { bg: 'bg-blue-50 border-blue-200', bgExpanded: 'bg-blue-50/50', icon: Eye, iconColor: 'text-blue-500', label: 'Info' },
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-3">
+        <KpiCard label="Fehler" value={errorCount} icon={XCircle} color="#ef4444" />
+        <KpiCard label="Warnungen" value={warnCount} icon={AlertTriangle} color="#f59e0b" />
+        <KpiCard label="Hinweise" value={infoCount} icon={Eye} color="#3b82f6" />
+      </div>
+
+      {warnings.length === 0 ? (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+          <CheckCircle2 size={32} className="text-green-500 mx-auto mb-2" />
+          <p className="text-sm font-medium text-green-700">Keine Datenqualitätsprobleme gefunden</p>
+          <p className="text-xs text-green-600 mt-1">Alle Zuordnungen sind konsistent.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {warnings.map((w, i) => {
+            const cfg = severityConfig[w.severity];
+            const WarnIcon = cfg.icon;
+            const isExpanded = !!expanded[i];
+            const isDuplicate = w.type === 'duplicate_sim' || w.type === 'duplicate_venue';
+            const isDirtyKid = w.type === 'dirty_kunden_id';
+
+            return (
+              <div key={i} className={`${cfg.bg} border rounded-xl overflow-hidden`}>
+                {/* Header — clickable */}
+                <button
+                  onClick={() => toggleExpand(i)}
+                  className="w-full p-4 flex items-start gap-3 text-left hover:brightness-95 transition"
+                >
+                  <WarnIcon size={18} className={`${cfg.iconColor} flex-shrink-0 mt-0.5`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${cfg.iconColor}`}>{cfg.label}</span>
+                    </div>
+                    <p className="text-sm font-medium text-slate-800">{w.message}</p>
+                    <p className="text-xs text-slate-500 mt-1">{w.detail}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-[10px] font-mono text-slate-400">{w.affectedCount} betroffen</span>
+                    <ChevronRight size={16} className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                  </div>
+                </button>
+
+                {/* Expanded Detail */}
+                {isExpanded && w.records && w.records.length > 0 && (
+                  <div className={`${cfg.bgExpanded} border-t border-slate-200/40 px-4 pb-4 pt-3`}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-3">
+                      Betroffene Datensätze {w.affectedCount > w.records.length && `(${w.records.length} von ${w.affectedCount} angezeigt)`}
+                    </p>
+
+                    {/* For duplicate SIM / Venue: show each record as a detail card */}
+                    {(isDuplicate || w.type === 'unmatched_ops' || w.type === 'missing_sim' || w.type === 'missing_venue') && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {w.records.map((rec, ri) => (
+                          <AffectedRecordCard
+                            key={ri}
+                            record={rec}
+                            type={w.type}
+                            vistarNavori={vistarNavori}
+                            lieferando={lieferando}
+                            simKunden={simKunden}
+                            installationen={installationen}
+                            tasks={tasks}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* For unmatched HW (Airtable only): simple table */}
+                    {w.type === 'unmatched_hw' && (
+                      <div className="bg-white/80 border border-slate-200/60 rounded-lg overflow-hidden">
+                        <table className="w-full text-xs">
+                          <thead className="bg-slate-50/80 border-b border-slate-200/60">
+                            <tr>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">OPS Nr.</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Seriennummer</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Status</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Typ</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100/60">
+                            {w.records.map((rec, ri) => (
+                              <tr key={ri} className="hover:bg-blue-50/30">
+                                <td className="px-3 py-2 font-mono font-bold text-slate-800">{rec.ops_nr}</td>
+                                <td className="px-3 py-2 font-mono text-slate-600">{rec.ops_sn || '–'}</td>
+                                <td className="px-3 py-2">
+                                  {rec.status ? (
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                                      rec.status === 'active' ? 'bg-green-100 text-green-700' :
+                                      rec.status === 'defect' ? 'bg-red-100 text-red-700' :
+                                      'bg-slate-100 text-slate-600'
+                                    }`}>{rec.status}</span>
+                                  ) : '–'}
+                                </td>
+                                <td className="px-3 py-2 text-slate-600">{rec.hardware_type || '–'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* For dirty KundenIDs: show raw vs clean */}
+                    {isDirtyKid && (
+                      <div className="bg-white/80 border border-slate-200/60 rounded-lg overflow-hidden">
+                        <table className="w-full text-xs">
+                          <thead className="bg-slate-50/80 border-b border-slate-200/60">
+                            <tr>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Restaurant</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Stadt</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">KundenID (roh)</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">KundenID (bereinigt)</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100/60">
+                            {w.records.map((rec, ri) => (
+                              <tr key={ri} className="hover:bg-blue-50/30">
+                                <td className="px-3 py-2 text-slate-800 font-medium">{rec.restaurant || '–'}</td>
+                                <td className="px-3 py-2 text-slate-600">{rec.stadt || '–'}</td>
+                                <td className="px-3 py-2 font-mono text-red-600 text-[10px]">{rec.kunden_id_raw || '–'}</td>
+                                <td className="px-3 py-2 font-mono text-green-700 text-[10px]">{rec.kunden_id_clean || '–'}</td>
+                                <td className="px-3 py-2 text-slate-500">{rec.standort_status || '–'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════════════════════ */
+
+function EmptyState({ onSync, syncing }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <Database size={48} className="text-slate-300 mb-4" />
+      <p className="text-slate-500 text-sm mb-4 max-w-md">
+        Noch keine NocoDB-Daten synchronisiert. Klicke &apos;Sync jetzt&apos; um die Daten abzurufen.
+      </p>
+      <button
+        onClick={onSync}
+        disabled={syncing}
+        className="px-4 py-2 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+      >
+        {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+        Sync jetzt
+      </button>
     </div>
   );
 }
@@ -553,26 +1656,57 @@ export default function NocoDBPanel() {
   const [vorbereitet, setVorbereitet] = useState([]);
   const [simKunden, setSimKunden] = useState([]);
   const [vistarNavori, setVistarNavori] = useState([]);
+  const [lieferando, setLieferando] = useState([]);
   const [syncMeta, setSyncMeta] = useState(null);
   const [opsData, setOpsData] = useState([]);
+  const [installationen, setInstallationen] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
   /* ─── Load all data from Supabase ─────────────────────────────── */
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [vorbRes, simRes, vistarRes, metaRes, opsRes] = await Promise.all([
-        supabase.from('nocodb_vorbereitet').select('*').order('created_at', { ascending: false }),
-        supabase.from('nocodb_sim_kunden').select('*').order('created_at', { ascending: false }),
+      // Helper: fetch from proxy for RLS-blocked tables
+      const fetchProxy = async (table, select, order) => {
+        try {
+          let url = `/api/supabase-proxy?table=${table}`;
+          if (select) url += `&select=${encodeURIComponent(select)}`;
+          if (order) url += `&order=${encodeURIComponent(order)}`;
+          const res = await fetch(url);
+          if (!res.ok) {
+            console.warn(`[NocoDBPanel] Proxy ${table}: ${res.status}`);
+            // Fallback to direct Supabase (works if RLS is fixed later)
+            let q = supabase.from(table).select(select || '*').limit(5000);
+            if (order) q = q.order(order.split('.')[0], { ascending: order.includes('.asc') });
+            const { data } = await q;
+            return data || [];
+          }
+          return await res.json();
+        } catch (e) {
+          console.warn(`[NocoDBPanel] Proxy ${table} error:`, e.message);
+          return [];
+        }
+      };
+
+      const [vorbRes, simRes, vistarRes, liefRes, metaRes, opsRes, instData, taskData] = await Promise.all([
+        supabase.from('nocodb_vorbereitet').select('*').order('ops_nr', { ascending: true }),
+        supabase.from('nocodb_sim_kunden').select('*').order('karten_nr', { ascending: true }),
         supabase.from('nocodb_vistar_navori').select('*').order('name', { ascending: true }),
-        supabase.from('sync_metadata').select('*').eq('source', 'nocodb').order('last_synced_at', { ascending: false }).limit(1),
-        supabase.from('hardware_ops').select('ops_nr').limit(5000),
+        supabase.from('nocodb_lieferando').select('*').order('restaurant', { ascending: true }),
+        supabase.from('sync_metadata').select('*').eq('table_name', 'nocodb_all').order('updated_at', { ascending: false }).limit(1),
+        supabase.from('hardware_ops').select('ops_nr,serial_number,status,hardware_type,display_location_id').limit(5000),
+        fetchProxy('installationen', 'id,ops_nr,install_date,status,installation_type,integrator,technicians,sim_id,install_start,install_end,screen_type,screen_size,remarks,display_ids'),
+        fetchProxy('tasks', 'title,status,priority,due_date,description,display_ids,location_names,responsible_user,created_time,install_date,install_remarks,nacharbeit_kommentar', 'created_time.desc'),
       ]);
 
       setVorbereitet(vorbRes.data || []);
       setSimKunden(simRes.data || []);
       setVistarNavori(vistarRes.data || []);
+      setLieferando(liefRes.data || []);
       setSyncMeta(metaRes.data?.[0] || null);
       setOpsData(opsRes.data || []);
+      setInstallationen(instData);
+      setTasks(taskData);
     } catch (err) {
       console.error('[NocoDBPanel] Load error:', err);
     } finally {
@@ -589,7 +1723,7 @@ export default function NocoDBPanel() {
     setSyncing(true);
     setSyncError(null);
     try {
-      const res = await fetch('/.netlify/functions/sync-nocodb', { method: 'POST' });
+      const res = await fetch('/api/sync-nocodb');
       if (!res.ok) {
         const errText = await res.text();
         throw new Error(errText || `Sync fehlgeschlagen (${res.status})`);
@@ -605,7 +1739,7 @@ export default function NocoDBPanel() {
   }, [loadData]);
 
   /* ─── Check if any data exists ─────────────────────────────────── */
-  const hasData = vorbereitet.length > 0 || simKunden.length > 0 || vistarNavori.length > 0;
+  const hasData = vorbereitet.length > 0 || simKunden.length > 0 || vistarNavori.length > 0 || lieferando.length > 0;
 
   /* ─── Loading State ─────────────────────────────────────────────── */
   if (loading) {
@@ -630,7 +1764,7 @@ export default function NocoDBPanel() {
             </div>
             <div>
               <h2 className="text-base font-semibold text-slate-800">NocoDB Daten</h2>
-              <p className="text-xs text-slate-500">Vorbereitet, SIM-Karten &amp; Vistar/Navori</p>
+              <p className="text-xs text-slate-500">Vorbereitet, SIM, Vistar/Navori &amp; Lieferando</p>
             </div>
           </div>
           {syncError && (
@@ -673,20 +1807,44 @@ export default function NocoDBPanel() {
                 vorbereitet={vorbereitet}
                 simKunden={simKunden}
                 vistarNavori={vistarNavori}
+                lieferando={lieferando}
                 syncMeta={syncMeta}
                 opsData={opsData}
                 onSync={handleSync}
                 syncing={syncing}
               />
             )}
+            {activeTab === 'matching' && (
+              <MatchingTab
+                vorbereitet={vorbereitet}
+                simKunden={simKunden}
+                vistarNavori={vistarNavori}
+                lieferando={lieferando}
+                opsData={opsData}
+              />
+            )}
             {activeTab === 'vorbereitet' && (
               <VorbereitetTab data={vorbereitet} opsData={opsData} />
             )}
             {activeTab === 'sim' && (
-              <SimKartenTab data={simKunden} simInventory={[]} />
+              <SimKartenTab data={simKunden} vorbereitet={vorbereitet} />
             )}
             {activeTab === 'vistar' && (
               <VistarNavoriTab data={vistarNavori} />
+            )}
+            {activeTab === 'lieferando' && (
+              <LieferandoTab data={lieferando} simKunden={simKunden} />
+            )}
+            {activeTab === 'warnings' && (
+              <WarningsTab
+                vorbereitet={vorbereitet}
+                simKunden={simKunden}
+                vistarNavori={vistarNavori}
+                lieferando={lieferando}
+                opsData={opsData}
+                installationen={installationen}
+                tasks={tasks}
+              />
             )}
           </>
         )}
