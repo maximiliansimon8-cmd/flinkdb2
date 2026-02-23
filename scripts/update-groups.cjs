@@ -1,8 +1,10 @@
 const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(
-  'https://hvgjdosdejnwkuyivnrq.supabase.co',
-  '***REMOVED_SERVICE_ROLE_KEY***'
-);
+
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('ERROR: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables are required.');
+  process.exit(1);
+}
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 async function run() {
   const { data: groups, error } = await supabase.from('groups').select('*');

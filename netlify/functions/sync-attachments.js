@@ -859,7 +859,6 @@ export default async (request) => {
     return new Response(JSON.stringify({
       success: false,
       error: 'Attachment-Sync fehlgeschlagen',
-      message: err.message,
       duration_ms: Date.now() - startTime,
     }), { status: 500, headers });
   }

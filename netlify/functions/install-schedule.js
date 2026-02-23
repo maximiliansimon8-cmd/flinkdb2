@@ -14,7 +14,7 @@
 import {
   getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
   checkRateLimit, getClientIP, rateLimitResponse,
-  sanitizeString, isValidUUID,
+  sanitizeString, isValidUUID, secureCompare,
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 
@@ -28,7 +28,7 @@ const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 function authenticate(request) {
   // Check API key first (for Make.com / external triggers)
   const apiKey = request.headers.get('x-api-key');
-  if (apiKey && BOOKER_API_KEY && apiKey === BOOKER_API_KEY) {
+  if (apiKey && BOOKER_API_KEY && secureCompare(apiKey, BOOKER_API_KEY)) {
     return { source: 'api-key', origin: '*' };
   }
 

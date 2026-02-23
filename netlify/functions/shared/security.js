@@ -280,6 +280,26 @@ export function normalizePhone(phone) {
  * In production, only a generic message is returned.
  * Stack traces, internal paths, and error details are stripped.
  */
+/**
+ * Timing-safe comparison of two strings (API keys, secrets, tokens).
+ * Prevents timing attacks by using constant-time comparison.
+ */
+export function secureCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  try {
+    const crypto = require('node:crypto');
+    return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+  } catch {
+    // Fallback: constant-time XOR comparison
+    let result = 0;
+    for (let i = 0; i < a.length; i++) {
+      result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    }
+    return result === 0;
+  }
+}
+
 export function safeErrorResponse(statusCode, publicMessage, origin, internalError = null) {
   if (internalError) {
     // Log internally for debugging, but never send to client

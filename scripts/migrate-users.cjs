@@ -4,9 +4,13 @@
 const { Client } = require('pg');
 const https = require('https');
 
-const SUPABASE_URL = 'https://hvgjdosdejnwkuyivnrq.supabase.co';
-const SERVICE_KEY = '***REMOVED_SERVICE_ROLE_KEY***';
-const AIRTABLE_TOKEN = '***REMOVED_AIRTABLE_PAT***';
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.AIRTABLE_TOKEN) {
+  console.error('ERROR: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and AIRTABLE_TOKEN environment variables are required.');
+  process.exit(1);
+}
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 if (!process.env.DATABASE_URL) {
   console.error('ERROR: DATABASE_URL environment variable is required. Set it before running this script.');
   process.exit(1);
@@ -15,7 +19,11 @@ if (!process.env.DATABASE_URL) {
 const PG_URL = process.env.DATABASE_URL;
 
 const ADMIN_EMAILS = ['max@dimension-outdoor.com', 'luca@dimension-outdoor.com'];
-const DEFAULT_PASSWORD = '***REMOVED_DEFAULT_PW***';
+if (!process.env.DEFAULT_LOGIN_PASSWORD) {
+  console.error('ERROR: DEFAULT_LOGIN_PASSWORD environment variable is required.');
+  process.exit(1);
+}
+const DEFAULT_PASSWORD = process.env.DEFAULT_LOGIN_PASSWORD;
 
 function fetchJSON(url, opts = {}) {
   return new Promise((resolve, reject) => {

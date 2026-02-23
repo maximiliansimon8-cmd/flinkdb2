@@ -13,7 +13,7 @@ import { logApiCall } from './shared/apiLogger.js';
 import {
   getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
   checkRateLimit, getClientIP, rateLimitResponse, safeErrorResponse,
-  normalizePhone,
+  normalizePhone, secureCompare,
 } from './shared/security.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -108,7 +108,7 @@ export default async (req) => {
   // Auth: Origin check OR API key (for scheduled triggers / Make.com)
   const origin = getAllowedOrigin(req);
   const apiKey = req.headers.get('x-api-key');
-  const isApiKeyValid = apiKey && BOOKER_API_KEY && apiKey === BOOKER_API_KEY;
+  const isApiKeyValid = apiKey && BOOKER_API_KEY && secureCompare(apiKey, BOOKER_API_KEY);
 
   if (!origin && !isApiKeyValid) return forbiddenResponse();
 

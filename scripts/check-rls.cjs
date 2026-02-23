@@ -1,16 +1,15 @@
 const { createClient } = require('@supabase/supabase-js');
 
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.SUPABASE_ANON_KEY) {
+  console.error('ERROR: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_ANON_KEY environment variables are required.');
+  process.exit(1);
+}
+
 // Use service role to check RLS status
-const supabase = createClient(
-  'https://hvgjdosdejnwkuyivnrq.supabase.co',
-  '***REMOVED_SERVICE_ROLE_KEY***'
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 // Use anon key to test what anon can see
-const supabaseAnon = createClient(
-  'https://hvgjdosdejnwkuyivnrq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ'
-);
+const supabaseAnon = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 async function run() {
   console.log('=== RLS STATUS CHECK ===\n');

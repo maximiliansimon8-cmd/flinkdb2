@@ -14,7 +14,7 @@
 import {
   getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
   checkRateLimit, getClientIP, rateLimitResponse,
-  sanitizeString, sanitizeForAirtableFormula,
+  sanitizeString, sanitizeForAirtableFormula, secureCompare,
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 import { AIRTABLE_BASE, TABLES, FETCH_FIELDS } from './shared/airtableFields.js';
@@ -50,7 +50,7 @@ async function supabaseRequest(path, options = {}) {
 async function authenticateUser(request) {
   // Check API key first (for Make.com / external triggers)
   const apiKey = request.headers.get('x-api-key');
-  if (apiKey && BOOKER_API_KEY && apiKey === BOOKER_API_KEY) {
+  if (apiKey && BOOKER_API_KEY && secureCompare(apiKey, BOOKER_API_KEY)) {
     return { authenticated: true, user: { source: 'api-key' } };
   }
 

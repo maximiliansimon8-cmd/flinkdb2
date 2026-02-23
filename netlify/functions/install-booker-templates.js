@@ -6,9 +6,14 @@
  *
  * GET /api/install-booker/templates
  *   → { templates: [{ id, name, body, variables, status }] }
+ *
+ * Auth: Origin check
  */
 
-import { getAllowedOrigin, corsHeaders } from './shared/security.js';
+import {
+  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
+  checkRateLimit, getClientIP, rateLimitResponse, safeErrorResponse,
+} from './shared/security.js';
 
 const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
 const SUPERCHAT_BASE = 'https://api.superchat.com/v1.0';
@@ -23,12 +28,16 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export default async (request, context) => {
   // CORS preflight
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders() });
-  }
+  if (request.method === 'OPTIONS') return handlePreflight(request);
 
-  const dashboardOrigin = getAllowedOrigin(request);
-  const cors = corsHeaders(dashboardOrigin || undefined);
+  const origin = getAllowedOrigin(request);
+  if (!origin) return forbiddenResponse();
+
+  const clientIP = getClientIP(request);
+  const limit = checkRateLimit(`install-templates:${clientIP}`, 30, 60_000);
+  if (!limit.allowed) return rateLimitResponse(limit.retryAfterMs, origin);
+
+  const cors = corsHeaders(origin);
 
   if (request.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -63,7 +72,7 @@ export default async (request, context) => {
 
     if (!res.ok) {
       console.error(`[install-booker-templates] SuperChat API returned ${res.status}`);
-      return new Response(JSON.stringify({ error: 'Failed to fetch templates', templates: [] }), {
+      return new Response(JSON.stringify({ error: 'Templates konnten nicht geladen werden', templates: [] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...cors },
       });
@@ -104,9 +113,6 @@ export default async (request, context) => {
 
   } catch (err) {
     console.error('[install-booker-templates] Error:', err.message);
-    return new Response(JSON.stringify({ error: 'Internal error', templates: [] }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...cors },
-    });
+    return safeErrorResponse(500, 'Interner Fehler beim Laden der Templates', origin, err);
   }
 };

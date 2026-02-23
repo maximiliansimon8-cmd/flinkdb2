@@ -16,7 +16,7 @@ import {
   getAllowedOrigin, corsHeaders,
   checkRateLimit, getClientIP,
   sanitizeString, isValidAirtableId,
-  normalizePhone,
+  normalizePhone, secureCompare,
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 import { normalizeCity } from './shared/slotUtils.js';
@@ -286,7 +286,7 @@ export default async (request, context) => {
   const apiKey = request.headers.get('x-api-key');
   const dashboardOrigin = getAllowedOrigin(request);
   const cors = corsHeaders(dashboardOrigin || undefined);
-  if (!(apiKey && BOOKER_API_KEY && apiKey === BOOKER_API_KEY) && !dashboardOrigin) {
+  if (!(apiKey && BOOKER_API_KEY && secureCompare(apiKey, BOOKER_API_KEY)) && !dashboardOrigin) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json', ...cors },
