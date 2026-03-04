@@ -961,7 +961,7 @@ export default function StammdatenImport() {
                     {approvedNonCritical ? (
                       <><CheckCircle2 size={14} /> Freigegeben</>
                     ) : (
-                      <><Shield size={14} /> Alle {comparison.onlyNonCritical.length + comparison.withCritical.length} freigeben</>
+                      <><Shield size={14} /> Alle {comparison.onlyNonCritical.length} unkritischen freigeben</>
                     )}
                   </button>
                 </div>
