@@ -1885,41 +1885,41 @@ function App() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-secondary">
-        <div className="w-full max-w-[360px] px-6">
-          <form onSubmit={handleLogin} className="bg-surface-primary border border-border-secondary rounded-2xl p-8 shadow-lg">
-            <div className="flex flex-col items-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gray-900 flex items-center justify-center mb-5 shadow-md">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #FBFBFD 0%, #F2F2F7 100%)' }}>
+        <div className="w-full max-w-[380px] px-6">
+          <form onSubmit={handleLogin} className="bg-white rounded-3xl p-10 shadow-xl border border-gray-200/60">
+            <div className="flex flex-col items-center mb-10">
+              <div className="w-[72px] h-[72px] rounded-[22px] bg-[#1D1D1F] flex items-center justify-center mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
                 <img
                   src="/dimension-outdoor-logo.png"
                   alt="Dimension Outdoor"
-                  className="h-8 w-auto invert opacity-90"
+                  className="h-9 w-auto invert opacity-90"
                 />
               </div>
-              <h1 className="text-[20px] font-semibold text-text-primary tracking-[-0.4px]">
+              <h1 className="text-[24px] font-semibold text-[#1D1D1F] tracking-[-0.5px]">
                 JET Germany
               </h1>
-              <p className="text-[13px] text-text-muted mt-1">
+              <p className="text-[15px] text-[#86868B] mt-1.5">
                 Display Network Monitor
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Email / Username Field */}
               <div>
-                <label className="text-[13px] font-medium text-text-secondary block mb-1.5">E-Mail oder Benutzername</label>
+                <label className="text-[14px] font-medium text-[#1D1D1F] block mb-2">E-Mail oder Benutzername</label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#86868B]" />
                   <input
                     type="text"
                     value={emailInput}
                     onChange={(e) => { setEmailInput(e.target.value); setAuthError(''); }}
                     placeholder="name@dimension-outdoor.com"
                     autoFocus
-                    className={`w-full bg-surface-secondary border rounded-[var(--radius-md)] pl-10 pr-3.5 py-3 text-[15px] text-text-primary placeholder-text-muted focus:outline-none focus:ring-3 focus:ring-accent/12 transition-all ${
+                    className={`w-full bg-white border-[1.5px] rounded-xl pl-11 pr-4 py-3.5 text-[16px] text-[#1D1D1F] placeholder-[#AEAEB2] focus:outline-none focus:ring-4 focus:ring-[#007AFF]/10 transition-all ${
                       authError
-                        ? 'border-status-offline focus:border-status-offline'
-                        : 'border-border-primary focus:border-accent'
+                        ? 'border-[#FF3B30] focus:border-[#FF3B30]'
+                        : 'border-[#D2D2D7] focus:border-[#007AFF]'
                     }`}
                   />
                 </div>
@@ -1927,23 +1927,23 @@ function App() {
 
               {/* Password Field */}
               <div>
-                <label className="text-[13px] font-medium text-text-secondary block mb-1.5">Passwort</label>
+                <label className="text-[14px] font-medium text-[#1D1D1F] block mb-2">Passwort</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#86868B]" />
                   <input
                     type="password"
                     value={passwordInput}
                     onChange={(e) => { setPasswordInput(e.target.value); setAuthError(''); }}
                     placeholder="Passwort eingeben"
-                    className={`w-full bg-surface-secondary border rounded-[var(--radius-md)] pl-10 pr-3.5 py-3 text-[15px] text-text-primary placeholder-text-muted focus:outline-none focus:ring-3 focus:ring-accent/12 transition-all ${
+                    className={`w-full bg-white border-[1.5px] rounded-xl pl-11 pr-4 py-3.5 text-[16px] text-[#1D1D1F] placeholder-[#AEAEB2] focus:outline-none focus:ring-4 focus:ring-[#007AFF]/10 transition-all ${
                       authError
-                        ? 'border-status-offline focus:border-status-offline'
-                        : 'border-border-primary focus:border-accent'
+                        ? 'border-[#FF3B30] focus:border-[#FF3B30]'
+                        : 'border-[#D2D2D7] focus:border-[#007AFF]'
                     }`}
                   />
                 </div>
                 {authError && (
-                  <p className="text-status-offline text-[13px] mt-2">
+                  <p className="text-[#FF3B30] text-[14px] mt-2.5 font-medium">
                     {authError}
                   </p>
                 )}
@@ -1951,18 +1951,21 @@ function App() {
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-[var(--radius-md)] text-[15px] font-semibold bg-accent text-white hover:bg-accent-hover active:brightness-90 transition-all shadow-sm"
+                className="w-full py-3.5 rounded-xl text-[16px] font-semibold bg-[#007AFF] text-white hover:bg-[#0066CC] active:bg-[#0055B3] transition-all"
+                style={{ boxShadow: '0 2px 8px rgba(0, 122, 255, 0.3)' }}
               >
                 Anmelden
               </button>
 
-              <button
-                type="button"
-                onClick={() => { setShowResetForm(true); setResetEmail(emailInput); setResetStatus(''); }}
-                className="w-full text-[13px] text-accent hover:text-accent-hover transition-colors mt-1"
-              >
-                Passwort vergessen?
-              </button>
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => { setShowResetForm(true); setResetEmail(emailInput); setResetStatus(''); }}
+                  className="text-[14px] text-[#007AFF] hover:text-[#0055B3] transition-colors"
+                >
+                  Passwort vergessen?
+                </button>
+              </div>
             </div>
           </form>
 

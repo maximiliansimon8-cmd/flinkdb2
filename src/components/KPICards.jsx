@@ -16,24 +16,25 @@ function TrendIndicator({ current, previous, inverted }) {
   const diff = current - previous;
   if (Math.abs(diff) < 0.1) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-[11px] font-mono text-text-muted">
-        <Minus size={10} />
+      <span className="inline-flex items-center gap-1 text-[13px] text-[#86868B]">
+        <Minus size={12} />
         <span>±0</span>
       </span>
     );
   }
   const isPositive = inverted ? diff < 0 : diff > 0;
-  const color = isPositive ? 'var(--color-status-online)' : 'var(--color-status-offline)';
+  const color = isPositive ? '#34C759' : '#FF3B30';
+  const bgColor = isPositive ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 59, 48, 0.1)';
   const Icon = diff > 0 ? TrendingUp : TrendingDown;
   const sign = diff > 0 ? '+' : '';
   const displayDiff = Number.isInteger(diff) ? diff : diff.toFixed(1);
 
   return (
     <span
-      className="inline-flex items-center gap-0.5 text-[11px] font-mono"
-      style={{ color }}
+      className="inline-flex items-center gap-0.5 text-[12px] font-semibold px-1.5 py-0.5 rounded-md"
+      style={{ color, backgroundColor: bgColor }}
     >
-      <Icon size={11} />
+      <Icon size={12} />
       <span>{sign}{displayDiff}</span>
     </span>
   );
@@ -43,38 +44,43 @@ function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, ac
   return (
     <div
       onClick={onClick}
-      className={`bg-surface-primary border rounded-2xl p-5 shadow-card transition-all duration-150 ${
+      className={`bg-white rounded-2xl p-5 transition-all duration-200 ${
         large ? 'col-span-1 md:col-span-2 lg:col-span-1' : ''
       } ${
-        onClick ? 'cursor-pointer hover:shadow-md' : ''
+        onClick ? 'cursor-pointer hover:scale-[1.02] hover:shadow-lg' : ''
       } ${
         active
-          ? 'border-accent border-l-[3px]'
-          : 'border-border-secondary'
+          ? 'ring-2 ring-[#007AFF] shadow-lg'
+          : 'shadow-sm'
       }`}
+      style={{
+        border: active ? 'none' : '1px solid rgba(0,0,0,0.06)',
+      }}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[13px] text-text-secondary font-medium">
+        <span className="text-[14px] text-[#86868B] font-medium">
           {label}
         </span>
-        <Icon size={16} className="text-text-muted" />
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '14' }}>
+          <Icon size={16} style={{ color }} />
+        </div>
       </div>
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-2.5">
         <div
-          className={`font-mono font-bold tracking-tight ${large ? 'text-[34px] leading-none' : 'text-[28px] leading-none'}`}
-          style={{ color }}
+          className={`font-semibold tracking-tight ${large ? 'text-[36px] leading-none' : 'text-[30px] leading-none'}`}
+          style={{ color: '#1D1D1F' }}
         >
           {value}
         </div>
         {trend}
       </div>
       {(subtitle || avgLabel) && (
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center gap-2 mt-2.5">
           {subtitle && (
-            <span className="text-text-muted text-[12px]">{subtitle}</span>
+            <span className="text-[#86868B] text-[13px]">{subtitle}</span>
           )}
           {avgLabel && (
-            <span className="text-text-muted text-[11px] font-mono bg-surface-secondary px-1.5 py-0.5 rounded-md">
+            <span className="text-[#86868B] text-[12px] bg-[#F5F5F7] px-2 py-0.5 rounded-md font-medium">
               {avgLabel}
             </span>
           )}
@@ -91,10 +97,10 @@ export { KPI_FILTERS };
 export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel, comparisonKPIs, isRefreshing }) {
   const healthColor =
     kpis.healthRate >= 90
-      ? 'var(--color-status-online)'
+      ? '#34C759'
       : kpis.healthRate >= 70
-        ? 'var(--color-status-warning)'
-        : 'var(--color-status-offline)';
+        ? '#FF9500'
+        : '#FF3B30';
 
   const toggle = (filter) => {
     onFilterClick(activeFilter === filter ? null : filter);
@@ -103,19 +109,18 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
   const hasRange = kpis.snapshotCount >= 2;
 
   // When a date range is active, show avg values as main numbers
-  // and current (live) values as subtitle context
   const useAvg = hasRange && kpis.avgOnline != null;
 
   return (
     <div className="relative">
       {isRefreshing && (
-        <div className="flex items-center justify-center gap-2 mb-3 py-2 px-4 bg-accent/8 border border-accent/15 rounded-xl text-[13px] text-accent font-medium animate-fade-in">
-          <div className="w-3.5 h-3.5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-          Aktualisiere Daten...
+        <div className="flex items-center justify-center gap-2 mb-3 py-2.5 px-4 bg-[#007AFF]/8 rounded-xl text-[14px] text-[#007AFF] font-medium animate-fade-in">
+          <div className="w-4 h-4 border-2 border-[#007AFF] border-t-transparent rounded-full animate-spin" />
+          Daten werden aktualisiert
         </div>
       )}
       {kpis._cached && (
-        <div className="flex items-center justify-center gap-1.5 mb-2 py-1 px-3 text-[11px] text-text-muted">
+        <div className="flex items-center justify-center gap-1.5 mb-2 py-1 px-3 text-[13px] text-[#86868B]">
           Letzte bekannte Daten{kpis._cachedTimestamp ? ` · ${new Date(kpis._cachedTimestamp).toLocaleString('de-DE')}` : ''}
         </div>
       )}
@@ -125,7 +130,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         value={`${kpis.healthRate}%`}
         icon={Activity}
         color={healthColor}
-        subtitle={kpis.snapshotCount > 0 ? `Ø ${kpis.snapshotCount} Tage · 06–22 Uhr` : undefined}
+        subtitle={kpis.snapshotCount > 0 ? `Ø ${kpis.snapshotCount} Tage` : undefined}
         avgLabel={rangeLabel || undefined}
         large
         trend={
@@ -138,10 +143,10 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         }
       />
       <KPICard
-        label="Installierte Displays"
+        label="Displays"
         value={useAvg ? kpis.avgTotal : (kpis.installed || kpis.totalActive)}
         icon={Monitor}
-        color="var(--color-accent)"
+        color="#007AFF"
         subtitle={
           useAvg
             ? `Aktuell: ${kpis.installed || kpis.totalActive}${kpis.daynTotal ? ` (${(kpis.installed || kpis.totalActive) - kpis.daynTotal} + ${kpis.daynTotal} Dayn)` : ''}`
@@ -165,7 +170,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         label="Online"
         value={useAvg ? kpis.avgOnline : kpis.onlineCount}
         icon={Activity}
-        color="var(--color-status-online)"
+        color="#34C759"
         subtitle={useAvg ? `Aktuell: ${kpis.onlineCount}` : '< 24h'}
         avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.ONLINE)}
@@ -183,7 +188,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         label="Warnung"
         value={useAvg ? kpis.avgWarning : kpis.warningCount}
         icon={Clock}
-        color="var(--color-status-warning)"
+        color="#FF9500"
         subtitle={useAvg ? `Aktuell: ${kpis.warningCount}` : '24–72h'}
         avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.WARNING)}
@@ -202,7 +207,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         label="Kritisch"
         value={useAvg ? kpis.avgCritical : kpis.criticalCount}
         icon={AlertTriangle}
-        color="var(--color-status-offline)"
+        color="#FF3B30"
         subtitle={useAvg ? `Aktuell: ${kpis.criticalCount}` : '72h – 7d'}
         avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.CRITICAL)}
@@ -221,7 +226,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         label="Dauerhaft Offline"
         value={useAvg ? kpis.avgPermanentOffline : kpis.permanentOfflineCount}
         icon={Skull}
-        color="var(--color-status-offline)"
+        color="#FF3B30"
         subtitle={useAvg ? `Aktuell: ${kpis.permanentOfflineCount}` : '> 7 Tage'}
         avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.PERMANENT_OFFLINE)}
@@ -240,7 +245,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         label="Nie Online"
         value={useAvg ? kpis.avgNeverOnline : kpis.neverOnlineCount}
         icon={WifiOff}
-        color="var(--color-text-muted)"
+        color="#86868B"
         subtitle={useAvg ? `Aktuell: ${kpis.neverOnlineCount}` : 'Kein Heartbeat'}
         avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.NEVER_ONLINE)}
