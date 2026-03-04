@@ -90,6 +90,7 @@ const MobileActivityFeed = lazy(() => import('./components/MobileActivityFeed'))
 const QRHardwareScanner = lazy(() => import('./components/QRHardwareScanner'));
 const FAWCheckApp = lazy(() => import('./components/FAWCheckApp'));
 const DisplayTrends = lazy(() => import('./components/DisplayTrends'));
+const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'));
 // InstallationInspection moved to HardwareDashboard as sub-tab "Freigabe"
 import MobileBottomNav from './components/MobileBottomNav';
 import { fetchVenuePerformance } from './utils/vistarService';
@@ -2398,6 +2399,13 @@ function App() {
             }}
           />
         )}
+
+        {/* Dev Feedback Widget — Admin-only right-click context menu for coding feedback */}
+        {userIsAdmin && (
+          <Suspense fallback={null}>
+            <FeedbackWidget />
+          </Suspense>
+        )}
       </div>
     );
   }
@@ -3110,6 +3118,13 @@ function App() {
           </div>
         }>
           <AkquiseApp onClose={() => setShowAkquiseApp(false)} />
+        </Suspense>
+      )}
+
+      {/* Dev Feedback Widget — Admin-only right-click context menu for coding feedback */}
+      {userIsAdmin && (
+        <Suspense fallback={null}>
+          <FeedbackWidget />
         </Suspense>
       )}
     </div>
