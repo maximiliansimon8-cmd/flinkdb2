@@ -427,6 +427,53 @@ export default function StammdatenImport() {
       }
     }
 
+    // 4. Conflict check for new entries: match by address, email, or entity against Airtable
+    const atByEmail = new Map();
+    const atByEntity = new Map();
+    for (const [id, rec] of airtableData) {
+      const em = norm(rec.email);
+      if (em) { if (!atByEmail.has(em)) atByEmail.set(em, []); atByEmail.get(em).push(rec); }
+      const ent = norm(rec.account_name);
+      if (ent) { if (!atByEntity.has(ent)) atByEntity.set(ent, []); atByEntity.get(ent).push(rec); }
+    }
+
+    const newWithConflicts = []; // new entries that have potential matches
+    const newClean = [];         // new entries without conflicts
+    for (const row of newEntries) {
+      const hints = [];
+      // Address match
+      const ak = addrKey(row);
+      if (ak !== '|||') {
+        const atRows = atByAddr.get(ak) || [];
+        for (const atRow of atRows) {
+          hints.push({ type: 'address', atId: atRow.id, atName: atRow.name, detail: `${atRow.street} ${atRow.street_number}, ${atRow.postcode} ${atRow.city}` });
+        }
+      }
+      // Email match
+      const em = norm(row.email);
+      if (em) {
+        for (const atRow of (atByEmail.get(em) || [])) {
+          if (!hints.some(h => h.atId === atRow.id)) {
+            hints.push({ type: 'email', atId: atRow.id, atName: atRow.name, detail: row.email });
+          }
+        }
+      }
+      // Entity/Inhaber match
+      const ent = norm(row.account_name);
+      if (ent) {
+        for (const atRow of (atByEntity.get(ent) || [])) {
+          if (!hints.some(h => h.atId === atRow.id)) {
+            hints.push({ type: 'entity', atId: atRow.id, atName: atRow.name, detail: row.account_name });
+          }
+        }
+      }
+      if (hints.length > 0) {
+        newWithConflicts.push({ ...row, _conflictHints: hints });
+      } else {
+        newClean.push(row);
+      }
+    }
+
     const withChanges = matched.filter(m => m.hasChanges);
     const unchanged = matched.filter(m => !m.hasChanges);
 
@@ -434,7 +481,7 @@ export default function StammdatenImport() {
     const withCritical = withChanges.filter(m => m.hasCritical);
     const onlyNonCritical = withChanges.filter(m => !m.hasCritical);
 
-    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical };
+    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical, newWithConflicts, newClean };
   }, [csvData, airtableData]);
 
   /** Filter results by search */
@@ -818,10 +865,14 @@ export default function StammdatenImport() {
             <button onClick={() => setActiveTab('new')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'new' ? 'bg-blue-600 text-white' : 'bg-blue-50/80 border border-blue-200/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Neu (nur CSV)</p>
               <p className={`text-2xl font-bold ${activeTab === 'new' ? '' : 'text-blue-700'}`}>{comparison.newEntries.length}</p>
+              {comparison.newWithConflicts.length > 0 && (
+                <p className="text-[9px] opacity-60">{comparison.newWithConflicts.length} mit Konflikten</p>
+              )}
             </button>
-            <button onClick={() => setActiveTab('missing')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'missing' ? 'bg-red-600 text-white' : 'bg-red-50/80 border border-red-200/60'}`}>
-              <p className="text-[11px] font-medium opacity-70">Fehlend (nur AT)</p>
-              <p className={`text-2xl font-bold ${activeTab === 'missing' ? '' : 'text-red-700'}`}>{comparison.missing.length}</p>
+            <button onClick={() => setActiveTab('missing')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'missing' ? 'bg-gray-700 text-white' : 'bg-gray-50/80 border border-gray-200/60'}`}>
+              <p className="text-[11px] font-medium opacity-70">Nur in DB</p>
+              <p className={`text-2xl font-bold ${activeTab === 'missing' ? '' : 'text-gray-700'}`}>{comparison.missing.length}</p>
+              <p className="text-[9px] opacity-60">Ohne Aenderungen</p>
             </button>
             <button onClick={() => setActiveTab('conflicts')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'conflicts' ? 'bg-purple-600 text-white' : 'bg-purple-50/80 border border-purple-200/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Adress-Konflikte</p>
@@ -864,7 +915,7 @@ export default function StammdatenImport() {
                   <p><Badge color="amber">{comparison.onlyNonCritical.length}</Badge> unkritische Aenderungen (Tel, Email, Kontakt, Geo — gesammelt freigeben)</p>
                   <p><Badge color="red">{comparison.withCritical.length}</Badge> kritische Aenderungen (Name, Firma, Chain — einzeln pruefen)</p>
                   <p><Badge color="blue">{comparison.newEntries.length}</Badge> neue Standorte (ID nur im CSV)</p>
-                  <p><Badge color="red">{comparison.missing.length}</Badge> fehlend im Export (ID nur in Airtable)</p>
+                  <p><Badge color="gray">{comparison.missing.length}</Badge> in DB ohne Aenderungen (ID nur in Airtable, nicht im CSV)</p>
                   <p><Badge color="purple">{comparison.addrConflicts.length}</Badge> Adress-Konflikte (gleiche Anschrift, andere ID)</p>
                 </div>
                 {comparison.withChanges.length > 0 && (
@@ -1048,18 +1099,88 @@ export default function StammdatenImport() {
 
             {/* New entries */}
             {activeTab === 'new' && (
-              <div className="divide-y divide-slate-100">
+              <div>
                 {filteredResults.newEntries.length === 0 ? (
                   <div className="p-8 text-center text-sm text-gray-400">Keine neuen Eintraege</div>
-                ) : filteredResults.newEntries.map(row => (
-                  <div key={row.id} className="px-4 py-3 flex items-center gap-3 hover:bg-blue-50/30 transition-colors">
-                    <Plus size={14} className="text-blue-500 flex-shrink-0" />
-                    <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{row.id}</span>
-                    <span className="text-sm font-medium text-gray-900 flex-1 truncate">{row.name}</span>
-                    <span className="text-xs text-gray-500">{row.street} {row.street_number}</span>
-                    <span className="text-xs text-gray-400">{row.postcode} {row.city}</span>
-                  </div>
-                ))}
+                ) : (
+                  <>
+                    {/* New entries WITH potential conflicts */}
+                    {comparison.newWithConflicts.length > 0 && (
+                      <div>
+                        <div className="px-4 py-3 bg-amber-50/80 border-b border-amber-200/40">
+                          <p className="text-sm font-semibold text-amber-800">
+                            {comparison.newWithConflicts.length} mit moeglichen Konflikten
+                          </p>
+                          <p className="text-[10px] text-amber-600">
+                            Gleiche Adresse, Email oder Inhaber in Airtable gefunden — ID geaendert? Verkauft? Bitte pruefen.
+                          </p>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                          {comparison.newWithConflicts.map(row => (
+                            <div key={row.id} className="hover:bg-amber-50/30 transition-colors">
+                              <button
+                                onClick={() => setExpandedId(expandedId === `new-${row.id}` ? null : `new-${row.id}`)}
+                                className="w-full px-4 py-3 flex items-center gap-3 text-left"
+                              >
+                                <AlertTriangle size={14} className="text-amber-500 flex-shrink-0" />
+                                <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{row.id}</span>
+                                <span className="text-sm font-medium text-gray-900 flex-1 truncate">{row.name}</span>
+                                <span className="text-xs text-gray-500">{row.street} {row.street_number}</span>
+                                <span className="text-xs text-gray-400">{row.postcode} {row.city}</span>
+                                <Badge color="amber">{row._conflictHints.length}</Badge>
+                                <ChevronDown size={14} className={`text-gray-400 transition-transform ${expandedId === `new-${row.id}` ? 'rotate-180' : ''}`} />
+                              </button>
+                              {expandedId === `new-${row.id}` && (
+                                <div className="px-4 pb-3 space-y-1.5">
+                                  {row._conflictHints.map((h, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-xs px-3 py-2 bg-amber-50 rounded-lg border border-amber-200/50">
+                                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                        h.type === 'address' ? 'bg-purple-100 text-purple-700' :
+                                        h.type === 'email' ? 'bg-blue-100 text-blue-700' :
+                                        'bg-orange-100 text-orange-700'
+                                      }`}>
+                                        {h.type === 'address' ? 'Adresse' : h.type === 'email' ? 'Email' : 'Inhaber'}
+                                      </span>
+                                      <ArrowRight size={10} className="text-gray-400" />
+                                      <span className="font-mono text-gray-500">{h.atId}</span>
+                                      <span className="text-gray-700 font-medium">{h.atName}</span>
+                                      <span className="text-gray-400 ml-auto">{h.detail}</span>
+                                    </div>
+                                  ))}
+                                  <p className="text-[10px] text-gray-500 pt-1">
+                                    Moeglich: JET ID geaendert, Standort verkauft/neuer Vertragspartner, oder tatsaechlich neu.
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Clean new entries (no conflicts) */}
+                    {comparison.newClean.length > 0 && (
+                      <div>
+                        {comparison.newWithConflicts.length > 0 && (
+                          <div className="px-4 py-2 bg-emerald-50/80 border-b border-emerald-200/40 border-t border-slate-200/40">
+                            <p className="text-xs font-semibold text-emerald-700">{comparison.newClean.length} ohne Konflikte — bereit zum Anlegen</p>
+                          </div>
+                        )}
+                        <div className="divide-y divide-slate-100">
+                          {comparison.newClean.map(row => (
+                            <div key={row.id} className="px-4 py-3 flex items-center gap-3 hover:bg-blue-50/30 transition-colors">
+                              <Plus size={14} className="text-blue-500 flex-shrink-0" />
+                              <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{row.id}</span>
+                              <span className="text-sm font-medium text-gray-900 flex-1 truncate">{row.name}</span>
+                              <span className="text-xs text-gray-500">{row.street} {row.street_number}</span>
+                              <span className="text-xs text-gray-400">{row.postcode} {row.city}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
