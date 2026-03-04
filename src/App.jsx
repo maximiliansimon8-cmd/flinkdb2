@@ -166,7 +166,7 @@ class TabErrorBoundary extends React.Component {
       return (
         <div className="bg-status-offline/10 border border-status-offline/20 rounded-2xl p-6 m-4 text-center">
           <div className="text-status-offline font-bold mb-2">Fehler in "{this.props.name || 'Tab'}"</div>
-          <div className="text-xs text-status-offline font-mono mb-3">Ein Fehler ist aufgetreten. Bitte versuche es erneut.</div>
+          <div className="text-xs text-status-offline mb-3">Ein Fehler ist aufgetreten. Bitte versuche es erneut.</div>
           <button onClick={() => this.setState({ hasError: false, error: null })}
             className="px-4 py-2 bg-status-offline/10 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200">
             Erneut versuchen
@@ -2063,7 +2063,7 @@ function App() {
               <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-progress-glow" style={{ width: '60%' }} />
             </div>
           </div>
-          <p className="text-xs text-text-muted font-mono mt-3">Lade Dashboard...</p>
+          <p className="text-xs text-text-muted mt-3">Lade Dashboard...</p>
         </div>
       </div>
     );
@@ -2139,7 +2139,7 @@ function App() {
           <div className="text-text-primary text-sm font-medium mb-2">
             Fehler beim Laden
           </div>
-          <div className="text-text-muted text-xs font-mono mb-4">{error || 'Ein unerwarteter Fehler ist aufgetreten.'}</div>
+          <div className="text-text-muted text-xs mb-4">{error || 'Ein unerwarteter Fehler ist aufgetreten.'}</div>
           <button
             onClick={() => loadData(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-surface-primary border border-border-secondary rounded-lg text-xs text-text-secondary hover:border-accent transition-colors"
@@ -2539,7 +2539,7 @@ function App() {
                     <h3 className="text-sm font-medium text-text-primary">
                       {KPI_FILTER_LABELS[kpiFilter]}
                     </h3>
-                    <span className="text-xs font-mono text-text-muted bg-surface-secondary px-2 py-0.5 rounded">
+                    <span className="text-xs text-text-muted bg-surface-secondary px-2 py-0.5 rounded">
                       {kpiFilteredDisplays.length}
                     </span>
                   </div>
@@ -2780,7 +2780,7 @@ function App() {
 
         {/* Data summary footer */}
         <div className="text-center py-4">
-          <div className="text-xs text-text-muted font-mono">
+          <div className="text-xs text-text-muted">
             {rawData ? (
               <>
                 {rawData.displays.length} Displays mit Heartbeat •{' '}

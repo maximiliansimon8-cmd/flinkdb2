@@ -434,7 +434,7 @@ function ActivityCard({ activity, isLast, isUnread }) {
               {/* Type badge + Title */}
               <div className="flex items-center gap-2.5 mb-2 flex-wrap">
                 <span
-                  className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${config.bg} ${config.text} ${config.border} border`}
+                  className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${config.bg} ${config.text} ${config.border} border`}
                 >
                   {config.label}
                 </span>
@@ -488,7 +488,7 @@ function DateGroupHeader({ label }) {
   return (
     <div className="flex items-center gap-3 py-3">
       <div className="h-px flex-1 bg-surface-tertiary" />
-      <span className="text-sm font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">
+      <span className="text-sm font-bold text-text-muted whitespace-nowrap">
         {label}
       </span>
       <div className="h-px flex-1 bg-surface-tertiary" />
@@ -551,7 +551,7 @@ function SummaryStats({ activities }) {
           <div className={`text-3xl font-bold ${config.text}`}>
             {counts[type] || 0}
           </div>
-          <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mt-1">
+          <div className="text-xs font-semibold text-text-muted mt-1">
             {config.label}
           </div>
         </div>

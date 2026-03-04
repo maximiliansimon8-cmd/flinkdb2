@@ -163,19 +163,19 @@ function DisplayRow({ display, onCreateTask }) {
             {display.locationName || display.displayId}
           </span>
           {display.city && (
-            <span className="flex items-center gap-0.5 text-[10px] text-text-muted font-mono flex-shrink-0">
+            <span className="flex items-center gap-0.5 text-[10px] text-text-muted flex-shrink-0">
               <MapPin size={9} />
               {display.city}
             </span>
           )}
         </div>
-        <div className="text-[10px] text-text-muted font-mono truncate">
+        <div className="text-[10px] text-text-muted truncate">
           {display.displayId}
           {display.displayName && display.displayName !== display.displayId ? ` · ${display.displayName}` : ''}
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <span className="flex items-center gap-1 text-[10px] font-mono text-text-muted">
+        <span className="flex items-center gap-1 text-[10px] text-text-muted">
           <Clock size={9} />
           {offlineLabel}
         </span>
@@ -250,10 +250,10 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Filter size={14} className="text-text-muted" />
-          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+          <h3 className="text-xs font-medium text-text-secondary">
             Display Health Patterns
           </h3>
-          <span className="text-[10px] font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
             {totalActive} aktive Displays
           </span>
         </div>
@@ -293,7 +293,7 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
               }}
             >
               <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-sm font-mono font-bold" style={{ color: pattern.color }}>
+                <span className="text-sm font-bold" style={{ color: pattern.color }}>
                   {pattern.icon}
                 </span>
                 <span className="text-[10px] font-medium text-text-secondary leading-tight">
@@ -301,10 +301,10 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
                 </span>
               </div>
               <div className="flex items-end gap-1.5">
-                <span className="text-lg font-mono font-bold" style={{ color: pattern.color }}>
+                <span className="text-lg font-bold" style={{ color: pattern.color }}>
                   {count}
                 </span>
-                <span className="text-[10px] font-mono text-text-muted mb-0.5">
+                <span className="text-[10px] text-text-muted mb-0.5">
                   {pct}%
                 </span>
               </div>
@@ -336,7 +336,7 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
               <span className="text-[10px] text-text-muted font-medium flex-shrink-0">Stadt:</span>
               <button
                 onClick={() => setCityFilter(null)}
-                className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors flex-shrink-0 ${
+                className={`px-2 py-0.5 rounded text-[10px] transition-colors flex-shrink-0 ${
                   !cityFilter
                     ? 'bg-[#1D1D1F] text-white'
                     : 'bg-surface-primary text-text-secondary hover:bg-surface-secondary border border-border-secondary'
@@ -350,7 +350,7 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
                   <button
                     key={city}
                     onClick={() => setCityFilter(cityFilter === city ? null : city)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors flex-shrink-0 ${
+                    className={`px-2 py-0.5 rounded text-[10px] transition-colors flex-shrink-0 ${
                       cityFilter === city
                         ? 'bg-[#1D1D1F] text-white'
                         : 'bg-surface-primary text-text-secondary hover:bg-surface-secondary border border-border-secondary'
@@ -366,13 +366,13 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-2 bg-surface-secondary/40 border-b border-border-secondary/60">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-mono font-bold" style={{ color: PATTERNS.find((p) => p.id === activePattern)?.color }}>
+              <span className="text-sm font-bold" style={{ color: PATTERNS.find((p) => p.id === activePattern)?.color }}>
                 {PATTERNS.find((p) => p.id === activePattern)?.icon}
               </span>
               <span className="text-xs font-medium text-text-primary">
                 {PATTERNS.find((p) => p.id === activePattern)?.label}
               </span>
-              <span className="text-[10px] font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
                 {filteredDisplays.length} Displays
               </span>
             </div>

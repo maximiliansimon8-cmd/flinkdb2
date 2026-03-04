@@ -467,7 +467,7 @@ function LocationHistory({ akquiseRecordId, callLog }) {
                           <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold border ${cfg.color}`}>
                             {cfg.label}
                           </span>
-                          <span className="text-[10px] text-text-muted font-mono">{dateStr} {timeStr}</span>
+                          <span className="text-[10px] text-text-muted">{dateStr} {timeStr}</span>
                         </div>
                         {event.detail && (
                           <p className="text-xs text-text-muted mt-0.5 leading-relaxed">{event.detail}</p>
@@ -790,7 +790,7 @@ function ActiveCallPanel({ item, routes, onComplete, onSkip, isBookingItem, read
                 type="text"
                 value={jetId}
                 readOnly
-                className="w-full bg-surface-secondary border border-border-secondary rounded-lg px-3 py-1.5 text-sm text-text-muted font-mono cursor-not-allowed"
+                className="w-full bg-surface-secondary border border-border-secondary rounded-lg px-3 py-1.5 text-sm text-text-muted cursor-not-allowed"
                 tabIndex={-1}
               />
             </div>
@@ -816,7 +816,7 @@ function ActiveCallPanel({ item, routes, onComplete, onSkip, isBookingItem, read
                   value={bookingForm.contactPhone}
                   onChange={e => setBookingForm(f => ({ ...f, contactPhone: e.target.value }))}
                   placeholder="Telefonnummer"
-                  className="flex-1 bg-surface-primary border border-border-secondary rounded-lg px-3 py-1.5 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all"
+                  className="flex-1 bg-surface-primary border border-border-secondary rounded-lg px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all"
                 />
                 {phone && (
                   <button onClick={copyPhone} className="p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors" title="Nummer kopieren">
@@ -1139,7 +1139,7 @@ function QueueItem({ item, isActive, onClick, type, index }) {
         </div>
       </div>
       {timeInfo && (
-        <span className="text-[10px] text-text-muted font-mono shrink-0">{timeInfo}</span>
+        <span className="text-[10px] text-text-muted shrink-0">{timeInfo}</span>
       )}
       <ChevronRight size={14} className="text-text-muted shrink-0" />
     </button>
@@ -1182,9 +1182,9 @@ function CallLogEntry({ entry }) {
         )}
       </div>
       <div className="text-right shrink-0">
-        <span className="text-[10px] text-text-muted font-mono block">{entry.time}</span>
+        <span className="text-[10px] text-text-muted block">{entry.time}</span>
         {entry.phone && (
-          <span className="text-[10px] text-text-muted font-mono block">{entry.phone}</span>
+          <span className="text-[10px] text-text-muted block">{entry.phone}</span>
         )}
       </div>
     </div>

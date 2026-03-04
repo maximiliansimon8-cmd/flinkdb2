@@ -125,7 +125,7 @@ export default function StimmcheckModal({ isOpen, onClose, locationName, locatio
             <div className="px-5 py-4 space-y-4">
               {/* Location info (read-only) */}
               <div className="bg-surface-secondary/80 rounded-lg p-3 border border-border-secondary">
-                <div className="text-xs text-text-muted uppercase tracking-wider mb-1">Standort</div>
+                <div className="text-xs text-text-muted mb-1">Standort</div>
                 <div className="text-sm font-medium text-text-primary truncate">
                   {locationName || '–'}
                 </div>

@@ -240,7 +240,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border-secondary">
           <div>
             <h2 className="text-sm font-semibold text-text-primary">Task bearbeiten</h2>
-            <p className="text-[10px] text-text-muted mt-0.5 font-mono">{task.id}</p>
+            <p className="text-[10px] text-text-muted mt-0.5">{task.id}</p>
           </div>
           <button
             onClick={onClose}
@@ -254,7 +254,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
         <div className="px-6 py-5 space-y-4">
           {/* Task Title */}
           <div>
-            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted mb-1.5">
               Aufgabentitel <span className="text-[#FF3B30]">*</span>
             </label>
             <input
@@ -274,7 +274,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* ── Partner ── */}
           <div>
-            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted mb-1.5">
               <Briefcase size={10} className="inline -mt-0.5 mr-1" />
               Partner
             </label>
@@ -299,7 +299,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
           <div className="grid grid-cols-2 gap-3">
             {/* Status */}
             <div>
-              <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+              <label className="block text-[10px] font-medium text-text-muted mb-1.5">
                 Status
               </label>
               <select
@@ -320,7 +320,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
             {/* Priority */}
             <div>
-              <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+              <label className="block text-[10px] font-medium text-text-muted mb-1.5">
                 Priorität
               </label>
               <select
@@ -342,7 +342,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* ── Standort / Location (searchable) ── */}
           <div ref={locationDropdownRef} className="relative">
-            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted mb-1.5">
               <MapPin size={10} className="inline -mt-0.5 mr-1" />
               Standort / Partner
             </label>
@@ -354,7 +354,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                   <div className="text-xs font-medium text-text-primary truncate">
                     {selectedLocation.name}
                   </div>
-                  <div className="text-[10px] text-text-muted font-mono truncate">
+                  <div className="text-[10px] text-text-muted truncate">
                     {selectedLocation.city}
                     {selectedLocation.jetIds?.length > 0 && ` · ${selectedLocation.jetIds[0]}`}
                     {selectedLocation.displayIds?.length > 0 && ` · ${selectedLocation.displayIds.length} Display${selectedLocation.displayIds.length !== 1 ? 's' : ''}`}
@@ -408,9 +408,9 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                         {loc.name}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-text-muted font-mono">{loc.city}</span>
+                        <span className="text-[10px] text-text-muted">{loc.city}</span>
                         {loc.jetIds?.length > 0 && (
-                          <span className="text-[10px] text-text-muted font-mono">{loc.jetIds[0]}</span>
+                          <span className="text-[10px] text-text-muted">{loc.jetIds[0]}</span>
                         )}
                         {loc.displayIds?.length > 0 && (
                           <span className="text-[9px] text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
@@ -479,7 +479,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                   {/* Contact info */}
                   {(selectedLocation.contactPerson || selectedLocation.contactPhone || selectedLocation.contactEmail) && (
                     <div className="pt-2 border-t border-[#007AFF]/10 space-y-1.5">
-                      <div className="text-[9px] font-medium text-text-muted uppercase tracking-wider">Kontakt</div>
+                      <div className="text-[9px] font-medium text-text-muted">Kontakt</div>
                       {selectedLocation.contactPerson && (
                         <InfoRow icon={<User size={10} />} label="Person" value={selectedLocation.contactPerson} />
                       )}
@@ -495,7 +495,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                   {/* Installation info */}
                   {installationData && (
                     <div className="pt-2 border-t border-[#007AFF]/10 space-y-1.5">
-                      <div className="text-[9px] font-medium text-text-muted uppercase tracking-wider">Installation</div>
+                      <div className="text-[9px] font-medium text-text-muted">Installation</div>
                       {installationData.installDate && (
                         <InfoRow icon={<Calendar size={10} />} label="Aufbaudatum" value={formatDateDE(installationData.installDate)} />
                       )}
@@ -529,7 +529,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                   {/* Lead status */}
                   {selectedLocation.leadStatus?.length > 0 && (
                     <div className="pt-2 border-t border-[#007AFF]/10">
-                      <div className="text-[9px] font-medium text-text-muted uppercase tracking-wider mb-1">Akquise-Status</div>
+                      <div className="text-[9px] font-medium text-text-muted mb-1">Akquise-Status</div>
                       <div className="flex flex-wrap gap-1">
                         {selectedLocation.leadStatus.map((s, i) => (
                           <span key={i} className="text-[9px] px-1.5 py-0.5 bg-[#007AFF]/10 text-[#007AFF] rounded font-medium">
@@ -546,7 +546,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* ── Zuständig / Assigned User ── */}
           <div>
-            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted mb-1.5">
               <User size={10} className="inline -mt-0.5 mr-1" />
               Zuständig
             </label>
@@ -571,7 +571,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* Due Date */}
           <div>
-            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted mb-1.5">
               Fälligkeitsdatum
             </label>
             <input
@@ -584,7 +584,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* Description */}
           <div>
-            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted mb-1.5">
               Beschreibung
             </label>
             <textarea
@@ -599,7 +599,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
           {/* ── Existing Attachments ── */}
           {existingAttachments.length > 0 && (
             <div>
-              <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+              <label className="block text-[10px] font-medium text-text-muted mb-1.5">
                 <Paperclip size={10} className="inline -mt-0.5 mr-1" />
                 Anhänge ({existingAttachments.length})
               </label>

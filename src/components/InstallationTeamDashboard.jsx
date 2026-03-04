@@ -872,7 +872,7 @@ export default function InstallationTeamDashboard() {
         {/* ── Route Overview Cards ── */}
         {teamRoutes.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider no-print">Routen</h3>
+            <h3 className="text-sm font-semibold text-text-primary no-print">Routen</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {teamRoutes.map(route => {
                 const slots = parseTimeSlots(route.time_slots);
@@ -916,7 +916,7 @@ export default function InstallationTeamDashboard() {
                     {slots.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {slots.map(s => (
-                          <span key={s} className="px-1.5 py-0.5 bg-status-warning/10 text-orange-700 rounded text-[10px] font-mono border border-status-warning/20">
+                          <span key={s} className="px-1.5 py-0.5 bg-status-warning/10 text-orange-700 rounded text-[10px] border border-status-warning/20">
                             {s}
                           </span>
                         ))}
@@ -941,7 +941,7 @@ export default function InstallationTeamDashboard() {
         {/* ── Timeline View ── */}
         {enrichedBookings.length > 0 && (
           <div className="no-print space-y-3">
-            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Tagesablauf</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Tagesablauf</h3>
             <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 overflow-x-auto">
               <div className="flex gap-3 min-w-[600px]">
                 {enrichedBookings.map((b, idx) => {
@@ -953,7 +953,7 @@ export default function InstallationTeamDashboard() {
                       {/* Time indicator */}
                       <div className="flex items-center gap-2 mb-2">
                         <div className={`w-3 h-3 rounded-full ${statusCfg.dot}`} />
-                        <span className="text-sm font-bold text-text-primary font-mono">{time}{endTime ? ` - ${endTime}` : ''}</span>
+                        <span className="text-sm font-bold text-text-primary">{time}{endTime ? ` - ${endTime}` : ''}</span>
                       </div>
                       {/* Card */}
                       <div className={`border rounded-xl p-3 ${statusCfg.border} ${statusCfg.bg} bg-opacity-30`}>
@@ -1011,7 +1011,7 @@ export default function InstallationTeamDashboard() {
 
         {/* ── Appointments Table ── */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider no-print">Terminliste</h3>
+          <h3 className="text-sm font-semibold text-text-primary no-print">Terminliste</h3>
 
           {isLoading ? (
             <div className="bg-surface-primary border border-border-secondary rounded-2xl flex flex-col items-center justify-center h-64 text-text-muted gap-3">
@@ -1045,16 +1045,16 @@ export default function InstallationTeamDashboard() {
                 <table className="w-full print-table">
                   <thead>
                     <tr className="border-b border-gray-100 bg-surface-secondary/50">
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Zeit</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Standort</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">JET-ID</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Team / Tour</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Adresse</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Kontakt</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Telefon</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Montage</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Hinweise</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Zeit</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Standort</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">JET-ID</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Team / Tour</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Adresse</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Kontakt</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Telefon</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Status</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Montage</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Hinweise</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1110,7 +1110,7 @@ export default function InstallationTeamDashboard() {
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-xs text-text-secondary font-mono">
+                            <div className="text-xs text-text-secondary">
                               {getJetId(b, akq)}
                             </div>
                           </td>
@@ -1149,7 +1149,7 @@ export default function InstallationTeamDashboard() {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-text-primary font-mono flex items-center gap-1">
+                            <div className="text-sm text-text-primary flex items-center gap-1">
                               <Phone size={12} className="text-text-muted shrink-0" />
                               {phone}
                             </div>

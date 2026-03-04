@@ -313,12 +313,12 @@ function FullscreenControl({ isFullscreen, onToggle }) {
 function MapLegend({ counts }) {
   return (
     <div className="absolute bottom-4 left-4 z-[1000] bg-surface-primary border border-border-secondary rounded-xl p-3 shadow-lg">
-      <div className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-2">Legende</div>
+      <div className="text-[10px] font-medium text-text-muted mb-2">Legende</div>
       {Object.entries(PIN_COLORS).map(([key, cfg]) => (
         <div key={key} className="flex items-center gap-2 mb-1">
           <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cfg.bg }} />
           <span className="text-[11px] text-text-secondary">{cfg.label}</span>
-          <span className="text-[10px] text-text-muted font-mono ml-auto">{counts[key] || 0}</span>
+          <span className="text-[10px] text-text-muted ml-auto">{counts[key] || 0}</span>
         </div>
       ))}
     </div>
@@ -349,7 +349,7 @@ function GeocodingProgress({ progress }) {
           />
         </div>
       </div>
-      <span className="text-[10px] font-mono text-text-muted">{pct}%</span>
+      <span className="text-[10px] text-text-muted">{pct}%</span>
     </div>
   );
 }
@@ -493,7 +493,7 @@ function StandortDetailDrawer({ standort, booking, onClose, onInvite, inviting }
             </h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><div className="text-text-muted text-xs">Name</div><div className="text-text-primary font-medium">{standort.contactPerson || '--'}</div></div>
-              <div><div className="text-text-muted text-xs">JET ID</div><div className="text-text-primary font-mono text-sm">{standort.jetId || '--'}</div></div>
+              <div><div className="text-text-muted text-xs">JET ID</div><div className="text-text-primary text-sm">{standort.jetId || '--'}</div></div>
               <div><div className="text-text-muted text-xs">E-Mail</div><div className="text-text-primary truncate text-sm">{standort.contactEmail || '--'}</div></div>
               <div><div className="text-text-muted text-xs">Montage</div><div className="text-text-primary text-sm">{standort.mountType || '--'}</div></div>
             </div>
@@ -1101,7 +1101,7 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
               <AlertTriangle size={10} /> {noAddressCount} ohne Koordinaten
             </span>
           )}
-          <span className="text-[10px] font-mono text-text-muted">
+          <span className="text-[10px] text-text-muted">
             {filteredMarkers.length} / {allMarkers.length} Standorte
           </span>
           <button
@@ -1127,12 +1127,12 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{cfg.label}</span>
+                <span className="text-[10px] font-medium text-text-muted">{cfg.label}</span>
                 <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${cfg.bg}18` }}>
                   <Icon size={12} style={{ color: cfg.bg }} />
                 </div>
               </div>
-              <div className="text-xl font-bold text-text-primary font-mono">{statusCounts[key] || 0}</div>
+              <div className="text-xl font-bold text-text-primary">{statusCounts[key] || 0}</div>
             </button>
           );
         })}
@@ -1234,7 +1234,7 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                         {PIN_COLORS[m.pinStatus]?.label}
                       </span>
                       {terminDate && (
-                        <span className="text-[10px] text-text-muted font-mono">
+                        <span className="text-[10px] text-text-muted">
                           {new Date(terminDate + 'T00:00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
                         </span>
                       )}
@@ -1249,7 +1249,7 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                         <User size={10} /> <span className="font-medium text-text-primary truncate">{s.contactPerson || '--'}</span>
                       </div>
                       <div className="flex items-center gap-1 text-text-muted">
-                        <Phone size={10} /> <span className="font-medium text-text-primary font-mono">{s.contactPhone || '--'}</span>
+                        <Phone size={10} /> <span className="font-medium text-text-primary">{s.contactPhone || '--'}</span>
                       </div>
                       <div className="flex items-center gap-1 text-text-muted">
                         <Wrench size={10} /> <span className="font-medium text-text-primary">{s.mountType || '--'}</span>

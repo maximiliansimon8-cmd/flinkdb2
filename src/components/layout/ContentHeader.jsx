@@ -27,25 +27,20 @@ export function ContentHeader({
   getInitials,
   sidebarCollapsed,
 }) {
-  const dataAgeHours = displayRawData?.latestTimestamp
-    ? (Date.now() - new Date(displayRawData.latestTimestamp).getTime()) / (1000 * 60 * 60)
-    : Infinity;
-  const isStale = dataAgeHours > 24;
-
   return (
-    <header className="h-14 flex items-center justify-between px-5 border-b border-border-secondary bg-surface-primary shrink-0">
+    <header className="h-14 flex items-center justify-between px-6 border-b border-[#E8E8ED] bg-white/80 backdrop-blur-xl shrink-0">
       {/* Left: Page Title */}
-      <h1 className="text-[17px] font-semibold text-text-primary tracking-[-0.4px]">
+      <h1 className="text-[17px] font-semibold text-[#1D1D1F] tracking-[-0.4px]">
         {pageTitle}
       </h1>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-3">
-        {/* Data points badge */}
-        <div className="hidden lg:flex items-center gap-1.5 bg-status-online/8 border border-status-online/20 rounded-full px-3 py-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-status-online animate-pulse" />
-          <span className="text-[13px] font-mono font-medium text-status-online">
-            {(displayRawData?.displays?.length || 0) + (comparisonData?.dayn?.total || 0)}
+      <div className="flex items-center gap-2">
+        {/* Live indicator */}
+        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse" />
+          <span className="text-[13px] font-medium text-[#34C759]">
+            {(displayRawData?.displays?.length || 0) + (comparisonData?.dayn?.total || 0)} Live
           </span>
         </div>
 
@@ -60,10 +55,12 @@ export function ContentHeader({
           />
         )}
 
+        <div className="w-px h-5 bg-[#E8E8ED]" />
+
         {/* Refresh */}
         <button
           onClick={onRefresh}
-          className="p-2 rounded-xl hover:bg-surface-secondary text-text-muted hover:text-text-primary transition-colors"
+          className="p-2 rounded-lg hover:bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F] transition-colors"
           title="Daten neu laden"
         >
           <RefreshCw size={16} />
@@ -73,12 +70,12 @@ export function ContentHeader({
         <button
           onClick={onSync}
           disabled={syncing}
-          className={`p-2 rounded-xl transition-colors ${
+          className={`p-2 rounded-lg transition-colors ${
             syncing
-              ? 'bg-accent/10 text-accent'
+              ? 'bg-[#007AFF]/10 text-[#007AFF]'
               : syncResult?.success
-                ? 'bg-status-online/10 text-status-online'
-                : 'hover:bg-surface-secondary text-text-muted hover:text-text-primary'
+                ? 'bg-[#34C759]/10 text-[#34C759]'
+                : 'hover:bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F]'
           }`}
           title={syncing ? 'Sync läuft...' : 'Airtable → Supabase Sync'}
         >
@@ -87,22 +84,25 @@ export function ContentHeader({
 
         {/* User actions */}
         {currentUser && (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={onPasswordChange}
-              className="p-2 rounded-xl hover:bg-surface-secondary text-text-muted hover:text-text-primary transition-colors"
-              title="Passwort ändern"
-            >
-              <Key size={15} />
-            </button>
-            <button
-              onClick={onLogout}
-              className="p-2 rounded-xl hover:bg-status-offline/10 text-text-muted hover:text-status-offline transition-colors"
-              title="Abmelden"
-            >
-              <LogOut size={15} />
-            </button>
-          </div>
+          <>
+            <div className="w-px h-5 bg-[#E8E8ED]" />
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={onPasswordChange}
+                className="p-2 rounded-lg hover:bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F] transition-colors"
+                title="Passwort ändern"
+              >
+                <Key size={15} />
+              </button>
+              <button
+                onClick={onLogout}
+                className="p-2 rounded-lg hover:bg-[#FF3B30]/10 text-[#86868B] hover:text-[#FF3B30] transition-colors"
+                title="Abmelden"
+              >
+                <LogOut size={15} />
+              </button>
+            </div>
+          </>
         )}
       </div>
     </header>

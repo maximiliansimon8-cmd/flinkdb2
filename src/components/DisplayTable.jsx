@@ -15,7 +15,7 @@ function StatusBadge({ status }) {
   const label = getStatusLabel(status);
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium font-mono"
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
       style={{ backgroundColor: color + '18', color, border: `1px solid ${color}33` }}
     >
       <span
@@ -30,13 +30,13 @@ function StatusBadge({ status }) {
 function VistarBadge({ matched, revenue }) {
   if (!matched) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono text-text-muted bg-surface-secondary/80 border border-border-secondary/40">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-text-muted bg-surface-secondary/80 border border-border-secondary/40">
         –
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono text-violet-600 bg-violet-50/60 border border-violet-200/40">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-violet-600 bg-violet-50/60 border border-violet-200/40">
       <DollarSign size={9} />
       {revenue != null ? `€${revenue.toFixed(2)}` : '✓'}
     </span>
@@ -708,21 +708,21 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Database size={14} className="text-text-muted" />
-              <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider">
+              <h3 className="text-sm font-medium text-text-secondary">
                 Datenquellen-Vergleich
               </h3>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setActiveSourceTab(activeSourceTab === 'masterList' ? null : 'masterList')}
-                className={`text-xs font-mono px-2 py-0.5 rounded border transition-colors ${activeSourceTab === 'masterList' ? 'bg-[#1D1D1F] text-white border-[#1D1D1F]' : 'text-text-muted hover:text-text-primary bg-surface-secondary/60 border-border-secondary/40'}`}
+                className={`text-xs px-2 py-0.5 rounded border transition-colors ${activeSourceTab === 'masterList' ? 'bg-[#1D1D1F] text-white border-[#1D1D1F]' : 'text-text-muted hover:text-text-primary bg-surface-secondary/60 border-border-secondary/40'}`}
               >
                 Alle Displays ({sourceComparison.master.total})
               </button>
               {activeSourceTab && (
                 <button
                   onClick={() => setActiveSourceTab(null)}
-                  className="text-xs font-mono text-status-offline hover:text-status-offline transition-colors px-2 py-0.5 rounded bg-status-offline/10/60 border border-status-offline/20/40"
+                  className="text-xs text-status-offline hover:text-status-offline transition-colors px-2 py-0.5 rounded bg-status-offline/10/60 border border-status-offline/20/40"
                 >
                   ✕
                 </button>
@@ -735,52 +735,52 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
             <table className="w-full text-sm">
               <thead className="bg-surface-secondary/80">
                 <tr>
-                  <th className="text-left px-3 py-2 text-xs font-mono text-text-muted uppercase">Quelle</th>
-                  <th className="text-center px-3 py-2 text-xs font-mono text-accent uppercase">JET</th>
-                  <th className="text-center px-3 py-2 text-xs font-mono text-status-warning uppercase">Dayn</th>
-                  <th className="text-center px-3 py-2 text-xs font-mono text-text-muted uppercase">Aktiv</th>
+                  <th className="text-left px-3 py-2 text-xs text-text-muted uppercase">Quelle</th>
+                  <th className="text-center px-3 py-2 text-xs text-accent uppercase">JET</th>
+                  <th className="text-center px-3 py-2 text-xs text-status-warning uppercase">Dayn</th>
+                  <th className="text-center px-3 py-2 text-xs text-text-muted uppercase">Aktiv</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-t border-border-secondary/60 hover:bg-accent-light/20 cursor-pointer" onClick={() => setActiveSourceTab(activeSourceTab === 'navori' ? null : 'navori')}>
-                  <td className="px-3 py-2 font-mono font-medium text-blue-700 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-accent"></div>Navori</td>
-                  <td className="px-3 py-2 font-mono text-center font-bold text-blue-700">{sourceComparison.navori.active}</td>
-                  <td className="px-3 py-2 font-mono text-center text-text-muted">–</td>
-                  <td className="px-3 py-2 font-mono text-center font-bold">{sourceComparison.navori.active}</td>
+                  <td className="px-3 py-2 font-medium text-blue-700 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-accent"></div>Navori</td>
+                  <td className="px-3 py-2 text-center font-bold text-blue-700">{sourceComparison.navori.active}</td>
+                  <td className="px-3 py-2 text-center text-text-muted">–</td>
+                  <td className="px-3 py-2 text-center font-bold">{sourceComparison.navori.active}</td>
                 </tr>
                 <tr className="border-t border-border-secondary/60 hover:bg-emerald-50/20 cursor-pointer" onClick={() => setActiveSourceTab(activeSourceTab === 'airtable' ? null : 'airtable')}>
-                  <td className="px-3 py-2 font-mono font-medium text-emerald-700 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500"></div>Airtable</td>
-                  <td className="px-3 py-2 font-mono text-center">
+                  <td className="px-3 py-2 font-medium text-emerald-700 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500"></div>Airtable</td>
+                  <td className="px-3 py-2 text-center">
                     <span className="font-bold text-emerald-700">{sourceComparison.airtable.displayIds}</span>
                   </td>
-                  <td className="px-3 py-2 font-mono text-center">
+                  <td className="px-3 py-2 text-center">
                     {sourceComparison.airtable.daynTotal > 0 ? (
                       <span className="font-bold text-status-warning">{sourceComparison.airtable.daynOnline}</span>
                     ) : <span className="text-text-muted">–</span>}
                   </td>
-                  <td className="px-3 py-2 font-mono text-center font-bold">{sourceComparison.airtable.displayIds + sourceComparison.airtable.daynOnline}</td>
+                  <td className="px-3 py-2 text-center font-bold">{sourceComparison.airtable.displayIds + sourceComparison.airtable.daynOnline}</td>
                 </tr>
                 <tr className="border-t border-border-secondary/60 hover:bg-violet-50/20 cursor-pointer" onClick={() => setActiveSourceTab(activeSourceTab === 'vistar' ? null : 'vistar')}>
-                  <td className="px-3 py-2 font-mono font-medium text-violet-700 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-violet-500"></div>Vistar</td>
-                  <td className="px-3 py-2 font-mono text-center font-bold text-violet-700">{sourceComparison.vistar.jetCount}</td>
-                  <td className="px-3 py-2 font-mono text-center font-bold text-status-warning">{sourceComparison.vistar.daynCount}</td>
-                  <td className="px-3 py-2 font-mono text-center font-bold">{sourceComparison.vistar.dbTotal}</td>
+                  <td className="px-3 py-2 font-medium text-violet-700 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-violet-500"></div>Vistar</td>
+                  <td className="px-3 py-2 text-center font-bold text-violet-700">{sourceComparison.vistar.jetCount}</td>
+                  <td className="px-3 py-2 text-center font-bold text-status-warning">{sourceComparison.vistar.daynCount}</td>
+                  <td className="px-3 py-2 text-center font-bold">{sourceComparison.vistar.dbTotal}</td>
                 </tr>
                 {sourceComparison.chg && sourceComparison.chg.total > 0 && (
                   <tr className="border-t border-border-secondary/60 hover:bg-status-warning/10/20">
-                    <td className="px-3 py-2 font-mono font-medium text-status-warning flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-status-warning"></div>CHG/Bank</td>
-                    <td className="px-3 py-2 font-mono text-center font-bold text-status-warning">{sourceComparison.chg.matchedActive}</td>
-                    <td className="px-3 py-2 font-mono text-center text-text-muted">–</td>
-                    <td className="px-3 py-2 font-mono text-center font-bold">{sourceComparison.chg.total}</td>
+                    <td className="px-3 py-2 font-medium text-status-warning flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-status-warning"></div>CHG/Bank</td>
+                    <td className="px-3 py-2 text-center font-bold text-status-warning">{sourceComparison.chg.matchedActive}</td>
+                    <td className="px-3 py-2 text-center text-text-muted">–</td>
+                    <td className="px-3 py-2 text-center font-bold">{sourceComparison.chg.total}</td>
                   </tr>
                 )}
               </tbody>
               <tfoot className="bg-surface-secondary/60 border-t-2 border-border-secondary">
                 <tr className="cursor-pointer hover:bg-surface-secondary/40" onClick={() => setActiveSourceTab(activeSourceTab === 'masterList' ? null : 'masterList')}>
-                  <td className="px-3 py-2 font-mono font-bold text-text-primary flex items-center gap-1.5"><Layers size={12} className="text-text-muted" />Aktiv unique</td>
-                  <td className="px-3 py-2 font-mono text-center font-bold text-text-primary">{sourceComparison.master.activeJet}</td>
-                  <td className="px-3 py-2 font-mono text-center font-bold text-text-primary">{sourceComparison.master.activeDayn}</td>
-                  <td className="px-3 py-2 font-mono text-center font-extrabold text-lg text-text-primary">{sourceComparison.master.activeTotal}</td>
+                  <td className="px-3 py-2 font-bold text-text-primary flex items-center gap-1.5"><Layers size={12} className="text-text-muted" />Aktiv unique</td>
+                  <td className="px-3 py-2 text-center font-bold text-text-primary">{sourceComparison.master.activeJet}</td>
+                  <td className="px-3 py-2 text-center font-bold text-text-primary">{sourceComparison.master.activeDayn}</td>
+                  <td className="px-3 py-2 text-center font-extrabold text-lg text-text-primary">{sourceComparison.master.activeTotal}</td>
                 </tr>
               </tfoot>
             </table>
@@ -800,14 +800,14 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                    <span className="text-xs font-mono text-status-offline uppercase tracking-wider font-medium">
+                    <span className="text-xs text-status-offline font-medium">
                       Deinstalliert / Inaktiv
                     </span>
-                    <span className="text-xs font-mono font-bold text-status-offline">
+                    <span className="text-xs font-bold text-status-offline">
                       {sourceComparison.master.deinstalledTotal}
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-text-muted">
+                  <span className="text-xs text-text-muted">
                     {sourceComparison.navori.deinstalled > 0 && `Navori: ${sourceComparison.navori.deinstalled}`}
                     {sourceComparison.navori.deinstalled > 0 && sourceComparison.airtable.deinstalled > 0 && ' · '}
                     {sourceComparison.airtable.deinstalled > 0 && `AT: ${sourceComparison.airtable.deinstalled}`}
@@ -820,7 +820,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
           {/* Completeness */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
             {sourceComparison.completeness && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono bg-emerald-50/60 border border-emerald-200/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-emerald-50/60 border border-emerald-200/40">
                 <Shield size={10} className="text-emerald-500" />
                 <span className="text-emerald-700 font-medium">Vollständigkeit:</span>
                 <span className={`font-bold ${sourceComparison.completeness.complete === sourceComparison.completeness.activeTotal ? 'text-emerald-600' : 'text-status-warning'}`}>
@@ -830,7 +830,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
               </span>
             )}
             {sourceComparison.chg && sourceComparison.chg.total > 0 && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono bg-status-warning/10/60 border border-status-warning/20/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-status-warning/10/60 border border-status-warning/20/40">
                 <span className="text-status-warning font-medium">CHG/Bank:</span>
                 <span className="font-bold text-status-warning">
                   {sourceComparison.chg.matchedActive}
@@ -842,7 +842,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
             )}
           </div>
 
-          <div className="text-xs font-mono text-text-muted mt-1">
+          <div className="text-xs text-text-muted mt-1">
             Nur aktive Displays gezählt · Klick auf Zeile = Detail-Liste
           </div>
 
@@ -860,7 +860,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   <div className="bg-emerald-300 h-full" style={{ width: `${(sourceComparison.overlap.inNavoriAndAirtable / Math.max(activeBase, 1)) * 100}%` }} title="Navori+Airtable" />
                   <div className="bg-surface-tertiary h-full" style={{ width: `${(sourceComparison.overlap.onlyNavori / Math.max(activeBase, 1)) * 100}%` }} title="Nur Navori" />
                 </div>
-                <span className={`text-xs font-mono font-bold ${matchPct >= 80 ? 'text-emerald-600' : matchPct >= 50 ? 'text-status-warning' : 'text-status-offline'}`}>
+                <span className={`text-xs font-bold ${matchPct >= 80 ? 'text-emerald-600' : matchPct >= 50 ? 'text-status-warning' : 'text-status-offline'}`}>
                   {matchPct}%
                 </span>
               </div>
@@ -869,24 +869,24 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
 
           {/* Legend for bar */}
           <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
-            <button onClick={() => setActiveSourceTab('all3')} className="flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary">
+            <button onClick={() => setActiveSourceTab('all3')} className="flex items-center gap-1 text-xs text-text-muted hover:text-text-primary">
               <div className="w-2 h-2 rounded-sm bg-emerald-500"></div>
               Alle 3 ({sourceComparison.overlap.inAll3})
             </button>
-            <button onClick={() => setActiveSourceTab('navoriVistar')} className="flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary">
+            <button onClick={() => setActiveSourceTab('navoriVistar')} className="flex items-center gap-1 text-xs text-text-muted hover:text-text-primary">
               <div className="w-2 h-2 rounded-sm bg-violet-400"></div>
               Navori+Vistar ({sourceComparison.overlap.inNavoriAndVistar})
             </button>
-            <button onClick={() => setActiveSourceTab('navoriAirtable')} className="flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary">
+            <button onClick={() => setActiveSourceTab('navoriAirtable')} className="flex items-center gap-1 text-xs text-text-muted hover:text-text-primary">
               <div className="w-2 h-2 rounded-sm bg-emerald-300"></div>
               Navori+Airtable ({sourceComparison.overlap.inNavoriAndAirtable})
             </button>
-            <button onClick={() => setActiveSourceTab('onlyNavori')} className="flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary">
+            <button onClick={() => setActiveSourceTab('onlyNavori')} className="flex items-center gap-1 text-xs text-text-muted hover:text-text-primary">
               <div className="w-2 h-2 rounded-sm bg-surface-tertiary"></div>
               Nur Navori ({sourceComparison.overlap.onlyNavori})
             </button>
             {sourceComparison.overlap.airtableOnly > 0 && (
-              <button onClick={() => setActiveSourceTab('airtableOnly')} className="flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary">
+              <button onClick={() => setActiveSourceTab('airtableOnly')} className="flex items-center gap-1 text-xs text-text-muted hover:text-text-primary">
                 <div className="w-2 h-2 rounded-sm bg-amber-400"></div>
                 Nur Airtable ({sourceComparison.overlap.airtableOnly})
               </button>
@@ -908,9 +908,9 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-accent"></div>
-                      <span className="text-xs font-mono text-accent uppercase tracking-wider font-medium">Navori Live ↔ Vistar · JET</span>
+                      <span className="text-xs text-accent font-medium">Navori Live ↔ Vistar · JET</span>
                     </div>
-                    <span className={`text-sm font-mono font-bold ${matchPct >= 90 ? 'text-emerald-600' : matchPct >= 70 ? 'text-status-warning' : 'text-status-offline'}`}>
+                    <span className={`text-sm font-bold ${matchPct >= 90 ? 'text-emerald-600' : matchPct >= 70 ? 'text-status-warning' : 'text-status-offline'}`}>
                       {matchPct}%
                     </span>
                   </div>
@@ -921,24 +921,24 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                     <div className="bg-violet-300 h-full" style={{ width: `${(nv.vistarOnly / Math.max(totalUnique, 1)) * 100}%` }} title={`${nv.vistarOnly} nur Vistar`} />
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-                    <span className="flex items-center gap-1 text-xs font-mono text-accent">
+                    <span className="flex items-center gap-1 text-xs text-accent">
                       <span className="w-2 h-2 rounded-sm bg-accent inline-block"></span>
                       {nv.matched} matched
                     </span>
                     {nv.navoriOnly > 0 && (
-                      <span className="flex items-center gap-1 text-xs font-mono text-indigo-500">
+                      <span className="flex items-center gap-1 text-xs text-indigo-500">
                         <span className="w-2 h-2 rounded-sm bg-indigo-300 inline-block"></span>
                         {nv.navoriOnly} nur Navori
                       </span>
                     )}
                     {nv.vistarOnly > 0 && (
-                      <span className="flex items-center gap-1 text-xs font-mono text-violet-500">
+                      <span className="flex items-center gap-1 text-xs text-violet-500">
                         <span className="w-2 h-2 rounded-sm bg-violet-300 inline-block"></span>
                         {nv.vistarOnly} nur Vistar
                       </span>
                     )}
                   </div>
-                  <div className="mt-1.5 text-xs font-mono text-text-muted">
+                  <div className="mt-1.5 text-xs text-text-muted">
                     Navori: {nv.navoriTotal} aktiv · Vistar: {nv.vistarJetTotal} JET Venues
                   </div>
                 </button>
@@ -958,9 +958,9 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-status-warning"></div>
-                      <span className="text-xs font-mono text-status-warning uppercase tracking-wider font-medium">Dayn Screens ↔ Vistar</span>
+                      <span className="text-xs text-status-warning font-medium">Dayn Screens ↔ Vistar</span>
                     </div>
-                    <span className={`text-sm font-mono font-bold ${matchPct >= 90 ? 'text-emerald-600' : matchPct >= 70 ? 'text-status-warning' : 'text-status-offline'}`}>
+                    <span className={`text-sm font-bold ${matchPct >= 90 ? 'text-emerald-600' : matchPct >= 70 ? 'text-status-warning' : 'text-status-offline'}`}>
                       {matchPct}%
                     </span>
                   </div>
@@ -969,18 +969,18 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                     <div className="bg-orange-200 h-full" style={{ width: `${(dv.unmatched / Math.max(totalUnique, 1)) * 100}%` }} />
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-                    <span className="flex items-center gap-1 text-xs font-mono text-status-warning">
+                    <span className="flex items-center gap-1 text-xs text-status-warning">
                       <span className="w-2 h-2 rounded-sm bg-status-warning inline-block"></span>
                       {dv.matched} matched
                     </span>
                     {dv.unmatched > 0 && (
-                      <span className="flex items-center gap-1 text-xs font-mono text-orange-400">
+                      <span className="flex items-center gap-1 text-xs text-orange-400">
                         <span className="w-2 h-2 rounded-sm bg-orange-200 inline-block"></span>
                         {dv.unmatched} nicht gematcht
                       </span>
                     )}
                   </div>
-                  <div className="mt-1.5 text-xs font-mono text-text-muted">
+                  <div className="mt-1.5 text-xs text-text-muted">
                     {dv.online} online · {dv.total} gesamt{dv.offline > 0 && ` · ${dv.offline} offline (nicht gezählt)`}
                   </div>
                 </button>
@@ -1155,7 +1155,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                           <button
                             key={f.key}
                             onClick={() => setMasterListFilter(f.key)}
-                            className={`text-xs font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                            className={`text-xs px-1.5 py-0.5 rounded border transition-colors ${
                               masterListFilter === f.key
                                 ? 'bg-[#1D1D1F] text-white border-[#1D1D1F]'
                                 : 'text-text-muted hover:text-text-primary bg-surface-secondary/60 border-border-secondary/40'
@@ -1166,11 +1166,11 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                         ))}
                       </div>
                     )}
-                    <span className="text-xs font-mono text-text-muted">{detailList.length} Einträge</span>
+                    <span className="text-xs text-text-muted">{detailList.length} Einträge</span>
                   </div>
                 </div>
                 {detailList.length === 0 ? (
-                  <div className="p-4 text-center text-xs font-mono text-text-muted bg-surface-secondary/40 rounded-lg border border-border-secondary/40">
+                  <div className="p-4 text-center text-xs text-text-muted bg-surface-secondary/40 rounded-lg border border-border-secondary/40">
                     Keine Einträge für diesen Filter
                   </div>
                 ) : (
@@ -1178,11 +1178,11 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   <table className="w-full text-sm">
                     <thead className="bg-surface-secondary/80 sticky top-0">
                       <tr>
-                        <th className="text-left px-3 py-1.5 text-xs font-mono text-text-muted uppercase">#</th>
+                        <th className="text-left px-3 py-1.5 text-xs text-text-muted uppercase">#</th>
                         {colLabels.map((label, i) => (
                           <th
                             key={i}
-                            className="text-left px-3 py-1.5 text-xs font-mono text-text-muted uppercase cursor-pointer hover:text-text-secondary select-none"
+                            className="text-left px-3 py-1.5 text-xs text-text-muted uppercase cursor-pointer hover:text-text-secondary select-none"
                             onClick={() => {
                               const col = columns[i];
                               if (detailSortField === col) {
@@ -1226,9 +1226,9 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                           : !item.isActiveDisplay && activeSourceTab === 'masterList' ? 'bg-surface-secondary/40 opacity-60'
                           : ''
                         }`}>
-                          <td className="px-3 py-1.5 text-text-muted font-mono">{idx + 1}</td>
+                          <td className="px-3 py-1.5 text-text-muted">{idx + 1}</td>
                           {columns.map((col, i) => (
-                            <td key={i} className={`px-3 py-1.5 font-mono ${
+                            <td key={i} className={`px-3 py-1.5 ${
                               col === 'source'
                                 ? '' // rendered as badge below
                               : col === 'matchGroup'
@@ -1300,7 +1300,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                     </tbody>
                   </table>
                   {detailList.length > 500 && (
-                    <div className="p-2 text-center text-xs font-mono text-text-muted bg-surface-secondary/80">
+                    <div className="p-2 text-center text-xs text-text-muted bg-surface-secondary/80">
                       ... und {detailList.length - 500} weitere
                     </div>
                   )}
@@ -1315,7 +1315,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
     <div className="bg-surface-primary border border-border-secondary rounded-2xl">
       <div className="p-4 border-b border-border-secondary">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
-          <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider flex-shrink-0">
+          <h3 className="text-sm font-medium text-text-secondary flex-shrink-0">
             Display-Liste
           </h3>
 
@@ -1331,7 +1331,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                 placeholder="Display ID / Standort / Serial..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-                className="w-full bg-surface-secondary/80 border border-border-secondary rounded-md pl-8 pr-3 py-1.5 text-xs font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
+                className="w-full bg-surface-secondary/80 border border-border-secondary rounded-md pl-8 pr-3 py-1.5 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
               />
             </div>
 
@@ -1339,7 +1339,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
             <select
               value={cityFilter}
               onChange={(e) => { setCityFilter(e.target.value); setPage(0); }}
-              className="bg-surface-secondary/80 border border-border-secondary rounded-md px-2 py-1.5 text-xs font-mono text-text-primary focus:outline-none focus:border-[#007AFF]"
+              className="bg-surface-secondary/80 border border-border-secondary rounded-md px-2 py-1.5 text-xs text-text-primary focus:outline-none focus:border-[#007AFF]"
             >
               <option value="">Alle Städte</option>
               {cities.map((c) => (
@@ -1351,7 +1351,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
-              className="bg-surface-secondary/80 border border-border-secondary rounded-md px-2 py-1.5 text-xs font-mono text-text-primary focus:outline-none focus:border-[#007AFF]"
+              className="bg-surface-secondary/80 border border-border-secondary rounded-md px-2 py-1.5 text-xs text-text-primary focus:outline-none focus:border-[#007AFF]"
             >
               <option value="">Alle Status</option>
               {statuses.map((s) => (
@@ -1364,7 +1364,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
               <select
                 value={vistarFilter}
                 onChange={(e) => { setVistarFilter(e.target.value); setPage(0); }}
-                className="bg-violet-50/60 border border-violet-200/40 rounded-md px-2 py-1.5 text-xs font-mono text-violet-700 focus:outline-none focus:border-violet-400"
+                className="bg-violet-50/60 border border-violet-200/40 rounded-md px-2 py-1.5 text-xs text-violet-700 focus:outline-none focus:border-violet-400"
               >
                 <option value="">Vistar: Alle</option>
                 <option value="matched">✓ Bei Vistar ({vistarStats?.matched})</option>
@@ -1375,13 +1375,13 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
 
           <div className="flex items-center gap-3 flex-shrink-0">
             {hasVistar && vistarStats && (
-              <div className="flex items-center gap-1.5 text-xs font-mono">
+              <div className="flex items-center gap-1.5 text-xs">
                 <span className="text-violet-500">{vistarStats.matched} Vistar</span>
                 <span className="text-text-muted">|</span>
                 <span className="text-text-muted">{vistarStats.unmatched} fehlen</span>
               </div>
             )}
-            <div className="text-xs text-text-muted font-mono">
+            <div className="text-xs text-text-muted">
               {filtered.length} Displays
             </div>
           </div>
@@ -1482,16 +1482,16 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                 <td className="px-4 py-2">
                   <StatusBadge status={display.status} />
                 </td>
-                <td className="px-4 py-2 font-mono text-text-primary">
+                <td className="px-4 py-2 text-text-primary">
                   {display.displayId}
                 </td>
                 <td className="px-4 py-2 text-text-secondary max-w-[200px] truncate">
                   {display.displayName || display.locationName || '–'}
                 </td>
-                <td className="px-4 py-2 font-mono text-text-secondary">
+                <td className="px-4 py-2 text-text-secondary">
                   {display.cityCode}
                 </td>
-                <td className="px-4 py-2 text-sm text-text-muted font-mono max-w-[180px]">
+                <td className="px-4 py-2 text-sm text-text-muted max-w-[180px]">
                   {display.geoAddress && (
                     <div className="truncate">{display.geoAddress}</div>
                   )}
@@ -1510,14 +1510,14 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                 <td className="px-3 py-2 text-sm text-text-muted max-w-[80px] truncate" title={display.venueType || ''}>
                   {display.venueType || <span className="text-text-muted">&ndash;</span>}
                 </td>
-                <td className="px-3 py-2 text-sm font-mono text-text-secondary">
+                <td className="px-3 py-2 text-sm text-text-secondary">
                   {display.floorCpm != null ? (
                     <span className="text-emerald-600">€{display.floorCpm.toFixed(2)}</span>
                   ) : (
                     <span className="text-text-muted">&ndash;</span>
                   )}
                 </td>
-                <td className="px-3 py-2 text-sm font-mono text-text-secondary">
+                <td className="px-3 py-2 text-sm text-text-secondary">
                   {display.impressionsDay != null ? (
                     <span className="text-accent">{display.impressionsDay.toLocaleString('de-DE')}</span>
                   ) : (
@@ -1551,7 +1551,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                     <span className="text-text-muted">&ndash;</span>
                   )}
                 </td>
-                <td className="px-4 py-2 font-mono">
+                <td className="px-4 py-2">
                   {display.status === 'online' ? (
                     <span className="text-[#34C759]">–</span>
                   ) : display.status === 'never_online' ? (
@@ -1571,7 +1571,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   )}
                 </td>
                 {hasVistar && canViewRevenue && (
-                  <td className="px-4 py-2 font-mono">
+                  <td className="px-4 py-2">
                     {display.vistarMatched ? (
                       <span className="text-violet-600 font-medium">
                         €{display.vistarRevenue.toFixed(2)}
@@ -1582,7 +1582,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                   </td>
                 )}
                 {hasVistar && (
-                  <td className="px-4 py-2 font-mono">
+                  <td className="px-4 py-2">
                     {display.vistarMatched ? (
                       <span className="text-accent">
                         {fmtCompact(display.vistarImpressions)}
@@ -1592,7 +1592,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                     )}
                   </td>
                 )}
-                <td className="px-4 py-2 font-mono text-text-muted text-sm">
+                <td className="px-4 py-2 text-text-muted text-sm">
                   {formatDateTime(display.heartbeat)}
                 </td>
               </tr>
@@ -1607,17 +1607,17 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
             disabled={page === 0}
-            className="text-xs font-mono px-3 py-1 rounded bg-surface-secondary/80 border border-border-secondary text-text-secondary hover:border-[#007AFF] disabled:opacity-30 disabled:hover:border-border-secondary"
+            className="text-xs px-3 py-1 rounded bg-surface-secondary/80 border border-border-secondary text-text-secondary hover:border-[#007AFF] disabled:opacity-30 disabled:hover:border-border-secondary"
           >
             Zurück
           </button>
-          <span className="text-xs font-mono text-text-muted">
+          <span className="text-xs text-text-muted">
             Seite {page + 1} von {totalPages}
           </span>
           <button
             onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
             disabled={page >= totalPages - 1}
-            className="text-xs font-mono px-3 py-1 rounded bg-surface-secondary/80 border border-border-secondary text-text-secondary hover:border-[#007AFF] disabled:opacity-30 disabled:hover:border-border-secondary"
+            className="text-xs px-3 py-1 rounded bg-surface-secondary/80 border border-border-secondary text-text-secondary hover:border-[#007AFF] disabled:opacity-30 disabled:hover:border-border-secondary"
           >
             Weiter
           </button>

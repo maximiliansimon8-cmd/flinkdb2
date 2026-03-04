@@ -518,7 +518,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                   <div className="text-xs font-medium text-text-primary truncate">
                     {selectedLocation.name}
                   </div>
-                  <div className="text-[10px] text-text-muted font-mono truncate">
+                  <div className="text-[10px] text-text-muted truncate">
                     {selectedLocation.city}
                     {selectedLocation.jetIds?.length > 0 && ` · ${selectedLocation.jetIds[0]}`}
                     {selectedLocation.displayIds?.length > 0 && ` · ${selectedLocation.displayIds.length} Display${selectedLocation.displayIds.length !== 1 ? 's' : ''}`}
@@ -577,11 +577,11 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                         {loc.name}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-text-muted font-mono">
+                        <span className="text-[10px] text-text-muted">
                           {loc.city}
                         </span>
                         {loc.jetIds?.length > 0 && (
-                          <span className="text-[10px] text-text-muted font-mono">
+                          <span className="text-[10px] text-text-muted">
                             {loc.jetIds[0]}
                           </span>
                         )}

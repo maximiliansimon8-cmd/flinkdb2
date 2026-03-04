@@ -182,14 +182,14 @@ export default function DeinstallModal({
                     <div key={s.id || i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-secondary border border-border-secondary text-xs">
                       <Wifi size={13} className="text-text-muted" />
                       <span className="font-medium text-text-primary">SIM</span>
-                      <span className="text-text-muted font-mono">{s.simId || '–'}</span>
+                      <span className="text-text-muted">{s.simId || '–'}</span>
                     </div>
                   ))}
                   {displays.map((d, i) => (
                     <div key={d.id || i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-secondary border border-border-secondary text-xs">
                       <Monitor size={13} className="text-text-muted" />
                       <span className="font-medium text-text-primary">Display</span>
-                      <span className="text-text-muted font-mono">{d.displaySerialNumber || '–'}</span>
+                      <span className="text-text-muted">{d.displaySerialNumber || '–'}</span>
                     </div>
                   ))}
                 </div>

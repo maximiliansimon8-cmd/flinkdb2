@@ -94,7 +94,7 @@ export function Sidebar({
                   >
                     <div className="min-w-0 flex-1">
                       <div className="text-[12px] font-medium text-text-primary truncate">{r.label}</div>
-                      <div className="text-[11px] text-text-muted font-mono truncate">{r.sublabel}</div>
+                      <div className="text-[11px] text-text-muted truncate">{r.sublabel}</div>
                     </div>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${r.type === 'display' ? 'bg-accent-light text-accent' : 'bg-surface-tertiary text-text-muted'}`}>
                       {r.type === 'display' ? 'Live' : 'Stamm'}

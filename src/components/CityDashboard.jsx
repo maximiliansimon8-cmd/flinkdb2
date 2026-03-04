@@ -62,30 +62,30 @@ function KPISummaryBar({ cities, avgHealth, goodCount, criticalCount }) {
       <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
         <div className="flex items-center gap-2 mb-1">
           <Building2 size={14} className="text-accent" />
-          <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Staedte</span>
+          <span className="text-xs font-medium text-text-muted">Staedte</span>
         </div>
-        <div className="text-2xl font-mono font-bold text-text-primary">{cities}</div>
+        <div className="text-2xl font-bold text-text-primary">{cities}</div>
       </div>
       <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
         <div className="flex items-center gap-2 mb-1">
           <Activity size={14} className="text-accent" />
-          <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Avg. Health</span>
+          <span className="text-xs font-medium text-text-muted">Avg. Health</span>
         </div>
-        <div className="text-2xl font-mono font-bold text-accent">{avgHealth}%</div>
+        <div className="text-2xl font-bold text-accent">{avgHealth}%</div>
       </div>
       <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
         <div className="flex items-center gap-2 mb-1">
           <ShieldCheck size={14} className="text-emerald-500" />
-          <span className="text-xs font-medium text-text-muted uppercase tracking-wider">&gt;90% Health</span>
+          <span className="text-xs font-medium text-text-muted">&gt;90% Health</span>
         </div>
-        <div className="text-2xl font-mono font-bold text-emerald-600">{goodCount}</div>
+        <div className="text-2xl font-bold text-emerald-600">{goodCount}</div>
       </div>
       <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
         <div className="flex items-center gap-2 mb-1">
           <ShieldAlert size={14} className="text-status-offline" />
-          <span className="text-xs font-medium text-text-muted uppercase tracking-wider">&lt;70% Health</span>
+          <span className="text-xs font-medium text-text-muted">&lt;70% Health</span>
         </div>
-        <div className="text-2xl font-mono font-bold text-status-offline">{criticalCount}</div>
+        <div className="text-2xl font-bold text-status-offline">{criticalCount}</div>
       </div>
     </div>
   );
@@ -103,7 +103,7 @@ function PodiumSection({ top3, bottom3 }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top 3 Podium */}
         <div>
-          <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-4">
+          <h3 className="text-xs font-medium text-text-muted mb-4">
             Top 3 — Beste Health Rates
           </h3>
           <div className="flex items-end justify-center gap-3">
@@ -114,10 +114,10 @@ function PodiumSection({ top3, bottom3 }) {
                 <div key={city.code} className="flex flex-col items-center">
                   <span className="text-2xl mb-1">{medals[i]}</span>
                   <div className="text-sm font-semibold text-text-primary">{city.name}</div>
-                  <div className={`text-lg font-mono font-bold ${colors.text}`}>{city.healthRate}%</div>
-                  <div className="text-xs font-mono text-text-muted">{city.total} Displays</div>
+                  <div className={`text-lg font-bold ${colors.text}`}>{city.healthRate}%</div>
+                  <div className="text-xs text-text-muted">{city.total} Displays</div>
                   <div className={`${podiumHeights[i]} w-20 mt-2 rounded-t-xl ${colors.bg} opacity-20`} />
-                  <div className="text-xs font-mono font-bold text-text-muted mt-1">{ranks[i]}</div>
+                  <div className="text-xs font-bold text-text-muted mt-1">{ranks[i]}</div>
                 </div>
               );
             })}
@@ -126,7 +126,7 @@ function PodiumSection({ top3, bottom3 }) {
 
         {/* Bottom 3 Warning */}
         <div>
-          <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-4">
+          <h3 className="text-xs font-medium text-text-muted mb-4">
             Bottom 3 — Brauchen Aufmerksamkeit
           </h3>
           <div className="space-y-2">
@@ -137,14 +137,14 @@ function PodiumSection({ top3, bottom3 }) {
                   key={city.code}
                   className="flex items-center gap-3 p-3 bg-status-offline/10/50 border border-red-100/60 rounded-xl"
                 >
-                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-status-offline/10 text-status-offline text-xs font-mono font-bold">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-status-offline/10 text-status-offline text-xs font-bold">
                     {bottom3.length - i}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-text-primary truncate">{city.name}</div>
-                    <div className="text-xs font-mono text-text-muted">{city.code} &middot; {city.total} Displays</div>
+                    <div className="text-xs text-text-muted">{city.code} &middot; {city.total} Displays</div>
                   </div>
-                  <div className={`text-lg font-mono font-bold ${colors.text}`}>{city.healthRate}%</div>
+                  <div className={`text-lg font-bold ${colors.text}`}>{city.healthRate}%</div>
                   <AlertTriangle size={14} className="text-status-offline shrink-0" />
                 </div>
               );
@@ -174,14 +174,14 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
             <MapPin size={14} className="text-text-muted shrink-0" />
             <div className="min-w-0">
               <div className="text-sm font-semibold text-text-primary truncate">{city.name}</div>
-              <div className="text-xs font-mono text-text-muted">{city.code}</div>
+              <div className="text-xs text-text-muted">{city.code}</div>
             </div>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             {trendIndicator === 'up' && <TrendingUp size={14} className="text-emerald-500" />}
             {trendIndicator === 'down' && <TrendingDown size={14} className="text-status-offline" />}
             {trendIndicator === 'stable' && <Minus size={14} className="text-text-muted" />}
-            <div className={`text-2xl font-mono font-bold ${colors.text}`}>
+            <div className={`text-2xl font-bold ${colors.text}`}>
               {city.healthRate}%
             </div>
           </div>
@@ -199,7 +199,7 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1.5">
             <Monitor size={12} className="text-accent" />
-            <span className="text-xs font-mono font-semibold text-accent">{city.total} Displays</span>
+            <span className="text-xs font-semibold text-accent">{city.total} Displays</span>
           </div>
           {isExpanded ? (
             <ChevronUp size={14} className="text-text-muted" />
@@ -212,23 +212,23 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
         <div className="grid grid-cols-2 gap-x-3 gap-y-1">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-xs font-mono text-text-muted">Online</span>
-            <span className="text-xs font-mono font-bold text-emerald-600 ml-auto">{breakdown.online}</span>
+            <span className="text-xs text-text-muted">Online</span>
+            <span className="text-xs font-bold text-emerald-600 ml-auto">{breakdown.online}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-status-warning" />
-            <span className="text-xs font-mono text-text-muted">Warnung</span>
-            <span className="text-xs font-mono font-bold text-status-warning ml-auto">{breakdown.warning}</span>
+            <span className="text-xs text-text-muted">Warnung</span>
+            <span className="text-xs font-bold text-status-warning ml-auto">{breakdown.warning}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-status-offline" />
-            <span className="text-xs font-mono text-text-muted">Kritisch</span>
-            <span className="text-xs font-mono font-bold text-status-offline ml-auto">{breakdown.critical}</span>
+            <span className="text-xs text-text-muted">Kritisch</span>
+            <span className="text-xs font-bold text-status-offline ml-auto">{breakdown.critical}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-red-800" />
-            <span className="text-xs font-mono text-text-muted">Perm. Off</span>
-            <span className="text-xs font-mono font-bold text-red-700 ml-auto">{breakdown.permanentOffline}</span>
+            <span className="text-xs text-text-muted">Perm. Off</span>
+            <span className="text-xs font-bold text-red-700 ml-auto">{breakdown.permanentOffline}</span>
           </div>
         </div>
       </div>
@@ -236,7 +236,7 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
       {/* Expanded: show display list */}
       {isExpanded && displays && displays.length > 0 && (
         <div className="border-t border-border-secondary px-4 py-3 bg-surface-secondary/40 rounded-b-2xl max-h-64 overflow-y-auto">
-          <div className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
+          <div className="text-xs font-medium text-text-muted mb-2">
             Displays in {city.name}
           </div>
           <div className="space-y-1">
@@ -264,11 +264,11 @@ function CityCard({ city, breakdown, trendIndicator, onClick, isExpanded, displa
                         'bg-surface-tertiary'
                       }`}
                     />
-                    <span className="text-xs text-text-primary font-mono truncate">
+                    <span className="text-xs text-text-primary truncate">
                       {d.displayId}
                     </span>
                   </div>
-                  <span className={`text-xs font-mono font-medium ${getStatusColor(d.status)}`}>
+                  <span className={`text-xs font-medium ${getStatusColor(d.status)}`}>
                     {getStatusLabel(d.status)}
                   </span>
                 </div>
@@ -461,7 +461,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
               >
                 {fb.label}
                 {fb.sublabel && <span className="ml-1 opacity-60">{fb.sublabel}</span>}
-                <span className={`ml-1.5 font-mono ${healthFilter === fb.key ? 'text-blue-100' : (fb.color || 'text-text-muted')}`}>
+                <span className={`ml-1.5 ${healthFilter === fb.key ? 'text-blue-100' : (fb.color || 'text-text-muted')}`}>
                   {fb.count}
                 </span>
               </button>
@@ -523,7 +523,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
                     >
                       <span>{opt.label}</span>
                       {sortBy === opt.key && (
-                        <span className="text-xs font-mono text-accent">
+                        <span className="text-xs text-accent">
                           {sortDir === 'desc' ? 'absteigend' : 'aufsteigend'}
                         </span>
                       )}
@@ -545,7 +545,7 @@ export default function CityDashboard({ cityData, displays, trendData, onSelectD
         </div>
 
         {/* Result count */}
-        <div className="mt-2 text-xs font-mono text-text-muted">
+        <div className="mt-2 text-xs text-text-muted">
           {processedCities.length} von {cityData.length} Staedten
         </div>
       </div>

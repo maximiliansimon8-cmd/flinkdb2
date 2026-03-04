@@ -883,7 +883,7 @@ export default function StammdatenImport() {
           </h3>
           <div className="flex flex-wrap gap-1">
             {syncInfo.allColumns.filter(c => c !== 'extra_fields').map(f => (
-              <span key={f} className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-mono">{f}</span>
+              <span key={f} className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">{f}</span>
             ))}
           </div>
         </div>
@@ -1010,13 +1010,13 @@ export default function StammdatenImport() {
                 </div>
                 {comparison.withChanges.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-border-secondary">
-                    <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2">Haeufigste Aenderungen</h4>
+                    <h4 className="text-xs font-semibold text-text-primary mb-2">Haeufigste Aenderungen</h4>
                     <div className="flex flex-wrap gap-2">
                       {(() => {
                         const counts = {};
                         comparison.withChanges.forEach(m => m.changes.forEach(c => { counts[c.label] = (counts[c.label] || 0) + 1; }));
                         return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([label, count]) => (
-                          <span key={label} className="text-xs bg-status-warning/10 text-amber-700 px-2 py-1 rounded-lg font-mono">
+                          <span key={label} className="text-xs bg-status-warning/10 text-amber-700 px-2 py-1 rounded-lg">
                             {label}: {count}x
                           </span>
                         ));
@@ -1065,7 +1065,7 @@ export default function StammdatenImport() {
                         className="w-full px-4 py-3 flex items-center gap-3 text-left"
                       >
                         <Badge color="amber">{m.changes.length}</Badge>
-                        <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{m.id}</span>
+                        <span className="text-xs text-text-muted w-20 flex-shrink-0">{m.id}</span>
                         <span className="text-sm font-medium text-text-primary flex-1 truncate">{m.csv.name}</span>
                         <span className="text-xs text-text-muted">{m.csv.city}</span>
                         {approvedNonCritical && <CheckCircle2 size={14} className="text-emerald-500" />}
@@ -1085,8 +1085,8 @@ export default function StammdatenImport() {
                               {m.changes.map(c => (
                                 <tr key={c.field} className="border-t border-border-secondary">
                                   <td className="py-1.5 px-2 font-medium text-text-primary">{c.label}</td>
-                                  <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50 font-mono">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
-                                  <td className="py-1.5 px-2 text-text-muted font-mono">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 text-text-muted">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1124,7 +1124,7 @@ export default function StammdatenImport() {
                       >
                         <Badge color="red">{m.criticalChanges.length}</Badge>
                         {m.nonCriticalChanges.length > 0 && <Badge color="amber">+{m.nonCriticalChanges.length}</Badge>}
-                        <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{m.id}</span>
+                        <span className="text-xs text-text-muted w-20 flex-shrink-0">{m.id}</span>
                         <span className="text-sm font-medium text-text-primary flex-1 truncate">{m.csv.name}</span>
                         <span className="text-xs text-text-muted">{m.csv.city}</span>
                         <ChevronDown size={14} className={`text-text-muted transition-transform ${expandedId === `crit-${m.id}` ? 'rotate-180' : ''}`} />
@@ -1162,8 +1162,8 @@ export default function StammdatenImport() {
                                       </button>
                                     </td>
                                     <td className="py-1.5 px-2 font-semibold text-red-700">{c.label}</td>
-                                    <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50 font-mono">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
-                                    <td className="py-1.5 px-2 text-text-muted font-mono">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
+                                    <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
+                                    <td className="py-1.5 px-2 text-text-muted">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
                                   </tr>
                                 );
                               })}
@@ -1173,8 +1173,8 @@ export default function StammdatenImport() {
                                     {approvedNonCritical ? <CheckCircle2 size={12} className="text-emerald-500" /> : <span className="text-[10px] text-text-muted">auto</span>}
                                   </td>
                                   <td className="py-1.5 px-2 font-medium text-text-primary">{c.label}</td>
-                                  <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50 font-mono">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
-                                  <td className="py-1.5 px-2 text-text-muted font-mono">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 text-text-muted">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1213,7 +1213,7 @@ export default function StammdatenImport() {
                                 className="w-full px-4 py-3 flex items-center gap-3 text-left"
                               >
                                 <AlertTriangle size={14} className="text-status-warning flex-shrink-0" />
-                                <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{row.id}</span>
+                                <span className="text-xs text-text-muted w-20 flex-shrink-0">{row.id}</span>
                                 <span className="text-sm font-medium text-text-primary flex-1 truncate">{row.name}</span>
                                 <span className="text-xs text-text-muted">{row.street} {row.street_number}</span>
                                 <span className="text-xs text-text-muted">{row.postcode} {row.city}</span>
@@ -1269,7 +1269,7 @@ export default function StammdatenImport() {
                           {comparison.newClean.map(row => (
                             <div key={row.id} className="px-4 py-3 flex items-center gap-3 hover:bg-accent-light/30 transition-colors">
                               <Plus size={14} className="text-accent flex-shrink-0" />
-                              <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{row.id}</span>
+                              <span className="text-xs text-text-muted w-20 flex-shrink-0">{row.id}</span>
                               <span className="text-sm font-medium text-text-primary flex-1 truncate">{row.name}</span>
                               <span className="text-xs text-text-muted">{row.street} {row.street_number}</span>
                               <span className="text-xs text-text-muted">{row.postcode} {row.city}</span>
@@ -1300,7 +1300,7 @@ export default function StammdatenImport() {
                 ) : filteredResults.missing.map(rec => (
                   <div key={rec.id} className="px-4 py-3 flex items-center gap-3 hover:bg-status-offline/10/30 transition-colors">
                     <Minus size={14} className="text-status-offline flex-shrink-0" />
-                    <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{rec.id}</span>
+                    <span className="text-xs text-text-muted w-20 flex-shrink-0">{rec.id}</span>
                     <span className="text-sm font-medium text-text-primary flex-1 truncate">{rec.name}</span>
                     <span className="text-xs text-text-muted">{rec.street} {rec.street_number}</span>
                     <span className="text-xs text-text-muted">{rec.postcode} {rec.city}</span>
@@ -1317,7 +1317,7 @@ export default function StammdatenImport() {
                 ) : comparison.unchanged.slice(0, 100).map(m => (
                   <div key={m.id} className="px-4 py-2.5 flex items-center gap-3">
                     <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
-                    <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{m.id}</span>
+                    <span className="text-xs text-text-muted w-20 flex-shrink-0">{m.id}</span>
                     <span className="text-sm text-text-primary flex-1 truncate">{m.csv.name}</span>
                     <span className="text-xs text-text-muted">{m.csv.city}</span>
                   </div>

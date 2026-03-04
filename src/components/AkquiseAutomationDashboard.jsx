@@ -51,7 +51,7 @@ function StatCard({ label, value, icon: Icon, color = '#007AFF', sub }) {
         </div>
         <span className="text-xs text-text-muted font-medium">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      <div className="text-2xl font-bold text-text-primary">{value}</div>
       {sub && <div className="text-[10px] text-text-muted mt-0.5">{sub}</div>}
     </div>
   );
@@ -523,7 +523,7 @@ export default function AkquiseAutomationDashboard() {
                   value={newCampaign.templateId}
                   onChange={e => setNewCampaign(prev => ({ ...prev, templateId: e.target.value }))}
                   placeholder="tn_..."
-                  className="w-full px-3 py-2 border border-border-secondary rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border border-border-secondary rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
                 <p className="text-[10px] text-text-muted mt-1">SuperChat Template-ID (muss von Meta genehmigt sein)</p>
               </div>

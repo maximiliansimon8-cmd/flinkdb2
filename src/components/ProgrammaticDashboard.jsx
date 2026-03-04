@@ -129,7 +129,7 @@ function TrendBadge({ current, previous, suffix = '', inverted = false, isCurren
   const pctChange = ((current - previous) / previous) * 100;
   if (Math.abs(pctChange) < 0.5) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-xs font-mono text-text-muted">
+      <span className="inline-flex items-center gap-0.5 text-xs text-text-muted">
         <Minus size={10} />
         <span>±0%</span>
       </span>
@@ -141,7 +141,7 @@ function TrendBadge({ current, previous, suffix = '', inverted = false, isCurren
   const sign = pctChange > 0 ? '+' : '';
 
   return (
-    <span className="inline-flex items-center gap-0.5 text-xs font-mono" style={{ color }}>
+    <span className="inline-flex items-center gap-0.5 text-xs" style={{ color }}>
       <Icon size={10} />
       <span>{sign}{pctChange.toFixed(1)}%</span>
     </span>
@@ -153,7 +153,7 @@ function KPICard({ label, value, subtitle, icon: Icon, color, trend }) {
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-text-muted text-xs font-medium uppercase tracking-wider">
+        <span className="text-text-muted text-xs font-medium">
           {label}
         </span>
         <Icon size={16} style={{ color }} className="opacity-70" />
@@ -176,12 +176,12 @@ function ChartTooltip({ active, payload, label, isCurrency }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-xl px-3 py-2 shadow-lg">
-      <div className="text-xs font-mono text-text-muted mb-1">{label}</div>
+      <div className="text-xs text-text-muted mb-1">{label}</div>
       {payload.map((item, i) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
           <span className="text-xs text-text-secondary">{item.name}:</span>
-          <span className="text-xs font-mono font-medium text-text-primary">
+          <span className="text-xs font-medium text-text-primary">
             {isCurrency ? fmtCurrency(item.value) : fmt(item.value)}
           </span>
         </div>
@@ -467,20 +467,20 @@ export default function ProgrammaticDashboard() {
             <div>
               <h2 className="text-base font-bold text-text-primary">Programmatic Performance</h2>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-text-muted font-mono">Vistar SSP · Exchange + Direct</span>
+                <span className="text-xs text-text-muted">Vistar SSP · Exchange + Direct</span>
                 {lastSyncTs && (
                   <>
                     <span className="text-text-muted">|</span>
-                    <span className="text-xs font-mono text-text-muted">
+                    <span className="text-xs text-text-muted">
                       Daten: {fmtDate(dateRange.start)} – {fmtDate(dateRange.end)}
                     </span>
                     <span className="text-text-muted">|</span>
-                    <span className="inline-flex items-center gap-1 text-xs font-mono text-text-muted">
+                    <span className="inline-flex items-center gap-1 text-xs text-text-muted">
                       <Clock size={9} className="opacity-60" />
                       Geladen: {timeAgo(lastSyncTs)}
                     </span>
                     {Date.now() - lastSyncTs > 3600000 && (
-                      <span className="inline-flex items-center gap-1 text-xs font-mono text-status-warning">
+                      <span className="inline-flex items-center gap-1 text-xs text-status-warning">
                         <AlertTriangle size={9} />
                         Daten evtl. veraltet
                       </span>
@@ -509,7 +509,7 @@ export default function ProgrammaticDashboard() {
               <button
                 key={label}
                 onClick={() => selectPreset(label)}
-                className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                   dateRange.label === label
                     ? 'bg-accent text-white shadow-sm'
                     : 'text-text-muted hover:text-text-primary hover:bg-surface-secondary/60'
@@ -526,7 +526,7 @@ export default function ProgrammaticDashboard() {
                   setCustomEnd(dateRange.end);
                 }
               }}
-              className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 dateRange.label === 'Custom'
                   ? 'bg-accent text-white shadow-sm'
                   : 'text-text-muted hover:text-text-primary hover:bg-surface-secondary/60'
@@ -543,19 +543,19 @@ export default function ProgrammaticDashboard() {
                 type="date"
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
-                className="px-2 py-1 text-xs font-mono bg-surface-secondary/80 border border-border-secondary rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="px-2 py-1 text-xs bg-surface-secondary/80 border border-border-secondary rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-blue-400"
               />
               <span className="text-xs text-text-muted">–</span>
               <input
                 type="date"
                 value={customEnd}
                 onChange={(e) => setCustomEnd(e.target.value)}
-                className="px-2 py-1 text-xs font-mono bg-surface-secondary/80 border border-border-secondary rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="px-2 py-1 text-xs bg-surface-secondary/80 border border-border-secondary rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-blue-400"
               />
               <button
                 onClick={applyCustomRange}
                 disabled={!customStart || !customEnd || customStart > customEnd}
-                className="px-3 py-1 text-xs font-mono font-medium rounded-md bg-accent text-white hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-1 text-xs font-medium rounded-md bg-accent text-white hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 OK
               </button>
@@ -588,7 +588,7 @@ export default function ProgrammaticDashboard() {
           <p className="text-xs text-text-muted">
             Vistar API-Zugangsdaten in Netlify konfigurieren und Sync ausführen.
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-violet-50/60 border border-violet-200/40 rounded-lg text-xs font-mono text-violet-600">
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-violet-50/60 border border-violet-200/40 rounded-lg text-xs text-violet-600">
             <Activity size={12} />
             /api/vistar-sync?type=all&days=30
           </div>
@@ -808,7 +808,7 @@ export default function ProgrammaticDashboard() {
               <div className="flex items-center gap-2 p-5 pb-3">
                 <div className="w-1 h-4 rounded-full bg-violet-500" />
                 <h3 className="text-sm font-medium text-text-primary">Top Venues nach Revenue</h3>
-                <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+                <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                   {topVenues.length}
                 </span>
               </div>
@@ -819,12 +819,12 @@ export default function ProgrammaticDashboard() {
                     key={venue.id}
                     className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-surface-secondary/60 transition-colors"
                   >
-                    <span className="w-5 text-xs font-mono text-text-muted text-right">
+                    <span className="w-5 text-xs text-text-muted text-right">
                       {i + 1}.
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-mono font-medium text-text-primary truncate">
+                        <span className="text-xs font-medium text-text-primary truncate">
                           {venue.doId}
                         </span>
                         {venue.locationName && (
@@ -833,7 +833,7 @@ export default function ProgrammaticDashboard() {
                           </span>
                         )}
                         {venue.city && (
-                          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted flex-shrink-0">
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted flex-shrink-0">
                             {venue.city}
                           </span>
                         )}
@@ -847,18 +847,18 @@ export default function ProgrammaticDashboard() {
                     </div>
                     <div className="flex items-center gap-4 flex-shrink-0">
                       <div className="text-right">
-                        <div className="text-xs font-mono font-medium text-violet-600">
+                        <div className="text-xs font-medium text-violet-600">
                           {fmtCurrency(venue.revenue)}
                         </div>
-                        <div className="text-xs font-mono text-text-muted">
+                        <div className="text-xs text-text-muted">
                           {fmt(venue.impressions)} imp
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-xs font-mono text-text-muted">
+                        <div className="text-xs text-text-muted">
                           eCPM
                         </div>
-                        <div className="text-xs font-mono font-medium text-status-warning">
+                        <div className="text-xs font-medium text-status-warning">
                           {fmtCurrency(venue.ecpm)}
                         </div>
                       </div>
@@ -888,7 +888,7 @@ export default function ProgrammaticDashboard() {
                 <div className="w-1 h-4 rounded-full bg-status-warning" />
                 <AlertTriangle size={14} className="text-status-warning" />
                 <h3 className="text-sm font-medium text-text-primary">Underperforming Venues</h3>
-                <span className="text-xs font-mono text-status-warning bg-status-warning/10/80 px-2 py-0.5 rounded">
+                <span className="text-xs text-status-warning bg-status-warning/10/80 px-2 py-0.5 rounded">
                   {underperformers.length}
                 </span>
                 <span className="text-xs text-text-muted ml-1">
@@ -898,7 +898,7 @@ export default function ProgrammaticDashboard() {
 
               <div className="px-5 pb-2">
                 {/* Header */}
-                <div className="flex items-center gap-3 py-1.5 px-3 text-xs font-mono text-text-muted uppercase tracking-wider border-b border-border-secondary/60">
+                <div className="flex items-center gap-3 py-1.5 px-3 text-xs text-text-muted border-b border-border-secondary/60">
                   <span className="w-5">#</span>
                   <span className="flex-1">Venue</span>
                   <span className="w-16 text-right">Tage</span>
@@ -915,12 +915,12 @@ export default function ProgrammaticDashboard() {
                     key={venue.id}
                     className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-status-warning/10/40 transition-colors"
                   >
-                    <span className="w-5 text-xs font-mono text-text-muted text-right">
+                    <span className="w-5 text-xs text-text-muted text-right">
                       {i + 1}.
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-medium text-text-primary truncate">
+                        <span className="text-xs font-medium text-text-primary truncate">
                           {venue.doId}
                         </span>
                         {venue.locationName && (
@@ -929,25 +929,25 @@ export default function ProgrammaticDashboard() {
                           </span>
                         )}
                         {venue.city && (
-                          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted flex-shrink-0">
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted flex-shrink-0">
                             {venue.city}
                           </span>
                         )}
                       </div>
                     </div>
-                    <span className="w-16 text-xs font-mono text-text-muted text-right">
+                    <span className="w-16 text-xs text-text-muted text-right">
                       {venue.activeDays}d
                     </span>
-                    <span className="w-20 text-xs font-mono text-text-muted text-right">
+                    <span className="w-20 text-xs text-text-muted text-right">
                       {fmt(venue.spotsPerDay)}
                     </span>
-                    <span className="w-20 text-xs font-mono text-status-warning font-medium text-right">
+                    <span className="w-20 text-xs text-status-warning font-medium text-right">
                       {fmtCurrency(venue.revenuePerDay)}
                     </span>
-                    <span className="w-20 text-xs font-mono text-text-muted text-right">
+                    <span className="w-20 text-xs text-text-muted text-right">
                       {fmtCurrency(venue.totalRevenue)}
                     </span>
-                    <span className={`w-16 text-xs font-mono font-medium text-right ${
+                    <span className={`w-16 text-xs font-medium text-right ${
                       venue.pctOfAvg < 10 ? 'text-status-offline' : 'text-status-warning'
                     }`}>
                       {venue.pctOfAvg}%

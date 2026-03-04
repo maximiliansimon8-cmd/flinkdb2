@@ -57,7 +57,7 @@ function KPICarousel({ items }) {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <item.icon size={16} style={{ color: item.color }} className="opacity-80" />
-                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
+                <span className="text-xs font-medium text-text-muted">
                   {item.label}
                 </span>
               </div>
@@ -66,7 +66,7 @@ function KPICarousel({ items }) {
               {item.value}
             </div>
             {item.subtitle && (
-              <div className="text-xs text-text-muted mt-1 font-mono">{item.subtitle}</div>
+              <div className="text-xs text-text-muted mt-1">{item.subtitle}</div>
             )}
           </div>
         ))}
@@ -115,7 +115,7 @@ function AttentionCard({ icon: Icon, iconColor, title, subtitle, count, onTap, d
       <div className="flex items-center gap-1.5 shrink-0">
         {count != null && (
           <span
-            className="text-sm font-bold font-mono px-2 py-0.5 rounded-lg"
+            className="text-sm font-bold px-2 py-0.5 rounded-lg"
             style={{ color: iconColor, backgroundColor: iconColor + '12' }}
           >
             {count}
@@ -340,19 +340,19 @@ export default function MobileDashboard({
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-glow" />
-              <span className="text-xs font-mono text-emerald-400/80">Live</span>
+              <span className="text-xs text-emerald-400/80">Live</span>
             </div>
           </div>
 
           <div className="mt-3 flex items-end justify-between">
             <div>
-              <div className="text-xs text-white/40 font-medium uppercase tracking-wider mb-1">Network Health</div>
-              <div className="text-5xl font-mono font-bold tracking-tight" style={{ color: healthColor }}>
+              <div className="text-xs text-white/40 font-medium mb-1">Network Health</div>
+              <div className="text-5xl font-bold tracking-tight" style={{ color: healthColor }}>
                 {kpis.healthRate || 0}%
               </div>
             </div>
             <div className="text-right pb-1">
-              <div className="text-xl font-mono font-bold text-white/90">{kpis.totalActive || 0}</div>
+              <div className="text-xl font-bold text-white/90">{kpis.totalActive || 0}</div>
               <div className="text-xs text-white/40">Displays aktiv</div>
             </div>
           </div>
@@ -373,9 +373,9 @@ export default function MobileDashboard({
             />
           </div>
           <div className="flex items-center justify-between mt-1.5">
-            <span className="text-[10px] text-emerald-400/70 font-mono">{kpis.onlineCount || 0} online</span>
-            <span className="text-[10px] text-amber-400/70 font-mono">{kpis.warningCount || 0} warn</span>
-            <span className="text-[10px] text-status-offline/70 font-mono">{(kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0)} offline</span>
+            <span className="text-[10px] text-emerald-400/70">{kpis.onlineCount || 0} online</span>
+            <span className="text-[10px] text-amber-400/70">{kpis.warningCount || 0} warn</span>
+            <span className="text-[10px] text-status-offline/70">{(kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0)} offline</span>
           </div>
         </div>
       </div>
@@ -401,7 +401,7 @@ export default function MobileDashboard({
           <div className="flex items-center gap-2 mb-3">
             <Zap size={14} className="text-status-warning" />
             <h2 className="text-sm font-bold text-text-primary">Braucht Aufmerksamkeit</h2>
-            <span className="text-xs font-mono text-status-warning bg-status-warning/10 px-1.5 py-0.5 rounded-lg">
+            <span className="text-xs text-status-warning bg-status-warning/10 px-1.5 py-0.5 rounded-lg">
               {attentionItems.length}
             </span>
           </div>
@@ -461,7 +461,7 @@ export default function MobileDashboard({
                   <div className="text-sm font-medium text-text-primary truncate">
                     {display.locationName || display.displayId}
                   </div>
-                  <div className="text-xs text-text-muted font-mono truncate">
+                  <div className="text-xs text-text-muted truncate">
                     {display.city || ''} {display.offlineHours ? `-- ${formatDuration(display.offlineHours)}` : ''}
                   </div>
                 </div>
@@ -491,10 +491,10 @@ export default function MobileDashboard({
                   >
                     <div className="text-xs font-semibold text-text-primary truncate">{city}</div>
                     <div className="flex items-end justify-between mt-1.5">
-                      <span className="text-lg font-mono font-bold" style={{ color: cityColor }}>
+                      <span className="text-lg font-bold" style={{ color: cityColor }}>
                         {cityHealth}%
                       </span>
-                      <span className="text-[10px] text-text-muted font-mono">{data.total} Displays</span>
+                      <span className="text-[10px] text-text-muted">{data.total} Displays</span>
                     </div>
                     {/* Mini bar */}
                     <div className="h-1 rounded-full bg-surface-tertiary/80 mt-1.5">

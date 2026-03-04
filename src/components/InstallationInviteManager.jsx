@@ -417,7 +417,7 @@ function InvitationHistorySection({ bookings, routes }) {
                       <XCircle size={10} /> {sCounts.cancelled}
                     </span>
                   ) : null}
-                  <span className="text-xs text-text-muted font-mono ml-1">{group.items.length} Einl.</span>
+                  <span className="text-xs text-text-muted ml-1">{group.items.length} Einl.</span>
                 </div>
               </button>
 
@@ -427,12 +427,12 @@ function InvitationHistorySection({ bookings, routes }) {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-border-secondary/60">
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Standort</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Stadt</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Kontakt</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Telefon</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Eingeladen um</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted">Standort</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted">Stadt</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted">Kontakt</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted">Telefon</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted">Status</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted">Eingeladen um</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -451,7 +451,7 @@ function InvitationHistorySection({ bookings, routes }) {
                               </td>
                               <td className="px-4 py-2.5"><div className="text-sm text-text-primary">{b.contact_name || '--'}</div></td>
                               <td className="px-4 py-2.5">
-                                <div className="text-xs text-text-muted font-mono flex items-center gap-1">
+                                <div className="text-xs text-text-muted flex items-center gap-1">
                                   <Phone size={10} className="text-text-muted" /> {b.contact_phone || '--'}
                                 </div>
                               </td>
@@ -463,8 +463,8 @@ function InvitationHistorySection({ bookings, routes }) {
                               <td className="px-4 py-2.5">
                                 <div className="flex items-center gap-1.5">
                                   <Calendar size={11} className="text-text-muted shrink-0" />
-                                  <span className="text-xs text-text-muted font-mono">{fmtDateDot(b.whatsapp_sent_at?.slice(0, 10))}</span>
-                                  <span className="text-xs text-text-muted font-mono">{fmtTime(b.whatsapp_sent_at)}</span>
+                                  <span className="text-xs text-text-muted">{fmtDateDot(b.whatsapp_sent_at?.slice(0, 10))}</span>
+                                  <span className="text-xs text-text-muted">{fmtTime(b.whatsapp_sent_at)}</span>
                                 </div>
                               </td>
                             </tr>
@@ -1244,7 +1244,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
 
       {/* Results count + Selection actions */}
       <div className="flex items-center justify-between">
-        <div className="text-xs text-text-muted font-mono">
+        <div className="text-xs text-text-muted">
           {filtered.length} Standorte gefunden
           {selected.size > 0 && ` | ${selected.size} ausgewaehlt`}
         </div>
@@ -1298,13 +1298,13 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                       className="w-4 h-4 rounded border-border-primary text-status-warning focus:ring-orange-400"
                     />
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Standort</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Stadt</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Kontakt</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Montage</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Vertrag</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Aktionen</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Standort</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Stadt</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Kontakt</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Montage</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Vertrag</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Aktionen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1348,7 +1348,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                       <td className="px-4 py-3">
                         <div className="text-sm text-text-primary">{s.contactPerson || '--'}</div>
                         {s.contactPhone ? (
-                          <div className="text-xs text-text-muted flex items-center gap-1 font-mono">
+                          <div className="text-xs text-text-muted flex items-center gap-1">
                             <Phone size={10} /> {s.contactPhone}
                           </div>
                         ) : (
@@ -1424,7 +1424,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                   <div className="text-xs text-text-muted">{b.city} | {b.contact_name}</div>
                 </div>
                 <StatusBadge status={b.status} />
-                <span className="text-[10px] text-text-muted font-mono shrink-0">
+                <span className="text-[10px] text-text-muted shrink-0">
                   {formatDateTime(b.whatsapp_sent_at)}
                 </span>
               </div>

@@ -36,7 +36,7 @@ function KPICard({ label, value, subtitle, icon: Icon, color, bgColor, trend }) 
           <Icon size={20} className={color} />
         </div>
         {trend !== undefined && trend !== null && (
-          <span className={`text-xs font-mono flex items-center gap-0.5 ${
+          <span className={`text-xs flex items-center gap-0.5 ${
             trend > 0 ? 'text-status-online' : trend < 0 ? 'text-status-offline' : 'text-text-muted'
           }`}>
             {trend > 0 ? '+' : ''}{trend}%
@@ -983,7 +983,7 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
                         {String(b.city || '')} | {String(b.contact_name || '')} | {String(b.contact_phone || '')}
                       </div>
                     </div>
-                    <span className="text-xs text-status-warning font-mono whitespace-nowrap">
+                    <span className="text-xs text-status-warning whitespace-nowrap">
                       vor {hoursSince}h
                     </span>
                   </div>

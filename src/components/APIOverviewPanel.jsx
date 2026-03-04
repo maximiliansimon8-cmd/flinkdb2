@@ -1420,7 +1420,7 @@ export default function APIOverviewPanel() {
                   </span>
 
                   {/* Auth Method Tag */}
-                  <span className="text-xs font-mono bg-surface-secondary/80 text-text-muted px-2 py-1 rounded-lg flex items-center gap-1">
+                  <span className="text-xs bg-surface-secondary/80 text-text-muted px-2 py-1 rounded-lg flex items-center gap-1">
                     <Lock size={10} />
                     {api.authMethod}
                   </span>
@@ -1446,7 +1446,7 @@ export default function APIOverviewPanel() {
                   {api.statusLabel}
                 </span>
                 <RightsBadge rights={api.rights} color={api.rightsColor} />
-                <span className="text-xs font-mono bg-surface-secondary/80 text-text-muted px-1.5 py-0.5 rounded flex items-center gap-1">
+                <span className="text-xs bg-surface-secondary/80 text-text-muted px-1.5 py-0.5 rounded flex items-center gap-1">
                   <Lock size={9} />
                   {api.authMethod}
                 </span>
@@ -1473,7 +1473,7 @@ export default function APIOverviewPanel() {
                   {api.fields && api.fields.length > 0 && (
                     <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
                       <div className="px-3 py-2 border-b border-border-secondary/40 flex items-center justify-between">
-                        <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                        <h4 className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                           <Database size={12} />
                           Verfuegbare Felder & Parameter ({api.fields.length})
                           <span className="text-[10px] text-text-muted font-normal normal-case tracking-normal ml-2">
@@ -1486,10 +1486,10 @@ export default function APIOverviewPanel() {
                           <thead>
                             <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
                               <th className="text-center px-2 py-1.5 w-6"></th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Feld / Parameter</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Typ</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Quelle</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Beschreibung</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted">Feld / Parameter</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted">Typ</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted">Quelle</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted">Beschreibung</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1502,9 +1502,9 @@ export default function APIOverviewPanel() {
                                     <div className="w-2.5 h-2.5 rounded-full border border-border-primary mx-auto" />
                                   )}
                                 </td>
-                                <td className="px-2 py-1.5 font-mono text-text-primary text-[11px]">{field.name}</td>
+                                <td className="px-2 py-1.5 text-text-primary text-[11px]">{field.name}</td>
                                 <td className="px-2 py-1.5">
-                                  <span className={`px-1.5 py-0.5 rounded font-mono text-[10px] ${
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${
                                     field.type === 'text' ? 'bg-accent-light text-blue-700' :
                                     field.type === 'date' || field.type === 'datetime' ? 'bg-brand-purple/10 text-purple-700' :
                                     field.type === 'number' ? 'bg-status-online/10 text-green-700' :
@@ -1535,7 +1535,7 @@ export default function APIOverviewPanel() {
                   {api.tables.length > 0 && (
                     <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
                       <div className="px-3 py-2 border-b border-border-secondary/40 flex items-center justify-between">
-                        <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                        <h4 className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                           <Database size={12} />
                           Tabellen / Collections ({api.tables.length})
                           {api.tables.some(t => t.fields) && (
@@ -1557,10 +1557,10 @@ export default function APIOverviewPanel() {
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
-                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider w-6"></th>
-                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Table ID</th>
-                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Name</th>
-                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Verwendung</th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted w-6"></th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted">Table ID</th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted">Name</th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted">Verwendung</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1578,7 +1578,7 @@ export default function APIOverviewPanel() {
                                         <ChevronRight size={12} />
                                       </div>
                                     </td>
-                                    <td className="px-3 py-2 font-mono text-text-muted text-[11px]">
+                                    <td className="px-3 py-2 text-text-muted text-[11px]">
                                       <span
                                         className="cursor-pointer hover:text-text-primary"
                                         onClick={(e) => { e.stopPropagation(); handleCopy(table.id); }}
@@ -1599,17 +1599,17 @@ export default function APIOverviewPanel() {
                                           {/* Sync Info + Usage chips */}
                                           <div className="flex flex-wrap gap-3 text-xs">
                                             {table.syncFrequency && (
-                                              <span className="inline-flex items-center gap-1 bg-accent-light text-blue-700 px-2 py-1 rounded-lg font-mono">
+                                              <span className="inline-flex items-center gap-1 bg-accent-light text-blue-700 px-2 py-1 rounded-lg">
                                                 <RefreshCw size={10} /> {table.syncFrequency}
                                               </span>
                                             )}
                                             {table.syncMethod && (
-                                              <span className="inline-flex items-center gap-1 bg-brand-purple/10 text-purple-700 px-2 py-1 rounded-lg font-mono">
+                                              <span className="inline-flex items-center gap-1 bg-brand-purple/10 text-purple-700 px-2 py-1 rounded-lg">
                                                 {table.syncMethod}
                                               </span>
                                             )}
                                             {table.supabaseTable && (
-                                              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg font-mono">
+                                              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg">
                                                 {'\u2192'} {table.supabaseTable}
                                               </span>
                                             )}
@@ -1620,7 +1620,7 @@ export default function APIOverviewPanel() {
                                             <div className="flex flex-wrap gap-1.5">
                                               <span className="text-xs text-text-muted mr-1">Verwendet in:</span>
                                               {table.usedIn.map((comp, j) => (
-                                                <span key={j} className="text-xs font-mono bg-accent-light/80 text-blue-700 px-2 py-0.5 rounded">
+                                                <span key={j} className="text-xs bg-accent-light/80 text-blue-700 px-2 py-0.5 rounded">
                                                   {comp}
                                                 </span>
                                               ))}
@@ -1631,7 +1631,7 @@ export default function APIOverviewPanel() {
                                           {table.fields && table.fields.length > 0 && (
                                             <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
                                               <div className="px-3 py-2 border-b border-border-secondary/40 flex items-center justify-between">
-                                                <span className="text-xs font-semibold text-text-primary uppercase tracking-wider">
+                                                <span className="text-xs font-semibold text-text-primary">
                                                   Felder ({table.fields.length})
                                                 </span>
                                                 <div className="flex items-center gap-2">
@@ -1652,11 +1652,11 @@ export default function APIOverviewPanel() {
                                                 <thead>
                                                   <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
                                                     <th className="text-center px-2 py-1.5 w-6"></th>
-                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Airtable</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted">Airtable</th>
                                                     <th className="text-center px-1 py-1.5 text-text-muted w-6">{'\u2192'}</th>
-                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Supabase</th>
-                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Typ</th>
-                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Bedeutung</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted">Supabase</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted">Typ</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted">Bedeutung</th>
                                                   </tr>
                                                 </thead>
                                                 <tbody>
@@ -1669,7 +1669,7 @@ export default function APIOverviewPanel() {
                                                           <div className="w-2.5 h-2.5 rounded-full border border-border-primary mx-auto" />
                                                         )}
                                                       </td>
-                                                      <td className="px-2 py-1.5 font-mono text-text-primary text-[11px]">
+                                                      <td className="px-2 py-1.5 text-text-primary text-[11px]">
                                                         <span className="inline-flex items-center gap-1">
                                                           {field.airtable}
                                                           {field.airtable !== field.airtable.trim() && (
@@ -1699,9 +1699,9 @@ export default function APIOverviewPanel() {
                                                         </span>
                                                       </td>
                                                       <td className="text-center px-1 py-1.5 text-text-muted">{'\u2192'}</td>
-                                                      <td className="px-2 py-1.5 font-mono text-blue-700 text-[11px]">{field.supabase}</td>
+                                                      <td className="px-2 py-1.5 text-blue-700 text-[11px]">{field.supabase}</td>
                                                       <td className="px-2 py-1.5">
-                                                        <span className={`px-1.5 py-0.5 rounded font-mono text-[10px] ${
+                                                        <span className={`px-1.5 py-0.5 rounded text-[10px] ${
                                                           field.type === 'text' ? 'bg-accent-light text-blue-700' :
                                                           field.type === 'date' ? 'bg-brand-purple/10 text-purple-700' :
                                                           field.type === 'number' ? 'bg-status-online/10 text-green-700' :
@@ -1734,7 +1734,7 @@ export default function APIOverviewPanel() {
                   {/* Endpoints Table */}
                   <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
                     <div className="px-3 py-2 border-b border-border-secondary/40">
-                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                         <Link size={12} />
                         Genutzte Endpoints ({api.endpoints.length})
                       </h4>
@@ -1743,9 +1743,9 @@ export default function APIOverviewPanel() {
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
-                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider w-20">Method</th>
-                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Endpoint</th>
-                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Beschreibung</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted w-20">Method</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted">Endpoint</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted">Beschreibung</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1754,7 +1754,7 @@ export default function APIOverviewPanel() {
                               <td className="px-3 py-2">
                                 <MethodBadge method={ep.method} />
                               </td>
-                              <td className="px-3 py-2 font-mono text-text-primary text-[11px]">{ep.path}</td>
+                              <td className="px-3 py-2 text-text-primary text-[11px]">{ep.path}</td>
                               <td className="px-3 py-2 text-text-muted flex items-center gap-1.5">
                                 <ep.icon size={11} className="text-text-muted shrink-0" />
                                 {ep.description}
@@ -1770,7 +1770,7 @@ export default function APIOverviewPanel() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Auth Details */}
                     <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
-                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-text-primary mb-2 flex items-center gap-1.5">
                         <Key size={12} />
                         Authentifizierung
                       </h4>
@@ -1784,10 +1784,10 @@ export default function APIOverviewPanel() {
                       </div>
                       {api.envVars.length > 0 && (
                         <div className="mt-3 pt-2 border-t border-border-secondary/40">
-                          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1.5">Environment Variables</div>
+                          <div className="text-[10px] text-text-muted mb-1.5">Environment Variables</div>
                           <div className="flex flex-wrap gap-1">
                             {api.envVars.map((v, i) => (
-                              <span key={i} className="inline-flex items-center gap-1 text-xs font-mono bg-status-offline/10/80 text-red-700 px-1.5 py-0.5 rounded cursor-pointer hover:bg-status-offline/10/80" onClick={() => handleCopy(v)}>
+                              <span key={i} className="inline-flex items-center gap-1 text-xs bg-status-offline/10/80 text-red-700 px-1.5 py-0.5 rounded cursor-pointer hover:bg-status-offline/10/80" onClick={() => handleCopy(v)}>
                                 <Key size={9} />
                                 {v}
                                 {copiedText === v ? <CheckCircle2 size={9} className="text-emerald-500" /> : <Copy size={9} className="text-status-offline" />}
@@ -1805,7 +1805,7 @@ export default function APIOverviewPanel() {
 
                     {/* Rights & Access */}
                     <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
-                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-text-primary mb-2 flex items-center gap-1.5">
                         <Shield size={12} />
                         Rechte & Zugriff
                       </h4>
@@ -1833,7 +1833,7 @@ export default function APIOverviewPanel() {
                       </div>
                       {api.modes && (
                         <div className="mt-3 pt-2 border-t border-border-secondary/40">
-                          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1.5">Modi</div>
+                          <div className="text-[10px] text-text-muted mb-1.5">Modi</div>
                           <div className="space-y-1">
                             {api.modes.map((mode, i) => (
                               <div key={i} className="flex items-start gap-1.5 text-xs">
@@ -1851,13 +1851,13 @@ export default function APIOverviewPanel() {
 
                     {/* Used By */}
                     <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
-                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-text-primary mb-2 flex items-center gap-1.5">
                         <Code size={12} />
                         Verwendet in
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
                         {api.usedBy.map((file, i) => (
-                          <span key={i} className="inline-flex items-center text-xs font-mono bg-accent-light/80 text-blue-700 px-2 py-1 rounded-lg">
+                          <span key={i} className="inline-flex items-center text-xs bg-accent-light/80 text-blue-700 px-2 py-1 rounded-lg">
                             {file}
                           </span>
                         ))}
@@ -1876,7 +1876,7 @@ export default function APIOverviewPanel() {
 
                   {/* Unused Features */}
                   <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
-                    <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <h4 className="text-xs font-semibold text-text-primary mb-2 flex items-center gap-1.5">
                       <AlertCircle size={12} className="text-status-warning" />
                       Verfuegbar aber nicht genutzt
                     </h4>
@@ -2004,7 +2004,7 @@ export default function APIOverviewPanel() {
             ].map((v, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1 text-xs font-mono bg-status-offline/10/60 text-red-800 px-2 py-1 rounded-lg cursor-pointer hover:bg-status-offline/10"
+                className="inline-flex items-center gap-1 text-xs bg-status-offline/10/60 text-red-800 px-2 py-1 rounded-lg cursor-pointer hover:bg-status-offline/10"
                 onClick={() => handleCopy(v)}
               >
                 <Lock size={9} />
@@ -2034,11 +2034,11 @@ export default function APIOverviewPanel() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border-secondary">
-                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Job</th>
-                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Quelle</th>
-                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Ziel</th>
-                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Frequenz</th>
-                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Methode</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted">Job</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted">Quelle</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted">Ziel</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted">Frequenz</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted">Methode</th>
               </tr>
             </thead>
             <tbody>
@@ -2049,11 +2049,11 @@ export default function APIOverviewPanel() {
                 { job: 'sync-attachments-scheduled.js', source: 'Airtable Attachments', target: 'Supabase Storage', freq: 'Alle 30 Minuten', method: 'Differential (URL hash check)' },
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border-secondary/60 hover:bg-surface-secondary/30">
-                  <td className="px-3 py-2 font-mono text-blue-700">{row.job}</td>
+                  <td className="px-3 py-2 text-blue-700">{row.job}</td>
                   <td className="px-3 py-2 text-text-primary">{row.source}</td>
-                  <td className="px-3 py-2 font-mono text-text-secondary">{row.target}</td>
+                  <td className="px-3 py-2 text-text-secondary">{row.target}</td>
                   <td className="px-3 py-2">
-                    <span className="bg-status-warning/10 text-amber-700 px-1.5 py-0.5 rounded font-mono">{row.freq}</span>
+                    <span className="bg-status-warning/10 text-amber-700 px-1.5 py-0.5 rounded">{row.freq}</span>
                   </td>
                   <td className="px-3 py-2 text-text-muted">{row.method}</td>
                 </tr>
@@ -2076,9 +2076,9 @@ function StatCard({ label, value, sub, icon: Icon, color }) {
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-xl font-bold font-mono text-text-primary">{value}</div>
+      <div className="text-xl font-bold text-text-primary">{value}</div>
       <div className="text-xs text-text-muted mt-0.5">{label}</div>
-      <div className="text-[10px] text-text-muted font-mono mt-0.5">{sub}</div>
+      <div className="text-[10px] text-text-muted mt-0.5">{sub}</div>
     </div>
   );
 }
@@ -2108,7 +2108,7 @@ function FilterChip({ active, onClick, label, count, color }) {
 
 function MetaChip({ label, value, onCopy, copied }) {
   return (
-    <span className="inline-flex items-center gap-1 bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg font-mono text-xs max-w-full">
+    <span className="inline-flex items-center gap-1 bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg text-xs max-w-full">
       <span className="text-text-muted font-sans shrink-0">{label}:</span>
       <span className="text-text-primary truncate">{value}</span>
       {onCopy && (
@@ -2138,7 +2138,7 @@ function RightsBadge({ rights, color }) {
   const RIcon = iconMap[rights] || Shield;
 
   return (
-    <span className={`text-xs font-mono px-2 py-1 rounded-lg flex items-center gap-1 border ${colorClasses[color] || colorClasses.blue}`}>
+    <span className={`text-xs px-2 py-1 rounded-lg flex items-center gap-1 border ${colorClasses[color] || colorClasses.blue}`}>
       <RIcon size={10} />
       {rights}
     </span>
@@ -2155,7 +2155,7 @@ function MethodBadge({ method }) {
   };
 
   return (
-    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${colors[method] || 'bg-surface-secondary text-text-secondary'}`}>
+    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${colors[method] || 'bg-surface-secondary text-text-secondary'}`}>
       {method}
     </span>
   );

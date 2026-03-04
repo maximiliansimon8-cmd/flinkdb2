@@ -297,10 +297,10 @@ export default function BestellwesenTab() {
           return (
             <div key={k.label} className="bg-surface-primary border border-border-secondary rounded-xl p-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-text-muted uppercase font-mono">{k.label}</span>
+                <span className="text-[10px] text-text-muted uppercase">{k.label}</span>
                 <Icon size={14} style={{ color: k.color }} />
               </div>
-              <div className="text-xl font-bold font-mono" style={{ color: k.color }}>{k.value}</div>
+              <div className="text-xl font-bold" style={{ color: k.color }}>{k.value}</div>
             </div>
           );
         })}
@@ -436,7 +436,7 @@ export default function BestellwesenTab() {
 
             <div className="space-y-2">
               {/* Header */}
-              <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-text-muted uppercase font-mono px-1">
+              <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-text-muted uppercase px-1">
                 <div className="col-span-3">Komponententyp</div>
                 <div className="col-span-4">Beschreibung</div>
                 <div className="col-span-2">Menge</div>
@@ -560,8 +560,8 @@ export default function BestellwesenTab() {
                         });
                     }}
                   >
-                    <td className="py-2 px-3 font-mono text-accent font-medium">{order.po_number}</td>
-                    <td className="py-2 px-3 font-mono text-text-secondary">
+                    <td className="py-2 px-3 text-accent font-medium">{order.po_number}</td>
+                    <td className="py-2 px-3 text-text-secondary">
                       {new Date(order.created_at).toLocaleDateString('de-DE')}
                     </td>
                     <td className="py-2 px-3 text-text-primary">{order.supplier || '\u2013'}</td>
@@ -590,7 +590,7 @@ export default function BestellwesenTab() {
                             }}
                           />
                         </div>
-                        <span className="text-[10px] text-text-muted font-mono whitespace-nowrap">
+                        <span className="text-[10px] text-text-muted whitespace-nowrap">
                           {received}/{total}
                         </span>
                       </div>
@@ -729,7 +729,7 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
               <ClipboardList size={16} className="text-accent" />
               Bestellung {order.po_number}
             </h3>
-            <p className="text-[10px] text-text-muted mt-0.5 font-mono">
+            <p className="text-[10px] text-text-muted mt-0.5">
               Erstellt am {new Date(order.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               {order.created_by && ` von ${order.created_by}`}
             </p>
@@ -744,7 +744,7 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
 
         {/* ─── Status Timeline ─── */}
         <div className="bg-surface-secondary rounded-lg p-3 mb-4">
-          <div className="text-[10px] text-text-muted uppercase font-mono mb-2">Status-Verlauf</div>
+          <div className="text-[10px] text-text-muted uppercase mb-2">Status-Verlauf</div>
           <div className="flex items-center gap-1">
             {STATUS_FLOW.map((step, idx) => {
               const stepConfig = STATUS_CONFIG[step];
@@ -794,19 +794,19 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
         {/* ─── PO Info ─── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           <div className="bg-surface-primary border border-border-secondary rounded-lg p-3">
-            <div className="text-[10px] text-text-muted uppercase font-mono flex items-center gap-1">
+            <div className="text-[10px] text-text-muted uppercase flex items-center gap-1">
               <Hash size={10} /> PO-Nummer
             </div>
-            <div className="text-xs font-mono font-bold text-accent mt-1">{order.po_number}</div>
+            <div className="text-xs font-bold text-accent mt-1">{order.po_number}</div>
           </div>
           <div className="bg-surface-primary border border-border-secondary rounded-lg p-3">
-            <div className="text-[10px] text-text-muted uppercase font-mono flex items-center gap-1">
+            <div className="text-[10px] text-text-muted uppercase flex items-center gap-1">
               <Truck size={10} /> Lieferant
             </div>
             <div className="text-xs font-medium text-text-primary mt-1">{order.supplier || '\u2013'}</div>
           </div>
           <div className="bg-surface-primary border border-border-secondary rounded-lg p-3">
-            <div className="text-[10px] text-text-muted uppercase font-mono flex items-center gap-1">
+            <div className="text-[10px] text-text-muted uppercase flex items-center gap-1">
               <Calendar size={10} /> Lieferdatum
             </div>
             <div className="text-xs text-text-primary mt-1">
@@ -816,10 +816,10 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
             </div>
           </div>
           <div className="bg-surface-primary border border-border-secondary rounded-lg p-3">
-            <div className="text-[10px] text-text-muted uppercase font-mono flex items-center gap-1">
+            <div className="text-[10px] text-text-muted uppercase flex items-center gap-1">
               <DollarSign size={10} /> Gesamtbetrag
             </div>
-            <div className="text-xs font-mono font-bold text-text-primary mt-1">
+            <div className="text-xs font-bold text-text-primary mt-1">
               {order.total_amount
                 ? `${Number(order.total_amount).toLocaleString('de-DE', { minimumFractionDigits: 2 })} EUR`
                 : '\u2013'}
@@ -832,13 +832,13 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
             {order.supplier_reference && (
               <div className="bg-surface-secondary rounded-lg p-3">
-                <div className="text-[10px] text-text-muted uppercase font-mono mb-1">Lieferanten-Referenz</div>
-                <div className="text-xs text-text-primary font-mono">{order.supplier_reference}</div>
+                <div className="text-[10px] text-text-muted uppercase mb-1">Lieferanten-Referenz</div>
+                <div className="text-xs text-text-primary">{order.supplier_reference}</div>
               </div>
             )}
             {order.notes && (
               <div className="bg-surface-secondary rounded-lg p-3">
-                <div className="text-[10px] text-text-muted uppercase font-mono mb-1">Notizen</div>
+                <div className="text-[10px] text-text-muted uppercase mb-1">Notizen</div>
                 <div className="text-xs text-text-secondary">{order.notes}</div>
               </div>
             )}
@@ -848,8 +848,8 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
         {/* ─── Progress bar ─── */}
         <div className="bg-surface-secondary rounded-lg p-3 mb-4">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-text-muted uppercase font-mono">Lieferfortschritt</span>
-            <span className="text-xs font-mono font-bold text-text-primary">
+            <span className="text-[10px] text-text-muted uppercase">Lieferfortschritt</span>
+            <span className="text-xs font-bold text-text-primary">
               {received} / {total} Stk.
             </span>
           </div>
@@ -866,7 +866,7 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
 
         {/* ─── Items list ─── */}
         <div className="mb-4">
-          <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-2">
+          <div className="text-xs font-medium text-text-secondary mb-2">
             Positionen ({items.length})
           </div>
 
@@ -895,16 +895,16 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
 
                       return (
                         <tr key={item.id} className={`border-b border-border-secondary ${isComplete ? 'bg-status-online/10/30' : ''}`}>
-                          <td className="py-2 px-3 text-text-muted font-mono">{item.line_number || '\u2013'}</td>
+                          <td className="py-2 px-3 text-text-muted">{item.line_number || '\u2013'}</td>
                           <td className="py-2 px-3 text-text-primary font-medium">{typeLabel}</td>
                           <td className="py-2 px-3 text-text-secondary">{item.description || '\u2013'}</td>
-                          <td className="py-2 px-3 font-mono text-text-primary">{item.quantity}</td>
+                          <td className="py-2 px-3 text-text-primary">{item.quantity}</td>
                           <td className="py-2 px-3">
                             <span className={`font-mono font-medium ${isComplete ? 'text-status-online' : 'text-status-warning'}`}>
                               {item.received_quantity || 0}
                             </span>
                           </td>
-                          <td className="py-2 px-3 font-mono text-text-secondary">
+                          <td className="py-2 px-3 text-text-secondary">
                             {item.unit_price
                               ? `${Number(item.unit_price).toLocaleString('de-DE', { minimumFractionDigits: 2 })} EUR`
                               : '\u2013'}
@@ -919,7 +919,7 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
                                   value={receiveQty}
                                   onChange={(e) => setReceiveQty(e.target.value)}
                                   autoFocus
-                                  className="w-16 px-2 py-1 rounded border border-blue-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
+                                  className="w-16 px-2 py-1 rounded border border-blue-300 text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                                   placeholder="Anz."
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') handleReceiveSubmit(item);

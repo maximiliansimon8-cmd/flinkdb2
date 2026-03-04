@@ -524,14 +524,14 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
             {/* Display IDs */}
             {location.displayIds && location.displayIds.length > 0 && (
               <div className="mt-3 pt-3 border-t border-border-secondary/80">
-                <p className="text-xs text-text-muted font-medium uppercase tracking-wider mb-2">
+                <p className="text-xs text-text-muted font-medium mb-2">
                   Display IDs
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {location.displayIds.map((id, i) => (
                     <span
                       key={i}
-                      className="inline-block px-2 py-0.5 bg-surface-secondary text-text-secondary text-[10px] font-mono rounded-lg"
+                      className="inline-block px-2 py-0.5 bg-surface-secondary text-text-secondary text-[10px] rounded-lg"
                     >
                       {id}
                     </span>
@@ -543,14 +543,14 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
             {/* JET IDs */}
             {location.jetIds && location.jetIds.length > 0 && (
               <div className="mt-3 pt-3 border-t border-border-secondary/80">
-                <p className="text-xs text-text-muted font-medium uppercase tracking-wider mb-2">
+                <p className="text-xs text-text-muted font-medium mb-2">
                   JET IDs
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {location.jetIds.map((id, i) => (
                     <span
                       key={i}
-                      className="inline-block px-2 py-0.5 bg-accent-light text-accent text-[10px] font-mono rounded-lg"
+                      className="inline-block px-2 py-0.5 bg-accent-light text-accent text-[10px] rounded-lg"
                     >
                       {id}
                     </span>

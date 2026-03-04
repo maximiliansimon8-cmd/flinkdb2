@@ -368,7 +368,7 @@ export default function ComposeMessage({
                             </p>
                           </div>
                           {l.jetIds?.[0] && (
-                            <span className="text-[10px] font-mono text-text-muted flex-shrink-0">
+                            <span className="text-[10px] text-text-muted flex-shrink-0">
                               {l.jetIds[0]}
                             </span>
                           )}

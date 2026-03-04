@@ -1021,7 +1021,7 @@ export default function DataMappingPanel() {
               if (kpis.length === 0) return null;
               return (
                 <div key={catKey}>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2" style={{ color: catInfo.color }}>
+                  <h4 className="text-xs font-semibold mb-2 flex items-center gap-2" style={{ color: catInfo.color }}>
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: catInfo.color }} />
                     {catInfo.label} ({kpis.length})
                   </h4>
@@ -1031,7 +1031,7 @@ export default function DataMappingPanel() {
                         {/* KPI Header */}
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-semibold text-text-primary">{kpi.label}</span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted">
                             {kpi.component}
                           </span>
                           <span className="text-[10px] text-text-muted">{kpi.location}</span>
@@ -1158,7 +1158,7 @@ export default function DataMappingPanel() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-text-primary truncate">{src.name}</span>
-                    <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded shrink-0">
+                    <span className="text-xs text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded shrink-0">
                       {src.supabaseTable}
                     </span>
                   </div>
@@ -1167,13 +1167,13 @@ export default function DataMappingPanel() {
 
                 {/* Badges */}
                 <div className="hidden sm:flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-mono bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg">
+                  <span className="text-xs bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg">
                     {syncedCount}
                     {availableCount > 0 && <span className="text-text-muted">+{availableCount}</span>}
                     {' '}Felder
                   </span>
                   {rowCount != null && (
-                    <span className="text-xs font-mono bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg">
+                    <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg">
                       {rowCount.toLocaleString('de-DE')} Rows
                     </span>
                   )}
@@ -1198,7 +1198,7 @@ export default function DataMappingPanel() {
                     <MetaChip label="PK" value={src.primaryKey} />
                     <MetaChip label="Kategorie" value={catInfo.label} />
                     {src.source === 'google_sheets' && (
-                      <span className="inline-flex items-center gap-1 bg-status-online/10 text-green-700 px-2 py-1 rounded-lg font-mono">
+                      <span className="inline-flex items-center gap-1 bg-status-online/10 text-green-700 px-2 py-1 rounded-lg">
                         <FileSpreadsheet size={11} />
                         Google Sheets
                       </span>
@@ -1209,7 +1209,7 @@ export default function DataMappingPanel() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Sync Info */}
                     <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
-                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-text-primary mb-2 flex items-center gap-1.5">
                         <RefreshCw size={12} />
                         Sync
                       </h4>
@@ -1253,7 +1253,7 @@ export default function DataMappingPanel() {
 
                     {/* Rights */}
                     <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
-                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-text-primary mb-2 flex items-center gap-1.5">
                         <Shield size={12} />
                         Rechte
                       </h4>
@@ -1295,13 +1295,13 @@ export default function DataMappingPanel() {
 
                     {/* Usage */}
                     <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
-                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-text-primary mb-2 flex items-center gap-1.5">
                         <Code size={12} />
                         Verwendet in
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
                         {(src.usedIn || []).map((comp, i) => (
-                          <span key={i} className="inline-flex items-center text-xs font-mono bg-accent-light/80 text-blue-700 px-2 py-1 rounded-lg">
+                          <span key={i} className="inline-flex items-center text-xs bg-accent-light/80 text-blue-700 px-2 py-1 rounded-lg">
                             {comp}
                           </span>
                         ))}
@@ -1315,7 +1315,7 @@ export default function DataMappingPanel() {
                   {/* Field Mapping Table */}
                   <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
                     <div className="px-3 py-2 border-b border-border-secondary/40 flex items-center justify-between">
-                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                         <ArrowRight size={12} />
                         Field Mapping ({syncedCount} synced{availableCount > 0 ? ` + ${availableCount} verfuegbar` : ''})
                       </h4>
@@ -1345,14 +1345,14 @@ export default function DataMappingPanel() {
                         <thead>
                           <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
                             <th className="text-center px-2 py-2 w-8 font-semibold text-text-muted"></th>
-                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Airtable Field</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted">Airtable Field</th>
                             <th className="text-center px-2 py-2 text-text-muted">\u2192</th>
-                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Supabase Column</th>
-                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Typ</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted">Supabase Column</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted">Typ</th>
                             {src.fields.some(f => f.interpretation) && (
-                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Bedeutung</th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted">Bedeutung</th>
                             )}
-                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Hinweis</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted">Hinweis</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1370,13 +1370,13 @@ export default function DataMappingPanel() {
                                   <Circle size={14} className="text-text-muted mx-auto" title="Verfuegbar, nicht synced" />
                                 )}
                               </td>
-                              <td className={`px-3 py-2 font-mono ${field.synced ? 'text-text-primary' : 'text-text-muted'}`}>
+                              <td className={`px-3 py-2 ${field.synced ? 'text-text-primary' : 'text-text-muted'}`}>
                                 {field.airtable}
                               </td>
                               <td className="text-center px-2 py-2 text-text-muted">
                                 {field.synced ? <ArrowRight size={12} /> : <span className="text-text-muted">\u2013</span>}
                               </td>
-                              <td className={`px-3 py-2 font-mono ${field.synced ? 'text-blue-700' : 'text-text-muted'}`}>
+                              <td className={`px-3 py-2 ${field.synced ? 'text-blue-700' : 'text-text-muted'}`}>
                                 {field.supabase}
                               </td>
                               <td className="px-3 py-2">
@@ -1545,9 +1545,9 @@ function StatCard({ label, value, sub, icon: Icon, color }) {
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-xl font-bold font-mono text-text-primary">{value}</div>
+      <div className="text-xl font-bold text-text-primary">{value}</div>
       <div className="text-xs text-text-muted mt-0.5">{label}</div>
-      <div className="text-xs text-text-muted font-mono mt-0.5">{sub}</div>
+      <div className="text-xs text-text-muted mt-0.5">{sub}</div>
     </div>
   );
 }
@@ -1577,7 +1577,7 @@ function FilterChip({ active, onClick, label, count, color }) {
 
 function SyncStatusBadge({ syncInfo }) {
   if (!syncInfo) return (
-    <span className="text-xs font-mono bg-surface-secondary/80 text-text-muted px-2 py-1 rounded-lg flex items-center gap-1">
+    <span className="text-xs bg-surface-secondary/80 text-text-muted px-2 py-1 rounded-lg flex items-center gap-1">
       <Clock size={10} />
       Kein Sync
     </span>
@@ -1585,19 +1585,19 @@ function SyncStatusBadge({ syncInfo }) {
 
   const status = syncInfo.last_sync_status;
   if (status === 'success') return (
-    <span className="text-xs font-mono bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg flex items-center gap-1">
+    <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg flex items-center gap-1">
       <CheckCircle2 size={10} />
       OK
     </span>
   );
   if (status === 'error') return (
-    <span className="text-xs font-mono bg-status-offline/10 text-red-700 px-2 py-1 rounded-lg flex items-center gap-1">
+    <span className="text-xs bg-status-offline/10 text-red-700 px-2 py-1 rounded-lg flex items-center gap-1">
       <XCircle size={10} />
       Fehler
     </span>
   );
   return (
-    <span className="text-xs font-mono bg-status-warning/10 text-amber-700 px-2 py-1 rounded-lg flex items-center gap-1">
+    <span className="text-xs bg-status-warning/10 text-amber-700 px-2 py-1 rounded-lg flex items-center gap-1">
       <Clock size={10} />
       {status || 'pending'}
     </span>
@@ -1606,7 +1606,7 @@ function SyncStatusBadge({ syncInfo }) {
 
 function MetaChip({ label, value, onCopy, copied }) {
   return (
-    <span className="inline-flex items-center gap-1 bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg font-mono">
+    <span className="inline-flex items-center gap-1 bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg">
       <span className="text-text-muted font-sans">{label}:</span>
       <span className="text-text-primary">{value}</span>
       {onCopy && (
@@ -1630,7 +1630,7 @@ function TypeBadge({ type, dimmed }) {
     link: 'bg-cyan-50 text-cyan-700',
   };
   return (
-    <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${dimmed ? 'bg-surface-secondary text-text-muted' : (colors[type] || 'bg-surface-secondary text-text-secondary')}`}>
+    <span className={`text-xs px-1.5 py-0.5 rounded ${dimmed ? 'bg-surface-secondary text-text-muted' : (colors[type] || 'bg-surface-secondary text-text-secondary')}`}>
       {type}
     </span>
   );

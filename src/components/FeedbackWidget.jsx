@@ -320,7 +320,7 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
             </div>
             <div>
               <h3 className="text-sm font-semibold text-text-primary">{typeConfig.label}</h3>
-              <p className="text-xs text-text-muted font-mono">{context.component} - {context.hash || 'root'}</p>
+              <p className="text-xs text-text-muted">{context.component} - {context.hash || 'root'}</p>
             </div>
           </div>
           <button
@@ -373,7 +373,7 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
                 <div className="col-span-2 flex items-center gap-1.5 text-xs text-text-muted">
                   <span className="font-medium">Filter:</span>
                   {context.activeFilters.map((f, i) => (
-                    <span key={i} className="px-1.5 py-0.5 bg-accent-light text-accent rounded text-xs font-mono">
+                    <span key={i} className="px-1.5 py-0.5 bg-accent-light text-accent rounded text-xs">
                       {f.value}
                     </span>
                   ))}

@@ -86,7 +86,7 @@ function AddMonteurModal({ onClose, onSave, installerTeams }) {
               value={form.email}
               onChange={(e) => { setForm({ ...form, email: e.target.value }); setError(''); }}
               placeholder="monteur@lieferando.de"
-              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-orange-400 transition-colors"
+              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-orange-400 transition-colors"
             />
           </div>
 
@@ -98,7 +98,7 @@ function AddMonteurModal({ onClose, onSave, installerTeams }) {
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Passwort eingeben (min. 8 Zeichen)"
-                className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 pr-10 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-orange-400 transition-colors"
+                className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 pr-10 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-orange-400 transition-colors"
               />
               <button
                 type="button"

@@ -136,7 +136,7 @@ function DayDetailChart({ segments }) {
 
   return (
     <div>
-      <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
+      <h3 className="text-xs font-medium text-text-secondary mb-3">
         Tagesverlauf – Status pro Snapshot
       </h3>
 
@@ -156,7 +156,7 @@ function DayDetailChart({ segments }) {
           return (
             <div key={row.dateKey} className="flex items-center gap-2">
               {/* Date label */}
-              <div className="w-[72px] flex-shrink-0 text-xs font-mono text-text-muted text-right">
+              <div className="w-[72px] flex-shrink-0 text-xs text-text-muted text-right">
                 {row.label}
               </div>
 
@@ -181,7 +181,7 @@ function DayDetailChart({ segments }) {
 
               {/* Day rate */}
               <div
-                className="w-[42px] flex-shrink-0 text-xs font-mono font-bold text-right"
+                className="w-[42px] flex-shrink-0 text-xs font-bold text-right"
                 style={{ color: rateColor }}
               >
                 {row.rate != null ? `${row.rate}%` : '–'}
@@ -217,7 +217,7 @@ function DayDetailChart({ segments }) {
           className="fixed z-50 pointer-events-none"
           style={{ left: mousePos.x + 14, top: mousePos.y - 8 }}
         >
-          <div className="bg-surface-primary border border-white/60 rounded-xl px-3 py-2 text-xs font-mono shadow-lg shadow-black/5">
+          <div className="bg-surface-primary border border-white/60 rounded-xl px-3 py-2 text-xs shadow-lg shadow-black/5">
             <div className="text-text-secondary mb-1">
               {formatDateTime(hoveredSeg.timestamp)}
             </div>
@@ -329,7 +329,7 @@ function WeekdayChart({ segments }) {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <CalendarDays size={14} className="text-text-muted" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Online-Rate nach Wochentag
         </h3>
       </div>
@@ -348,14 +348,14 @@ function WeekdayChart({ segments }) {
                   }}
                 />
               </div>
-              <div className="text-xs font-mono text-text-muted mt-1">{day.label}</div>
+              <div className="text-xs text-text-muted mt-1">{day.label}</div>
               <div
-                className="text-xs font-mono font-bold"
+                className="text-xs font-bold"
                 style={{ color: day.rate != null ? statusRateColor(day.rate) : '#64748b' }}
               >
                 {day.rate != null ? `${day.rate}%` : '–'}
               </div>
-              <div className="text-xs font-mono text-text-muted">
+              <div className="text-xs text-text-muted">
                 {day.total > 0 ? `n=${day.total}` : ''}
               </div>
             </div>
@@ -380,7 +380,7 @@ function HourChartTooltip({ active, payload }) {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
   return (
-    <div className="bg-surface-primary border border-border-primary/40 rounded-lg px-3 py-2 text-xs font-mono shadow-card">
+    <div className="bg-surface-primary border border-border-primary/40 rounded-lg px-3 py-2 text-xs shadow-card">
       <div className="text-text-secondary mb-1">{data.label}:00 Uhr</div>
       <div className="font-bold" style={{ color: data.rate != null ? statusRateColor(data.rate) : '#64748b' }}>
         {data.rate != null ? `${data.rate}%` : '–'} online
@@ -429,17 +429,17 @@ function HourChart({ segments }) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Sun size={14} className="text-text-muted" />
-          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+          <h3 className="text-xs font-medium text-text-secondary">
             Online-Rate nach Tageszeit
           </h3>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+          <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
             06:00 – 23:00
           </span>
           {avgRate != null && (
             <span
-              className="text-xs font-mono font-bold px-2 py-0.5 rounded"
+              className="text-xs font-bold px-2 py-0.5 rounded"
               style={{
                 backgroundColor: statusRateColor(avgRate) + '18',
                 color: statusRateColor(avgRate),
@@ -452,7 +452,7 @@ function HourChart({ segments }) {
       </div>
 
       {!hasData ? (
-        <div className="h-[180px] flex items-center justify-center text-text-muted text-xs font-mono">
+        <div className="h-[180px] flex items-center justify-center text-text-muted text-xs">
           Keine Stundendaten verfügbar
         </div>
       ) : (
@@ -573,7 +573,7 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
         <Loader2 size={14} className="text-[#007AFF] animate-spin" />
-        <span className="text-xs text-text-muted font-mono">Lade Standortdaten...</span>
+        <span className="text-xs text-text-muted">Lade Standortdaten...</span>
       </div>
     );
   }
@@ -599,11 +599,11 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
     <div>
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <Building2 size={14} className="text-[#007AFF]" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Standort-Informationen
         </h3>
         {stammdaten['JET ID'] && (
-          <span className="text-xs font-mono bg-[#007AFF]/15 text-[#007AFF] px-2 py-0.5 rounded-full border border-[#007AFF]/25">
+          <span className="text-xs bg-[#007AFF]/15 text-[#007AFF] px-2 py-0.5 rounded-full border border-[#007AFF]/25">
             JET ID: {stammdaten['JET ID']}
           </span>
         )}
@@ -612,7 +612,7 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
             href={lieferandoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-mono bg-[#ff8000]/10 text-[#ff8000] px-2 py-0.5 rounded-full border border-[#ff8000]/25 hover:bg-[#ff8000]/20 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs bg-[#ff8000]/10 text-[#ff8000] px-2 py-0.5 rounded-full border border-[#ff8000]/25 hover:bg-[#ff8000]/20 transition-colors"
           >
             <UtensilsCrossed size={10} />
             Lieferando
@@ -634,7 +634,7 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
               href={svUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200/60 hover:bg-emerald-100 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200/60 hover:bg-emerald-100 transition-colors"
             >
               <MapPinned size={10} />
               Street View
@@ -645,14 +645,14 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
         {onStimmcheck && (
           <button
             onClick={onStimmcheck}
-            className="inline-flex items-center gap-1.5 text-xs font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200/60 hover:bg-emerald-100 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200/60 hover:bg-emerald-100 transition-colors"
           >
             <Phone size={10} />
             Stimmcheck planen
           </button>
         )}
         {!canViewContacts && (
-          <span className="inline-flex items-center gap-1 text-xs font-mono text-text-muted bg-surface-secondary px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1 text-xs text-text-muted bg-surface-secondary px-2 py-0.5 rounded-full">
             <Lock size={9} />
             Kontaktdaten eingeschränkt
           </span>
@@ -752,7 +752,7 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
                         style={{ width: `${Math.min(100, airtableDisplay.sov_partner_ad)}%` }}
                       />
                     </div>
-                    <span className="text-xs font-mono font-medium text-text-primary">
+                    <span className="text-xs font-medium text-text-primary">
                       {airtableDisplay.sov_partner_ad}%
                     </span>
                   </div>
@@ -836,7 +836,7 @@ function TasksPanel({ tasks, loading }) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
         <Loader2 size={14} className="text-[#007AFF] animate-spin" />
-        <span className="text-xs text-text-muted font-mono">Lade Aufgaben...</span>
+        <span className="text-xs text-text-muted">Lade Aufgaben...</span>
       </div>
     );
   }
@@ -891,7 +891,7 @@ function TasksPanel({ tasks, loading }) {
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               {/* Status badge */}
               <span
-                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium"
+                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
                 style={{
                   backgroundColor: statusColors.bg,
                   color: statusColors.text,
@@ -904,7 +904,7 @@ function TasksPanel({ tasks, loading }) {
               {/* Priority */}
               {task.priority && (
                 <span
-                  className="text-xs font-mono font-bold"
+                  className="text-xs font-bold"
                   style={{ color: getPriorityColor(task.priority) }}
                 >
                   {task.priority}
@@ -913,7 +913,7 @@ function TasksPanel({ tasks, loading }) {
 
               {/* Assigned / Responsible */}
               {(task.responsibleUser || (task.assigned && task.assigned.length > 0)) && (
-                <span className="inline-flex items-center gap-1 text-xs font-mono text-text-secondary">
+                <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
                   <User size={9} className="text-text-muted" />
                   {task.responsibleUser || task.assigned?.join(', ')}
                 </span>
@@ -921,7 +921,7 @@ function TasksPanel({ tasks, loading }) {
 
               {/* Partner badge */}
               {task.partner && (
-                <span className="text-xs font-mono text-text-secondary bg-surface-tertiary px-1.5 py-0.5 rounded">
+                <span className="text-xs text-text-secondary bg-surface-tertiary px-1.5 py-0.5 rounded">
                   {task.partner}
                 </span>
               )}
@@ -929,7 +929,7 @@ function TasksPanel({ tasks, loading }) {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs font-mono text-text-muted">
+            <span className="text-xs text-text-muted">
               {formatTaskDateTime(task.createdTime)}
             </span>
             {isExpanded ? (
@@ -949,7 +949,7 @@ function TasksPanel({ tasks, loading }) {
                   {task.description}
                 </div>
               )}
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-mono text-text-muted">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
                 {task.dueDate && (
                   <span>Fällig: <span className="text-text-secondary">{formatTaskDate(task.dueDate)}</span></span>
                 )}
@@ -974,14 +974,14 @@ function TasksPanel({ tasks, loading }) {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <ClipboardList size={14} className="text-[#007AFF]" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Aufgaben
         </h3>
-        <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+        <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
           {tasks.length} gesamt
         </span>
         {openTasks.length > 0 && (
-          <span className="text-xs font-mono text-[#FF9500] bg-[#FF9500]/10 px-2 py-0.5 rounded border border-[#FF9500]/25">
+          <span className="text-xs text-[#FF9500] bg-[#FF9500]/10 px-2 py-0.5 rounded border border-[#FF9500]/25">
             {openTasks.length} offen
           </span>
         )}
@@ -999,7 +999,7 @@ function TasksPanel({ tasks, loading }) {
         {completedTasks.length > 0 && (
           <>
             {openTasks.length > 0 && (
-              <div className="text-xs font-mono text-text-muted uppercase tracking-wider pt-2 pb-1">
+              <div className="text-xs text-text-muted pt-2 pb-1">
                 Abgeschlossen ({completedTasks.length})
               </div>
             )}
@@ -1018,7 +1018,7 @@ function InstallationPanel({ installation, loading }) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
         <Loader2 size={14} className="text-[#007AFF] animate-spin" />
-        <span className="text-xs text-text-muted font-mono">Lade Installationsdaten...</span>
+        <span className="text-xs text-text-muted">Lade Installationsdaten...</span>
       </div>
     );
   }
@@ -1041,7 +1041,7 @@ function InstallationPanel({ installation, loading }) {
     const c = colors[status] || { bg: '#64748b15', text: '#64748b', border: '#64748b33' };
     return (
       <span
-        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-medium"
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
         style={{ backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}` }}
       >
         {status}
@@ -1056,7 +1056,7 @@ function InstallationPanel({ installation, loading }) {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <Wrench size={14} className="text-[#007AFF]" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Installation
         </h3>
         {installation.status && getStatusBadge(installation.status)}
@@ -1117,7 +1117,7 @@ function InstallationPanel({ installation, loading }) {
             href={protocolPdf.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-secondary/80 border border-border-secondary text-xs font-mono text-text-secondary hover:border-[#007AFF] hover:text-text-primary transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-secondary/80 border border-border-secondary text-xs text-text-secondary hover:border-[#007AFF] hover:text-text-primary transition-colors"
           >
             <Download size={12} className="text-[#007AFF]" />
             <span>Installationsprotokoll</span>
@@ -1136,7 +1136,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
         <Loader2 size={14} className="text-[#007AFF] animate-spin" />
-        <span className="text-xs text-text-muted font-mono">Lade Hardware-Daten...</span>
+        <span className="text-xs text-text-muted">Lade Hardware-Daten...</span>
       </div>
     );
   }
@@ -1156,7 +1156,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
     const c = colors[status] || { bg: '#64748b15', text: '#64748b', border: '#64748b33', label: status || '–' };
     return (
       <span
-        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium"
+        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium"
         style={{ backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}` }}
       >
         {c.label}
@@ -1175,7 +1175,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
         <div className="flex items-center gap-1.5">
           <MapPinned size={10} className="text-accent flex-shrink-0" />
           <span className="text-xs text-blue-700 font-medium">Jetzt bei:</span>
-          <span className="text-xs text-blue-800 font-mono">
+          <span className="text-xs text-blue-800">
             {loc.locationName}{loc.city ? ` (${loc.city})` : ''}
           </span>
         </div>
@@ -1285,7 +1285,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
     <div>
       <div className="flex items-center gap-2 mb-3">
         <HardDrive size={14} className="text-[#007AFF]" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Hardware-Set
         </h3>
         {reassignmentLoading && (
@@ -1299,7 +1299,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
           <div className="flex items-center gap-2 mb-2">
             <TriangleAlert size={14} className="text-status-offline" />
             <span className="text-sm font-bold text-red-800">Abweichung</span>
-            <span className="text-xs text-status-offline font-mono">({mismatches.length} {mismatches.length === 1 ? 'Fehler' : 'Fehler'})</span>
+            <span className="text-xs text-status-offline">({mismatches.length} {mismatches.length === 1 ? 'Fehler' : 'Fehler'})</span>
           </div>
           <div className="space-y-2">
             {mismatches.map((m, i) => (
@@ -1320,7 +1320,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
       {/* Cross-reference: Leasing + Installation SNs */}
       {(leasingDisplaySn || installOpsSn) && (
         <div className="mb-3 bg-surface-secondary/80 border border-border-secondary/40 rounded-lg px-3 py-2">
-          <div className="text-xs font-mono text-text-muted uppercase mb-1">Abgleich-Referenz</div>
+          <div className="text-xs text-text-muted uppercase mb-1">Abgleich-Referenz</div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
             {leasingDisplaySn && (
               <div className="text-xs">
@@ -1397,7 +1397,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Monitor size={12} className="text-brand-purple" />
-                <span className="text-xs font-mono font-medium text-text-muted uppercase">Display</span>
+                <span className="text-xs font-medium text-text-muted uppercase">Display</span>
               </div>
               {statusBadge(disp.status)}
             </div>
@@ -1416,7 +1416,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
         )) : (
           <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
             <Monitor size={16} className="text-text-muted mb-1" />
-            <span className="text-xs text-text-muted font-mono">Display</span>
+            <span className="text-xs text-text-muted">Display</span>
             <span className="text-[10px] text-text-muted">nicht zugewiesen</span>
           </div>
         )}
@@ -1431,11 +1431,11 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Cpu size={12} className="text-accent" />
-                <span className="text-xs font-mono font-medium text-text-muted uppercase">OPS Player</span>
+                <span className="text-xs font-medium text-text-muted uppercase">OPS Player</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {ops._enriched && (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-mono text-accent bg-accent-light border border-accent/20/50">NocoDB</span>
+                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] text-accent bg-accent-light border border-accent/20/50">NocoDB</span>
                 )}
                 {statusBadge(ops.status)}
               </div>
@@ -1456,9 +1456,9 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Cpu size={12} className="text-status-warning" />
-                <span className="text-xs font-mono font-medium text-status-warning uppercase">OPS Player</span>
+                <span className="text-xs font-medium text-status-warning uppercase">OPS Player</span>
               </div>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-status-warning/10 text-amber-700 border border-status-warning/20">aus Protokoll</span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-status-warning/10 text-amber-700 border border-status-warning/20">aus Protokoll</span>
             </div>
             <div className="space-y-1">
               <div className="text-xs"><span className="text-status-warning">Nr: </span><span className="font-mono text-amber-800">{installation.opsNr}</span></div>
@@ -1467,7 +1467,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
         ) : (
           <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
             <Cpu size={16} className="text-text-muted mb-1" />
-            <span className="text-xs text-text-muted font-mono">OPS Player</span>
+            <span className="text-xs text-text-muted">OPS Player</span>
             <span className="text-[10px] text-text-muted">nicht zugewiesen</span>
           </div>
         )}
@@ -1482,11 +1482,11 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <CardSim size={12} className="text-status-online" />
-                <span className="text-xs font-mono font-medium text-text-muted uppercase">SIM-Karte</span>
+                <span className="text-xs font-medium text-text-muted uppercase">SIM-Karte</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {sim._source === 'nocodb' && (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-mono text-accent bg-accent-light border border-accent/20/50">NocoDB</span>
+                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] text-accent bg-accent-light border border-accent/20/50">NocoDB</span>
                 )}
                 {statusBadge(sim.status)}
               </div>
@@ -1515,9 +1515,9 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <CardSim size={12} className="text-status-warning" />
-                <span className="text-xs font-mono font-medium text-status-warning uppercase">SIM-Karte</span>
+                <span className="text-xs font-medium text-status-warning uppercase">SIM-Karte</span>
               </div>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-status-warning/10 text-amber-700 border border-status-warning/20">aus Protokoll</span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-status-warning/10 text-amber-700 border border-status-warning/20">aus Protokoll</span>
             </div>
             <div className="space-y-1">
               <div className="text-xs"><span className="text-status-warning">ICCID: </span><span className="font-mono text-amber-800 text-[11px]">{installation.simId}</span></div>
@@ -1526,7 +1526,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
         ) : (
           <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
             <CardSim size={16} className="text-text-muted mb-1" />
-            <span className="text-xs text-text-muted font-mono">SIM-Karte</span>
+            <span className="text-xs text-text-muted">SIM-Karte</span>
             <span className="text-[10px] text-text-muted">nicht zugewiesen</span>
           </div>
         )}
@@ -1545,10 +1545,10 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5">
                     <Grip size={12} className="text-status-warning" />
-                    <span className="text-xs font-mono font-medium text-text-muted uppercase">Halterung</span>
+                    <span className="text-xs font-medium text-text-muted uppercase">Halterung</span>
                   </div>
                   {mountType && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium"
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium"
                       style={{ backgroundColor: '#FF950015', color: '#FF9500', border: '1px solid #FF950033' }}>
                       {mountType}
                     </span>
@@ -1565,7 +1565,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
           return (
             <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
               <Grip size={16} className="text-text-muted mb-1" />
-              <span className="text-xs text-text-muted font-mono">Halterung</span>
+              <span className="text-xs text-text-muted">Halterung</span>
               <span className="text-[10px] text-text-muted">keine Daten</span>
             </div>
           );
@@ -1626,7 +1626,7 @@ function HardwareHistoryModal({ isOpen, onClose, snType, snValue, label }) {
               <History size={14} className="text-[#007AFF]" />
               Hardware-Historie
             </h3>
-            <p className="text-xs text-text-muted font-mono mt-0.5">{label}</p>
+            <p className="text-xs text-text-muted mt-0.5">{label}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors">
             <X size={16} className="text-text-muted" />
@@ -1638,7 +1638,7 @@ function HardwareHistoryModal({ isOpen, onClose, snType, snValue, label }) {
           {loading ? (
             <div className="flex items-center gap-2 py-8 justify-center">
               <Loader2 size={14} className="text-[#007AFF] animate-spin" />
-              <span className="text-xs text-text-muted font-mono">Lade Historie...</span>
+              <span className="text-xs text-text-muted">Lade Historie...</span>
             </div>
           ) : timeline.length === 0 ? (
             <div className="text-center py-8">
@@ -1666,17 +1666,17 @@ function HardwareHistoryModal({ isOpen, onClose, snType, snValue, label }) {
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
                       {entry.date && (
-                        <span className="text-xs font-mono text-text-muted">
+                        <span className="text-xs text-text-muted">
                           {fmtDate(entry.date)}
                         </span>
                       )}
                       {entry.liveSince && !entry.date && (
-                        <span className="text-xs font-mono text-text-muted">
+                        <span className="text-xs text-text-muted">
                           Live seit {fmtDate(entry.liveSince)}
                         </span>
                       )}
                       {entry.status && (
-                        <span className="text-xs font-mono text-text-muted bg-surface-secondary px-1 py-0.5 rounded">
+                        <span className="text-xs text-text-muted bg-surface-secondary px-1 py-0.5 rounded">
                           {entry.status}
                         </span>
                       )}
@@ -1699,7 +1699,7 @@ function LeasingPanel({ leaseData, loading, canViewFinancial }) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
         <Loader2 size={14} className="text-[#007AFF] animate-spin" />
-        <span className="text-xs text-text-muted font-mono">Lade Leasing-Daten...</span>
+        <span className="text-xs text-text-muted">Lade Leasing-Daten...</span>
       </div>
     );
   }
@@ -1740,11 +1740,11 @@ function LeasingPanel({ leaseData, loading, canViewFinancial }) {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <Landmark size={14} className="text-[#007AFF]" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Leasing
         </h3>
         {bank?.contractStatus && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-medium"
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
             style={{ backgroundColor: '#34C75915', color: '#34C759', border: '1px solid #34C75933' }}>
             {bank.contractStatus}
           </span>
@@ -1786,8 +1786,8 @@ function LeasingPanel({ leaseData, loading, canViewFinancial }) {
       {progress !== null && (
         <div className="mt-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-text-muted font-mono">Laufzeit-Fortschritt</span>
-            <span className="text-xs text-text-muted font-mono font-medium">{progress}%</span>
+            <span className="text-xs text-text-muted">Laufzeit-Fortschritt</span>
+            <span className="text-xs text-text-muted font-medium">{progress}%</span>
           </div>
           <div className="w-full bg-surface-secondary rounded-full h-1.5">
             <div
@@ -1811,7 +1811,7 @@ function SwapHistoryPanel({ swaps, deinstalls, loading }) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
         <Loader2 size={14} className="text-[#007AFF] animate-spin" />
-        <span className="text-xs text-text-muted font-mono">Lade Hardware-Historie...</span>
+        <span className="text-xs text-text-muted">Lade Hardware-Historie...</span>
       </div>
     );
   }
@@ -1835,7 +1835,7 @@ function SwapHistoryPanel({ swaps, deinstalls, loading }) {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <ArrowLeftRight size={14} className="text-[#007AFF]" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Hardware-Historie
         </h3>
       </div>
@@ -1843,17 +1843,17 @@ function SwapHistoryPanel({ swaps, deinstalls, loading }) {
       {/* Swaps */}
       {hasSwaps && (
         <div className="mb-3">
-          <div className="text-xs font-mono font-medium text-text-muted uppercase mb-2">Tausch-Aufträge</div>
+          <div className="text-xs font-medium text-text-muted uppercase mb-2">Tausch-Aufträge</div>
           <div className="space-y-2">
             {swaps.map((swap) => {
               const sc = statusColors[swap.status] || statusColors['Geplant'];
               return (
                 <div key={swap.id} className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-2.5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono font-medium text-text-primary">{swap.swapId || swap.id?.substring(0, 8)}</span>
+                    <span className="text-xs font-medium text-text-primary">{swap.swapId || swap.id?.substring(0, 8)}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-text-muted font-mono">{fmtDate(swap.swapDate)}</span>
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium"
+                      <span className="text-xs text-text-muted">{fmtDate(swap.swapDate)}</span>
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium"
                         style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>
                         {swap.status}
                       </span>
@@ -1875,17 +1875,17 @@ function SwapHistoryPanel({ swaps, deinstalls, loading }) {
       {/* Deinstalls */}
       {hasDeinstalls && (
         <div>
-          <div className="text-xs font-mono font-medium text-text-muted uppercase mb-2">Deinstallationen</div>
+          <div className="text-xs font-medium text-text-muted uppercase mb-2">Deinstallationen</div>
           <div className="space-y-2">
             {deinstalls.map((d) => {
               const sc = statusColors[d.status] || statusColors['Geplant'];
               return (
                 <div key={d.id} className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-2.5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono font-medium text-text-primary">{d.deinstallId || d.id?.substring(0, 8)}</span>
+                    <span className="text-xs font-medium text-text-primary">{d.deinstallId || d.id?.substring(0, 8)}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-text-muted font-mono">{fmtDate(d.deinstallDate)}</span>
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium"
+                      <span className="text-xs text-text-muted">{fmtDate(d.deinstallDate)}</span>
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium"
                         style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>
                         {d.status}
                       </span>
@@ -1916,7 +1916,7 @@ function CommunicationsPanel({ communications, loading }) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
         <Loader2 size={14} className="text-[#007AFF] animate-spin" />
-        <span className="text-xs text-text-muted font-mono">Lade Kommunikation...</span>
+        <span className="text-xs text-text-muted">Lade Kommunikation...</span>
       </div>
     );
   }
@@ -1953,10 +1953,10 @@ function CommunicationsPanel({ communications, loading }) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Mail size={14} className="text-[#007AFF]" />
-          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+          <h3 className="text-xs font-medium text-text-secondary">
             Kommunikation
           </h3>
-          <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
+          <span className="text-xs text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
             {communications.length}
           </span>
         </div>
@@ -1988,7 +1988,7 @@ function CommunicationsPanel({ communications, loading }) {
                     {comm.direction === 'Outbound' ? '→ Ausgehend' : '← Eingehend'}
                   </span>
                 </div>
-                <span className="text-xs font-mono text-text-muted shrink-0">
+                <span className="text-xs text-text-muted shrink-0">
                   {formatTs(comm.timestamp)}
                 </span>
               </div>
@@ -2070,19 +2070,19 @@ function VistarPanel({ data, loading }) {
     <div>
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <TrendingUp size={14} className="text-[#AF52DE]" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Programmatic Performance
         </h3>
-        <span className="text-xs font-mono text-[#AF52DE] bg-[#AF52DE]/10 px-2 py-0.5 rounded-full border border-[#AF52DE]/25">
+        <span className="text-xs text-[#AF52DE] bg-[#AF52DE]/10 px-2 py-0.5 rounded-full border border-[#AF52DE]/25">
           Vistar SSP · 30 Tage
         </span>
         {!hasData && !loading && (
-          <span className="text-xs font-mono text-text-muted bg-surface-secondary px-2 py-0.5 rounded-full">
+          <span className="text-xs text-text-muted bg-surface-secondary px-2 py-0.5 rounded-full">
             API nicht verbunden
           </span>
         )}
         {loading && (
-          <span className="inline-flex items-center gap-1 text-xs font-mono text-text-muted">
+          <span className="inline-flex items-center gap-1 text-xs text-text-muted">
             <Loader2 size={10} className="animate-spin" /> Lade...
           </span>
         )}
@@ -2091,20 +2091,20 @@ function VistarPanel({ data, loading }) {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
         <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
-          <div className={`text-lg font-mono font-bold ${hasData ? 'text-[#AF52DE]' : 'text-text-muted'}`}>
+          <div className={`text-lg font-bold ${hasData ? 'text-[#AF52DE]' : 'text-text-muted'}`}>
             {hasData ? formatNum(totals.impressions) : '–'}
           </div>
           <div className="text-xs text-text-muted mt-0.5">Impressions</div>
         </div>
         <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
-          <div className={`text-lg font-mono font-bold ${hasData ? 'text-text-primary' : 'text-text-muted'}`}>
+          <div className={`text-lg font-bold ${hasData ? 'text-text-primary' : 'text-text-muted'}`}>
             {hasData ? formatNum(totals.spots) : '–'}
           </div>
           <div className="text-xs text-text-muted mt-0.5">Ad Plays</div>
         </div>
         {canViewRevenue ? (
           <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
-            <div className={`text-lg font-mono font-bold ${hasData ? 'text-emerald-600' : 'text-text-muted'}`}>
+            <div className={`text-lg font-bold ${hasData ? 'text-emerald-600' : 'text-text-muted'}`}>
               {hasData ? `${totals.revenue.toFixed(2)}€` : '–'}
             </div>
             <div className="text-xs text-text-muted mt-0.5">Revenue</div>
@@ -2119,7 +2119,7 @@ function VistarPanel({ data, loading }) {
         )}
         {canViewRevenue ? (
           <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
-            <div className={`text-lg font-mono font-bold ${hasData ? 'text-text-secondary' : 'text-text-muted'}`}>
+            <div className={`text-lg font-bold ${hasData ? 'text-text-secondary' : 'text-text-muted'}`}>
               {hasData ? `${avgECPM.toFixed(2)}€` : '–'}
             </div>
             <div className="text-xs text-text-muted mt-0.5">Ø eCPM</div>
@@ -2133,7 +2133,7 @@ function VistarPanel({ data, loading }) {
           </div>
         )}
         <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
-          <div className={`text-lg font-mono font-bold ${hasData ? 'text-text-secondary' : 'text-text-muted'}`}>
+          <div className={`text-lg font-bold ${hasData ? 'text-text-secondary' : 'text-text-muted'}`}>
             {hasData ? <>{activeDays}<span className="text-xs text-text-muted">/{totalDays}</span></> : '–'}
           </div>
           <div className="text-xs text-text-muted mt-0.5">Active Days</div>
@@ -2142,7 +2142,7 @@ function VistarPanel({ data, loading }) {
 
       {/* Daily bar chart or placeholder */}
       <div>
-        <div className="text-xs font-mono text-text-muted mb-1.5">
+        <div className="text-xs text-text-muted mb-1.5">
           {hasData ? `Spots pro Tag (Ø ${avgSpotsPerDay}/Tag)` : 'Spots pro Tag'}
         </div>
         <div className="flex items-end gap-[2px] h-[60px]">
@@ -2179,12 +2179,12 @@ function VistarPanel({ data, loading }) {
           )}
         </div>
         {dailyChart.length > 0 ? (
-          <div className="flex justify-between mt-1 text-xs font-mono text-text-muted">
+          <div className="flex justify-between mt-1 text-xs text-text-muted">
             <span>{dailyChart[0]?.label}</span>
             <span>{dailyChart[dailyChart.length - 1]?.label}</span>
           </div>
         ) : (
-          <div className="text-center mt-2 text-xs font-mono text-text-muted">
+          <div className="text-center mt-2 text-xs text-text-muted">
             Vistar API-Credentials in Netlify hinterlegen um Live-Daten zu sehen
           </div>
         )}
@@ -2215,7 +2215,7 @@ class DisplayDetailErrorBoundary extends React.Component {
             <AlertTriangle size={32} className="text-status-offline mx-auto mb-3" />
             <h3 className="text-lg font-bold text-text-primary mb-2">Display-Detail Fehler</h3>
             <p className="text-xs text-text-muted mb-3">Ein Fehler ist beim Rendern aufgetreten:</p>
-            <pre className="text-xs bg-status-offline/10 text-red-700 p-3 rounded-lg text-left overflow-auto max-h-32 mb-4 font-mono">
+            <pre className="text-xs bg-status-offline/10 text-red-700 p-3 rounded-lg text-left overflow-auto max-h-32 mb-4">
               {this.state.error?.message || 'Unbekannter Fehler'}
             </pre>
             <button
@@ -2465,7 +2465,7 @@ function DisplayDetailInner({ display, onClose }) {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold font-mono"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
                 style={{
                   backgroundColor: statusColor + '18',
                   color: statusColor,
@@ -2481,17 +2481,17 @@ function DisplayDetailInner({ display, onClose }) {
                 {statusLabel}
               </span>
               {display.offlineHours != null && display.offlineHours >= 24 && (
-                <span className="text-xs font-mono" style={{ color: statusColor }}>
+                <span className="text-xs" style={{ color: statusColor }}>
                   {formatDuration(display.offlineHours)} offline
                 </span>
               )}
             </div>
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-mono font-bold text-text-primary">
+              <h2 className="text-lg font-bold text-text-primary">
                 {display.displayId}
               </h2>
               {stammdaten?.['JET ID'] && (
-                <span className="text-xs font-mono bg-[#007AFF]/15 text-[#007AFF] px-2.5 py-1 rounded-full border border-[#007AFF]/25 font-bold">
+                <span className="text-xs bg-[#007AFF]/15 text-[#007AFF] px-2.5 py-1 rounded-full border border-[#007AFF]/25 font-bold">
                   JET {stammdaten['JET ID']}
                 </span>
               )}
@@ -2531,7 +2531,7 @@ function DisplayDetailInner({ display, onClose }) {
                       href={`https://www.google.com/maps?q=${display.geoLat},${display.geoLng}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent font-mono"
+                      className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent"
                     >
                       <ExternalLink size={10} />
                       {display.geoLat.toFixed(4)}, {display.geoLng.toFixed(4)}
@@ -2556,7 +2556,7 @@ function DisplayDetailInner({ display, onClose }) {
             {/* ── Screen-Daten & Impressions ── */}
             {(display.venueType || display.floorCpm != null || display.dvacDay != null || display.screenWidthPx) && (
               <div className="mt-3 pt-3 border-t border-border-secondary">
-                <div className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">Screen-Daten</div>
+                <div className="text-xs font-medium text-text-muted mb-2">Screen-Daten</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-0">
                   {display.venueType && (
                     <InfoRow icon={Monitor} label="Venue Type" value={display.venueType} />
@@ -2595,25 +2595,25 @@ function DisplayDetailInner({ display, onClose }) {
                 {/* dVAC & Impressions */}
                 {(display.dvacDay != null || display.dvacWeek != null || display.dvacMonth != null) && (
                   <div className="mt-2 pt-2 border-t border-border-secondary">
-                    <div className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">dVAC & Impressions (dVAC × 6)</div>
+                    <div className="text-xs font-medium text-text-muted mb-2">dVAC & Impressions (dVAC × 6)</div>
                     <div className="grid grid-cols-3 gap-3">
                       {display.dvacDay != null && (
                         <div className="bg-accent-light/60 rounded-lg p-2.5 text-center">
-                          <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsDay?.toLocaleString('de-DE') || '–'}</div>
+                          <div className="text-sm font-bold text-blue-700">{display.impressionsDay?.toLocaleString('de-DE') || '–'}</div>
                           <div className="text-xs text-text-muted mt-0.5">Imp./Tag</div>
                           <div className="text-xs text-text-muted">dVAC: {display.dvacDay.toLocaleString('de-DE')}</div>
                         </div>
                       )}
                       {display.dvacWeek != null && (
                         <div className="bg-accent-light/60 rounded-lg p-2.5 text-center">
-                          <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsWeek?.toLocaleString('de-DE') || '–'}</div>
+                          <div className="text-sm font-bold text-blue-700">{display.impressionsWeek?.toLocaleString('de-DE') || '–'}</div>
                           <div className="text-xs text-text-muted mt-0.5">Imp./Woche</div>
                           <div className="text-xs text-text-muted">dVAC: {display.dvacWeek.toLocaleString('de-DE')}</div>
                         </div>
                       )}
                       {display.dvacMonth != null && (
                         <div className="bg-accent-light/60 rounded-lg p-2.5 text-center">
-                          <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsMonth?.toLocaleString('de-DE') || '–'}</div>
+                          <div className="text-sm font-bold text-blue-700">{display.impressionsMonth?.toLocaleString('de-DE') || '–'}</div>
                           <div className="text-xs text-text-muted mt-0.5">Imp./Monat</div>
                           <div className="text-xs text-text-muted">dVAC: {display.dvacMonth.toLocaleString('de-DE')}</div>
                         </div>
@@ -2633,20 +2633,20 @@ function DisplayDetailInner({ display, onClose }) {
           {/* Summary stats */}
           <div className="p-5 flex flex-col justify-center gap-3">
             <div className="bg-surface-secondary/80 rounded-lg p-3 text-center">
-              <div className="text-2xl font-mono font-bold" style={{ color: statusRateColor(timeline.uptimeRate) }}>
+              <div className="text-2xl font-bold" style={{ color: statusRateColor(timeline.uptimeRate) }}>
                 {timeline.uptimeRate}%
               </div>
               <div className="text-xs text-text-muted mt-1">Uptime-Rate</div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
-                <div className="text-lg font-mono font-bold text-text-secondary">
+                <div className="text-lg font-bold text-text-secondary">
                   {timeline.episodes.length}
                 </div>
                 <div className="text-xs text-text-muted mt-0.5">Offline-Episoden</div>
               </div>
               <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
-                <div className="text-lg font-mono font-bold text-[#FF3B30]">
+                <div className="text-lg font-bold text-[#FF3B30]">
                   {timeline.longestEpisode
                     ? formatDuration(timeline.longestEpisode.durationHours)
                     : '–'}
@@ -2770,11 +2770,11 @@ function DisplayDetailInner({ display, onClose }) {
 
         {/* Compact overview timeline */}
         <div className="px-5 pt-4 pb-2 border-b border-border-secondary">
-          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-2">
+          <h3 className="text-xs font-medium text-text-secondary mb-2">
             Gesamtverlauf (kompakt)
           </h3>
           <TimelineBar segments={timeline.segments} />
-          <div className="flex justify-between mt-1.5 text-xs font-mono text-text-muted">
+          <div className="flex justify-between mt-1.5 text-xs text-text-muted">
             <span>{formatDate(timeline.segments[0]?.timestamp)}</span>
             <span>
               {formatDate(timeline.segments[timeline.segments.length - 1]?.timestamp)}
@@ -2795,7 +2795,7 @@ function DisplayDetailInner({ display, onClose }) {
         {/* Offline episodes */}
         {timeline.episodes.length > 0 && (
           <div className="p-5">
-            <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-medium text-text-secondary mb-3">
               Offline-Episoden
             </h3>
             <div className="space-y-1.5 max-h-48 overflow-y-auto">
@@ -2808,7 +2808,7 @@ function DisplayDetailInner({ display, onClose }) {
                   return (
                     <div
                       key={i}
-                      className={`flex items-center justify-between px-3 py-2 rounded text-xs font-mono ${
+                      className={`flex items-center justify-between px-3 py-2 rounded text-xs ${
                         isLongest
                           ? 'bg-status-offline/10/60 border border-red-900/40'
                           : 'bg-surface-secondary/80'
@@ -2839,7 +2839,7 @@ function DisplayDetailInner({ display, onClose }) {
 
         {/* Data point count */}
         <div className="px-5 pb-4">
-          <div className="text-xs text-text-muted font-mono">
+          <div className="text-xs text-text-muted">
             {display.totalSnapshots} Datenpunkte &bull; Erste Erfassung{' '}
             {formatDate(display.firstSeen)} &bull; Letzte Erfassung{' '}
             {formatDate(display.lastSeen)}

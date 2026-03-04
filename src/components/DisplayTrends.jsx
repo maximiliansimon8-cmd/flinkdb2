@@ -19,7 +19,7 @@ const STATUS_COLORS = {
 function StatusBadge({ status }) {
   return (
     <span
-      className="text-[10px] font-mono px-1.5 py-0.5 rounded-full"
+      className="text-[10px] px-1.5 py-0.5 rounded-full"
       style={{
         color: STATUS_COLORS[status] || '#64748b',
         backgroundColor: `${STATUS_COLORS[status] || '#64748b'}15`,
@@ -216,7 +216,7 @@ export default function DisplayTrends({ onSelectDisplay }) {
               <TrendingUp size={16} className="text-status-online" />
               <span className="text-sm font-semibold text-green-700">Verbessert</span>
             </div>
-            <span className="text-2xl font-mono font-bold text-status-online">{improved.length}</span>
+            <span className="text-2xl font-bold text-status-online">{improved.length}</span>
           </div>
           <p className="text-[10px] text-status-online mt-1">
             {improved.filter(d => d.currentStatus === 'online').length} jetzt online
@@ -233,7 +233,7 @@ export default function DisplayTrends({ onSelectDisplay }) {
               <TrendingDown size={16} className="text-status-offline" />
               <span className="text-sm font-semibold text-red-700">Verschlechtert</span>
             </div>
-            <span className="text-2xl font-mono font-bold text-status-offline">{worsened.length}</span>
+            <span className="text-2xl font-bold text-status-offline">{worsened.length}</span>
           </div>
           <p className="text-[10px] text-status-offline mt-1">
             {worsened.filter(d => d.currentStatus === 'permanent_offline').length} dauerhaft offline
@@ -264,7 +264,7 @@ export default function DisplayTrends({ onSelectDisplay }) {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="text-xs font-medium text-text-primary truncate">{d.locationName}</div>
-                    <div className="text-[10px] text-text-muted font-mono">{d.rawDisplayId || d.displayId}</div>
+                    <div className="text-[10px] text-text-muted">{d.rawDisplayId || d.displayId}</div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
                     <StatusBadge status={d.previousStatus} />
@@ -301,7 +301,7 @@ export default function DisplayTrends({ onSelectDisplay }) {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="text-xs font-medium text-text-primary truncate">{d.locationName}</div>
-                    <div className="text-[10px] text-text-muted font-mono">{d.rawDisplayId || d.displayId}</div>
+                    <div className="text-[10px] text-text-muted">{d.rawDisplayId || d.displayId}</div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
                     <StatusBadge status={d.previousStatus} />

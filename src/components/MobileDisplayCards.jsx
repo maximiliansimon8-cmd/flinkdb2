@@ -121,7 +121,7 @@ function DisplayCard({ display, onTap, delay = 0 }) {
         {display.offlineHours > 0 && display.status !== 'online' && (
           <div className="flex items-center gap-1 mt-1">
             <Clock size={10} className="text-text-muted" />
-            <span className="text-[11px] font-mono text-text-muted">
+            <span className="text-[11px] text-text-muted">
               Offline seit {formatDuration(display.offlineHours)}
             </span>
           </div>
@@ -131,7 +131,7 @@ function DisplayCard({ display, onTap, delay = 0 }) {
       {/* Status Badge + Arrow */}
       <div className="flex items-center gap-2 shrink-0">
         <span
-          className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg"
+          className="text-[10px] font-bold px-2 py-1 rounded-lg"
           style={{ color: statusColor, backgroundColor: statusColor + '14' }}
         >
           {statusLabel}
@@ -328,7 +328,7 @@ export default function MobileDisplayCards({
               bg-surface-secondary/80 border border-border-secondary
               text-sm text-text-primary placeholder:text-text-muted
               focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-blue-300
-              font-mono
+             
             "
             style={{ fontSize: '16px' }}
           />
@@ -362,7 +362,7 @@ export default function MobileDisplayCards({
                 <f.icon size={12} />
                 <span>{f.label}</span>
                 {count > 0 && (
-                  <span className={`text-[10px] font-mono px-1 py-0.5 rounded-md ${isActive ? 'bg-surface-primary/20 text-white' : 'bg-surface-secondary text-text-muted'}`}>
+                  <span className={`text-[10px] px-1 py-0.5 rounded-md ${isActive ? 'bg-surface-primary/20 text-white' : 'bg-surface-secondary text-text-muted'}`}>
                     {count}
                   </span>
                 )}
@@ -388,11 +388,11 @@ export default function MobileDisplayCards({
           <>
             {/* Results count */}
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-text-muted font-mono">
+              <span className="text-xs text-text-muted">
                 {displays.length} Displays
               </span>
               {search && (
-                <span className="text-xs text-accent font-mono">
+                <span className="text-xs text-accent">
                   Suche: "{search}"
                 </span>
               )}

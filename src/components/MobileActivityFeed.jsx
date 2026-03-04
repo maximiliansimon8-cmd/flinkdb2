@@ -480,7 +480,7 @@ export default function MobileActivityFeed() {
                       </div>
                       <p className="text-xs text-text-muted mt-0.5 line-clamp-2">{a.description}</p>
                     </div>
-                    <span className="text-[10px] text-text-muted font-mono whitespace-nowrap shrink-0 mt-0.5">
+                    <span className="text-[10px] text-text-muted whitespace-nowrap shrink-0 mt-0.5">
                       {relativeTime(a.timestamp)}
                     </span>
                   </div>

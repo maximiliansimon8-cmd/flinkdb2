@@ -10,13 +10,13 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }) {
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] font-medium text-text-muted">{label}</span>
         <div style={{ backgroundColor: `${color}12` }} className="w-7 h-7 rounded-lg flex items-center justify-center">
           <Icon size={14} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
-      {subtitle && <div className="text-[10px] text-text-muted mt-1 font-mono">{subtitle}</div>}
+      <div className="text-2xl font-bold text-text-primary">{value}</div>
+      {subtitle && <div className="text-[10px] text-text-muted mt-1">{subtitle}</div>}
     </div>
   );
 }
@@ -100,7 +100,7 @@ export default function ContactDirectory() {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
-        <span className="ml-2 text-sm text-text-muted font-mono">Lade Kontaktdaten...</span>
+        <span className="ml-2 text-sm text-text-muted">Lade Kontaktdaten...</span>
       </div>
     );
   }
@@ -124,27 +124,27 @@ export default function ContactDirectory() {
             placeholder="Suche (Name, Kontakt, JET-ID, Stadt, Email...)"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-surface-primary border border-border-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-surface-primary border border-border-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
         </div>
 
         <select value={cityFilter} onChange={e => setCityFilter(e.target.value)}
-          className="text-xs font-mono bg-surface-primary border border-border-secondary rounded-xl px-3 py-2">
+          className="text-xs bg-surface-primary border border-border-secondary rounded-xl px-3 py-2">
           <option value="all">Alle Städte</option>
           {cities.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
 
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="text-xs font-mono bg-surface-primary border border-border-secondary rounded-xl px-3 py-2">
+          className="text-xs bg-surface-primary border border-border-secondary rounded-xl px-3 py-2">
           <option value="all">Alle Status</option>
           {statuses.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
 
-        <button onClick={loadData} className="flex items-center gap-1.5 px-3 py-2 text-xs font-mono text-text-muted bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-secondary transition-colors">
+        <button onClick={loadData} className="flex items-center gap-1.5 px-3 py-2 text-xs text-text-muted bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-secondary transition-colors">
           <RefreshCw size={12} /> Refresh
         </button>
 
-        <span className="text-[10px] text-text-muted font-mono ml-auto">{filtered.length} Einträge</span>
+        <span className="text-[10px] text-text-muted ml-auto">{filtered.length} Einträge</span>
       </div>
 
       {/* Table */}
@@ -154,7 +154,7 @@ export default function ContactDirectory() {
             <thead>
               <tr className="border-b border-border-secondary">
                 {['Standort', 'JET-ID', 'Stadt', 'PLZ', 'Adresse', 'Kontaktperson', 'Email', 'Telefon', 'Rechtsform', 'Status'].map(h => (
-                  <th key={h} className="text-left px-3 py-2.5 text-[10px] font-medium text-text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} className="text-left px-3 py-2.5 text-[10px] font-medium text-text-muted whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -168,16 +168,16 @@ export default function ContactDirectory() {
                 return (
                   <tr key={r.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors">
                     <td className="px-3 py-2 text-text-primary font-medium max-w-[200px] truncate">{f['Location Name'] || '–'}</td>
-                    <td className="px-3 py-2 font-mono text-text-muted">{f['JET ID'] || '–'}</td>
+                    <td className="px-3 py-2 text-text-muted">{f['JET ID'] || '–'}</td>
                     <td className="px-3 py-2 text-text-muted">{f.City || '–'}</td>
-                    <td className="px-3 py-2 font-mono text-text-muted">{f['Postal Code'] || '–'}</td>
+                    <td className="px-3 py-2 text-text-muted">{f['Postal Code'] || '–'}</td>
                     <td className="px-3 py-2 text-text-muted max-w-[180px] truncate">{[f.Street, f['Street Number']].filter(Boolean).join(' ') || '–'}</td>
                     <td className="px-3 py-2 text-text-primary">{f['Contact Person'] || '–'}</td>
                     <td className="px-3 py-2">
                       {contactEmail ? (
                         <a href={`mailto:${contactEmail}`} className="text-accent hover:text-blue-700 flex items-center gap-1 max-w-[160px] truncate" title={contactEmail}>
                           <Mail size={11} className="shrink-0" />
-                          <span className="truncate font-mono">{contactEmail}</span>
+                          <span className="truncate">{contactEmail}</span>
                         </a>
                       ) : (
                         <span className="text-text-muted">–</span>
@@ -218,21 +218,21 @@ export default function ContactDirectory() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-5 py-3 border-t border-border-secondary">
-            <span className="text-[10px] text-text-muted font-mono">
+            <span className="text-[10px] text-text-muted">
               Seite {page + 1} von {totalPages} ({filtered.length} Einträge)
             </span>
             <div className="flex gap-1">
               <button
                 onClick={() => setPage(Math.max(0, page - 1))}
                 disabled={page === 0}
-                className="px-3 py-1 text-xs font-mono rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-xs rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 ← Zurück
               </button>
               <button
                 onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-3 py-1 text-xs font-mono rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-xs rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Weiter →
               </button>

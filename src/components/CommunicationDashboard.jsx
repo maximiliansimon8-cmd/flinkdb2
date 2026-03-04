@@ -30,7 +30,7 @@ function KPICard({ label, value, icon: Icon, color }) {
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-text-muted text-xs font-medium uppercase tracking-wider">
+        <span className="text-text-muted text-xs font-medium">
           {label}
         </span>
         <div
@@ -156,7 +156,7 @@ function CommRow({ comm }) {
             <h4 className="text-sm font-semibold text-text-primary truncate">
               {comm.recipientName || comm.sender || 'Unbekannt'}
             </h4>
-            <span className="text-xs font-mono text-text-muted flex-shrink-0 ml-2">
+            <span className="text-xs text-text-muted flex-shrink-0 ml-2">
               {formatCommDate(comm.timestamp)}
             </span>
           </div>
@@ -183,7 +183,7 @@ function CommRow({ comm }) {
             {comm.recipientContact && (
               <div>
                 <span className="text-text-muted font-medium">Kontakt:</span>{' '}
-                <span className="text-text-primary font-mono">{comm.recipientContact}</span>
+                <span className="text-text-primary">{comm.recipientContact}</span>
               </div>
             )}
             {comm.sender && (
@@ -195,19 +195,19 @@ function CommRow({ comm }) {
             {comm.displayIds?.length > 0 && (
               <div>
                 <span className="text-text-muted font-medium">Display IDs:</span>{' '}
-                <span className="text-text-primary font-mono">{comm.displayIds.join(', ')}</span>
+                <span className="text-text-primary">{comm.displayIds.join(', ')}</span>
               </div>
             )}
             {comm.externalId && (
               <div>
                 <span className="text-text-muted font-medium">External ID:</span>{' '}
-                <span className="text-text-primary font-mono">{comm.externalId}</span>
+                <span className="text-text-primary">{comm.externalId}</span>
               </div>
             )}
           </div>
           {comm.message && (
             <div className="mt-3 p-3 bg-surface-primary rounded-xl border border-border-secondary/40">
-              <span className="text-xs text-text-muted font-medium uppercase tracking-wider block mb-1">Nachricht</span>
+              <span className="text-xs text-text-muted font-medium block mb-1">Nachricht</span>
               <p className="text-xs text-text-primary whitespace-pre-wrap leading-relaxed">{comm.message}</p>
             </div>
           )}
@@ -404,7 +404,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
                 <Building2 size={13} className="text-[#007AFF] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-medium text-text-primary truncate">{selectedLocation.name}</div>
-                  <div className="text-xs text-text-muted font-mono truncate">{selectedLocation.city}</div>
+                  <div className="text-xs text-text-muted truncate">{selectedLocation.city}</div>
                 </div>
                 <button type="button" onClick={() => setSelectedLocation(null)} className="p-1 rounded hover:bg-surface-secondary/60 text-text-muted hover:text-text-secondary">
                   <X size={12} />
@@ -437,7 +437,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
                       className="w-full text-left px-3 py-2 hover:bg-surface-secondary/80 border-b border-border-secondary/30 last:border-0"
                     >
                       <div className="text-xs font-medium text-text-primary truncate">{loc.name}</div>
-                      <div className="text-xs text-text-muted font-mono">{loc.city}</div>
+                      <div className="text-xs text-text-muted">{loc.city}</div>
                     </button>
                   ))
                 )}

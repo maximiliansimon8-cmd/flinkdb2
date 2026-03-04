@@ -487,7 +487,7 @@ export default function TaskDashboard() {
           <div key={i} className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.fill }} />
             <span className="text-text-secondary">{p.name}:</span>
-            <span className="text-text-primary font-mono">{p.value}</span>
+            <span className="text-text-primary">{p.value}</span>
           </div>
         ))}
       </div>
@@ -572,7 +572,7 @@ export default function TaskDashboard() {
           {/* Left: Total + Progress */}
           <div className="flex-1">
             <div className="flex items-baseline gap-3 mb-2">
-              <span className="text-3xl font-bold font-mono text-text-primary">{kpis.total.toLocaleString('de-DE')}</span>
+              <span className="text-3xl font-bold text-text-primary">{kpis.total.toLocaleString('de-DE')}</span>
               <span className="text-sm text-text-muted">Tasks gesamt</span>
             </div>
             {/* Stacked progress bar */}
@@ -597,7 +597,7 @@ export default function TaskDashboard() {
                 <div key={s.label} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
                   <span className="text-xs text-text-secondary">{s.label}</span>
-                  <span className="text-xs font-mono font-medium" style={{ color: s.color }}>
+                  <span className="text-xs font-medium" style={{ color: s.color }}>
                     {s.value} ({kpis.total > 0 ? ((s.value / kpis.total) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
@@ -608,19 +608,19 @@ export default function TaskDashboard() {
           {/* Right: Quick stats */}
           <div className="flex gap-4 lg:gap-6">
             <div className="text-center">
-              <div className="text-2xl font-bold font-mono text-[#34C759]">{kpis.completionRate}%</div>
+              <div className="text-2xl font-bold text-[#34C759]">{kpis.completionRate}%</div>
               <div className="text-xs text-text-muted">Abgeschlossen</div>
             </div>
             <div className="w-px bg-surface-tertiary" />
             <div className="text-center">
-              <div className={`text-2xl font-bold font-mono ${Number(kpis.velocity30) >= 100 ? 'text-[#34C759]' : Number(kpis.velocity30) >= 70 ? 'text-[#FF9500]' : 'text-[#FF3B30]'}`}>
+              <div className={`text-2xl font-bold ${Number(kpis.velocity30) >= 100 ? 'text-[#34C759]' : Number(kpis.velocity30) >= 70 ? 'text-[#FF9500]' : 'text-[#FF3B30]'}`}>
                 {kpis.velocity30}{kpis.velocity30 !== '–' ? '%' : ''}
               </div>
               <div className="text-xs text-text-muted">Velocity 30T</div>
             </div>
             <div className="w-px bg-surface-tertiary" />
             <div className="text-center">
-              <div className="text-2xl font-bold font-mono text-text-primary">{kpis.avgCompletionDays ? `${kpis.avgCompletionDays}d` : '–'}</div>
+              <div className="text-2xl font-bold text-text-primary">{kpis.avgCompletionDays ? `${kpis.avgCompletionDays}d` : '–'}</div>
               <div className="text-xs text-text-muted">⌀ Durchlaufzeit</div>
             </div>
           </div>
@@ -656,11 +656,11 @@ export default function TaskDashboard() {
                   <CardIcon size={12} style={{ color: card.color }} />
                   <span className="text-xs text-text-muted">{card.label}</span>
                 </div>
-                <span className="text-xs font-mono px-1.5 py-0.5 rounded" style={{ backgroundColor: `${card.color}15`, color: card.color }}>
+                <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: `${card.color}15`, color: card.color }}>
                   {pct}%
                 </span>
               </div>
-              <div className="text-xl font-bold font-mono" style={{ color: card.color }}>
+              <div className="text-xl font-bold" style={{ color: card.color }}>
                 {card.value.toLocaleString('de-DE')}
               </div>
               {/* Mini bar showing proportion */}
@@ -701,9 +701,9 @@ export default function TaskDashboard() {
             <div className="text-xs text-text-muted">30 Tage Bilanz</div>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm font-bold font-mono text-[#007AFF]">+{kpis.created30}</span>
+            <span className="text-sm font-bold text-[#007AFF]">+{kpis.created30}</span>
             <span className="text-xs text-text-muted">/</span>
-            <span className="text-sm font-bold font-mono text-[#34C759]">-{kpis.completed30}</span>
+            <span className="text-sm font-bold text-[#34C759]">-{kpis.completed30}</span>
           </div>
           <div className="text-xs text-text-muted">Erstellt / Erledigt</div>
         </div>
@@ -869,7 +869,7 @@ export default function TaskDashboard() {
         <div className="flex items-center gap-2 mb-3">
           <Filter size={14} className="text-[#007AFF]" />
           <h3 className="text-sm font-medium text-text-primary">Task-Liste</h3>
-          <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+          <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
             {filteredTasks.length} von {tasks.length}
           </span>
         </div>
@@ -1008,7 +1008,7 @@ export default function TaskDashboard() {
                       <td className="py-2.5 px-3">
                         <div className="max-w-[200px]">
                           {(task.displayIds || []).length > 0 ? (
-                            <div className="text-text-secondary truncate text-xs font-mono">
+                            <div className="text-text-secondary truncate text-xs">
                               {task.displayIds.slice(0, 2).join(', ')}
                               {task.displayIds.length > 2 && ` +${task.displayIds.length - 2}`}
                             </div>
@@ -1027,7 +1027,7 @@ export default function TaskDashboard() {
                           {formatDate(task.dueDate)}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-text-secondary font-mono">
+                      <td className="py-2.5 px-3 text-text-secondary">
                         {formatDate(task.createdTime)}
                       </td>
                     </tr>
@@ -1064,7 +1064,7 @@ export default function TaskDashboard() {
                               {task.displayIds?.length > 0 && (
                                 <div>
                                   <span className="text-xs text-text-muted">Displays: </span>
-                                  <span className="text-xs text-text-secondary font-mono">{task.displayIds.join(', ')}</span>
+                                  <span className="text-xs text-text-secondary">{task.displayIds.join(', ')}</span>
                                 </div>
                               )}
 
@@ -1088,7 +1088,7 @@ export default function TaskDashboard() {
                                     <div><span className="text-xs text-text-muted">Integrator: </span><span className="text-xs text-text-secondary">{task.integrator}</span></div>
                                   )}
                                   {task.installDate && (
-                                    <div><span className="text-xs text-text-muted">Aufbau: </span><span className="text-xs text-text-secondary font-mono">{formatDate(task.installDate)}</span></div>
+                                    <div><span className="text-xs text-text-muted">Aufbau: </span><span className="text-xs text-text-secondary">{formatDate(task.installDate)}</span></div>
                                   )}
                                   {task.installRemarks && (
                                     <div><span className="text-xs text-text-muted">Bemerkungen: </span><span className="text-xs text-text-secondary">{task.installRemarks}</span></div>
@@ -1171,7 +1171,7 @@ export default function TaskDashboard() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-secondary">
-            <div className="text-xs text-text-muted font-mono">
+            <div className="text-xs text-text-muted">
               {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, sortedTasks.length)} von {sortedTasks.length}
             </div>
             <div className="flex gap-1">
@@ -1182,7 +1182,7 @@ export default function TaskDashboard() {
               >
                 ← Zurück
               </button>
-              <span className="px-2 py-1 text-xs text-text-muted font-mono">
+              <span className="px-2 py-1 text-xs text-text-muted">
                 {page + 1} / {totalPages}
               </span>
               <button
@@ -1249,7 +1249,7 @@ function MetricCard({ icon: Icon, iconColor, label, value, valueColor, sub }) {
         </div>
         <div className="text-xs text-text-muted">{label}</div>
       </div>
-      <div className="text-lg font-bold font-mono" style={{ color: valueColor || '#0f172a' }}>{value}</div>
+      <div className="text-lg font-bold" style={{ color: valueColor || '#0f172a' }}>{value}</div>
       {sub && <div className="text-xs text-text-muted">{sub}</div>}
     </div>
   );

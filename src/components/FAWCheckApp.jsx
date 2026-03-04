@@ -156,11 +156,11 @@ function HeatmapTable({ hourlyData, label }) {
         <tbody>
           {Array.from({ length: 24 }, (_, h) => (
             <tr key={h}>
-              <td className="text-right py-0.5 px-1 text-text-muted font-mono">{String(h).padStart(2, '0')}</td>
+              <td className="text-right py-0.5 px-1 text-text-muted">{String(h).padStart(2, '0')}</td>
               {DAYS.map(day => {
                 const val = hourlyData[day]?.[h] ?? 0;
                 return (
-                  <td key={day} className={`text-center py-0.5 px-0.5 font-mono ${heatColor(val, hourlyData)}`}>
+                  <td key={day} className={`text-center py-0.5 px-0.5 ${heatColor(val, hourlyData)}`}>
                     {val > 0 ? fmtNum(val) : '-'}
                   </td>
                 );

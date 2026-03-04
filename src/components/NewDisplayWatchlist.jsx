@@ -33,7 +33,7 @@ function ScoreBadge({ score }) {
 
   return (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold"
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold"
       style={{ color, backgroundColor: bg, border: `1px solid ${color}33` }}
     >
       {score}
@@ -247,11 +247,11 @@ export default function NewDisplayWatchlist({
           <h3 className="text-sm font-medium text-text-primary">
             Neue Displays – Watchlist
           </h3>
-          <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+          <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
             {watchlist.length} displays (&le; 28 Tage)
           </span>
           {problemDisplays.length > 0 && (
-            <span className="flex items-center gap-1 text-xs font-mono text-[#FF3B30] bg-[#FF3B3018] px-2 py-0.5 rounded border border-[#FF3B3033]">
+            <span className="flex items-center gap-1 text-xs text-[#FF3B30] bg-[#FF3B3018] px-2 py-0.5 rounded border border-[#FF3B3033]">
               <AlertTriangle size={10} />
               {problemDisplays.length} auffällig
             </span>
@@ -314,7 +314,7 @@ export default function NewDisplayWatchlist({
               value={webhookInput}
               onChange={(e) => setWebhookInput(e.target.value)}
               placeholder="https://n8n.example.com/webhook/..."
-              className="flex-grow bg-surface-secondary/80 border border-border-secondary rounded px-2.5 py-1.5 text-xs font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
+              className="flex-grow bg-surface-secondary/80 border border-border-secondary rounded px-2.5 py-1.5 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
             />
             <button
               onClick={saveWebhook}
@@ -336,7 +336,7 @@ export default function NewDisplayWatchlist({
           {problemDisplays.length > 0 && (
             <div>
               <div className="px-4 py-2 bg-status-offline/10/40 border-b border-border-secondary">
-                <span className="text-xs font-medium text-[#FF3B30] uppercase tracking-wider">
+                <span className="text-xs font-medium text-[#FF3B30]">
                   Benötigt Aufmerksamkeit
                 </span>
               </div>
@@ -356,7 +356,7 @@ export default function NewDisplayWatchlist({
           {healthyDisplays.length > 0 && (
             <div>
               <div className="px-4 py-2 bg-status-online/10/40 border-b border-t border-border-secondary">
-                <span className="text-xs font-medium text-[#34C759] uppercase tracking-wider">
+                <span className="text-xs font-medium text-[#34C759]">
                   Läuft stabil
                 </span>
               </div>
@@ -392,7 +392,7 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
         {/* Display info */}
         <div className="flex-grow min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-text-primary truncate">
+            <span className="text-xs text-text-primary truncate">
               {d.displayId}
             </span>
             <span className="text-xs text-text-muted truncate hidden md:inline">
@@ -400,10 +400,10 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
             </span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-xs text-text-muted font-mono">
+            <span className="text-xs text-text-muted">
               {d.city}
             </span>
-            <span className="inline-flex items-center gap-1 text-xs font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
+            <span className="inline-flex items-center gap-1 text-xs text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
               <Clock size={9} className="text-text-muted" />
               {formatDate(d.firstSeen)} ({d.ageDays}d)
             </span>
@@ -412,7 +412,7 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
       </div>
 
       {/* Metrics */}
-      <div className="flex items-center gap-4 flex-shrink-0 text-xs font-mono cursor-pointer" onClick={onClick}>
+      <div className="flex items-center gap-4 flex-shrink-0 text-xs cursor-pointer" onClick={onClick}>
         <div className="text-center hidden lg:block">
           <div className={d.uptimeRate < 70 ? 'text-[#FF3B30]' : d.uptimeRate < 90 ? 'text-[#FF9500]' : 'text-[#34C759]'}>
             {d.uptimeRate}%

@@ -23,12 +23,12 @@ function KpiCard({ label, value, icon: Icon, color, subtitle, onClick, active })
       } ${active ? 'border-blue-400 ring-1 ring-blue-400/30' : 'border-border-secondary'}`}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-text-muted">{label}</span>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}12` }}>
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      <div className="text-2xl font-bold text-text-primary">{value}</div>
       {subtitle && <div className="text-xs text-text-muted mt-1">{subtitle}</div>}
     </div>
   );
@@ -53,7 +53,7 @@ function CategoryCard({ icon: Icon, color, title, count, total, description, onC
         </div>
       </div>
       <div className="flex items-end justify-between">
-        <div className="text-3xl font-bold font-mono" style={{ color }}>{count}</div>
+        <div className="text-3xl font-bold" style={{ color }}>{count}</div>
         <div className="text-xs text-text-muted">{pct}% von {total}</div>
       </div>
     </div>
@@ -350,7 +350,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
               <Icon size={13} />
               {tab.label}
               {tab.count != null && (
-                <span className={`text-xs font-mono px-1.5 py-0.5 rounded-full ${
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                   isActive ? 'bg-surface-secondary text-text-secondary' : 'bg-transparent text-text-muted'
                 }`}>
                   {tab.count}
@@ -370,7 +370,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           <div className="bg-surface-primary border border-border-secondary rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-text-primary">Gesamt-Datenqualität</h3>
-              <span className="text-xs font-mono text-text-muted">{analysis.matchedAll3.length} / {analysis.totalLive} vollständig</span>
+              <span className="text-xs text-text-muted">{analysis.matchedAll3.length} / {analysis.totalLive} vollständig</span>
             </div>
             <div className="h-6 bg-surface-secondary rounded-full overflow-hidden flex mb-3">
               {analysis.totalLive > 0 && (
@@ -423,7 +423,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                       <div className="text-xs font-medium text-text-primary truncate">{row.label}</div>
                       <div className="text-xs text-text-muted truncate">{row.desc}</div>
                     </div>
-                    <div className="text-lg font-bold font-mono shrink-0" style={{ color: row.color }}>{row.count}</div>
+                    <div className="text-lg font-bold shrink-0" style={{ color: row.color }}>{row.count}</div>
                   </div>
                 ))}
               {totalIssues === 0 && (
@@ -450,7 +450,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                     <span className={`w-2 h-2 rounded-full ${src.ok ? 'bg-emerald-500' : 'bg-status-offline'}`} />
                     <span className="text-xs font-semibold text-text-primary">{src.name}</span>
                   </div>
-                  <div className="text-lg font-bold font-mono text-text-primary">{src.count}</div>
+                  <div className="text-lg font-bold text-text-primary">{src.count}</div>
                   <div className="text-xs text-text-muted">{src.label}</div>
                 </div>
               ))}
@@ -690,7 +690,7 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
             className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
         </div>
-        <span className="text-xs text-text-muted font-mono">{filtered.length} Ergebnisse</span>
+        <span className="text-xs text-text-muted">{filtered.length} Ergebnisse</span>
       </div>
 
       {/* Table */}
@@ -705,7 +705,7 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
             <thead>
               <tr className="border-b border-border-secondary/40">
                 {columns.map((col) => (
-                  <th key={col.key} className="text-left px-4 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">
+                  <th key={col.key} className="text-left px-4 py-2.5 text-xs font-medium text-text-muted">
                     {col.label}
                   </th>
                 ))}

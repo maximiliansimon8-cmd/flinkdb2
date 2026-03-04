@@ -182,7 +182,7 @@ function PipelineCard({ status, count, total, isActive, onClick }) {
           <div className="h-1 bg-surface-secondary rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all duration-500 ${cfg.dot}`} style={{ width: `${pct}%` }} />
           </div>
-          <div className="text-[10px] text-text-muted mt-0.5 font-mono">{pct}%</div>
+          <div className="text-[10px] text-text-muted mt-0.5">{pct}%</div>
         </div>
       )}
     </button>
@@ -304,7 +304,7 @@ function WatchListSection({ items, onSelect, onReinvite, actionLoading }) {
                     <div className="flex items-center gap-3 mt-0.5">
                       <span className="text-xs text-text-muted flex items-center gap-1"><MapPin size={10} /> {item.city || '--'}</span>
                       {item.contact_name && <span className="text-xs text-text-muted">{item.contact_name}</span>}
-                      {item.contact_phone && <span className="text-xs text-text-muted font-mono">{item.contact_phone}</span>}
+                      {item.contact_phone && <span className="text-xs text-text-muted">{item.contact_phone}</span>}
                     </div>
                   </div>
 
@@ -654,7 +654,7 @@ function PhoneBookingModal({ onClose, onSuccess, routes }) {
               <input type="text" value={form.jetId}
                 onChange={e => update('jetId', e.target.value)}
                 placeholder="z.B. FFM-123"
-                className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all font-mono" />
+                className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all" />
             </div>
           </div>
 
@@ -671,7 +671,7 @@ function PhoneBookingModal({ onClose, onSuccess, routes }) {
               <input type="tel" value={form.contactPhone}
                 onChange={e => update('contactPhone', e.target.value)}
                 placeholder="+49..."
-                className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all font-mono" />
+                className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all" />
             </div>
           </div>
 
@@ -987,7 +987,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
     const isActive = sortField === field;
     return (
       <th
-        className={`text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider cursor-pointer select-none hover:text-text-primary transition-colors ${className}`}
+        className={`text-left px-4 py-3 text-xs font-semibold text-text-muted cursor-pointer select-none hover:text-text-primary transition-colors ${className}`}
         onClick={() => {
           if (isActive) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
           else { setSortField(field); setSortDir('asc'); }
@@ -1332,7 +1332,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
                         <span className="text-xs text-text-muted">{r.contact_name}</span>
-                        <span className="text-xs text-text-muted font-mono">{r.contact_phone}</span>
+                        <span className="text-xs text-text-muted">{r.contact_phone}</span>
                       </div>
                     </div>
 
@@ -1389,7 +1389,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                 <BarChart3 size={16} className="text-indigo-600" />
               </div>
               <h3 className="text-sm font-semibold text-text-primary">Reminder-Auswertung</h3>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-600">Admin</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-600">Admin</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
               <div className="bg-surface-secondary/80 rounded-xl px-3 py-2">
@@ -1485,7 +1485,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
       </div>
 
       {/* Results Count */}
-      <div className="text-xs text-text-muted font-mono">
+      <div className="text-xs text-text-muted">
         {filtered.length} Buchung{filtered.length !== 1 ? 'en' : ''} angezeigt
         {filterStatus && ` | Filter: ${filterStatus === 'callback' ? 'Rueckruf noetig' : STATUS_CONFIG[filterStatus]?.label || filterStatus}`}
       </div>
@@ -1532,11 +1532,11 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                 <tr className="border-b border-gray-100 bg-surface-secondary/50">
                   <SortableHeader field="location_name">Standort</SortableHeader>
                   <SortableHeader field="city">Stadt</SortableHeader>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Kontakt</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Kontakt</th>
                   <SortableHeader field="booked_date">Termin</SortableHeader>
                   <SortableHeader field="status">Status</SortableHeader>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Quelle</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Aktionen</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Quelle</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted">Aktionen</th>
                   <th className="w-10" />
                 </tr>
               </thead>
@@ -1550,7 +1550,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                       <td className="px-4 py-3">
                         <div>
                           <div className="font-medium text-text-primary text-sm">{b.location_name || '--'}</div>
-                          {b.jet_id && !b.jet_id.startsWith('rec') && <div className="text-xs text-text-muted font-mono">{b.jet_id}</div>}
+                          {b.jet_id && !b.jet_id.startsWith('rec') && <div className="text-xs text-text-muted">{b.jet_id}</div>}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -1561,7 +1561,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                       <td className="px-4 py-3">
                         <div className="text-sm text-text-primary">{b.contact_name || '--'}</div>
                         {b.contact_phone && (
-                          <div className="text-xs text-text-muted flex items-center gap-1 font-mono">
+                          <div className="text-xs text-text-muted flex items-center gap-1">
                             <Phone size={10} /> {b.contact_phone}
                           </div>
                         )}

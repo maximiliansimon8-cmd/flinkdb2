@@ -353,7 +353,7 @@ function StepDetails({ lead, formData, onFormChange, onNext, onBack }) {
             {lead.jetId && (
               <div className="px-4 py-3 border-b border-border-secondary">
                 <div className="text-[12px] text-text-muted mb-0.5">JET-ID</div>
-                <div className="text-[14px] font-mono text-text-primary">{lead.jetId}</div>
+                <div className="text-[14px] text-text-primary">{lead.jetId}</div>
               </div>
             )}
             {lead.acquisitionPartner && (
@@ -976,11 +976,11 @@ function ProfileTab({ totalLeads, newLeads }) {
       <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Akquise-Übersicht</div>
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="bg-surface-primary rounded-2xl shadow-sm p-4 border border-gray-100">
-          <div className="text-[24px] font-bold font-mono text-accent">{newLeads?.length || 0}</div>
+          <div className="text-[24px] font-bold text-accent">{newLeads?.length || 0}</div>
           <div className="text-[12px] text-text-muted">Offene Leads</div>
         </div>
         <div className="bg-surface-primary rounded-2xl shadow-sm p-4 border border-gray-100">
-          <div className="text-[24px] font-bold font-mono text-text-secondary">{totalLeads || 0}</div>
+          <div className="text-[24px] font-bold text-text-secondary">{totalLeads || 0}</div>
           <div className="text-[12px] text-text-muted">Gesamt in DB</div>
         </div>
       </div>

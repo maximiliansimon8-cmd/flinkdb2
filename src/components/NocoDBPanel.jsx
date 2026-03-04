@@ -44,7 +44,7 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }) {
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-text-muted">{label}</span>
         <div
           className="w-8 h-8 rounded-xl flex items-center justify-center"
           style={{ backgroundColor: `${color}15` }}
@@ -52,7 +52,7 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }) {
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      <div className="text-2xl font-bold text-text-primary">{value}</div>
       {subtitle && <div className="text-xs text-text-muted mt-1">{subtitle}</div>}
     </div>
   );
@@ -112,7 +112,7 @@ function SourceBadge({ source }) {
   };
   const c = config[source] || { label: source, color: 'bg-surface-secondary text-text-secondary' };
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider ${c.color}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold ${c.color}`}>
       {c.label}
     </span>
   );
@@ -154,7 +154,7 @@ function SearchBar({ value, onChange, placeholder }) {
 function FilterSelect({ value, onChange, options, label }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[10px] text-text-muted font-medium uppercase tracking-wider whitespace-nowrap">{label}</span>
+      <span className="text-[10px] text-text-muted font-medium whitespace-nowrap">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -192,7 +192,7 @@ function useSort(defaultCol) {
 function SortHeader({ col, sortCol, onToggle, children }) {
   return (
     <th
-      className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase tracking-wider cursor-pointer hover:text-text-primary select-none"
+      className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted cursor-pointer hover:text-text-primary select-none"
       onClick={() => onToggle(col)}
     >
       <span className="inline-flex items-center gap-1">
@@ -605,11 +605,11 @@ function MatchingTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
                 <tr><td colSpan={10} className="px-4 py-8 text-center text-text-muted">Keine Einträge gefunden</td></tr>
               ) : pageRows.map((row, i) => (
                 <tr key={`${row.ops_nr}-${i}`} className="hover:bg-accent-light/30 transition-colors">
-                  <td className="px-3 py-2 font-mono font-bold text-text-primary">{row.ops_nr || '–'}</td>
+                  <td className="px-3 py-2 font-bold text-text-primary">{row.ops_nr || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.ops_sn} truncate={18} /></td>
-                  <td className="px-3 py-2 font-mono text-text-secondary">{row.jet_id || '–'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{row.jet_id || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={12} /></td>
-                  <td className="px-3 py-2 font-mono text-text-muted">{row.sim_id ? '…' + String(row.sim_id).slice(-8) : '–'}</td>
+                  <td className="px-3 py-2 text-text-muted">{row.sim_id ? '…' + String(row.sim_id).slice(-8) : '–'}</td>
                   <td className="px-3 py-2 text-text-primary font-medium max-w-[180px] truncate" title={row.restaurant || row.vistar_name || ''}>
                     {row.restaurant || row.vistar_name || '–'}
                   </td>
@@ -641,7 +641,7 @@ function MatchingTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
                           style={{ width: `${row.matchPct}%` }}
                         />
                       </div>
-                      <span className="text-[10px] font-mono text-text-muted">{row.completeness}/5</span>
+                      <span className="text-[10px] text-text-muted">{row.completeness}/5</span>
                     </div>
                   </td>
                   <td className="px-3 py-2">
@@ -704,8 +704,8 @@ function VorbereitetTab({ data, opsData }) {
 
   useEffect(() => { setPage(0); }, [search, fertigFilter, vorbereitetFilter]);
 
-  const thStatic = "px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase tracking-wider";
-  const thCenter = "px-3 py-2 text-center text-[10px] font-semibold text-text-muted uppercase tracking-wider";
+  const thStatic = "px-3 py-2 text-left text-[10px] font-semibold text-text-muted";
+  const thCenter = "px-3 py-2 text-center text-[10px] font-semibold text-text-muted";
 
   return (
     <div className="space-y-4">
@@ -741,11 +741,11 @@ function VorbereitetTab({ data, opsData }) {
                 <tr><td colSpan={8} className="px-4 py-8 text-center text-text-muted">Keine Einträge gefunden</td></tr>
               ) : pageRows.map((row, i) => (
                 <tr key={row.id || i} className="hover:bg-accent-light/30 transition-colors">
-                  <td className="px-3 py-2 font-mono font-medium text-text-primary">{row.ops_nr || '–'}</td>
-                  <td className="px-3 py-2 font-mono text-text-secondary">{row.ops_sn || '–'}</td>
+                  <td className="px-3 py-2 font-medium text-text-primary">{row.ops_nr || '–'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{row.ops_sn || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={12} /></td>
-                  <td className="px-3 py-2 font-mono text-text-secondary">{row.sim_id ? '…' + String(row.sim_id).slice(-6) : '–'}</td>
-                  <td className="px-3 py-2 font-mono text-text-secondary">{row.kunden_nr || '–'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{row.sim_id ? '…' + String(row.sim_id).slice(-6) : '–'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{row.kunden_nr || '–'}</td>
                   <td className="px-3 py-2 text-center"><BoolBadge value={row.fertig} /></td>
                   <td className="px-3 py-2 text-center"><BoolBadge value={row.vorbereitet} /></td>
                   <td className="px-3 py-2 text-center"><MatchBadge matched={opsSet.has(String(row.ops_nr || ''))} /></td>
@@ -810,7 +810,7 @@ function SimKartenTab({ data, vorbereitet }) {
                 <SortHeader col="karten_nr" sortCol={sortCol} onToggle={toggle}>Karten Nr. (ICCID)</SortHeader>
                 <SortHeader col="kunden_id" sortCol={sortCol} onToggle={toggle}>KundenID (JET-ID)</SortHeader>
                 <SortHeader col="aktivierungsdatum" sortCol={sortCol} onToggle={toggle}>Aktivierungsdatum</SortHeader>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-text-muted uppercase tracking-wider">Zugeordnet</th>
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-text-muted">Zugeordnet</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/60">
@@ -819,7 +819,7 @@ function SimKartenTab({ data, vorbereitet }) {
               ) : pageRows.map((row, i) => (
                 <tr key={row.id || i} className="hover:bg-accent-light/30 transition-colors">
                   <td className="px-3 py-2"><CopyCell value={row.karten_nr} /></td>
-                  <td className="px-3 py-2 font-mono text-text-secondary">{clean(row.kunden_id) || '–'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{clean(row.kunden_id) || '–'}</td>
                   <td className="px-3 py-2 text-text-secondary">
                     {row.aktivierungsdatum ? new Date(row.aktivierungsdatum).toLocaleDateString('de-DE') : '–'}
                   </td>
@@ -891,7 +891,7 @@ function VistarNavoriTab({ data }) {
                 <tr key={row.id || i} className="hover:bg-accent-light/30 transition-colors">
                   <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={16} /></td>
                   <td className="px-3 py-2 text-text-primary font-medium">{row.name || '–'}</td>
-                  <td className="px-3 py-2 font-mono text-text-secondary">{clean(row.kunden_id) || '–'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{clean(row.kunden_id) || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.do_id} /></td>
                 </tr>
               ))}
@@ -1007,7 +1007,7 @@ function LieferandoTab({ data, simKunden }) {
                       {[clean(row.strasse), clean(row.hausnummer)].filter(Boolean).join(' ') || '–'}
                       {clean(row.plz) && <span className="text-text-muted ml-1">{clean(row.plz)}</span>}
                     </td>
-                    <td className="px-3 py-2 font-mono text-text-secondary">{kid || '–'}</td>
+                    <td className="px-3 py-2 text-text-secondary">{kid || '–'}</td>
                     <td className="px-3 py-2">
                       {clean(row.akquise_status) ? (
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
@@ -1056,7 +1056,7 @@ function WarningDetailRow({ label, value, mono }) {
   if (value == null || value === '') return null;
   return (
     <div className="flex items-start gap-2 py-1">
-      <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider w-28 flex-shrink-0 pt-0.5">{label}</span>
+      <span className="text-[10px] font-semibold text-text-muted w-28 flex-shrink-0 pt-0.5">{label}</span>
       <span className={`text-xs text-text-primary ${mono ? 'font-mono' : ''} break-all`}>{String(value)}</span>
     </div>
   );
@@ -1092,7 +1092,7 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
       {/* OPS Info */}
       <div className="flex items-center gap-2 mb-2">
         <span className="text-xs font-bold text-text-primary">OPS {record.ops_nr || '–'}</span>
-        {record.ops_sn && <span className="text-[10px] font-mono text-text-muted">{record.ops_sn}</span>}
+        {record.ops_sn && <span className="text-[10px] text-text-muted">{record.ops_sn}</span>}
         {record.status && (
           <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase ${
             record.status === 'active' ? 'bg-status-online/10 text-green-700' :
@@ -1511,13 +1511,13 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
                   <WarnIcon size={18} className={`${cfg.iconColor} flex-shrink-0 mt-0.5`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider ${cfg.iconColor}`}>{cfg.label}</span>
+                      <span className={`text-[10px] font-bold ${cfg.iconColor}`}>{cfg.label}</span>
                     </div>
                     <p className="text-sm font-medium text-text-primary">{w.message}</p>
                     <p className="text-xs text-text-muted mt-1">{w.detail}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-[10px] font-mono text-text-muted">{w.affectedCount} betroffen</span>
+                    <span className="text-[10px] text-text-muted">{w.affectedCount} betroffen</span>
                     <ChevronRight size={16} className={`text-text-muted transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                   </div>
                 </button>
@@ -1525,7 +1525,7 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
                 {/* Expanded Detail */}
                 {isExpanded && w.records && w.records.length > 0 && (
                   <div className={`${cfg.bgExpanded} border-t border-border-secondary/40 px-4 pb-4 pt-3`}>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-3">
+                    <p className="text-[10px] font-bold text-text-muted mb-3">
                       Betroffene Datensätze {w.affectedCount > w.records.length && `(${w.records.length} von ${w.affectedCount} angezeigt)`}
                     </p>
 
@@ -1562,8 +1562,8 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
                           <tbody className="divide-y divide-slate-100/60">
                             {w.records.map((rec, ri) => (
                               <tr key={ri} className="hover:bg-accent-light/30">
-                                <td className="px-3 py-2 font-mono font-bold text-text-primary">{rec.ops_nr}</td>
-                                <td className="px-3 py-2 font-mono text-text-secondary">{rec.ops_sn || '–'}</td>
+                                <td className="px-3 py-2 font-bold text-text-primary">{rec.ops_nr}</td>
+                                <td className="px-3 py-2 text-text-secondary">{rec.ops_sn || '–'}</td>
                                 <td className="px-3 py-2">
                                   {rec.status ? (
                                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
@@ -1599,8 +1599,8 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
                               <tr key={ri} className="hover:bg-accent-light/30">
                                 <td className="px-3 py-2 text-text-primary font-medium">{rec.restaurant || '–'}</td>
                                 <td className="px-3 py-2 text-text-secondary">{rec.stadt || '–'}</td>
-                                <td className="px-3 py-2 font-mono text-status-offline text-[10px]">{rec.kunden_id_raw || '–'}</td>
-                                <td className="px-3 py-2 font-mono text-green-700 text-[10px]">{rec.kunden_id_clean || '–'}</td>
+                                <td className="px-3 py-2 text-status-offline text-[10px]">{rec.kunden_id_raw || '–'}</td>
+                                <td className="px-3 py-2 text-green-700 text-[10px]">{rec.kunden_id_clean || '–'}</td>
                                 <td className="px-3 py-2 text-text-muted">{rec.standort_status || '–'}</td>
                               </tr>
                             ))}

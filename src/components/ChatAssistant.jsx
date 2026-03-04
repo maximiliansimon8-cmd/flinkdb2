@@ -89,7 +89,7 @@ function renderMarkdown(text) {
         parts.push(
           <code
             key={partKey++}
-            className="bg-surface-tertiary text-violet-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
+            className="bg-surface-tertiary text-violet-300 px-1.5 py-0.5 rounded text-[13px]"
           >
             {firstMatch[1]}
           </code>

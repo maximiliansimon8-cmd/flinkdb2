@@ -186,7 +186,7 @@ function AddUserModal({ onClose, onSave, groups, installerTeams }) {
               value={form.email}
               onChange={(e) => { setForm({ ...form, email: e.target.value }); setError(''); }}
               placeholder="email@beispiel.de"
-              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
+              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
@@ -213,7 +213,7 @@ function AddUserModal({ onClose, onSave, groups, installerTeams }) {
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder="Passwort eingeben (min. 8 Zeichen)"
-              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
+              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
@@ -478,7 +478,7 @@ function GroupEditModal({ group, onClose, onSave }) {
             <div className="space-y-3">
               {Object.entries(actionsByCategory).map(([category, actions]) => (
                 <div key={category} className="border border-border-secondary/40 rounded-xl p-3">
-                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+                  <div className="text-xs font-semibold text-text-muted mb-2">
                     {category}
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -599,7 +599,7 @@ function FeatureFlagsSection({ featureFlags, setFeatureFlags, flagsLoading, setF
           <div key={flag.key} className="flex items-center gap-4 px-5 py-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-text-primary font-mono">{flag.key}</span>
+                <span className="text-sm font-medium text-text-primary">{flag.key}</span>
                 {flag.enabled ? (
                   <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60">Aktiv</span>
                 ) : (
@@ -608,7 +608,7 @@ function FeatureFlagsSection({ featureFlags, setFeatureFlags, flagsLoading, setF
               </div>
               <div className="text-xs text-text-muted mt-0.5">{flag.description || '—'}</div>
               {flag.updated_at && (
-                <div className="text-[10px] text-text-muted mt-1 font-mono">
+                <div className="text-[10px] text-text-muted mt-1">
                   Aktualisiert: {new Date(flag.updated_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   {flag.updated_by ? ` von ${flag.updated_by}` : ''}
                 </div>
@@ -1128,7 +1128,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           </div>
           <div>
             <h2 className="text-lg font-bold text-text-primary">Admin Panel</h2>
-            <p className="text-xs text-text-muted font-mono">Benutzer- & Gruppenverwaltung</p>
+            <p className="text-xs text-text-muted">Benutzer- & Gruppenverwaltung</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1171,7 +1171,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
               <Icon size={16} />
               {sec.label}
               {sec.count != null && (
-                <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                <span className={`text-xs px-1.5 py-0.5 rounded ${
                   isActive ? 'bg-accent-light text-accent' : 'bg-surface-secondary/60 text-text-muted'
                 }`}>
                   {sec.count}
@@ -1221,7 +1221,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       <Icon size={16} />
                       {sec.label}
                       {sec.count != null && (
-                        <span className={`text-xs font-mono px-1.5 py-0.5 rounded ml-auto ${
+                        <span className={`text-xs px-1.5 py-0.5 rounded ml-auto ${
                           isActive ? 'bg-accent-light text-accent' : 'bg-surface-secondary text-text-muted'
                         }`}>
                           {sec.count}
@@ -1253,7 +1253,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       <Icon size={16} style={{ color: g.color }} />
                     </div>
                   </div>
-                  <div className="text-xl font-bold font-mono text-text-primary">{g.count}</div>
+                  <div className="text-xl font-bold text-text-primary">{g.count}</div>
                   <div className="text-xs text-text-muted mt-0.5">{g.name}</div>
                 </div>
               );
@@ -1266,7 +1266,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 rounded-full bg-[#007AFF]" />
                 <h3 className="text-sm font-semibold text-text-primary">Benutzerverwaltung</h3>
-                <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+                <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                   {filteredUsers.length}
                 </span>
               </div>
@@ -1286,11 +1286,11 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border-secondary/40">
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Benutzer</th>
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">E-Mail</th>
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Gruppe</th>
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Letzter Login</th>
-                    <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Aktionen</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">Benutzer</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">E-Mail</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">Gruppe</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">Letzter Login</th>
+                    <th className="text-right text-xs font-semibold text-text-muted px-5 py-3">Aktionen</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1317,17 +1317,17 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               <div className="text-sm font-medium text-text-primary">
                                 {user.name}
                                 {isSelf && (
-                                  <span className="ml-2 text-xs font-mono text-text-muted">(Du)</span>
+                                  <span className="ml-2 text-xs text-text-muted">(Du)</span>
                                 )}
                               </div>
-                              <div className="text-xs font-mono text-text-muted">{user.id}</div>
+                              <div className="text-xs text-text-muted">{user.id}</div>
                             </div>
                           </div>
                         </td>
 
                         {/* Email */}
                         <td className="px-5 py-3">
-                          <span className="text-sm font-mono text-text-secondary">{user.email}</span>
+                          <span className="text-sm text-text-secondary">{user.email}</span>
                         </td>
 
                         {/* Group */}
@@ -1365,7 +1365,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                         {/* Last Login */}
                         <td className="px-5 py-3">
-                          <span className="text-xs font-mono text-text-muted">
+                          <span className="text-xs text-text-muted">
                             {user.lastLogin
                               ? new Date(user.lastLogin).toLocaleString('de-DE', {
                                   day: '2-digit',
@@ -1480,11 +1480,11 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-text-primary">{group.name}</h3>
-                        <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+                        <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                           {group.memberCount} Mitglieder
                         </span>
                         {group.id === 'grp_admin' && (
-                          <span className="text-xs font-mono text-accent bg-accent-light/80 px-2 py-0.5 rounded">
+                          <span className="text-xs text-accent bg-accent-light/80 px-2 py-0.5 rounded">
                             System
                           </span>
                         )}
@@ -1534,7 +1534,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Tabs */}
                   <div>
-                    <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-text-muted mb-2">
                       Sichtbare Tabs
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -1559,7 +1559,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                   {/* Actions */}
                   <div>
-                    <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-text-muted mb-2">
                       Aktionen
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -1580,7 +1580,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                   {/* Members */}
                   <div>
-                    <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-text-muted mb-2">
                       Mitglieder
                     </div>
                     {members.length > 0 ? (
@@ -1617,10 +1617,10 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 rounded-full bg-emerald-500" />
                 <h3 className="text-sm font-semibold text-text-primary">Aktivitätsprotokoll</h3>
-                <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+                <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                   {filteredAuditLog.length} Einträge
                 </span>
-                <span className="text-xs font-mono text-accent bg-accent-light/80 px-2 py-0.5 rounded flex items-center gap-1">
+                <span className="text-xs text-accent bg-accent-light/80 px-2 py-0.5 rounded flex items-center gap-1">
                   <Clock size={10} />
                   Timeout: {getSessionTimeoutMinutes() / 60}h
                 </span>
@@ -1673,7 +1673,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 <div className="p-12 text-center">
                   <Activity size={32} className="text-text-muted mx-auto mb-3" />
                   <p className="text-sm text-text-muted">Keine Log-Einträge vorhanden</p>
-                  <p className="text-xs text-text-muted font-mono mt-1">
+                  <p className="text-xs text-text-muted mt-1">
                     Aktionen werden ab jetzt protokolliert
                   </p>
                 </div>
@@ -1710,11 +1710,11 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                             </span>
                           </div>
                           <div className="flex items-center gap-3 mt-0.5">
-                            <span className="text-xs font-mono text-text-muted">
+                            <span className="text-xs text-text-muted">
                               {timeStr}
                             </span>
                             <span
-                              className="text-xs font-mono px-1.5 py-0.5 rounded"
+                              className="text-xs px-1.5 py-0.5 rounded"
                               style={{
                                 backgroundColor: color + '15',
                                 color: color,
@@ -1736,7 +1736,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
             {filteredAuditLog.length > 100 && (
               <div className="px-5 py-3 border-t border-border-secondary/40 text-center">
-                <p className="text-xs text-text-muted font-mono">
+                <p className="text-xs text-text-muted">
                   Zeige 100 von {filteredAuditLog.length} Einträgen. Exportiere CSV für vollständige Daten.
                 </p>
               </div>
@@ -1756,7 +1756,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   <AlertCircle size={16} className="text-status-warning" />
                 </div>
               </div>
-              <div className="text-xl font-bold font-mono text-text-primary">{feedbackStats.open}</div>
+              <div className="text-xl font-bold text-text-primary">{feedbackStats.open}</div>
               <div className="text-xs text-text-muted mt-0.5">Offen</div>
             </div>
             <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
@@ -1765,7 +1765,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   <Eye size={16} className="text-accent" />
                 </div>
               </div>
-              <div className="text-xl font-bold font-mono text-text-primary">{feedbackStats.in_review}</div>
+              <div className="text-xl font-bold text-text-primary">{feedbackStats.in_review}</div>
               <div className="text-xs text-text-muted mt-0.5">In Review</div>
             </div>
             <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
@@ -1774,7 +1774,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   <ClipboardList size={16} className="text-brand-purple" />
                 </div>
               </div>
-              <div className="text-xl font-bold font-mono text-text-primary">{feedbackStats.planned}</div>
+              <div className="text-xl font-bold text-text-primary">{feedbackStats.planned}</div>
               <div className="text-xs text-text-muted mt-0.5">Geplant</div>
             </div>
             <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
@@ -1783,7 +1783,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   <Check size={16} className="text-emerald-500" />
                 </div>
               </div>
-              <div className="text-xl font-bold font-mono text-text-primary">{feedbackStats.done}</div>
+              <div className="text-xl font-bold text-text-primary">{feedbackStats.done}</div>
               <div className="text-xs text-text-muted mt-0.5">Erledigt</div>
             </div>
           </div>
@@ -1794,7 +1794,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 rounded-full bg-status-warning" />
                 <h3 className="text-sm font-semibold text-text-primary">Feedback & Anfragen</h3>
-                <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+                <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                   {filteredFeedback.length}
                 </span>
               </div>
@@ -1863,12 +1863,12 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border-secondary/40">
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3 w-10">Typ</th>
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Titel</th>
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Benutzer</th>
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Priorität</th>
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Status</th>
-                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Erstellt</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3 w-10">Typ</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">Titel</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">Benutzer</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">Priorität</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">Status</th>
+                    <th className="text-left text-xs font-semibold text-text-muted px-5 py-3">Erstellt</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1961,7 +1961,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                         {/* Created */}
                         <td className="px-5 py-3">
-                          <span className="text-xs font-mono text-text-muted">
+                          <span className="text-xs text-text-muted">
                             {item.created_at
                               ? new Date(item.created_at).toLocaleString('de-DE', {
                                   day: '2-digit',
@@ -1983,7 +1983,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               {/* Description */}
                               {item.description && (
                                 <div className="md:col-span-2">
-                                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Beschreibung</div>
+                                  <div className="text-xs font-semibold text-text-muted mb-1">Beschreibung</div>
                                   <div className="text-sm text-text-primary bg-surface-primary border border-border-secondary/40 rounded-xl p-3 whitespace-pre-wrap">
                                     {item.description}
                                   </div>
@@ -1993,7 +1993,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               {/* Click Position & Context */}
                               {hasContext && (
                                 <div>
-                                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Kontext</div>
+                                  <div className="text-xs font-semibold text-text-muted mb-2">Kontext</div>
                                   <div className="space-y-1.5 bg-surface-primary border border-border-secondary/40 rounded-xl p-3">
                                     {item.component && (
                                       <div className="flex items-center gap-2 text-xs">
@@ -2037,13 +2037,13 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               {/* Extra context data */}
                               {item.context_data && (
                                 <div>
-                                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Zusatzdaten</div>
+                                  <div className="text-xs font-semibold text-text-muted mb-2">Zusatzdaten</div>
                                   <div className="bg-surface-primary border border-border-secondary/40 rounded-xl p-3 space-y-1.5">
                                     {item.context_data.activeFilters && item.context_data.activeFilters.length > 0 && (
                                       <div className="text-xs">
                                         <span className="text-text-muted">Aktive Filter: </span>
                                         {item.context_data.activeFilters.map((f, i) => (
-                                          <span key={i} className="inline-flex px-1.5 py-0.5 bg-accent-light text-accent rounded font-mono text-xs mr-1">
+                                          <span key={i} className="inline-flex px-1.5 py-0.5 bg-accent-light text-accent rounded text-xs mr-1">
                                             {f.label}: {f.value}
                                           </span>
                                         ))}
@@ -2077,7 +2077,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               {/* Admin Notes */}
                               {item.admin_notes && (
                                 <div className="md:col-span-2">
-                                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Admin Notizen</div>
+                                  <div className="text-xs font-semibold text-text-muted mb-1">Admin Notizen</div>
                                   <div className="text-sm text-text-primary bg-status-warning/10/50 border border-status-warning/20/40 rounded-xl p-3">
                                     {item.admin_notes}
                                   </div>
@@ -2106,7 +2106,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       <td colSpan={6} className="px-5 py-12 text-center">
                         <Lightbulb size={32} className="text-text-muted mx-auto mb-3" />
                         <div className="text-sm text-text-muted">Kein Feedback vorhanden</div>
-                        <p className="text-xs text-text-muted font-mono mt-1">
+                        <p className="text-xs text-text-muted mt-1">
                           Feedback wird hier angezeigt, sobald Benutzer Anfragen einreichen
                         </p>
                       </td>
@@ -2157,54 +2157,54 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">API Calls</span>
+                <span className="text-xs font-medium text-text-muted">API Calls</span>
                 <div className="w-7 h-7 rounded-lg bg-accent-light flex items-center justify-center">
                   <Zap size={14} className="text-accent" />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-text-primary font-mono">{apiStats.totalCalls.toLocaleString('de-DE')}</div>
-              <div className="text-xs text-text-muted mt-1 font-mono">{apiTimeRange === '24h' ? 'Letzte 24 Stunden' : apiTimeRange === '7d' ? 'Letzte 7 Tage' : 'Letzte 30 Tage'}</div>
+              <div className="text-2xl font-bold text-text-primary">{apiStats.totalCalls.toLocaleString('de-DE')}</div>
+              <div className="text-xs text-text-muted mt-1">{apiTimeRange === '24h' ? 'Letzte 24 Stunden' : apiTimeRange === '7d' ? 'Letzte 7 Tage' : 'Letzte 30 Tage'}</div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Kosten (est.)</span>
+                <span className="text-xs font-medium text-text-muted">Kosten (est.)</span>
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
                   <DollarSign size={14} className="text-emerald-500" />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-text-primary font-mono">
+              <div className="text-2xl font-bold text-text-primary">
                 ${(apiStats.totalCostCents / 100).toFixed(2)}
               </div>
-              <div className="text-xs text-text-muted mt-1 font-mono">
+              <div className="text-xs text-text-muted mt-1">
                 {apiStats.totalTokensIn > 0 ? `${((apiStats.totalTokensIn + apiStats.totalTokensOut) / 1000).toFixed(0)}k Tokens` : 'Keine Token-Daten'}
               </div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Fehler</span>
+                <span className="text-xs font-medium text-text-muted">Fehler</span>
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${apiStats.errorCount > 0 ? 'bg-status-offline/10' : 'bg-emerald-50'}`}>
                   <AlertCircle size={14} className={apiStats.errorCount > 0 ? 'text-status-offline' : 'text-emerald-500'} />
                 </div>
               </div>
-              <div className={`text-2xl font-bold font-mono ${apiStats.errorCount > 0 ? 'text-status-offline' : 'text-emerald-600'}`}>
+              <div className={`text-2xl font-bold ${apiStats.errorCount > 0 ? 'text-status-offline' : 'text-emerald-600'}`}>
                 {apiStats.errorCount}
               </div>
-              <div className="text-xs text-text-muted mt-1 font-mono">
+              <div className="text-xs text-text-muted mt-1">
                 {apiStats.totalCalls > 0 ? `${(apiStats.errorCount / apiStats.totalCalls * 100).toFixed(1)}% Error-Rate` : '—'}
               </div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Ø Latenz</span>
+                <span className="text-xs font-medium text-text-muted">Ø Latenz</span>
                 <div className="w-7 h-7 rounded-lg bg-status-warning/10 flex items-center justify-center">
                   <Clock size={14} className="text-status-warning" />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-text-primary font-mono">{apiStats.avgDuration}ms</div>
-              <div className="text-xs text-text-muted mt-1 font-mono">Durchschnittliche Antwortzeit</div>
+              <div className="text-2xl font-bold text-text-primary">{apiStats.avgDuration}ms</div>
+              <div className="text-xs text-text-muted mt-1">Durchschnittliche Antwortzeit</div>
             </div>
           </div>
 
@@ -2212,7 +2212,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="px-5 py-3 border-b border-border-secondary flex items-center gap-2">
               <Server size={14} className="text-text-muted" />
-              <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Kosten nach Service</span>
+              <span className="text-xs font-semibold text-text-secondary">Kosten nach Service</span>
             </div>
             <div className="divide-y divide-slate-100/80">
               {Object.entries(apiStats.byService)
@@ -2237,22 +2237,22 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium text-text-primary capitalize">{service}</span>
-                          <span className="text-xs font-mono text-text-muted">${(data.cost / 100).toFixed(3)}</span>
+                          <span className="text-xs text-text-muted">${(data.cost / 100).toFixed(3)}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-1.5 bg-surface-secondary rounded-full overflow-hidden">
                             <div className={`h-full ${colors.bar} rounded-full transition-all`} style={{ width: `${Math.max(costPct, 1)}%` }} />
                           </div>
-                          <span className="text-xs font-mono text-text-muted shrink-0">{data.calls} calls</span>
+                          <span className="text-xs text-text-muted shrink-0">{data.calls} calls</span>
                         </div>
                         {data.tokensIn > 0 && (
-                          <div className="text-xs font-mono text-text-muted mt-0.5">
+                          <div className="text-xs text-text-muted mt-0.5">
                             {(data.tokensIn / 1000).toFixed(0)}k in / {(data.tokensOut / 1000).toFixed(0)}k out tokens
                           </div>
                         )}
                       </div>
                       {data.errors > 0 && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-status-offline/10 text-status-offline font-mono shrink-0">{data.errors} err</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-status-offline/10 text-status-offline shrink-0">{data.errors} err</span>
                       )}
                     </div>
                   );
@@ -2261,7 +2261,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 <div className="px-5 py-8 text-center">
                   <Zap size={24} className="text-text-muted mx-auto mb-2" />
                   <div className="text-sm text-text-muted">Noch keine API-Daten</div>
-                  <p className="text-xs text-text-muted font-mono mt-1">Daten werden erfasst sobald API-Calls stattfinden</p>
+                  <p className="text-xs text-text-muted mt-1">Daten werden erfasst sobald API-Calls stattfinden</p>
                 </div>
               )}
             </div>
@@ -2271,12 +2271,12 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="px-5 py-3 border-b border-border-secondary flex items-center gap-2">
               <Code size={14} className="text-text-muted" />
-              <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Calls nach Function</span>
+              <span className="text-xs font-semibold text-text-secondary">Calls nach Function</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-xs uppercase tracking-wider text-text-muted font-medium">
+                  <tr className="text-xs text-text-muted font-medium">
                     <th className="px-5 py-2.5 text-left">Function</th>
                     <th className="px-3 py-2.5 text-right">Calls</th>
                     <th className="px-3 py-2.5 text-right">Errors</th>
@@ -2289,17 +2289,17 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     .sort((a, b) => b[1].calls - a[1].calls)
                     .map(([fn, data]) => (
                       <tr key={fn} className="hover:bg-surface-primary/60 transition-colors">
-                        <td className="px-5 py-2.5 text-sm font-mono text-text-primary">{fn}</td>
-                        <td className="px-3 py-2.5 text-sm font-mono text-text-secondary text-right">{data.calls}</td>
+                        <td className="px-5 py-2.5 text-sm text-text-primary">{fn}</td>
+                        <td className="px-3 py-2.5 text-sm text-text-secondary text-right">{data.calls}</td>
                         <td className="px-3 py-2.5 text-right">
                           {data.errors > 0 ? (
-                            <span className="text-xs font-mono text-status-offline">{data.errors}</span>
+                            <span className="text-xs text-status-offline">{data.errors}</span>
                           ) : (
-                            <span className="text-xs font-mono text-emerald-500">0</span>
+                            <span className="text-xs text-emerald-500">0</span>
                           )}
                         </td>
-                        <td className="px-3 py-2.5 text-sm font-mono text-text-muted text-right">{data.avgMs}ms</td>
-                        <td className="px-5 py-2.5 text-sm font-mono text-text-secondary text-right">${(data.cost / 100).toFixed(3)}</td>
+                        <td className="px-3 py-2.5 text-sm text-text-muted text-right">{data.avgMs}ms</td>
+                        <td className="px-5 py-2.5 text-sm text-text-secondary text-right">${(data.cost / 100).toFixed(3)}</td>
                       </tr>
                     ))}
                 </tbody>
@@ -2312,14 +2312,14 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             <div className="px-5 py-3 border-b border-border-secondary flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Activity size={14} className="text-text-muted" />
-                <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Letzte API Calls</span>
+                <span className="text-xs font-semibold text-text-secondary">Letzte API Calls</span>
               </div>
-              <span className="text-xs font-mono text-text-muted">{apiUsageData.length} Einträge</span>
+              <span className="text-xs text-text-muted">{apiUsageData.length} Einträge</span>
             </div>
             <div className="overflow-x-auto max-h-96 overflow-y-auto">
               <table className="w-full">
                 <thead className="sticky top-0 bg-surface-primary">
-                  <tr className="text-xs uppercase tracking-wider text-text-muted font-medium">
+                  <tr className="text-xs text-text-muted font-medium">
                     <th className="px-4 py-2 text-left">Zeit</th>
                     <th className="px-3 py-2 text-left">Function</th>
                     <th className="px-3 py-2 text-left">Service</th>
@@ -2331,10 +2331,10 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 <tbody className="divide-y divide-slate-50">
                   {apiUsageData.slice(0, 100).map((row) => (
                     <tr key={row.id} className="hover:bg-surface-primary/40 transition-colors text-xs">
-                      <td className="px-4 py-2 font-mono text-text-muted whitespace-nowrap">
+                      <td className="px-4 py-2 text-text-muted whitespace-nowrap">
                         {new Date(row.created_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </td>
-                      <td className="px-3 py-2 font-mono text-text-primary">{row.function_name}</td>
+                      <td className="px-3 py-2 text-text-primary">{row.function_name}</td>
                       <td className="px-3 py-2">
                         <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium ${
                           row.service === 'anthropic' ? 'bg-brand-purple/10 text-brand-purple' :
@@ -2353,8 +2353,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                           <span className="w-4 h-4 rounded-full bg-status-offline/10 text-status-offline inline-flex items-center justify-center text-xs font-bold">{row.status_code || '✗'}</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 font-mono text-text-muted text-right">{row.duration_ms ? `${row.duration_ms}ms` : '—'}</td>
-                      <td className="px-4 py-2 font-mono text-text-secondary text-right">{row.estimated_cost_cents ? `$${(row.estimated_cost_cents / 100).toFixed(4)}` : '—'}</td>
+                      <td className="px-3 py-2 text-text-muted text-right">{row.duration_ms ? `${row.duration_ms}ms` : '—'}</td>
+                      <td className="px-4 py-2 text-text-secondary text-right">{row.estimated_cost_cents ? `$${(row.estimated_cost_cents / 100).toFixed(4)}` : '—'}</td>
                     </tr>
                   ))}
                   {loadingApiUsage && (
@@ -2372,7 +2372,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       <td colSpan={6} className="px-5 py-12 text-center">
                         <Zap size={32} className="text-text-muted mx-auto mb-3" />
                         <div className="text-sm text-text-muted">Keine API-Daten vorhanden</div>
-                        <p className="text-xs text-text-muted font-mono mt-1">
+                        <p className="text-xs text-text-muted mt-1">
                           API-Calls werden automatisch geloggt sobald die Tabelle erstellt ist
                         </p>
                       </td>
@@ -2406,7 +2406,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           {/* Controls */}
           <div className="glass-card rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-text-secondary">
                 Attachment-Sync starten
               </h3>
             </div>
@@ -2470,25 +2470,25 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 {/* Summary KPIs */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="bg-emerald-50/60 border border-emerald-200/40 rounded-xl p-3 text-center">
-                    <div className="text-xl font-bold font-mono text-emerald-700">{syncResult.totals?.uploaded || 0}</div>
-                    <div className="text-[10px] font-medium text-emerald-600 uppercase tracking-wider mt-0.5">Hochgeladen</div>
+                    <div className="text-xl font-bold text-emerald-700">{syncResult.totals?.uploaded || 0}</div>
+                    <div className="text-[10px] font-medium text-emerald-600 mt-0.5">Hochgeladen</div>
                   </div>
                   <div className="bg-accent-light/60 border border-accent/20/40 rounded-xl p-3 text-center">
-                    <div className="text-xl font-bold font-mono text-blue-700">{syncResult.totals?.alreadyCached || 0}</div>
-                    <div className="text-[10px] font-medium text-accent uppercase tracking-wider mt-0.5">Bereits gecached</div>
+                    <div className="text-xl font-bold text-blue-700">{syncResult.totals?.alreadyCached || 0}</div>
+                    <div className="text-[10px] font-medium text-accent mt-0.5">Bereits gecached</div>
                   </div>
                   <div className="bg-surface-secondary/60 border border-border-secondary/40 rounded-xl p-3 text-center">
-                    <div className="text-xl font-bold font-mono text-text-primary">{syncResult.totals?.attachmentsFound || 0}</div>
-                    <div className="text-[10px] font-medium text-text-secondary uppercase tracking-wider mt-0.5">Attachments gefunden</div>
+                    <div className="text-xl font-bold text-text-primary">{syncResult.totals?.attachmentsFound || 0}</div>
+                    <div className="text-[10px] font-medium text-text-secondary mt-0.5">Attachments gefunden</div>
                   </div>
                   <div className={`${(syncResult.totals?.errors || 0) > 0 ? 'bg-status-offline/10/60 border-status-offline/20/40' : 'bg-emerald-50/60 border-emerald-200/40'} border rounded-xl p-3 text-center`}>
-                    <div className={`text-xl font-bold font-mono ${(syncResult.totals?.errors || 0) > 0 ? 'text-red-700' : 'text-emerald-700'}`}>{syncResult.totals?.errors || 0}</div>
-                    <div className={`text-[10px] font-medium uppercase tracking-wider mt-0.5 ${(syncResult.totals?.errors || 0) > 0 ? 'text-status-offline' : 'text-emerald-600'}`}>Fehler</div>
+                    <div className={`text-xl font-bold ${(syncResult.totals?.errors || 0) > 0 ? 'text-red-700' : 'text-emerald-700'}`}>{syncResult.totals?.errors || 0}</div>
+                    <div className={`text-[10px] font-medium mt-0.5 ${(syncResult.totals?.errors || 0) > 0 ? 'text-status-offline' : 'text-emerald-600'}`}>Fehler</div>
                   </div>
                 </div>
 
                 {/* Duration + filter */}
-                <div className="flex items-center gap-3 text-xs text-text-muted font-mono">
+                <div className="flex items-center gap-3 text-xs text-text-muted">
                   <span>Dauer: {((syncResult.duration_ms || 0) / 1000).toFixed(1)}s</span>
                   <span className="text-text-muted">|</span>
                   <span>Filter: {syncResult.filter || 'all'}</span>
@@ -2500,12 +2500,12 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 {syncResult.sources?.length > 0 && (
                   <div className="glass-card rounded-xl overflow-hidden">
                     <div className="px-4 py-2.5 border-b border-border-secondary">
-                      <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Details pro Quelle</span>
+                      <span className="text-xs font-semibold text-text-secondary">Details pro Quelle</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="text-text-muted uppercase tracking-wider font-medium border-b border-border-secondary">
+                          <tr className="text-text-muted font-medium border-b border-border-secondary">
                             <th className="px-4 py-2 text-left">Quelle</th>
                             <th className="px-3 py-2 text-right">Records</th>
                             <th className="px-3 py-2 text-right">Gefunden</th>
@@ -2517,12 +2517,12 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                         <tbody className="divide-y divide-slate-50">
                           {syncResult.sources.map((src) => (
                             <tr key={src.name} className="hover:bg-surface-primary/40 transition-colors">
-                              <td className="px-4 py-2 font-mono font-medium text-text-primary">{src.name}</td>
-                              <td className="px-3 py-2 font-mono text-text-muted text-right">{src.records}</td>
-                              <td className="px-3 py-2 font-mono text-text-muted text-right">{src.attachments}</td>
-                              <td className="px-3 py-2 font-mono text-accent text-right">{src.cached}</td>
-                              <td className="px-3 py-2 font-mono text-emerald-600 text-right">{src.uploaded}</td>
-                              <td className={`px-3 py-2 font-mono text-right ${src.errors > 0 ? 'text-status-offline font-bold' : 'text-text-muted'}`}>{src.errors}</td>
+                              <td className="px-4 py-2 font-medium text-text-primary">{src.name}</td>
+                              <td className="px-3 py-2 text-text-muted text-right">{src.records}</td>
+                              <td className="px-3 py-2 text-text-muted text-right">{src.attachments}</td>
+                              <td className="px-3 py-2 text-accent text-right">{src.cached}</td>
+                              <td className="px-3 py-2 text-emerald-600 text-right">{src.uploaded}</td>
+                              <td className={`px-3 py-2 text-right ${src.errors > 0 ? 'text-status-offline font-bold' : 'text-text-muted'}`}>{src.errors}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -2534,10 +2534,10 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 {/* Error details */}
                 {syncResult.sources?.some(s => s.error_details?.length > 0) && (
                   <div className="glass-card rounded-xl p-4 border-l-4 border-l-red-400">
-                    <h4 className="text-xs font-semibold text-red-700 uppercase tracking-wider mb-2">Fehler-Details</h4>
+                    <h4 className="text-xs font-semibold text-red-700 mb-2">Fehler-Details</h4>
                     <div className="space-y-1.5 max-h-40 overflow-y-auto">
                       {syncResult.sources.flatMap(s => (s.error_details || []).map(e => (
-                        <div key={`${e.recordId}-${e.filename}`} className="text-xs font-mono text-status-offline">
+                        <div key={`${e.recordId}-${e.filename}`} className="text-xs text-status-offline">
                           <span className="text-status-offline">{e.recordId}</span> / {e.filename}: {e.error}
                         </div>
                       )))}

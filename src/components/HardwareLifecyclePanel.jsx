@@ -426,7 +426,7 @@ function WareneingangTab() {
                       <tr key={i} className="border-b border-border-secondary">
                         <td className="py-1.5 px-3 text-text-muted">{i + 1}</td>
                         {Object.values(row).map((v, j) => (
-                          <td key={j} className="py-1.5 px-3 font-mono text-text-primary">{v}</td>
+                          <td key={j} className="py-1.5 px-3 text-text-primary">{v}</td>
                         ))}
                       </tr>
                     ))}
@@ -506,7 +506,7 @@ function WareneingangTab() {
             <div>
               <label className="text-xs text-text-muted mb-1 block">Seriennummer *</label>
               <input type="text" value={form.serialNumber} onChange={e => setForm({...form, serialNumber: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="SN scannen oder eingeben" required />
             </div>
             <div>
@@ -596,8 +596,8 @@ function WareneingangTab() {
                 const qrCode = r.hardware_qr_codes?.qr_code || (r.qr_code_id ? `QR #${r.qr_code_id}` : null);
                 return (
                   <tr key={r.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors">
-                    <td className="py-2 px-3 font-mono text-accent">{r.receipt_id}</td>
-                    <td className="py-2 px-3 font-mono text-text-secondary">{new Date(r.receipt_date).toLocaleDateString('de-DE')}</td>
+                    <td className="py-2 px-3 text-accent">{r.receipt_id}</td>
+                    <td className="py-2 px-3 text-text-secondary">{new Date(r.receipt_date).toLocaleDateString('de-DE')}</td>
                     <td className="py-2 px-3">
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs"
                         style={{ backgroundColor: typeInfo.color + '15', color: typeInfo.color, border: `1px solid ${typeInfo.color}33` }}>
@@ -605,10 +605,10 @@ function WareneingangTab() {
                       </span>
                     </td>
                     <td className="py-2 px-3 text-text-primary">{r.supplier || '–'}</td>
-                    <td className="py-2 px-3 font-mono text-text-secondary text-[11px]">{r.serial_number || '–'}</td>
+                    <td className="py-2 px-3 text-text-secondary text-[11px]">{r.serial_number || '–'}</td>
                     <td className="py-2 px-3">
                       {qrCode ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] bg-accent-light text-accent border border-accent/20/50 font-mono">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] bg-accent-light text-accent border border-accent/20/50">
                           <QrCode size={10} />{qrCode}
                         </span>
                       ) : <span className="text-text-muted">–</span>}
@@ -807,8 +807,8 @@ function QRCodeTab() {
           { label: 'Aktiv', value: kpis.active, color: '#34C759' },
         ].map(k => (
           <div key={k.label} className="bg-surface-primary border border-border-secondary rounded-xl p-3">
-            <div className="text-[10px] text-text-muted uppercase font-mono">{k.label}</div>
-            <div className="text-xl font-bold font-mono" style={{ color: k.color }}>{k.value}</div>
+            <div className="text-[10px] text-text-muted uppercase">{k.label}</div>
+            <div className="text-xl font-bold" style={{ color: k.color }}>{k.value}</div>
           </div>
         ))}
       </div>
@@ -883,7 +883,7 @@ function QRCodeTab() {
                       <input type="checkbox" checked={selectedForPrint.has(c.id)}
                         onChange={() => togglePrintSelect(c.id)} className="rounded border-border-primary" />
                     </td>
-                    <td className="py-2 px-3 font-mono text-accent font-medium">{c.qr_code}</td>
+                    <td className="py-2 px-3 text-accent font-medium">{c.qr_code}</td>
                     <td className="py-2 px-3">
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs"
                         style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.text}33` }}>
@@ -891,8 +891,8 @@ function QRCodeTab() {
                       </span>
                     </td>
                     <td className="py-2 px-3">{typeInfo ? typeInfo.label : c.component_type || '–'}</td>
-                    <td className="py-2 px-3 font-mono text-text-secondary text-[11px]">{c.serial_number || <span className="text-text-muted italic">nicht zugewiesen</span>}</td>
-                    <td className="py-2 px-3 font-mono text-text-muted text-[10px]">{c.batch_id || '–'}</td>
+                    <td className="py-2 px-3 text-text-secondary text-[11px]">{c.serial_number || <span className="text-text-muted italic">nicht zugewiesen</span>}</td>
+                    <td className="py-2 px-3 text-text-muted text-[10px]">{c.batch_id || '–'}</td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-1">
                         {!c.serial_number && (
@@ -932,7 +932,7 @@ function QRCodeTab() {
               <div>
                 <label className="text-xs text-text-muted mb-1 block">Seriennummer *</label>
                 <input type="text" value={assignSN} onChange={e => setAssignSN(e.target.value)} autoFocus
-                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   placeholder="Seriennummer eingeben oder scannen" />
               </div>
               <div>
@@ -1022,7 +1022,7 @@ function PositionenTab() {
     <div className="space-y-4">
       {/* Position Flow */}
       <div className="bg-surface-primary border border-border-secondary rounded-xl p-4">
-        <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">Hardware-Positionen</div>
+        <div className="text-xs font-medium text-text-secondary mb-3">Hardware-Positionen</div>
         <div className="flex items-center gap-1 overflow-x-auto pb-2">
           {Object.entries(POSITIONS).map(([key, pos], idx) => {
             const Icon = pos.icon;
@@ -1035,7 +1035,7 @@ function PositionenTab() {
                   }`}>
                   <Icon size={16} style={{ color: pos.color }} />
                   <span className="text-[10px] text-text-secondary font-medium">{pos.label}</span>
-                  <span className="text-sm font-bold font-mono" style={{ color: pos.color }}>{distribution[key] || 0}</span>
+                  <span className="text-sm font-bold" style={{ color: pos.color }}>{distribution[key] || 0}</span>
                 </button>
               </React.Fragment>
             );
@@ -1095,7 +1095,7 @@ function PositionenTab() {
                         {typeInfo.label}
                       </span>
                     </td>
-                    <td className="py-2 px-3 font-mono text-text-primary text-[11px]">{p.serial_number || p.hardware_id}</td>
+                    <td className="py-2 px-3 text-text-primary text-[11px]">{p.serial_number || p.hardware_id}</td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-1">
                         <PosIcon size={12} style={{ color: posInfo.color }} />
@@ -1106,7 +1106,7 @@ function PositionenTab() {
                     <td className="py-2 px-3 text-text-primary">{p.location_name ? `${p.location_name}${p.city ? ` (${p.city})` : ''}` : '–'}</td>
                     <td className="py-2 px-3 text-text-muted">{p.moved_by || '–'}</td>
                     <td className="py-2 px-3 text-text-muted">{p.move_reason || '–'}</td>
-                    <td className="py-2 px-3 font-mono text-text-muted">{new Date(p.created_at).toLocaleDateString('de-DE')}</td>
+                    <td className="py-2 px-3 text-text-muted">{new Date(p.created_at).toLocaleDateString('de-DE')}</td>
                   </tr>
                 );
               })}

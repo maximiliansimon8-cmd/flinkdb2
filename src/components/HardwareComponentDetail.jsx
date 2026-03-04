@@ -36,7 +36,7 @@ function statusBadge(status) {
   const c = STATUS_COLORS[s] || { bg: '#64748b15', text: '#64748b', border: '#64748b33', label: status || '\u2013' };
   return (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-medium"
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
       style={{ backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}` }}
     >
       {c.label}
@@ -134,7 +134,7 @@ export default function HardwareComponentDetail({ componentType, componentId, on
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-mono font-bold text-text-primary">
+                <h2 className="text-base font-bold text-text-primary">
                   {loading ? 'Lade...' : getIdentifier()}
                 </h2>
                 {!loading && lifecycle?.component && statusBadge(
@@ -178,7 +178,7 @@ export default function HardwareComponentDetail({ componentType, componentId, on
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Loader2 size={24} className="text-accent animate-spin" />
-              <span className="text-xs text-text-muted font-mono">Lade Lifecycle-Daten...</span>
+              <span className="text-xs text-text-muted">Lade Lifecycle-Daten...</span>
             </div>
           ) : !lifecycle ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
@@ -219,7 +219,7 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
     <div className="space-y-5">
       {/* Component fields */}
       <div>
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-medium text-text-secondary mb-3">
           Komponenten-Details
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
@@ -264,7 +264,7 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
       {/* Related Hardware Set */}
       {opsRecord && (
         <div>
-          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-medium text-text-secondary mb-3">
             Hardware-Set
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -279,10 +279,10 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
             >
               <div className="flex items-center gap-1.5 mb-2">
                 <Cpu size={12} className="text-accent" />
-                <span className="text-xs font-mono font-medium text-text-muted uppercase">OPS</span>
+                <span className="text-xs font-medium text-text-muted uppercase">OPS</span>
                 {componentType !== 'ops' && <ChevronRight size={10} className="text-text-muted ml-auto" />}
               </div>
-              <div className="text-xs font-mono text-text-primary">{opsRecord.opsNr || opsRecord.opsSn || '\u2013'}</div>
+              <div className="text-xs text-text-primary">{opsRecord.opsNr || opsRecord.opsSn || '\u2013'}</div>
               <div className="mt-1">{statusBadge(opsRecord.status)}</div>
             </button>
 
@@ -299,10 +299,10 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
               >
                 <div className="flex items-center gap-1.5 mb-2">
                   <Wifi size={12} className="text-status-online" />
-                  <span className="text-xs font-mono font-medium text-text-muted uppercase">SIM</span>
+                  <span className="text-xs font-medium text-text-muted uppercase">SIM</span>
                   {!(componentType === 'sim' && component?.id === sim.id) && <ChevronRight size={10} className="text-text-muted ml-auto" />}
                 </div>
-                <div className="text-xs font-mono text-text-primary">
+                <div className="text-xs text-text-primary">
                   {sim.simIdImprecise ? '(ungenau)' : (sim.simId ? sim.simId.substring(0, 14) + '...' : '\u2013')}
                 </div>
                 <div className="mt-1">{statusBadge(sim.status)}</div>
@@ -326,10 +326,10 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
               >
                 <div className="flex items-center gap-1.5 mb-2">
                   <Monitor size={12} className="text-brand-purple" />
-                  <span className="text-xs font-mono font-medium text-text-muted uppercase">Display</span>
+                  <span className="text-xs font-medium text-text-muted uppercase">Display</span>
                   {!(componentType === 'display' && component?.id === disp.id) && <ChevronRight size={10} className="text-text-muted ml-auto" />}
                 </div>
-                <div className="text-xs font-mono text-text-primary">{disp.displaySerialNumber || '\u2013'}</div>
+                <div className="text-xs text-text-primary">{disp.displaySerialNumber || '\u2013'}</div>
                 <div className="mt-1">{statusBadge(disp.status)}</div>
               </button>
             )) : (
@@ -344,7 +344,7 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
       {/* Current Location */}
       {location && (
         <div>
-          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-medium text-text-secondary mb-3">
             Aktueller Standort
           </h3>
           <div className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-4">
@@ -400,7 +400,7 @@ function SnCrossReference({ lifecycle }) {
       <div className="flex items-center gap-2 mb-2">
         <AlertTriangle size={14} className="text-status-offline" />
         <span className="text-sm font-bold text-red-800">SN-Abweichung</span>
-        <span className="text-xs text-status-offline font-mono">({mismatches.length})</span>
+        <span className="text-xs text-status-offline">({mismatches.length})</span>
       </div>
       <div className="space-y-2">
         {mismatches.map((m, i) => (
@@ -455,7 +455,7 @@ function TimelineTab({ lifecycle }) {
 
   return (
     <div>
-      <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-4">
+      <h3 className="text-xs font-medium text-text-secondary mb-4">
         Ereignis-Timeline
       </h3>
       <div className="relative">
@@ -484,12 +484,12 @@ function TimelineTab({ lifecycle }) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-text-primary">{event.label}</span>
                     {event.date && (
-                      <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
+                      <span className="text-xs text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                         {fmtDate(event.date)}
                       </span>
                     )}
                     {!event.date && event.type === 'current' && (
-                      <span className="text-xs font-mono text-accent bg-accent-light px-2 py-0.5 rounded">
+                      <span className="text-xs text-accent bg-accent-light px-2 py-0.5 rounded">
                         Jetzt
                       </span>
                     )}
@@ -553,12 +553,12 @@ function LeasingTab({ lifecycle }) {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-1">
         <Landmark size={14} className="text-[#007AFF]" />
-        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-text-secondary">
           Leasing
         </h3>
         {bank?.contractStatus && (
           <span
-            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-medium"
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
             style={{ backgroundColor: '#34C75915', color: '#34C759', border: '1px solid #34C75933' }}
           >
             {bank.contractStatus}
@@ -606,8 +606,8 @@ function LeasingTab({ lifecycle }) {
       {progress !== null && (
         <div className="mt-2">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-text-muted font-mono">Laufzeit-Fortschritt</span>
-            <span className="text-xs text-text-muted font-mono font-medium">{progress}%</span>
+            <span className="text-xs text-text-muted">Laufzeit-Fortschritt</span>
+            <span className="text-xs text-text-muted font-medium">{progress}%</span>
           </div>
           <div className="w-full bg-surface-secondary rounded-full h-1.5">
             <div
@@ -624,7 +624,7 @@ function LeasingTab({ lifecycle }) {
       {/* CHG Details */}
       {chg && (
         <div className="mt-3 pt-3 border-t border-border-secondary">
-          <h4 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">CHG Approval</h4>
+          <h4 className="text-xs font-medium text-text-muted mb-2">CHG Approval</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
             <InfoRow icon={Hash} label="Display-SN" value={chg.displaySn} mono />
             <InfoRow icon={FileText} label="Rechnungs-Nr" value={chg.integratorInvoiceNo} mono />
@@ -637,7 +637,7 @@ function LeasingTab({ lifecycle }) {
       {/* Bank Details */}
       {bank && (
         <div className="mt-3 pt-3 border-t border-border-secondary">
-          <h4 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">Bank TESMA</h4>
+          <h4 className="text-xs font-medium text-text-muted mb-2">Bank TESMA</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
             <InfoRow icon={Hash} label="Seriennummer" value={bank.serialNumber} mono />
             <InfoRow icon={Hash} label="Bestellnummer" value={bank.orderNumber} mono />

@@ -753,7 +753,7 @@ export default function InstallationInspection({ filterCity }) {
                       type="text"
                       value={generatedLink.url}
                       readOnly
-                      className="flex-1 p-2 bg-surface-primary border border-border-primary rounded-lg text-xs font-mono truncate"
+                      className="flex-1 p-2 bg-surface-primary border border-border-primary rounded-lg text-xs truncate"
                     />
                     <button
                       onClick={handleCopyLink}

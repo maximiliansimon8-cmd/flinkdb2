@@ -485,13 +485,13 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
                 <tr className="border-b border-gray-100 bg-surface-secondary/50">
                   <SortableHeader label="Standort" field="locationName" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
                   <SortableHeader label="Stadt" field="city" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">PLZ</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Strasse</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted">PLZ</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted">Strasse</th>
                   <SortableHeader label="Kontakt" field="contactPerson" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Telefon</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Vertrag</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted">Telefon</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted">Vertrag</th>
                   <SortableHeader label="Buchung" field="bookingStatus" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider w-10"></th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -513,18 +513,18 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
                           {standort.locationName || 'Unbekannt'}
                         </div>
                         {standort.jetId && !standort.jetId.startsWith('rec') && (
-                          <div className="text-[10px] text-text-muted font-mono">{standort.jetId}</div>
+                          <div className="text-[10px] text-text-muted">{standort.jetId}</div>
                         )}
                       </td>
                       <td className="px-3 py-3 text-text-secondary">{city || '--'}</td>
-                      <td className="px-3 py-3 text-text-muted font-mono text-xs">{standort.postalCode || '--'}</td>
+                      <td className="px-3 py-3 text-text-muted text-xs">{standort.postalCode || '--'}</td>
                       <td className="px-3 py-3 text-text-secondary truncate max-w-[150px]">
                         {standort.street}{standort.streetNumber ? ` ${standort.streetNumber}` : ''}
                       </td>
                       <td className="px-3 py-3 text-text-secondary truncate max-w-[130px]">{standort.contactPerson || '--'}</td>
                       <td className="px-3 py-3">
                         {hasPhone ? (
-                          <span className="text-text-secondary font-mono text-xs">{standort.contactPhone}</span>
+                          <span className="text-text-secondary text-xs">{standort.contactPhone}</span>
                         ) : (
                           <span className="inline-flex items-center gap-0.5 text-status-warning text-[10px] font-medium">
                             <PhoneOff size={10} /> Keine Nr.
@@ -602,7 +602,7 @@ function SortableHeader({ label, field, sortField, sortDir, onSort }) {
   const active = sortField === field;
   return (
     <th
-      className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider cursor-pointer select-none hover:text-text-primary transition-colors"
+      className="text-left px-3 py-3 text-xs font-semibold text-text-muted cursor-pointer select-none hover:text-text-primary transition-colors"
       onClick={() => onSort(field)}
     >
       <div className="flex items-center gap-1">

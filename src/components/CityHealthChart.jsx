@@ -14,7 +14,7 @@ function CustomTooltip({ active, payload }) {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
   return (
-    <div className="bg-surface-primary border border-border-primary/40 rounded-lg px-3 py-2 text-xs font-mono shadow-card">
+    <div className="bg-surface-primary border border-border-primary/40 rounded-lg px-3 py-2 text-xs shadow-card">
       <div className="text-text-secondary mb-1">
         {data.name} ({data.code})
       </div>
@@ -39,7 +39,7 @@ export default function CityHealthChart({ cityData }) {
 
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
-      <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">
+      <h3 className="text-sm font-medium text-text-secondary mb-4">
         Health nach Stadt
       </h3>
       <div className="h-56">

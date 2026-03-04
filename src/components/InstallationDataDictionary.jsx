@@ -501,7 +501,7 @@ export default function InstallationDataDictionary() {
                     <tbody>
                       {pred.logic.map((l, i) => (
                         <tr key={i} className="border-b border-border-secondary">
-                          <td className="py-2 px-2 font-mono text-text-primary">{l.condition}</td>
+                          <td className="py-2 px-2 text-text-primary">{l.condition}</td>
                           <td className="py-2 px-2">
                             <code className="bg-accent-light text-blue-700 px-1.5 py-0.5 rounded">{l.field}</code>
                           </td>
@@ -530,7 +530,7 @@ export default function InstallationDataDictionary() {
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[10px] text-text-muted font-medium">Verwendet in:</span>
                   {pred.usedIn.map(comp => (
-                    <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-secondary rounded font-mono">
+                    <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-secondary rounded">
                       {comp}
                     </span>
                   ))}
@@ -573,7 +573,7 @@ export default function InstallationDataDictionary() {
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-muted rounded">{t.severity}</span>
                       {t.usedIn.map(comp => (
-                        <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-muted rounded font-mono">{comp}</span>
+                        <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-muted rounded">{comp}</span>
                       ))}
                     </div>
                   </div>
@@ -612,7 +612,7 @@ export default function InstallationDataDictionary() {
                 <div key={cat}>
                   <div className="flex items-center gap-2 mb-3 mt-2">
                     <div className={`w-2 h-2 rounded-full ${cat === 'booking' ? 'bg-accent' : 'bg-status-warning'}`} />
-                    <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                    <h4 className="text-xs font-semibold text-text-muted">
                       {cat === 'booking' ? 'Booking-KPIs (install_bookings)' : 'Akquise-KPIs (acquisition)'}
                     </h4>
                   </div>
@@ -623,7 +623,7 @@ export default function InstallationDataDictionary() {
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-sm font-bold text-text-primary">{kpi.name}</span>
-                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded font-mono">{kpi.unit}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded">{kpi.unit}</span>
                           </div>
                           <code className="text-xs text-text-muted mt-1 block">{kpi.source}</code>
                         </div>
@@ -633,7 +633,7 @@ export default function InstallationDataDictionary() {
                       {/* Formula */}
                       <div className="bg-surface-secondary rounded-lg p-3">
                         <div className="text-[10px] text-text-muted font-medium mb-1">FORMEL</div>
-                        <code className="text-xs text-text-primary font-mono leading-relaxed">{kpi.formula}</code>
+                        <code className="text-xs text-text-primary leading-relaxed">{kpi.formula}</code>
                       </div>
 
                       {/* Input Fields Table */}
@@ -686,7 +686,7 @@ export default function InstallationDataDictionary() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-[10px] text-text-muted font-medium">Verwendet in:</span>
                         {kpi.usedIn.map(comp => (
-                          <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-secondary rounded font-mono">
+                          <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-secondary rounded">
                             {comp}
                           </span>
                         ))}
@@ -739,7 +739,7 @@ export default function InstallationDataDictionary() {
                   <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: step.color }} />
                   <div>
                     <span className="text-sm font-medium text-text-primary">{step.label}</span>
-                    <span className="text-xs text-text-muted ml-2 font-mono">({step.status})</span>
+                    <span className="text-xs text-text-muted ml-2">({step.status})</span>
                   </div>
                   <span className="text-xs text-text-muted ml-auto">{step.description}</span>
                 </div>
@@ -797,7 +797,7 @@ export default function InstallationDataDictionary() {
                         <code className="text-orange-700 bg-status-warning/10 px-1.5 py-0.5 rounded">{f.airtable}</code>
                       </td>
                       <td className="py-2 px-2">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] ${
                           f.type === 'array' ? 'bg-status-warning/10 text-orange-700' :
                           f.type === 'boolean' || f.type === 'boolean/text' ? 'bg-status-online/10 text-green-700' :
                           f.type === 'number' ? 'bg-cyan-50 text-cyan-700' :

@@ -20,12 +20,12 @@ function KpiCard({ label, value, color, icon: Icon }) {
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-2xl p-3 shadow-sm">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] font-medium text-text-muted">{label}</span>
         <div style={{ backgroundColor: `${color}12` }} className="w-6 h-6 rounded-lg flex items-center justify-center">
           <Icon size={12} style={{ color }} />
         </div>
       </div>
-      <div className="text-xl font-bold text-text-primary font-mono">{value}</div>
+      <div className="text-xl font-bold text-text-primary">{value}</div>
     </div>
   );
 }
@@ -40,7 +40,7 @@ function MapLegend() {
   ];
   return (
     <div className="absolute bottom-4 right-4 z-[1000] bg-surface-primary border border-border-secondary rounded-xl p-3 shadow-lg">
-      <div className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-2">Legende</div>
+      <div className="text-[10px] font-medium text-text-muted mb-2">Legende</div>
       {items.map(item => (
         <div key={item.label} className="flex items-center gap-2 mb-1">
           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
@@ -139,7 +139,7 @@ export default function DisplayMap({ rawData, comparisonData, onSelectDisplay })
             {f.label}
           </button>
         ))}
-        <span className="text-[10px] text-text-muted font-mono ml-auto">{filteredMarkers.length} Standorte</span>
+        <span className="text-[10px] text-text-muted ml-auto">{filteredMarkers.length} Standorte</span>
       </div>
 
       {/* Map */}
@@ -183,7 +183,7 @@ export default function DisplayMap({ rawData, comparisonData, onSelectDisplay })
                     <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: m.colorInfo.fill }} />
                     {m.colorInfo.label}
                   </div>
-                  <div className="text-[10px] text-text-muted font-mono">{m.displayId}</div>
+                  <div className="text-[10px] text-text-muted">{m.displayId}</div>
                   {m.screenType && <div className="text-[10px] text-text-muted">{m.screenType} | {m.venueType}</div>}
                   {m.display && (
                     <button

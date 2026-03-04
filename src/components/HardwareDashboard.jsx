@@ -88,12 +88,12 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }) {
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-text-muted">{label}</span>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}12` }}>
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      <div className="text-2xl font-bold text-text-primary">{value}</div>
       {subtitle && <div className="text-xs text-text-muted mt-1">{subtitle}</div>}
     </div>
   );
@@ -1199,7 +1199,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
               <Icon size={13} />
               {tab.label}
               {tab.count !== null && (
-                <span className={`text-xs font-mono px-1.5 py-0.5 rounded-full ${
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                   isActive ? 'bg-surface-secondary text-text-secondary' : 'bg-transparent text-text-muted'
                 }`}>
                   {tab.count}
@@ -1292,7 +1292,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           )}
           {/* Result count + Reset */}
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-xs text-text-muted font-mono">
+            <span className="text-xs text-text-muted">
               {activeSection === 'ops' ? `${filteredOps.length} OPS` :
                activeSection === 'completeness' ? `${filteredCompletenessRows.length} Standorte` :
                activeSection === 'leasing' ? `${filteredLeaseBank.length} Assets` :
@@ -1322,16 +1322,16 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-secondary/40">
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">OPS-Nr</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Status</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Standort</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Stadt</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">JET-ID</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">OPS-SN</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">SIM</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Display</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Leasing</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Online</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">OPS-Nr</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">Status</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">Standort</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">Stadt</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">JET-ID</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">OPS-SN</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">SIM</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">Display</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">Leasing</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted">Online</th>
                 </tr>
               </thead>
               <tbody>
@@ -1367,8 +1367,8 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                           {ops._locationName || <span className="text-text-muted">–</span>}
                         </td>
                         <td className="px-3 py-2.5 text-text-muted text-sm">{ops._city || '–'}</td>
-                        <td className="px-3 py-2.5 font-mono text-text-muted text-sm">{ops._jetId || '–'}</td>
-                        <td className="px-3 py-2.5 font-mono text-text-muted text-sm">{ops.opsSn || '–'}</td>
+                        <td className="px-3 py-2.5 text-text-muted text-sm">{ops._jetId || '–'}</td>
+                        <td className="px-3 py-2.5 text-text-muted text-sm">{ops.opsSn || '–'}</td>
                         <td className="px-3 py-2.5">
                           {ops.simId ? (
                             ops.simIdImprecise
@@ -1409,7 +1409,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                               {/* Hardware Info */}
                               <div className="space-y-2">
-                                <div className="text-xs font-medium text-text-muted uppercase tracking-wider">Hardware</div>
+                                <div className="text-xs font-medium text-text-muted">Hardware</div>
                                 <div className="space-y-1">
                                   <div className="flex justify-between items-center">
                                     <span className="text-text-muted">Status:</span>
@@ -1433,7 +1433,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                               {/* Location Info */}
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <div className="text-xs font-medium text-text-muted uppercase tracking-wider">Standort</div>
+                                  <div className="text-xs font-medium text-text-muted">Standort</div>
                                   {ops._siblingOpsCount > 1 && (
                                     <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-status-warning/10 text-amber-700 border border-amber-300">
                                       {ops._siblingOpsCount} OPS an diesem Standort
@@ -1451,12 +1451,12 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                                     {/* List all OPS at this location when multiple */}
                                     {ops._siblingOpsCount > 1 && (
                                       <div className="mt-2 p-2 bg-status-warning/10/60 rounded-lg border border-status-warning/20/50">
-                                        <div className="text-xs font-medium text-status-warning uppercase tracking-wider mb-1">Alle OPS an diesem Standort</div>
+                                        <div className="text-xs font-medium text-status-warning mb-1">Alle OPS an diesem Standort</div>
                                         <div className="flex flex-wrap gap-1">
                                           {ops._siblingOps.map(sibling => (
                                             <span
                                               key={sibling.id}
-                                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono ${
+                                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${
                                                 sibling.id === ops.id
                                                   ? 'bg-amber-200 text-amber-800 font-bold'
                                                   : 'bg-surface-primary text-text-secondary border border-border-secondary'
@@ -1476,7 +1476,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
 
                               {/* Leasing Info */}
                               <div className="space-y-2">
-                                <div className="text-xs font-medium text-text-muted uppercase tracking-wider">Leasing</div>
+                                <div className="text-xs font-medium text-text-muted">Leasing</div>
                                 {ops._chgRecords.length > 0 ? (
                                   <div className="space-y-1">
                                     {ops._chgRecords.map((chg, i) => (
@@ -1522,21 +1522,21 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           {/* Pagination */}
           {opsTotalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-border-secondary/40">
-              <span className="text-xs text-text-muted font-mono">
+              <span className="text-xs text-text-muted">
                 Seite {opsPage + 1} von {opsTotalPages} ({filteredOps.length} Eintr.)
               </span>
               <div className="flex gap-1">
                 <button
                   onClick={() => setOpsPage(Math.max(0, opsPage - 1))}
                   disabled={opsPage === 0}
-                  className="px-3 py-1 text-xs font-mono rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1 text-xs rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   ← Zurück
                 </button>
                 <button
                   onClick={() => setOpsPage(Math.min(opsTotalPages - 1, opsPage + 1))}
                   disabled={opsPage >= opsTotalPages - 1}
-                  className="px-3 py-1 text-xs font-mono rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1 text-xs rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Weiter →
                 </button>
@@ -1583,7 +1583,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                     .map((row) => (
                       <tr key={row.id} className="border-b border-border-secondary/60 hover:bg-surface-secondary/40">
                         <td className="px-3 py-2 text-text-primary font-medium max-w-[180px] truncate">{row.locationName || '–'}</td>
-                        <td className="px-3 py-2 font-mono text-text-muted text-sm">{row.jetId || '–'}</td>
+                        <td className="px-3 py-2 text-text-muted text-sm">{row.jetId || '–'}</td>
                         <td className="px-3 py-2 text-text-muted">{row.city || '–'}</td>
                         <td className="px-3 py-2 text-center">
                           {row.hasOps ? (
@@ -1656,7 +1656,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                   : status === 'Zurückgegeben' ? 'bg-surface-secondary text-text-muted border-border-secondary'
                   : 'bg-status-warning/10 text-amber-700 border-status-warning/20'
                 }`}>
-                  <span className="font-bold font-mono">{count}</span>
+                  <span className="font-bold">{count}</span>
                   {status}
                 </span>
               ))}
@@ -1699,16 +1699,16 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                             <span className="text-status-offline font-bold text-xs">✗</span>
                           )}
                         </td>
-                        <td className="px-3 py-2 font-mono font-medium text-text-primary">{item.serialNumber || '–'}</td>
+                        <td className="px-3 py-2 font-medium text-text-primary">{item.serialNumber || '–'}</td>
                         <td className="px-3 py-2 text-text-secondary max-w-[180px] truncate" title={item.installationLocation}>
                           {item.installationLocation || '–'}
                         </td>
-                        <td className="px-3 py-2 font-mono text-text-muted">{item.rentalCertificate || '–'}</td>
-                        <td className="px-3 py-2 text-right font-mono text-text-primary font-medium">
+                        <td className="px-3 py-2 text-text-muted">{item.rentalCertificate || '–'}</td>
+                        <td className="px-3 py-2 text-right text-text-primary font-medium">
                           {item.monthlyPrice ? `${item.monthlyPrice.toLocaleString('de-DE', { minimumFractionDigits: 2 })}€` : '–'}
                         </td>
-                        <td className="px-3 py-2 text-text-muted font-mono text-sm">{fmtDate(item.rentalStart)}</td>
-                        <td className="px-3 py-2 font-mono text-sm">
+                        <td className="px-3 py-2 text-text-muted text-sm">{fmtDate(item.rentalStart)}</td>
+                        <td className="px-3 py-2 text-sm">
                           <span className={isExpiring && item.contractStatus === 'In Miete' ? 'text-status-warning font-medium' : 'text-text-muted'}>
                             {fmtDate(item.rentalEndPlanned)}
                             {isExpiring && item.contractStatus === 'In Miete' && (
@@ -1755,7 +1755,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
             <div className="px-4 py-3 border-b border-border-secondary/40 flex items-center gap-2">
               <ArrowLeftRight size={14} className="text-status-warning" />
               <h3 className="text-sm font-semibold text-text-primary">Hardware-Tausch Aufträge</h3>
-              <span className="text-xs font-mono bg-surface-secondary text-text-muted px-1.5 py-0.5 rounded">{filteredSwaps.length}</span>
+              <span className="text-xs bg-surface-secondary text-text-muted px-1.5 py-0.5 rounded">{filteredSwaps.length}</span>
             </div>
             {filteredSwaps.length === 0 ? (
               <div className="px-4 py-8 text-center text-xs text-text-muted">Keine Tausch-Aufträge vorhanden</div>
@@ -1767,7 +1767,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                     <div key={swap.id} className={`px-4 py-3 ${isDone ? 'opacity-50' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold text-text-primary">{swap.swapId || swap.id?.substring(0, 8)}</span>
+                          <span className="text-xs font-semibold text-text-primary">{swap.swapId || swap.id?.substring(0, 8)}</span>
                           {swap.locationName && (
                             <span className="text-xs text-text-muted flex items-center gap-1">
                               <MapPin size={10} /> {swap.locationName}
@@ -1775,7 +1775,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-text-muted">{fmtDate(swap.swapDate)}</span>
+                          <span className="text-xs text-text-muted">{fmtDate(swap.swapDate)}</span>
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
                             isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-status-warning/10 text-amber-700 border border-status-warning/20'
                           }`}>{swap.status || '–'}</span>
@@ -1799,7 +1799,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
             <div className="px-4 py-3 border-b border-border-secondary/40 flex items-center gap-2">
               <PackageX size={14} className="text-status-offline" />
               <h3 className="text-sm font-semibold text-text-primary">Deinstallationen</h3>
-              <span className="text-xs font-mono bg-surface-secondary text-text-muted px-1.5 py-0.5 rounded">{filteredDeinstalls.length}</span>
+              <span className="text-xs bg-surface-secondary text-text-muted px-1.5 py-0.5 rounded">{filteredDeinstalls.length}</span>
             </div>
             {filteredDeinstalls.length === 0 ? (
               <div className="px-4 py-8 text-center text-xs text-text-muted">Keine Deinstallationen vorhanden</div>
@@ -1811,7 +1811,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                     <div key={d.id} className={`px-4 py-3 ${isDone ? 'opacity-50' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold text-text-primary">{d.deinstallId || d.id?.substring(0, 8)}</span>
+                          <span className="text-xs font-semibold text-text-primary">{d.deinstallId || d.id?.substring(0, 8)}</span>
                           {d.locationName && (
                             <span className="text-xs text-text-muted flex items-center gap-1">
                               <MapPin size={10} /> {d.locationName}
@@ -1819,7 +1819,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-text-muted">{fmtDate(d.deinstallDate)}</span>
+                          <span className="text-xs text-text-muted">{fmtDate(d.deinstallDate)}</span>
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
                             isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : d.status === 'In Bearbeitung' ? 'bg-status-warning/10 text-amber-700 border border-status-warning/20'
@@ -1873,13 +1873,13 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                         <div className="flex items-center justify-between mb-0.5">
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-medium text-text-primary capitalize">{event.type === 'installation' ? 'Installation' : event.type === 'swap' ? 'Tausch' : 'Deinstallation'}</span>
-                            {event.opsNr && <span className="text-xs font-mono text-text-muted">OPS {event.opsNr}</span>}
+                            {event.opsNr && <span className="text-xs text-text-muted">OPS {event.opsNr}</span>}
                             {event.locationName && <span className="text-xs text-text-muted flex items-center gap-0.5"><MapPin size={9} /> {event.locationName}</span>}
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-text-muted">{fmtDate(event.date)}</span>
+                            <span className="text-xs text-text-muted">{fmtDate(event.date)}</span>
                             {event.status && (
-                              <span className="text-xs font-mono text-text-muted bg-surface-secondary px-1.5 py-0.5 rounded">{event.status}</span>
+                              <span className="text-xs text-text-muted bg-surface-secondary px-1.5 py-0.5 rounded">{event.status}</span>
                             )}
                           </div>
                         </div>
@@ -1974,7 +1974,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                   <option key={t} value={t}>{t} ({fehlerStats.byType[t]})</option>
                 ))}
               </select>
-              <span className="text-xs text-text-muted font-mono ml-auto">
+              <span className="text-xs text-text-muted ml-auto">
                 {filteredMismatches.length} Fehler
               </span>
               {(fehlerSearch || fehlerTypeFilter) && (
@@ -2071,7 +2071,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                             )}
                           </div>
                           {group.jetId && (
-                            <span className="text-xs font-mono text-text-muted">{group.jetId}</span>
+                            <span className="text-xs text-text-muted">{group.jetId}</span>
                           )}
                         </div>
 
@@ -2094,18 +2094,18 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                           <table className="w-full text-xs">
                             <thead>
                               <tr className="border-b border-border-secondary/30">
-                                <th className="text-left px-4 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider w-16">OPS</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Fehlertyp</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Quelle 1</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Wert 1</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Quelle 2</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Wert 2</th>
+                                <th className="text-left px-4 py-2 text-[10px] font-medium text-text-muted w-16">OPS</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted">Fehlertyp</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted">Quelle 1</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted">Wert 1</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted">Quelle 2</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted">Wert 2</th>
                               </tr>
                             </thead>
                             <tbody>
                               {group.issues.map((m, idx) => (
                                 <tr key={`${m.type}-${m.source1}-${idx}`} className="border-b border-border-secondary/40 hover:bg-surface-secondary transition-colors">
-                                  <td className="px-4 py-2 font-mono text-text-muted">{m.opsNr || '\u2013'}</td>
+                                  <td className="px-4 py-2 text-text-muted">{m.opsNr || '\u2013'}</td>
                                   <td className="px-3 py-2">
                                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${getBadgeClass(m.type)}`}>
                                       {m.type}
@@ -2118,7 +2118,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                                       <span className="text-[10px] text-accent font-medium">{m.origin1}</span>
                                     </div>
                                   </td>
-                                  <td className="px-3 py-2 font-mono text-status-offline font-medium max-w-[160px] truncate" title={m.value1}>
+                                  <td className="px-3 py-2 text-status-offline font-medium max-w-[160px] truncate" title={m.value1}>
                                     {m.value1 || '\u2013'}
                                   </td>
                                   <td className="px-3 py-2">
@@ -2128,7 +2128,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                                       <span className="text-[10px] text-accent font-medium">{m.origin2}</span>
                                     </div>
                                   </td>
-                                  <td className="px-3 py-2 font-mono text-status-offline font-medium max-w-[160px] truncate" title={m.value2}>
+                                  <td className="px-3 py-2 text-status-offline font-medium max-w-[160px] truncate" title={m.value2}>
                                     {m.value2 || '\u2013'}
                                   </td>
                                 </tr>

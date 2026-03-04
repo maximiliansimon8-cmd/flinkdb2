@@ -82,7 +82,7 @@ function clearHistory() {
 function StatusBadge({ status, color }) {
   return (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
       style={{ background: `${color}18`, color }}
     >
       {status}
@@ -107,7 +107,7 @@ function ResultCard({ type, icon: Icon, color, title, subtitle, badges, details,
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>
+            <span className="text-[10px] font-bold" style={{ color }}>
               {type}
             </span>
             {badges?.map((b, i) => (
@@ -127,7 +127,7 @@ function ResultCard({ type, icon: Icon, color, title, subtitle, badges, details,
         <div className="border-t border-border-secondary/80 bg-surface-secondary/40 px-4 py-3 space-y-2">
           {details.map((d, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider w-28 shrink-0 pt-0.5">
+              <span className="text-[10px] font-medium text-text-muted w-28 shrink-0 pt-0.5">
                 {d.label}
               </span>
               <span className={`text-sm text-text-primary break-all ${d.mono ? 'font-mono' : ''}`}>
@@ -644,7 +644,7 @@ export default function QRHardwareScanner({ onClose }) {
 
               {/* Supported formats note */}
               <div className="mt-3 text-center">
-                <span className="text-[10px] text-text-muted uppercase tracking-wider">
+                <span className="text-[10px] text-text-muted">
                   QR-Code, Code128, EAN-13, Data Matrix
                 </span>
               </div>
@@ -664,7 +664,7 @@ export default function QRHardwareScanner({ onClose }) {
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
                     placeholder="OPS-Nr., Seriennummer, SIM ID..."
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-primary border border-border-secondary text-sm font-mono text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-300 transition-all"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-primary border border-border-secondary text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-300 transition-all"
                   />
                   {query && (
                     <button
@@ -730,11 +730,11 @@ export default function QRHardwareScanner({ onClose }) {
             <div className="space-y-3">
               {/* Results Header */}
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                <span className="text-xs font-semibold text-text-muted">
                   {totalResults} {totalResults === 1 ? 'Ergebnis' : 'Ergebnisse'}
                 </span>
                 {scannedValue && (
-                  <span className="text-xs text-text-muted font-mono truncate max-w-[180px]">
+                  <span className="text-xs text-text-muted truncate max-w-[180px]">
                     {scannedValue}
                   </span>
                 )}
@@ -757,7 +757,7 @@ export default function QRHardwareScanner({ onClose }) {
               {results.ops?.length > 0 && (
                 <div className="space-y-2">
                   {results.ops.length > 1 && (
-                    <h3 className="text-[10px] font-bold text-accent uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-[10px] font-bold text-accent flex items-center gap-1.5">
                       <Cpu size={12} />
                       OPS Player ({results.ops.length})
                     </h3>
@@ -772,7 +772,7 @@ export default function QRHardwareScanner({ onClose }) {
               {results.sim?.length > 0 && (
                 <div className="space-y-2">
                   {results.sim.length > 1 && (
-                    <h3 className="text-[10px] font-bold text-brand-purple uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-[10px] font-bold text-brand-purple flex items-center gap-1.5">
                       <CreditCard size={12} />
                       SIM Karten ({results.sim.length})
                     </h3>
@@ -787,7 +787,7 @@ export default function QRHardwareScanner({ onClose }) {
               {results.displays?.length > 0 && (
                 <div className="space-y-2">
                   {results.displays.length > 1 && (
-                    <h3 className="text-[10px] font-bold text-status-warning uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-[10px] font-bold text-status-warning flex items-center gap-1.5">
                       <Monitor size={12} />
                       Displays ({results.displays.length})
                     </h3>
@@ -802,7 +802,7 @@ export default function QRHardwareScanner({ onClose }) {
               {results.locations?.length > 0 && (
                 <div className="space-y-2">
                   {results.locations.length > 1 && (
-                    <h3 className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-[10px] font-bold text-emerald-500 flex items-center gap-1.5">
                       <MapPin size={12} />
                       Standorte ({results.locations.length})
                     </h3>
@@ -819,7 +819,7 @@ export default function QRHardwareScanner({ onClose }) {
           {!loading && !results && history.length > 0 && (
             <div className="mt-2">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                <h3 className="text-xs font-semibold text-text-muted flex items-center gap-1.5">
                   <History size={12} />
                   Letzte Scans
                 </h3>
@@ -840,7 +840,7 @@ export default function QRHardwareScanner({ onClose }) {
                   >
                     <Clock size={14} className="text-text-muted shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm font-mono font-medium text-text-primary truncate block">{item.query}</span>
+                      <span className="text-sm font-medium text-text-primary truncate block">{item.query}</span>
                       <span className="text-[10px] text-text-muted">
                         {item.resultCount} {item.resultCount === 1 ? 'Treffer' : 'Treffer'}
                         {' \u00b7 '}

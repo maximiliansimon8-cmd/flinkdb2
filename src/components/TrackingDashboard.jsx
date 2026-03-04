@@ -74,7 +74,7 @@ function LiveTrackingSection({ positionCounts, total, activePosition, onPosition
           <Package size={16} className="text-accent" />
           Live Hardware-Tracking
         </h2>
-        <span className="text-xs text-text-muted font-mono">
+        <span className="text-xs text-text-muted">
           {total} Gesamt
         </span>
       </div>
@@ -129,7 +129,7 @@ function LiveTrackingSection({ positionCounts, total, activePosition, onPosition
                 </div>
 
                 <span
-                  className="text-sm font-bold font-mono w-16 text-right flex-shrink-0"
+                  className="text-sm font-bold w-16 text-right flex-shrink-0"
                   style={{ color: pos.color }}
                 >
                   {count} <span className="text-[10px] font-normal text-text-muted">Stk</span>
@@ -189,7 +189,7 @@ function ComponentTypeSection({ typeCounts, loading }) {
                   <span className="text-xs font-semibold text-text-primary">{typeConf.label}</span>
                 </div>
 
-                <div className="text-xl font-bold font-mono text-text-primary mb-2">
+                <div className="text-xl font-bold text-text-primary mb-2">
                   {totalForType}
                   <span className="text-[10px] font-normal text-text-muted ml-1">total</span>
                 </div>
@@ -202,7 +202,7 @@ function ComponentTypeSection({ typeCounts, loading }) {
                       <div key={posKey} className="flex items-center justify-between">
                         <span className="text-[10px] text-text-muted">{posConf.label}</span>
                         <span
-                          className="text-[10px] font-mono font-medium"
+                          className="text-[10px] font-medium"
                           style={{ color: count > 0 ? posConf.color : '#94a3b8' }}
                         >
                           {count}
@@ -449,7 +449,7 @@ function SearchSection() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="QR-Code / Seriennummer scannen oder eingeben..."
-            className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-border-secondary bg-surface-primary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20 placeholder:font-sans"
+            className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20 placeholder:font-sans"
           />
         </div>
         <button
@@ -491,7 +491,7 @@ function SearchSection() {
               {result.qr_code && (
                 <div className="flex items-center gap-1.5 mt-1">
                   <QrCode size={12} className="text-accent" />
-                  <span className="text-[11px] font-mono text-accent">{result.qr_code}</span>
+                  <span className="text-[11px] text-accent">{result.qr_code}</span>
                 </div>
               )}
             </div>
@@ -533,7 +533,7 @@ function SearchSection() {
                 <div className="flex items-center gap-1.5">
                   <Calendar size={13} className="text-text-muted" />
                   <span className="text-xs text-text-muted">Seit:</span>
-                  <span className="text-xs font-mono text-text-primary">{fmtDate(result.created_at)}</span>
+                  <span className="text-xs text-text-primary">{fmtDate(result.created_at)}</span>
                 </div>
               )}
 
@@ -585,11 +585,11 @@ function SearchSection() {
                           <span className="text-[10px] text-text-muted">({h.location_name})</span>
                         )}
                         {h.reference_id && (
-                          <span className="text-[10px] font-mono text-accent">
+                          <span className="text-[10px] text-accent">
                             {h.reference_id}
                           </span>
                         )}
-                        <span className="text-[10px] text-text-muted ml-auto font-mono">
+                        <span className="text-[10px] text-text-muted ml-auto">
                           {fmtDate(h.created_at)}
                         </span>
                       </div>
@@ -650,7 +650,7 @@ function RecentMovementsSection({ movements, loading, onRefresh }) {
                 className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-secondary/60 transition-colors border border-transparent hover:border-border-secondary"
               >
                 {/* Time */}
-                <span className="text-[10px] text-text-muted w-20 flex-shrink-0 font-mono">
+                <span className="text-[10px] text-text-muted w-20 flex-shrink-0">
                   <Clock size={10} className="inline mr-1 -mt-px" />
                   {relativeTime(m.created_at)}
                 </span>
@@ -658,7 +658,7 @@ function RecentMovementsSection({ movements, loading, onRefresh }) {
                 {/* Component type + SN */}
                 <div className="flex items-center gap-1.5 w-36 flex-shrink-0">
                   <TypeIcon size={13} style={{ color: typeConf.color }} />
-                  <span className="text-[11px] font-mono text-text-primary truncate">
+                  <span className="text-[11px] text-text-primary truncate">
                     {truncateSN(m.serial_number || m.hardware_id, 14)}
                   </span>
                 </div>
@@ -893,7 +893,7 @@ function PositionDetailTable({ positions, filterPosition, onClose }) {
           <span className="text-sm font-semibold" style={{ color: posConf.color }}>
             {posConf.label}
           </span>
-          <span className="text-xs text-text-muted font-mono">
+          <span className="text-xs text-text-muted">
             {filtered.length} Eintr\u00e4ge
           </span>
         </div>
@@ -958,7 +958,7 @@ function PositionDetailTable({ positions, filterPosition, onClose }) {
                         {typeInfo.label}
                       </span>
                     </td>
-                    <td className="py-2 px-3 font-mono text-text-primary text-[11px]">
+                    <td className="py-2 px-3 text-text-primary text-[11px]">
                       {p.serial_number || p.hardware_id}
                     </td>
                     <td className="py-2 px-3 text-text-secondary">{p.sub_position || '\u2013'}</td>
@@ -969,7 +969,7 @@ function PositionDetailTable({ positions, filterPosition, onClose }) {
                     </td>
                     <td className="py-2 px-3 text-text-muted">{p.moved_by || '\u2013'}</td>
                     <td className="py-2 px-3 text-text-muted">{p.move_reason || '\u2013'}</td>
-                    <td className="py-2 px-3 font-mono text-text-muted">
+                    <td className="py-2 px-3 text-text-muted">
                       {fmtDate(p.created_at)}
                     </td>
                   </tr>

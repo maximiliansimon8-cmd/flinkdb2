@@ -62,8 +62,8 @@ function StatusBadge({ status, config }) {
 function KpiCard({ label, value, color }) {
   return (
     <div className="bg-surface-primary border border-border-secondary rounded-xl p-3 shadow-card">
-      <div className="text-[10px] text-text-muted uppercase font-mono tracking-wider">{label}</div>
-      <div className="text-xl font-bold font-mono mt-0.5" style={{ color }}>{value}</div>
+      <div className="text-[10px] text-text-muted">{label}</div>
+      <div className="text-xl font-bold mt-0.5" style={{ color }}>{value}</div>
     </div>
   );
 }
@@ -476,7 +476,7 @@ function LagerbestandTab() {
                           <div className="flex-1 h-2 bg-surface-secondary rounded-full overflow-hidden">
                             <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: barColor }} />
                           </div>
-                          <span className="text-[10px] font-mono text-text-muted w-16 text-right">{loc.current_count}/{loc.capacity}</span>
+                          <span className="text-[10px] text-text-muted w-16 text-right">{loc.current_count}/{loc.capacity}</span>
                         </div>
                       </td>
                     </tr>
@@ -574,7 +574,7 @@ function LagerbestandTab() {
                     </span>
                     <span className="text-xs text-text-secondary">{alert.warehouse}</span>
                     <span className="text-xs text-text-muted">|</span>
-                    <span className={`text-xs font-mono font-bold ${isLow ? 'text-status-offline' : 'text-status-online'}`}>
+                    <span className={`text-xs font-bold ${isLow ? 'text-status-offline' : 'text-status-online'}`}>
                       {currentStock}
                     </span>
                     <span className="text-xs text-text-muted">/ Min: {alert.min_stock}</span>
@@ -977,11 +977,11 @@ function VersandTab() {
                   </select>
                   <input type="text" value={item.serial_number}
                     onChange={e => updateFormItem(idx, 'serial_number', e.target.value)}
-                    className="flex-1 px-2 py-1.5 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    className="flex-1 px-2 py-1.5 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                     placeholder="Seriennummer *" />
                   <input type="text" value={item.qr_code}
                     onChange={e => updateFormItem(idx, 'qr_code', e.target.value)}
-                    className="w-32 px-2 py-1.5 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    className="w-32 px-2 py-1.5 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                     placeholder="QR-Code" />
                   {formItems.length > 1 && (
                     <button type="button" onClick={() => removeFormItem(idx)}
@@ -1039,15 +1039,15 @@ function VersandTab() {
                 return (
                   <tr key={order.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors cursor-pointer"
                     onClick={() => openDetail(order)}>
-                    <td className="py-2 px-3 font-mono text-accent font-medium">{order.shipping_id}</td>
-                    <td className="py-2 px-3 font-mono text-text-secondary">{new Date(order.created_at).toLocaleDateString('de-DE')}</td>
+                    <td className="py-2 px-3 text-accent font-medium">{order.shipping_id}</td>
+                    <td className="py-2 px-3 text-text-secondary">{new Date(order.created_at).toLocaleDateString('de-DE')}</td>
                     <td className="py-2 px-3 text-text-primary">
                       <div>{order.destination_name}</div>
                       <div className="text-[10px] text-text-muted">{order.destination_type}</div>
                     </td>
                     <td className="py-2 px-3 text-text-secondary">{order.carrier || '\u2013'}</td>
-                    <td className="py-2 px-3 font-mono text-text-secondary text-[11px]">{order.tracking_number || '\u2013'}</td>
-                    <td className="py-2 px-3 text-center font-mono font-bold text-text-secondary">{itemCount}</td>
+                    <td className="py-2 px-3 text-text-secondary text-[11px]">{order.tracking_number || '\u2013'}</td>
+                    <td className="py-2 px-3 text-center font-bold text-text-secondary">{itemCount}</td>
                     <td className="py-2 px-3">
                       <StatusBadge status={order.status} config={SHIPPING_STATUS} />
                     </td>
@@ -1106,7 +1106,7 @@ function VersandTab() {
                 </div>
                 <div>
                   <span className="text-text-muted">Tracking:</span>
-                  <span className="ml-2 text-text-primary font-mono">{detailOrder.tracking_number || '\u2013'}</span>
+                  <span className="ml-2 text-text-primary">{detailOrder.tracking_number || '\u2013'}</span>
                 </div>
                 <div>
                   <span className="text-text-muted">Status:</span>
@@ -1208,7 +1208,7 @@ function VersandTab() {
             </div>
             <input type="text" value={trackingNumber}
               onChange={e => setTrackingNumber(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20 mb-4"
+              className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20 mb-4"
               placeholder="Tracking-Nummer eingeben" autoFocus />
             <div className="flex items-center gap-2">
               <button onClick={markAsVersendet} disabled={!trackingNumber.trim()}
@@ -1583,7 +1583,7 @@ function RuecksendungenTab() {
               <label className="text-xs text-text-muted mb-1 block">Tracking</label>
               <input type="text" value={form.tracking_number}
                 onChange={e => setForm({ ...form, tracking_number: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Tracking-Nummer" />
             </div>
           </div>
@@ -1608,11 +1608,11 @@ function RuecksendungenTab() {
                   </select>
                   <input type="text" value={item.serial_number}
                     onChange={e => updateFormItem(idx, 'serial_number', e.target.value)}
-                    className="flex-1 px-2 py-1.5 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    className="flex-1 px-2 py-1.5 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                     placeholder="Seriennummer *" />
                   <input type="text" value={item.qr_code}
                     onChange={e => updateFormItem(idx, 'qr_code', e.target.value)}
-                    className="w-32 px-2 py-1.5 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    className="w-32 px-2 py-1.5 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                     placeholder="QR-Code" />
                   {formItems.length > 1 && (
                     <button type="button" onClick={() => removeFormItem(idx)}
@@ -1671,14 +1671,14 @@ function RuecksendungenTab() {
                 return (
                   <tr key={ret.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors cursor-pointer"
                     onClick={() => openDetail(ret)}>
-                    <td className="py-2 px-3 font-mono text-accent font-medium">{ret.return_id}</td>
-                    <td className="py-2 px-3 font-mono text-text-secondary">{new Date(ret.created_at).toLocaleDateString('de-DE')}</td>
+                    <td className="py-2 px-3 text-accent font-medium">{ret.return_id}</td>
+                    <td className="py-2 px-3 text-text-secondary">{new Date(ret.created_at).toLocaleDateString('de-DE')}</td>
                     <td className="py-2 px-3 text-text-primary">
                       <div>{ret.source_name}</div>
                       <div className="text-[10px] text-text-muted">{ret.source_type}</div>
                     </td>
                     <td className="py-2 px-3 text-text-secondary">{reasonInfo?.label || ret.reason}</td>
-                    <td className="py-2 px-3 text-center font-mono font-bold text-text-secondary">{itemCount}</td>
+                    <td className="py-2 px-3 text-center font-bold text-text-secondary">{itemCount}</td>
                     <td className="py-2 px-3">
                       <StatusBadge status={ret.status} config={RETURN_STATUS} />
                     </td>
@@ -1724,7 +1724,7 @@ function RuecksendungenTab() {
                 </div>
                 <div>
                   <span className="text-text-muted">Referenz:</span>
-                  <span className="ml-2 text-text-primary font-mono">{detailReturn.reference || '\u2013'}</span>
+                  <span className="ml-2 text-text-primary">{detailReturn.reference || '\u2013'}</span>
                 </div>
                 <div>
                   <span className="text-text-muted">Spediteur:</span>
@@ -1732,7 +1732,7 @@ function RuecksendungenTab() {
                 </div>
                 <div>
                   <span className="text-text-muted">Tracking:</span>
-                  <span className="ml-2 text-text-primary font-mono">{detailReturn.tracking_number || '\u2013'}</span>
+                  <span className="ml-2 text-text-primary">{detailReturn.tracking_number || '\u2013'}</span>
                 </div>
                 {detailReturn.inspection_result && (
                   <div>

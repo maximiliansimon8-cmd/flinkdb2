@@ -1,14 +1,11 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
 
 const PRESETS = [
-  { label: '7T', days: 7 },
-  { label: '14T', days: 14 },
-  { label: '30T', days: 30 },
-  { label: '60T', days: 60 },
-  { label: '90T', days: 90 },
-  { label: '180T', days: 180 },
-  { label: '365T', days: 365 },
+  { label: '7 Tage', days: 7 },
+  { label: '14 Tage', days: 14 },
+  { label: '30 Tage', days: 30 },
+  { label: '90 Tage', days: 90 },
+  { label: '1 Jahr', days: 365 },
 ];
 
 function toInputValue(date) {
@@ -53,27 +50,23 @@ export default function DateRangePicker({
   };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <Calendar size={14} className="text-text-muted flex-shrink-0" />
-
-      {/* Preset buttons */}
-      <div className="flex gap-1">
+    <div className="flex items-center gap-2">
+      {/* Segmented control */}
+      <div className="flex bg-[#F5F5F7] rounded-lg p-0.5">
         {PRESETS.map((p) => (
           <button
             key={p.label}
             onClick={() => handlePreset(p.days)}
-            className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200 ${
               activePreset?.label === p.label
-                ? 'bg-[#007AFF] text-white'
-                : 'bg-surface-secondary/80 border border-border-secondary text-text-secondary hover:border-[#007AFF] hover:text-text-primary'
+                ? 'bg-white text-[#1D1D1F] shadow-sm'
+                : 'text-[#86868B] hover:text-[#1D1D1F]'
             }`}
           >
             {p.label}
           </button>
         ))}
       </div>
-
-      <div className="w-px h-5 bg-surface-tertiary mx-1" />
 
       {/* Custom date inputs */}
       <div className="flex items-center gap-1.5">
@@ -83,16 +76,16 @@ export default function DateRangePicker({
           min={toInputValue(dataEarliest)}
           max={toInputValue(rangeEnd || dataLatest)}
           onChange={(e) => onRangeChange(fromInputValue(e.target.value), rangeEnd)}
-          className="bg-surface-secondary/80 border border-border-secondary rounded px-2 py-1 text-xs font-mono text-text-primary focus:outline-none focus:border-[#007AFF] [color-scheme:light]"
+          className="bg-white border border-[#E8E8ED] rounded-lg px-2.5 py-1.5 text-[13px] text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] [color-scheme:light]"
         />
-        <span className="text-text-muted text-xs">–</span>
+        <span className="text-[#AEAEB2] text-[13px]">–</span>
         <input
           type="date"
           value={toInputValue(rangeEnd)}
           min={toInputValue(rangeStart || dataEarliest)}
           max={toInputValue(dataLatest)}
           onChange={(e) => onRangeChange(rangeStart, fromInputValue(e.target.value))}
-          className="bg-surface-secondary/80 border border-border-secondary rounded px-2 py-1 text-xs font-mono text-text-primary focus:outline-none focus:border-[#007AFF] [color-scheme:light]"
+          className="bg-white border border-[#E8E8ED] rounded-lg px-2.5 py-1.5 text-[13px] text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] [color-scheme:light]"
         />
       </div>
     </div>

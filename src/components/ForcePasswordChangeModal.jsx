@@ -155,7 +155,7 @@ export default function ForcePasswordChangeModal({ reason, currentPassword, onSu
                   onChange={(e) => { setOldPassword(e.target.value); setError(''); }}
                   placeholder={isFirstLogin ? 'Temporäres Passwort...' : 'Aktuelles Passwort...'}
                   autoFocus={!currentPassword}
-                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-10 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
+                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-10 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
                 />
                 <button
                   type="button"
@@ -178,7 +178,7 @@ export default function ForcePasswordChangeModal({ reason, currentPassword, onSu
                   onChange={(e) => { setNewPassword(e.target.value); setError(''); }}
                   placeholder="Neues Passwort (min. 8 Zeichen)..."
                   autoFocus={!!currentPassword}
-                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-10 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
+                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-10 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
                 />
                 <button
                   type="button"
@@ -203,7 +203,7 @@ export default function ForcePasswordChangeModal({ reason, currentPassword, onSu
                       />
                     ))}
                   </div>
-                  <p className="text-[10px] font-mono" style={{ color: strength.color }}>
+                  <p className="text-[10px]" style={{ color: strength.color }}>
                     {strength.label}
                   </p>
                 </div>
@@ -236,7 +236,7 @@ export default function ForcePasswordChangeModal({ reason, currentPassword, onSu
                   value={confirmPassword}
                   onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }}
                   placeholder="Neues Passwort wiederholen..."
-                  className={`w-full bg-surface-secondary/80 border rounded-lg pl-9 pr-10 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none transition-colors ${
+                  className={`w-full bg-surface-secondary/80 border rounded-lg pl-9 pr-10 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none transition-colors ${
                     confirmPassword && confirmPassword !== newPassword
                       ? 'border-[#FF3B30] focus:border-[#FF3B30]'
                       : 'border-border-secondary focus:border-[#007AFF]'
@@ -257,7 +257,7 @@ export default function ForcePasswordChangeModal({ reason, currentPassword, onSu
               {loading ? 'Wird geändert...' : 'Passwort ändern & Fortfahren'}
             </button>
 
-            <p className="text-[10px] text-text-muted font-mono text-center">
+            <p className="text-[10px] text-text-muted text-center">
               Passwort wird verschlüsselt gespeichert • Läuft nach 90 Tagen ab
             </p>
           </form>

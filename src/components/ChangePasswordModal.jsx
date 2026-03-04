@@ -94,7 +94,7 @@ export default function ChangePasswordModal({ onClose }) {
             <div>
               <h3 className="text-sm font-semibold text-text-primary">Passwort ändern</h3>
               {expiryDays !== null && (
-                <p className="text-[10px] text-text-muted font-mono mt-0.5">
+                <p className="text-[10px] text-text-muted mt-0.5">
                   Passwort läuft in {expiryDays} Tagen ab
                 </p>
               )}
@@ -136,7 +136,7 @@ export default function ChangePasswordModal({ onClose }) {
                   onChange={(e) => { setOldPassword(e.target.value); setError(''); }}
                   placeholder="Aktuelles Passwort..."
                   autoFocus
-                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-10 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
+                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-10 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
                 />
                 <button
                   type="button"
@@ -158,7 +158,7 @@ export default function ChangePasswordModal({ onClose }) {
                   value={newPassword}
                   onChange={(e) => { setNewPassword(e.target.value); setError(''); }}
                   placeholder="Neues Passwort (min. 8 Zeichen)..."
-                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-10 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
+                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-10 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
                 />
                 <button
                   type="button"
@@ -183,7 +183,7 @@ export default function ChangePasswordModal({ onClose }) {
                       />
                     ))}
                   </div>
-                  <p className="text-[10px] font-mono" style={{ color: strength.color }}>
+                  <p className="text-[10px]" style={{ color: strength.color }}>
                     {strength.label}
                   </p>
                   <div className="space-y-0.5 mt-1">
@@ -212,7 +212,7 @@ export default function ChangePasswordModal({ onClose }) {
                   value={confirmPassword}
                   onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }}
                   placeholder="Neues Passwort wiederholen..."
-                  className={`w-full bg-surface-secondary/80 border rounded-lg pl-9 pr-10 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none transition-colors ${
+                  className={`w-full bg-surface-secondary/80 border rounded-lg pl-9 pr-10 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none transition-colors ${
                     confirmPassword && confirmPassword !== newPassword
                       ? 'border-[#FF3B30] focus:border-[#FF3B30]'
                       : 'border-border-secondary focus:border-[#007AFF]'
@@ -242,7 +242,7 @@ export default function ChangePasswordModal({ onClose }) {
               </button>
             </div>
 
-            <p className="text-[10px] text-text-muted font-mono text-center">
+            <p className="text-[10px] text-text-muted text-center">
               Passwort verschlüsselt gespeichert • Letzte 5 Passwörter nicht wiederverwendbar • Ablauf: 90 Tage
             </p>
           </form>

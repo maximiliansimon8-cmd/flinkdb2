@@ -411,7 +411,7 @@ function AkquiseDetailSection({ airtableId, bookingId }) {
       {/* Kommentare from API */}
       {(d.akquiseKommentar || d.akquise_comment) && (
         <div className="mt-2">
-          <div className="text-[10px] font-semibold text-status-warning uppercase tracking-wider mb-0.5">Akquise Kommentar</div>
+          <div className="text-[10px] font-semibold text-status-warning mb-0.5">Akquise Kommentar</div>
           <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-orange-100">
             {d.akquiseKommentar || d.akquise_comment}
           </div>
@@ -754,7 +754,7 @@ export default function UnifiedStandortDetail({
                       type="tel"
                       value={phoneValue}
                       onChange={e => setPhoneValue(e.target.value)}
-                      className="w-full px-2 py-1 text-sm font-mono border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20"
+                      className="w-full px-2 py-1 text-sm border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20"
                       placeholder="+49..."
                       autoFocus
                     />
@@ -776,7 +776,7 @@ export default function UnifiedStandortDetail({
                   </div>
                 ) : s.contactPhone ? (
                   <div className="flex items-center gap-1">
-                    <a href={`tel:${s.contactPhone}`} className="text-text-primary font-mono text-sm hover:text-cyan-600 transition-colors">
+                    <a href={`tel:${s.contactPhone}`} className="text-text-primary text-sm hover:text-cyan-600 transition-colors">
                       {s.contactPhone}
                     </a>
                     {showPhoneEdit && onPhoneUpdate && (
@@ -815,7 +815,7 @@ export default function UnifiedStandortDetail({
               {s.jetId && !s.jetId.startsWith('rec') && (
                 <div>
                   <div className="text-text-muted text-xs">JET ID</div>
-                  <div className="text-text-primary font-mono text-sm">{s.jetId}</div>
+                  <div className="text-text-primary text-sm">{s.jetId}</div>
                 </div>
               )}
             </div>
@@ -1050,7 +1050,7 @@ export default function UnifiedStandortDetail({
                 <ExternalLink size={11} /> Buchungslink
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex-1 min-w-0 text-[11px] font-mono text-blue-800 bg-surface-primary px-2.5 py-1.5 rounded-lg border border-blue-100 truncate">
+                <div className="flex-1 min-w-0 text-[11px] text-blue-800 bg-surface-primary px-2.5 py-1.5 rounded-lg border border-blue-100 truncate">
                   {bookingUrl}
                 </div>
                 <button
@@ -1241,25 +1241,25 @@ export default function UnifiedStandortDetail({
               </h4>
               {s.akquiseKommentar && (
                 <div>
-                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Akquise</div>
+                  <div className="text-[10px] font-semibold text-sky-500 mb-0.5">Akquise</div>
                   <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-sky-100">{s.akquiseKommentar}</div>
                 </div>
               )}
               {s.akquiseKommentarUpdate && (
                 <div>
-                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Akquise Update</div>
+                  <div className="text-[10px] font-semibold text-sky-500 mb-0.5">Akquise Update</div>
                   <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-sky-100">{s.akquiseKommentarUpdate}</div>
                 </div>
               )}
               {s.kommentarInstallationen && (
                 <div>
-                  <div className="text-[10px] font-semibold text-violet-500 uppercase tracking-wider mb-0.5">Installation</div>
+                  <div className="text-[10px] font-semibold text-violet-500 mb-0.5">Installation</div>
                   <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-violet-100">{s.kommentarInstallationen}</div>
                 </div>
               )}
               {s.frequencyApprovalComment && (
                 <div>
-                  <div className="text-[10px] font-semibold text-status-warning uppercase tracking-wider mb-0.5">FAW Kommentar</div>
+                  <div className="text-[10px] font-semibold text-status-warning mb-0.5">FAW Kommentar</div>
                   <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-amber-100">{s.frequencyApprovalComment}</div>
                 </div>
               )}
