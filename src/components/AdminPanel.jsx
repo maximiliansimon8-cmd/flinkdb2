@@ -1154,7 +1154,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             <button
               key={sec.id}
               onClick={() => setActiveSection(sec.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all shrink-0 whitespace-nowrap justify-center ${
                 isActive
                   ? 'bg-white/80 text-slate-900 shadow-sm border border-slate-200/60'
                   : 'text-slate-500 hover:text-slate-600'
