@@ -71,6 +71,7 @@ const DisplayTable = lazy(() => import('./components/DisplayTable'));
 const DisplayDetail = lazy(() => import('./components/DisplayDetail'));
 const NewDisplayWatchlist = lazy(() => import('./components/NewDisplayWatchlist'));
 const OverviewHealthPatterns = lazy(() => import('./components/OverviewHealthPatterns'));
+const OverviewDisplayHealth = lazy(() => import('./components/OverviewDisplayHealth'));
 const TaskDashboard = lazy(() => import('./components/TaskDashboard'));
 const CommunicationDashboard = lazy(() => import('./components/CommunicationDashboard'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
@@ -1276,22 +1277,37 @@ function App() {
         });
       }
 
-      // Expand each daily data point into hourly snapshots (06:00-22:00)
-      // so that computeHourHealth() and computeHeatmap() in OverviewHealthPatterns work.
-      const expanded = [];
+      // Day-level trend data for HealthTrendChart and computeKPIs.
+      // Each entry keeps its real totalOnlineHours/totalExpectedHours from the RPC.
+      const dailyTrend = filteredTrend.map(t => {
+        const [y, m, d] = (t.dayKey || '').split('-').map(Number);
+        return {
+          ...t,
+          timestamp: y && m && d ? new Date(y, m - 1, d, 12, 0) : new Date(),
+          // RPC trend provides per-day online hours via healthRate * total * 16h
+          totalOnlineHours: t.healthRate != null && t.total
+            ? (t.healthRate / 100) * t.total * 16
+            : (t.online || 0) * 16,
+          totalExpectedHours: (t.total || 0) * 16,
+        };
+      });
+      base.trendData = dailyTrend;
+
+      // Expanded hourly snapshots for OverviewHealthPatterns (heatmap, hour chart).
+      // Each day is expanded into 17 hourly entries (06:00-22:00).
+      const expandedForPatterns = [];
       filteredTrend.forEach(t => {
         const [y, m, d] = (t.dayKey || '').split('-').map(Number);
         if (!y || !m || !d) return;
         for (let hour = 6; hour <= 22; hour++) {
-          expanded.push({
+          expandedForPatterns.push({
             ...t,
             timestamp: new Date(y, m - 1, d, hour, 0),
-            totalOnlineHours: t.online || 0,
-            totalExpectedHours: t.total || 0,
           });
         }
       });
-      base.trendData = expanded;
+      base.snapshotTrendData = expandedForPatterns;
+
       // Store actual day count for correct "Ø X Tage" display
       base._rpcDayCount = filteredTrend.length;
     }
@@ -1382,9 +1398,8 @@ function App() {
     const base = computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
     if (!base) return null;
 
-    // Fix snapshotCount: expanded hourly entries inflate the count (31 days × 17h = 527)
-    // Use actual day count from RPC trend data
-    if (rawData._rpcDayCount) {
+    // Fix snapshotCount: use actual day count from RPC trend data
+    if (rawData._rpcDayCount != null) {
       base.snapshotCount = rawData._rpcDayCount;
     }
 
@@ -1434,7 +1449,8 @@ function App() {
       base.installed = rpcSnapshot.installed ?? base.totalActive;
       base.heartbeatTotal = rpcSnapshot.heartbeatTotal ?? (base.installed - daynTotal);
       base.totalActive = (rpcSnapshot.installed ?? base.totalActive) - (base.permanentOfflineCount ?? 0);
-      base.neverOnlineCount = 0;
+      // Compute neverOnlineCount from actual display data (not hardcoded to 0)
+      base.neverOnlineCount = rawData.displays.filter(d => d.isActive && d.status === 'never_online').length;
       base.daynTotal = daynTotal;
       base.daynOnline = daynOnline;
 
@@ -1457,7 +1473,7 @@ function App() {
         base.avgWarning = Math.round(rpcTrend.reduce((s, t) => s + (t.warningCount || 0), 0) / rpcTrend.length);
         base.avgCritical = Math.round(rpcTrend.reduce((s, t) => s + (t.criticalCount || 0), 0) / rpcTrend.length);
         base.avgPermanentOffline = Math.round(rpcTrend.reduce((s, t) => s + (t.permanentOfflineCount || 0), 0) / rpcTrend.length);
-        base.avgNeverOnline = 0;
+        base.avgNeverOnline = base.neverOnlineCount;
       }
     } else {
       // Non-RPC fallback: Dayn screens are separate, add them manually
@@ -2819,14 +2835,14 @@ function App() {
                       rangeLabel={rangeLabel}
                       comparisonHealthRate={comparisonHealthRate}
                       comparisonTrendData={comparisonTrendData}
-                      rangeStart={rangeStart}
-                      rangeEnd={rangeEnd}
-                      dataEarliest={dataEarliest}
-                      dataLatest={dataLatest}
-                      onRangeChange={handleRangeChange}
                     />
 
-                    <OverviewHealthPatterns trendData={csvCacheRef._rpcTrendData ? rawData.trendData : (rawData.snapshotTrendData || rawData.trendData)} rangeLabel={rangeLabel} />
+                    <OverviewHealthPatterns trendData={rawData.snapshotTrendData || rawData.trendData} rangeLabel={rangeLabel} />
+
+                    <OverviewDisplayHealth
+                      displays={rawData.displays}
+                      onSelectDisplay={setSelectedDisplay}
+                    />
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                       <OfflineDistributionChart distribution={distribution} />
