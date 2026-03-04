@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 import { supabase } from '../utils/authService';
 
+/** Top 5 Grossstaedte fuer Akquise-Freigabe Filter */
+const TOP5_CITIES = ['berlin', 'hamburg', 'münchen', 'muenchen', 'munich', 'köln', 'koeln', 'cologne', 'frankfurt'];
+
 /** Fields to compare for change detection — all core data fields */
 const COMPARE_FIELDS = [
   'name', 'street', 'street_number', 'postcode', 'city',
@@ -188,6 +191,8 @@ export default function StammdatenImport() {
           regular_close_time_weekdend: row.regular_close_time_weekdend || '',
           weekend_close_time: row.weekend_close_time || '',
           closed_days: row.closed_days || '',
+          // Akquise
+          zur_akquise_freigegeben: row.zur_akquise_freigegeben || false,
           // Linked records (for display, not comparison)
           display_ids: row.display_ids || [],
           lead_status: row.lead_status || [],
@@ -505,6 +510,69 @@ export default function StammdatenImport() {
     setImportProgress(null);
   }, []);
 
+  // ── Akquise-Freigabe state ──
+  const [freigabeStep, setFreigabeStep] = useState(null); // null | 'confirm' | 'running' | 'done'
+  const [freigabeResult, setFreigabeResult] = useState(null);
+
+  /** Records eligible for Akquise-Freigabe: non-chain + top 5 city + not already freigegeben */
+  const freigabeEligible = useMemo(() => {
+    if (!airtableData) return [];
+    const eligible = [];
+    for (const [id, rec] of airtableData) {
+      // Skip if already freigegeben
+      if (rec.zur_akquise_freigegeben) continue;
+      // Non-chain only (empty jet_chain)
+      if (rec.jet_chain && rec.jet_chain.trim() !== '') continue;
+      // Top 5 city check
+      const cityNorm = (rec.city || '').toLowerCase().trim();
+      if (!TOP5_CITIES.some(c => cityNorm.includes(c))) continue;
+      // Must have airtable_id
+      if (!rec.airtable_id) continue;
+      eligible.push(rec);
+    }
+    return eligible;
+  }, [airtableData]);
+
+  /** Run Akquise-Freigabe with double-verify */
+  const runAkquiseFreigabe = useCallback(async () => {
+    if (freigabeEligible.length === 0) return;
+
+    setFreigabeStep('running');
+    setFreigabeResult(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Nicht eingeloggt. Bitte zuerst anmelden.');
+        setFreigabeStep('confirm');
+        return;
+      }
+
+      const records = freigabeEligible.map(r => ({
+        airtable_id: r.airtable_id,
+        jet_id: r.id,
+      }));
+
+      const res = await fetch('/.netlify/functions/stammdaten-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: 'akquise-freigabe', records }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Freigabe fehlgeschlagen');
+
+      setFreigabeResult(data);
+      setFreigabeStep('done');
+    } catch (err) {
+      setError(`Akquise-Freigabe fehlgeschlagen: ${err.message}`);
+      setFreigabeStep('confirm');
+    }
+  }, [freigabeEligible]);
+
   /** Count of importable records */
   const importableCount = useMemo(() => {
     if (!comparison) return { updates: 0, creates: 0, total: 0 };
@@ -811,6 +879,165 @@ export default function StammdatenImport() {
               </div>
             )}
           </div>
+
+          {/* ── Akquise-Freigabe Panel ── */}
+          {airtableData && freigabeEligible.length > 0 && (
+            <div className="bg-white/60 backdrop-blur-xl border border-orange-200/60 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-orange-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">Akquise-Freigabe: Non-Chain + Top-5-Grossstaedte</h3>
+                </div>
+                {freigabeStep && freigabeStep !== 'done' && (
+                  <button onClick={() => { setFreigabeStep(null); setFreigabeResult(null); }} className="text-xs text-gray-500 hover:text-gray-700">Abbrechen</button>
+                )}
+              </div>
+
+              {/* Pre-confirm: show eligible records */}
+              {!freigabeStep && (
+                <div className="space-y-3">
+                  <div className="bg-orange-50/80 rounded-xl px-4 py-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold text-orange-800">{freigabeEligible.length} Standorte bereit zur Freigabe</p>
+                      <div className="flex gap-1">
+                        <Badge color="green">Non-Chain</Badge>
+                        <Badge color="blue">Top 5 City</Badge>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-orange-600">
+                      Filter: Kein JET Chain + Stadt in Berlin/Hamburg/Muenchen/Koeln/Frankfurt + noch nicht freigegeben
+                    </p>
+                  </div>
+
+                  {/* Preview list (max 20) */}
+                  <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 rounded-xl border border-slate-200/60">
+                    {freigabeEligible.slice(0, 20).map(rec => (
+                      <div key={rec.id} className="px-3 py-2 flex items-center gap-3 text-xs">
+                        <span className="font-mono text-gray-400 w-16 flex-shrink-0">{rec.id}</span>
+                        <span className="font-medium text-gray-900 flex-1 truncate">{rec.name}</span>
+                        <span className="text-gray-500">{rec.city}</span>
+                        <span className="text-gray-400">{rec.street} {rec.street_number}</span>
+                      </div>
+                    ))}
+                    {freigabeEligible.length > 20 && (
+                      <div className="px-3 py-2 text-center text-[10px] text-gray-400">
+                        ... und {freigabeEligible.length - 20} weitere
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setFreigabeStep('confirm')}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                  >
+                    <Shield size={16} /> {freigabeEligible.length} Standorte zur Akquise freigeben
+                  </button>
+                </div>
+              )}
+
+              {/* Confirm step (double verify) */}
+              {freigabeStep === 'confirm' && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-red-800">Double-Verify Bestaetigung</p>
+                      <p className="text-xs text-red-700 mt-1">
+                        {freigabeEligible.length} Standorte werden in Airtable als "Zur Akquise freigegeben" markiert.
+                        Jeder Record wird vor dem Schreiben nochmal gegen Airtable geprueft (Double-Verify):
+                      </p>
+                      <ul className="text-[10px] text-red-600 mt-1.5 space-y-0.5 list-disc list-inside">
+                        <li>Nicht bereits freigegeben?</li>
+                        <li>Wirklich kein Chain?</li>
+                        <li>Record existiert in Airtable?</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={runAkquiseFreigabe}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                    >
+                      <Zap size={14} /> Ja, {freigabeEligible.length} freigeben (Double-Verify)
+                    </button>
+                    <button
+                      onClick={() => setFreigabeStep(null)}
+                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Running */}
+              {freigabeStep === 'running' && (
+                <div className="flex items-center justify-center gap-3 py-6">
+                  <Loader2 size={20} className="text-orange-500 animate-spin" />
+                  <span className="text-sm text-gray-600">
+                    Double-Verify + Freigabe fuer {freigabeEligible.length} Records...
+                  </span>
+                </div>
+              )}
+
+              {/* Done */}
+              {freigabeStep === 'done' && freigabeResult && (
+                <div className="space-y-3">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 size={16} className="text-emerald-600" />
+                      <span className="text-sm font-semibold text-emerald-800">Akquise-Freigabe abgeschlossen</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                        <p className="font-bold text-emerald-700">{freigabeResult.summary.success}</p>
+                        <p className="text-emerald-600">Freigegeben</p>
+                      </div>
+                      <div className={`bg-white/70 rounded-lg px-3 py-2 text-center ${freigabeResult.summary.failed > 0 ? 'border border-red-200' : ''}`}>
+                        <p className={`font-bold ${freigabeResult.summary.failed > 0 ? 'text-red-700' : 'text-gray-400'}`}>{freigabeResult.summary.failed}</p>
+                        <p className="text-gray-600">Fehlgeschlagen</p>
+                      </div>
+                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                        <p className="font-bold text-amber-700">{freigabeResult.summary.skipped}</p>
+                        <p className="text-gray-600">Double-Verify Skipped</p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-emerald-600 mt-2">
+                      Von: {freigabeResult.user}
+                    </p>
+                  </div>
+
+                  {/* Skipped details */}
+                  {freigabeResult.skipped?.length > 0 && (
+                    <div className="max-h-36 overflow-y-auto space-y-1">
+                      <p className="text-xs font-semibold text-amber-700">Double-Verify uebersprungen:</p>
+                      {freigabeResult.skipped.map((s, i) => (
+                        <div key={i} className="flex items-center gap-2 text-xs px-3 py-1.5 bg-amber-50 rounded-lg">
+                          <AlertTriangle size={12} className="text-amber-500" />
+                          <span className="font-mono text-gray-600">{s.jet_id}</span>
+                          <span className="text-amber-700">{s.reason}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => { setFreigabeStep(null); setFreigabeResult(null); }}
+                    className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors"
+                  >
+                    Fertig
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Show count when no eligible records */}
+          {airtableData && freigabeEligible.length === 0 && !comparison && (
+            <div className="bg-gray-50/60 border border-slate-200/60 rounded-2xl p-4 text-center">
+              <p className="text-xs text-gray-500">Keine Standorte fuer Akquise-Freigabe gefunden (Non-Chain + Top-5-Stadt + noch nicht freigegeben)</p>
+            </div>
+          )}
 
           {/* ── Import Panel ── */}
           {importableCount.total > 0 && (

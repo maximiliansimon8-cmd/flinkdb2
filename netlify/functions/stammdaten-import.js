@@ -352,7 +352,119 @@ export default async (request, context) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Unbekannte Aktion. Erlaubt: validate, import' }), {
+    // ── ACTION: akquise-freigabe ──
+    // Sets "Zur Akquise freigegeben?" checkbox + date + user in Airtable
+    // Double-verify: checks each record before writing
+    if (action === 'akquise-freigabe') {
+      if (!inputRecords || inputRecords.length === 0) {
+        return new Response(JSON.stringify({ error: 'Keine Records zur Freigabe' }), {
+          status: 400, headers: { ...cors, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (inputRecords.length > 200) {
+        return new Response(JSON.stringify({ error: 'Maximal 200 Records pro Freigabe-Batch' }), {
+          status: 400, headers: { ...cors, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      const results = [];
+      const skippedFreigabe = [];
+
+      // Double-verify: fetch each record from Airtable first to confirm state
+      for (let i = 0; i < inputRecords.length; i += AIRTABLE_BATCH_SIZE) {
+        const batch = inputRecords.slice(i, i + AIRTABLE_BATCH_SIZE);
+        const verifiedBatch = [];
+
+        // Verify each record in batch
+        for (const rec of batch) {
+          if (!rec.airtable_id) {
+            skippedFreigabe.push({ jet_id: rec.jet_id, reason: 'Keine Airtable-ID' });
+            continue;
+          }
+
+          // Fetch current state from Airtable
+          const verifyRes = await fetch(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE}/${STAMMDATEN_TABLE}/${rec.airtable_id}?fields[]=${encodeURIComponent(SF.ZUR_AKQUISE_FREIGEGEBEN)}&fields[]=${encodeURIComponent(SF.JET_CHAIN)}&fields[]=${encodeURIComponent(SF.CITY)}`,
+            { headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` } }
+          );
+
+          if (!verifyRes.ok) {
+            skippedFreigabe.push({ jet_id: rec.jet_id, reason: `Airtable Verify fehlgeschlagen (${verifyRes.status})` });
+            continue;
+          }
+
+          const verifyData = await verifyRes.json();
+          const fields = verifyData.fields || {};
+
+          // Double-check: should NOT already be freigegeben
+          if (fields[SF.ZUR_AKQUISE_FREIGEGEBEN] === true || fields[SF.ZUR_AKQUISE_FREIGEGEBEN] === 'checked') {
+            skippedFreigabe.push({ jet_id: rec.jet_id, reason: 'Bereits freigegeben' });
+            continue;
+          }
+
+          // Double-check: should be non-chain (empty jet_chain)
+          if (fields[SF.JET_CHAIN] && String(fields[SF.JET_CHAIN]).trim() !== '') {
+            skippedFreigabe.push({ jet_id: rec.jet_id, reason: `Ist Chain: ${fields[SF.JET_CHAIN]}` });
+            continue;
+          }
+
+          verifiedBatch.push(rec);
+        }
+
+        if (verifiedBatch.length === 0) continue;
+
+        // Write verified batch
+        const patchResult = await airtableBatch('PATCH', verifiedBatch.map(r => ({
+          airtable_id: r.airtable_id,
+          fields: {
+            [SF.ZUR_AKQUISE_FREIGEGEBEN]: true,
+            [SF.AKQUISE_FREIGABEDATUM]: today,
+            [SF.AKQUISE_FREIGEGEBEN_VON]: user.email,
+          },
+        })));
+
+        logApiCall({
+          functionName: 'stammdaten-import', service: 'airtable', method: 'PATCH',
+          endpoint: 'stammdaten/akquise-freigabe', durationMs: Date.now() - apiStart,
+          statusCode: patchResult.ok ? 200 : 500, success: patchResult.ok,
+        });
+
+        if (patchResult.ok) {
+          results.push(...verifiedBatch.map((r, idx) => ({
+            jet_id: r.jet_id, ok: true, airtable_id: patchResult.records[idx]?.id,
+          })));
+        } else {
+          results.push(...verifiedBatch.map(r => ({
+            jet_id: r.jet_id, ok: false, error: patchResult.error,
+          })));
+        }
+
+        // Rate limit pause between batches
+        if (i + AIRTABLE_BATCH_SIZE < inputRecords.length) {
+          await new Promise(r => setTimeout(r, 300));
+        }
+      }
+
+      const success = results.filter(r => r.ok).length;
+      const failed = results.filter(r => !r.ok).length;
+
+      console.log(`[stammdaten-import] Akquise-Freigabe by ${user.email}: ${success} freigegeben, ${failed} failed, ${skippedFreigabe.length} skipped (double-verify)`);
+
+      return new Response(JSON.stringify({
+        action: 'akquise-freigabe',
+        user: user.email,
+        summary: { success, failed, skipped: skippedFreigabe.length },
+        results,
+        skipped: skippedFreigabe,
+      }), {
+        status: 200,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Unbekannte Aktion. Erlaubt: validate, import, akquise-freigabe' }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' },
     });
 
