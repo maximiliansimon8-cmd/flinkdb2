@@ -4,7 +4,7 @@ import {
   MapPin, FileText, AlertTriangle,
   CheckCircle2, XCircle, TrendingUp, Building2,
   ChevronDown, ExternalLink, Zap, ArrowUpRight, ArrowDownRight,
-  Bot, Link2, Copy, Check,
+  Bot, Link2, Copy, Check, Calendar, Bell, Inbox,
 } from 'lucide-react';
 import {
   Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -141,6 +141,7 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   const [fawLoading, setFawLoading] = useState(false);
   const [fawLink, setFawLink] = useState(null);
   const [fawCopied, setFawCopied] = useState(false);
+  const [installBookings, setInstallBookings] = useState([]);
 
   const handleGenerateFawLink = useCallback(async () => {
     if (!fawReviewer.trim()) return;
@@ -186,6 +187,22 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Load install bookings summary for admin pipeline view
+  const userIsAdmin = canAccessTab('admin');
+  useEffect(() => {
+    if (!userIsAdmin) return;
+    (async () => {
+      try {
+        const { data: bookings } = await supabase
+          .from('install_bookings')
+          .select('status,reminder_count,booked_date,whatsapp_sent_at');
+        setInstallBookings(bookings || []);
+      } catch (err) {
+        console.error('[AcquisitionDashboard] Install bookings load failed:', err);
+      }
+    })();
+  }, [userIsAdmin]);
 
   /* ─── Derived Data ─── */
   const { cities, statuses, partners, acquirers } = useMemo(() => {
@@ -669,7 +686,8 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   // Total live = only leadStatus "Live" (actually operational), no Installation or Stornos
   const totalLive = useMemo(() => data.filter(r => recordIsLive(r) && !isStorno(r)).length, [data]);
 
-  const showAutomation = (canAccessTab('akquise-automation') || canAccessTab('admin')) && isFeatureEnabled('tab_akquise_automation');
+  const isUserAdmin = canAccessTab('admin');
+  const showAutomation = (canAccessTab('akquise-automation') || isUserAdmin) && (isUserAdmin || isFeatureEnabled('tab_akquise_automation'));
 
   const sections = [
     { id: 'netzwerk', label: '🎯 Netzwerk-Aufbau' },
@@ -1373,6 +1391,99 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
               </div>
             )}
           </div>
+
+          {/* ─── Installations-Pipeline (Admin only) ─── */}
+          {userIsAdmin && (
+            <div className="bg-white/60 backdrop-blur-xl border border-orange-200/60 rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center">
+                  <Calendar size={16} className="text-orange-600" />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900">Installations-Pipeline</h3>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-orange-100 text-orange-600">Admin</span>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Aufbaubereit */}
+                <button
+                  onClick={() => { window.location.hash = '#installations/ready'; }}
+                  className="bg-cyan-50/80 rounded-xl px-4 py-3 text-left hover:bg-cyan-100/80 transition-colors group"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 size={14} className="text-cyan-600" />
+                    <p className="text-[11px] text-gray-500 font-medium">Aufbaubereit</p>
+                  </div>
+                  <p className="text-2xl font-bold text-cyan-700">{kpis.readyForInstall}</p>
+                  <p className="text-[10px] text-gray-400 group-hover:text-cyan-600 transition-colors">→ Details anzeigen</p>
+                </button>
+
+                {/* Eingeladen / Ausstehend */}
+                <button
+                  onClick={() => { window.location.hash = '#installations/bookings'; }}
+                  className="bg-amber-50/80 rounded-xl px-4 py-3 text-left hover:bg-amber-100/80 transition-colors group"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Inbox size={14} className="text-amber-600" />
+                    <p className="text-[11px] text-gray-500 font-medium">Ausstehend</p>
+                  </div>
+                  <p className="text-2xl font-bold text-amber-700">
+                    {installBookings.filter(b => b.status === 'pending').length}
+                  </p>
+                  <p className="text-[10px] text-gray-400 group-hover:text-amber-600 transition-colors">→ Buchungen anzeigen</p>
+                </button>
+
+                {/* Termine diese Woche */}
+                {(() => {
+                  const today = new Date();
+                  const dayOfWeek = today.getDay();
+                  const monday = new Date(today);
+                  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+                  const sunday = new Date(monday);
+                  sunday.setDate(monday.getDate() + 6);
+                  const monStr = monday.toLocaleDateString('sv-SE');
+                  const sunStr = sunday.toLocaleDateString('sv-SE');
+                  const thisWeek = installBookings.filter(b =>
+                    (b.status === 'booked' || b.status === 'confirmed') &&
+                    b.booked_date && b.booked_date >= monStr && b.booked_date <= sunStr
+                  ).length;
+                  return (
+                    <button
+                      onClick={() => { window.location.hash = '#installations/calendar'; }}
+                      className="bg-emerald-50/80 rounded-xl px-4 py-3 text-left hover:bg-emerald-100/80 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar size={14} className="text-emerald-600" />
+                        <p className="text-[11px] text-gray-500 font-medium">Termine diese Woche</p>
+                      </div>
+                      <p className="text-2xl font-bold text-emerald-700">{thisWeek}</p>
+                      <p className="text-[10px] text-gray-400 group-hover:text-emerald-600 transition-colors">→ Kalender anzeigen</p>
+                    </button>
+                  );
+                })()}
+
+                {/* Reminder fällig */}
+                {(() => {
+                  const cutoff = Date.now() - 22 * 60 * 60 * 1000;
+                  const due = installBookings.filter(b =>
+                    b.status === 'pending' && b.reminder_count === 0 && b.whatsapp_sent_at &&
+                    new Date(b.whatsapp_sent_at).getTime() < cutoff
+                  ).length;
+                  return (
+                    <button
+                      onClick={() => { window.location.hash = '#installations/bookings'; }}
+                      className="bg-red-50/80 rounded-xl px-4 py-3 text-left hover:bg-red-100/80 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Bell size={14} className="text-red-600" />
+                        <p className="text-[11px] text-gray-500 font-medium">Reminder faellig</p>
+                      </div>
+                      <p className="text-2xl font-bold text-red-700">{due}</p>
+                      <p className="text-[10px] text-gray-400 group-hover:text-red-600 transition-colors">→ Buchungen anzeigen</p>
+                    </button>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

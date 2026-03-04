@@ -625,16 +625,9 @@ export function mapInstallationstermin(rec) {
     stammdaten_links: ensureArray(f[IT.STAMMDATEN]),
     installationen_links: ensureArray(f[IT.INSTALLATIONEN]),
     status_installation: ensureArray(f[IT.STATUS_INSTALLATION]),
-    // Partner / Integrator / Technician lookups (from linked Installationen & Akquise)
-    integrator: ensureArray(f[IT.INTEGRATOR]),
-    technicians: ensureArray(f[IT.TECHNICIANS]),
-    installationsart: ensureArray(f[IT.INSTALLATIONSART]),
-    aufbau_datum: ensureArray(f[IT.AUFBAU_DATUM]),
-    abnahme_partner: ensureArray(f[IT.ABNAHME_PARTNER]),
-    acquisition_partner: ensureArray(f[IT.ACQUISITION_PARTNER]),
-    // Contact lookups from Stammdaten
-    contact_person: ensureArray(f[IT.CONTACT_PERSON]),
-    contact_phone: ensureArray(f[IT.CONTACT_PHONE]),
+    // NOTE: Partner/Integrator/Technician lookup fields were removed from Airtable Installationstermine.
+    // Previously synced: integrator, technicians, installationsart, aufbau_datum,
+    // abnahme_partner, acquisition_partner, contact_person, contact_phone
     // Audit fields
     created_at: f[IT.CREATED] || null,
     created_by: f[IT.CREATED_BY]?.name || f[IT.CREATED_BY] || null,

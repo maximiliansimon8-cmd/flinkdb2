@@ -71,6 +71,7 @@ const DisplayTable = lazy(() => import('./components/DisplayTable'));
 const DisplayDetail = lazy(() => import('./components/DisplayDetail'));
 const NewDisplayWatchlist = lazy(() => import('./components/NewDisplayWatchlist'));
 const OverviewHealthPatterns = lazy(() => import('./components/OverviewHealthPatterns'));
+const OverviewDisplayHealth = lazy(() => import('./components/OverviewDisplayHealth'));
 const TaskDashboard = lazy(() => import('./components/TaskDashboard'));
 const CommunicationDashboard = lazy(() => import('./components/CommunicationDashboard'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
@@ -90,6 +91,7 @@ const MobileActivityFeed = lazy(() => import('./components/MobileActivityFeed'))
 const QRHardwareScanner = lazy(() => import('./components/QRHardwareScanner'));
 const FAWCheckApp = lazy(() => import('./components/FAWCheckApp'));
 const DisplayTrends = lazy(() => import('./components/DisplayTrends'));
+const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'));
 // InstallationInspection moved to HardwareDashboard as sub-tab "Freigabe"
 import MobileBottomNav from './components/MobileBottomNav';
 import { fetchVenuePerformance } from './utils/vistarService';
@@ -235,12 +237,12 @@ function App() {
   const [selectedDisplay, setSelectedDisplay] = useState(null);
   // Hash-based routing: read initial tab from URL hash (supports #main/sub format)
   const SUB_TAB_DEFAULTS = useMemo(() => ({
-    admin:         { valid: ['users','groups','audit','feedback','api-usage','attachments','feature-flags','data-mapping','api-overview'], default: 'users' },
+    admin:         { valid: ['users','groups','audit','feedback','api-usage','attachments','feature-flags','data-mapping','api-overview','stammdaten-import'], default: 'users' },
     hardware:      { valid: ['ops','completeness','leasing','orders','bestellwesen','wareneingang','lager-versand','qr-codes','positionen','tracking','nocodb','timeline','fehler','data-quality'], default: 'ops' },
     acquisition:   { valid: ['netzwerk','overview','pipeline','storno','automation'], default: 'netzwerk' },
     installations: { valid: ['executive','calendar','invite','phone','bookings'], default: 'executive' },
   }), []);
-  const validTabs = useMemo(() => ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app'], []);
+  const validTabs = useMemo(() => ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app', 'display-trends', 'faw'], []);
   const parseHash = useCallback(() => {
     const raw = window.location.hash.replace('#', '');
     const [mainPart, subPart] = raw.split('/');
@@ -1275,22 +1277,37 @@ function App() {
         });
       }
 
-      // Expand each daily data point into hourly snapshots (06:00-22:00)
-      // so that computeHourHealth() and computeHeatmap() in OverviewHealthPatterns work.
-      const expanded = [];
+      // Day-level trend data for HealthTrendChart and computeKPIs.
+      // Each entry keeps its real totalOnlineHours/totalExpectedHours from the RPC.
+      const dailyTrend = filteredTrend.map(t => {
+        const [y, m, d] = (t.dayKey || '').split('-').map(Number);
+        return {
+          ...t,
+          timestamp: y && m && d ? new Date(y, m - 1, d, 12, 0) : new Date(),
+          // RPC trend provides per-day online hours via healthRate * total * 16h
+          totalOnlineHours: t.healthRate != null && t.total
+            ? (t.healthRate / 100) * t.total * 16
+            : (t.online || 0) * 16,
+          totalExpectedHours: (t.total || 0) * 16,
+        };
+      });
+      base.trendData = dailyTrend;
+
+      // Expanded hourly snapshots for OverviewHealthPatterns (heatmap, hour chart).
+      // Each day is expanded into 17 hourly entries (06:00-22:00).
+      const expandedForPatterns = [];
       filteredTrend.forEach(t => {
         const [y, m, d] = (t.dayKey || '').split('-').map(Number);
         if (!y || !m || !d) return;
         for (let hour = 6; hour <= 22; hour++) {
-          expanded.push({
+          expandedForPatterns.push({
             ...t,
             timestamp: new Date(y, m - 1, d, hour, 0),
-            totalOnlineHours: t.online || 0,
-            totalExpectedHours: t.total || 0,
           });
         }
       });
-      base.trendData = expanded;
+      base.snapshotTrendData = expandedForPatterns;
+
       // Store actual day count for correct "Ø X Tage" display
       base._rpcDayCount = filteredTrend.length;
     }
@@ -1381,9 +1398,8 @@ function App() {
     const base = computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
     if (!base) return null;
 
-    // Fix snapshotCount: expanded hourly entries inflate the count (31 days × 17h = 527)
-    // Use actual day count from RPC trend data
-    if (rawData._rpcDayCount) {
+    // Fix snapshotCount: use actual day count from RPC trend data
+    if (rawData._rpcDayCount != null) {
       base.snapshotCount = rawData._rpcDayCount;
     }
 
@@ -1433,7 +1449,8 @@ function App() {
       base.installed = rpcSnapshot.installed ?? base.totalActive;
       base.heartbeatTotal = rpcSnapshot.heartbeatTotal ?? (base.installed - daynTotal);
       base.totalActive = (rpcSnapshot.installed ?? base.totalActive) - (base.permanentOfflineCount ?? 0);
-      base.neverOnlineCount = 0;
+      // Compute neverOnlineCount from actual display data (not hardcoded to 0)
+      base.neverOnlineCount = rawData.displays.filter(d => d.isActive && d.status === 'never_online').length;
       base.daynTotal = daynTotal;
       base.daynOnline = daynOnline;
 
@@ -1456,7 +1473,7 @@ function App() {
         base.avgWarning = Math.round(rpcTrend.reduce((s, t) => s + (t.warningCount || 0), 0) / rpcTrend.length);
         base.avgCritical = Math.round(rpcTrend.reduce((s, t) => s + (t.criticalCount || 0), 0) / rpcTrend.length);
         base.avgPermanentOffline = Math.round(rpcTrend.reduce((s, t) => s + (t.permanentOfflineCount || 0), 0) / rpcTrend.length);
-        base.avgNeverOnline = 0;
+        base.avgNeverOnline = base.neverOnlineCount;
       }
     } else {
       // Non-RPC fallback: Dayn screens are separate, add them manually
@@ -2208,6 +2225,9 @@ function App() {
     );
   }
 
+  // Admin bypasses feature flags to see all features (for testing/review before rollout)
+  const userIsAdmin = isAdmin();
+
   /* ─── Mobile Layout (Fast-Path: uses mobileKPIs from single RPC call) ─── */
   if (isMobile) {
     // Use mobile KPIs if available (from RPC), else fall back to desktop kpis
@@ -2314,7 +2334,7 @@ function App() {
         />
 
         {/* QR Hardware Scanner Overlay */}
-        {showQRScanner && isFeatureEnabled('tab_qr_scanner') && (
+        {showQRScanner && (userIsAdmin || isFeatureEnabled('tab_qr_scanner')) && (
           <Suspense fallback={
             <div className="fixed inset-0 z-[9999] bg-black/20 backdrop-blur-sm flex items-end justify-center">
               <div className="w-full max-w-lg bg-white/90 rounded-t-3xl p-8 flex items-center justify-center">
@@ -2327,7 +2347,7 @@ function App() {
         )}
 
         {/* AI Chat Assistant — opens as overlay on mobile when J.E.T. tab is active */}
-        {isFeatureEnabled('tab_chat_assistant') && (
+        {(userIsAdmin || isFeatureEnabled('tab_chat_assistant')) && (
           <Suspense fallback={null}>
             <ChatAssistant
               rawData={rawData || { displays: [], cityData: [], tasks: [], trendData: [] }}
@@ -2395,6 +2415,13 @@ function App() {
             }}
           />
         )}
+
+        {/* Dev Feedback Widget — Admin-only right-click context menu for coding feedback */}
+        {userIsAdmin && (
+          <Suspense fallback={null}>
+            <FeedbackWidget />
+          </Suspense>
+        )}
       </div>
     );
   }
@@ -2447,7 +2474,7 @@ function App() {
   // Filter tabs by user permissions + feature flags, remove empty groups
   const visibleGroups = tabGroups
     .map(g => ({ ...g, tabs: g.tabs.filter(t =>
-      canAccessTab(t.access) && (!t.featureFlag || isFeatureEnabled(t.featureFlag))
+      canAccessTab(t.access) && (!t.featureFlag || userIsAdmin || isFeatureEnabled(t.featureFlag))
     ) }))
     .filter(g => g.tabs.length > 0);
 
@@ -2489,7 +2516,7 @@ function App() {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
-              {/* API check + data points — desktop only */}
+              {/* Last data timestamp — desktop only */}
               {(() => {
                 const dataAgeHours = displayRawData.latestTimestamp
                   ? (Date.now() - new Date(displayRawData.latestTimestamp).getTime()) / (1000 * 60 * 60)
@@ -2497,40 +2524,30 @@ function App() {
                 const isStale = dataAgeHours > 24;
                 const isVeryStale = dataAgeHours > 72;
                 return (
-                  <>
-                    <div className={`text-right hidden lg:block ${isStale ? 'relative group' : ''}`}>
-                      <div className={`text-xs font-mono flex items-center gap-1 justify-end ${isVeryStale ? 'text-red-500' : isStale ? 'text-amber-500' : 'text-slate-500'}`}>
-                        {isStale && <AlertTriangle size={10} />}
-                        Letzter API-Check
-                      </div>
-                      <div className={`text-sm font-mono ${isVeryStale ? 'text-red-600 font-semibold' : isStale ? 'text-amber-600' : 'text-slate-600'}`}>
-                        {formatDateTime(displayRawData.latestTimestamp)}
-                      </div>
-                      {isStale && (
-                        <div className="absolute top-full right-0 mt-1 px-3 py-2 bg-slate-800 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 max-w-[280px]">
-                          {isVeryStale
-                            ? `⚠️ Daten sind ${Math.round(dataAgeHours / 24)} Tage veraltet! Heartbeat-Pipeline prüfen.`
-                            : `Daten sind ${Math.round(dataAgeHours)}h alt. Sync-Button klicken oder Pipeline prüfen.`}
-                        </div>
-                      )}
+                  <div className={`text-right hidden lg:block ${isStale ? 'relative group' : ''}`}>
+                    <div className={`text-[10px] font-mono flex items-center gap-1 justify-end ${isVeryStale ? 'text-red-500' : isStale ? 'text-amber-500' : 'text-slate-400'}`}>
+                      {isStale && <AlertTriangle size={9} />}
+                      Letzter Datenstand {formatDateTime(displayRawData.latestTimestamp)}
                     </div>
-                    <div className="text-right hidden lg:block">
-                      <div className="text-xs text-slate-500 font-mono">
-                        Datenpunkte
+                    {isStale && (
+                      <div className="absolute top-full right-0 mt-1 px-3 py-2 bg-slate-800 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 max-w-[280px]">
+                        {isVeryStale
+                          ? `Daten sind ${Math.round(dataAgeHours / 24)} Tage veraltet! Heartbeat-Pipeline pruefen.`
+                          : `Daten sind ${Math.round(dataAgeHours)}h alt. Sync-Button klicken oder Pipeline pruefen.`}
                       </div>
-                      <div className="text-sm text-slate-600 font-mono">
-                        {totalRowsGlobal.toLocaleString('de-DE')}
-                      </div>
-                    </div>
-                  </>
+                    )}
+                  </div>
                 );
               })()}
 
               {/* Display count badge — Navori + Dayn total */}
-              <div className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50/60 border border-emerald-200/40 rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
+              <div
+                className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50/60 border border-emerald-200/40 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 relative group"
+                title={`${displayRawData.displays?.length || 0} Navori${comparisonData?.dayn?.total ? ` + ${comparisonData.dayn.total} Dayn` : ''} — alle Displays mit Heartbeat (inkl. deinstallierte)`}
+              >
                 <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-[#22c55e] animate-pulse-glow" />
-                <span className="text-xs sm:text-sm font-mono font-medium text-emerald-700">
-                  {(displayRawData.displays?.length || 0) + (comparisonData?.dayn?.total || 0)}
+                <span className="text-[10px] sm:text-xs font-mono font-medium text-emerald-700">
+                  {(displayRawData.displays?.length || 0) + (comparisonData?.dayn?.total || 0)} Displays
                 </span>
               </div>
 
@@ -2818,27 +2835,29 @@ function App() {
                       rangeLabel={rangeLabel}
                       comparisonHealthRate={comparisonHealthRate}
                       comparisonTrendData={comparisonTrendData}
-                      rangeStart={rangeStart}
-                      rangeEnd={rangeEnd}
-                      dataEarliest={dataEarliest}
-                      dataLatest={dataLatest}
-                      onRangeChange={handleRangeChange}
                     />
 
-                    <OverviewHealthPatterns trendData={csvCacheRef._rpcTrendData ? rawData.trendData : (rawData.snapshotTrendData || rawData.trendData)} rangeLabel={rangeLabel} />
+                    <OverviewHealthPatterns trendData={rawData.snapshotTrendData || rawData.trendData} rangeLabel={rangeLabel} />
+
+                    <OverviewDisplayHealth
+                      displays={rawData.displays}
+                      onSelectDisplay={setSelectedDisplay}
+                    />
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                       <OfflineDistributionChart distribution={distribution} />
                       <CityHealthChart cityData={rawData.cityData} />
                     </div>
 
-                    {/* Lists below visualizations */}
-                    <NewDisplayWatchlist
-                      watchlist={watchlist}
-                      onSelectDisplay={setSelectedDisplay}
-                      webhookUrl={webhookUrl}
-                      onWebhookUrlChange={handleWebhookUrlChange}
-                    />
+                    {/* Neu installierte Displays Watchlist — nur Admin */}
+                    {userIsAdmin && (
+                      <NewDisplayWatchlist
+                        watchlist={watchlist}
+                        onSelectDisplay={setSelectedDisplay}
+                        webhookUrl={webhookUrl}
+                        onWebhookUrlChange={handleWebhookUrlChange}
+                      />
+                    )}
 
                     <DisplayTable
                       displays={rawData.displays}
@@ -3027,12 +3046,11 @@ function App() {
 
         {/* Data summary footer */}
         <div className="text-center py-4">
-          <div className="text-xs text-slate-500 font-mono">
+          <div className="text-[10px] text-slate-400 font-mono">
             {rawData ? (
               <>
-                {rawData.totalParsedRows.toLocaleString('de-DE')} Datenpunkte •{' '}
-                {rawData.displays.length} Displays erkannt •{' '}
-                {rawData.trendData.length} Trend-Snapshots
+                {rawData.displays.length} Displays mit Heartbeat •{' '}
+                {rawData.trendData.length} Tage Trend-Daten
               </>
             ) : isBackgroundRefreshing ? (
               <>Daten werden aktualisiert...</>
@@ -3042,7 +3060,7 @@ function App() {
       </main>
 
       {/* AI Chat Assistant — floating button, available on all tabs */}
-      {isFeatureEnabled('tab_chat_assistant') && (
+      {(userIsAdmin || isFeatureEnabled('tab_chat_assistant')) && (
         <Suspense fallback={null}>
           <ChatAssistant
             rawData={rawData || displayRawData}
@@ -3100,13 +3118,20 @@ function App() {
       )}
 
       {/* Mobile Akquise App Overlay (launched from Akquise tab on mobile) */}
-      {showAkquiseApp && isFeatureEnabled('tab_akquise_app') && (
+      {showAkquiseApp && (userIsAdmin || isFeatureEnabled('tab_akquise_app')) && (
         <Suspense fallback={
           <div className="fixed inset-0 z-[10000] bg-[#F2F2F7] flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" />
           </div>
         }>
           <AkquiseApp onClose={() => setShowAkquiseApp(false)} />
+        </Suspense>
+      )}
+
+      {/* Dev Feedback Widget — Admin-only right-click context menu for coding feedback */}
+      {userIsAdmin && (
+        <Suspense fallback={null}>
+          <FeedbackWidget />
         </Suspense>
       )}
     </div>

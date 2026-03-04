@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, Fragment, lazy, Suspense } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef, Fragment, lazy, Suspense } from 'react';
 import {
   Shield,
   Database,
@@ -47,6 +47,7 @@ import {
   Server,
   MapPin,
   Globe,
+  Upload,
 } from 'lucide-react';
 import {
   getAllUsers,
@@ -74,6 +75,7 @@ import { useFeatureFlags } from '../hooks/useFeatureFlags';
 
 const DataMappingPanel = lazy(() => import('./DataMappingPanel'));
 const APIOverviewPanel = lazy(() => import('./APIOverviewPanel'));
+const StammdatenImport = lazy(() => import('./StammdatenImport'));
 
 /* ─── Group Icon Map ─── */
 
@@ -1083,17 +1085,26 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
     };
   }, [apiUsageData]);
 
-  const sections = [
+  const primarySections = [
     { id: 'users', label: 'Benutzer', icon: Users, count: stats.totalUsers },
     { id: 'groups', label: 'Gruppen', icon: Layers, count: stats.totalGroups },
     { id: 'audit', label: 'Audit-Log', icon: FileText, count: auditLog.length },
     { id: 'feedback', label: 'Feedback', icon: Lightbulb, count: feedbackItems.length },
+    { id: 'feature-flags', label: 'Feature Flags', icon: ToggleLeft, count: Object.keys(featureFlagMap).length || null },
+    { id: 'stammdaten-import', label: 'Stammdaten Import', icon: Upload },
+  ];
+
+  const moreSections = [
     { id: 'api-usage', label: 'API Usage', icon: Zap, count: apiStats.totalCalls },
     { id: 'attachments', label: 'Attachments', icon: Server },
-    { id: 'feature-flags', label: 'Feature Flags', icon: ToggleLeft, count: Object.keys(featureFlagMap).length || null },
     { id: 'data-mapping', label: 'Data Mapping', icon: Database, count: 14 },
     { id: 'api-overview', label: 'API Overview', icon: Globe, count: 7 },
   ];
+
+  const sections = [...primarySections, ...moreSections];
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const moreMenuRef = useRef(null);
+  const activeMoreSection = moreSections.find(s => s.id === activeSection);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -1143,15 +1154,15 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
       </div>
 
       {/* Section Tabs */}
-      <div className="flex gap-1 bg-white/40 backdrop-blur-sm border border-slate-200/40 rounded-xl p-1">
-        {sections.map((sec) => {
+      <div className="flex gap-1 bg-white/40 backdrop-blur-sm border border-slate-200/40 rounded-xl p-1 overflow-x-auto">
+        {primarySections.map((sec) => {
           const Icon = sec.icon;
           const isActive = activeSection === sec.id;
           return (
             <button
               key={sec.id}
               onClick={() => setActiveSection(sec.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all shrink-0 whitespace-nowrap justify-center ${
                 isActive
                   ? 'bg-white/80 text-slate-900 shadow-sm border border-slate-200/60'
                   : 'text-slate-500 hover:text-slate-600'
@@ -1159,14 +1170,70 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             >
               <Icon size={16} />
               {sec.label}
-              <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
-                isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-50/60 text-slate-500'
-              }`}>
-                {sec.count}
-              </span>
+              {sec.count != null && (
+                <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                  isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-50/60 text-slate-500'
+                }`}>
+                  {sec.count}
+                </span>
+              )}
             </button>
           );
         })}
+
+        {/* Mehr-Dropdown */}
+        <div className="relative shrink-0" ref={moreMenuRef}>
+          <button
+            onClick={() => setShowMoreMenu(!showMoreMenu)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap justify-center ${
+              activeMoreSection
+                ? 'bg-white/80 text-slate-900 shadow-sm border border-slate-200/60'
+                : 'text-slate-500 hover:text-slate-600'
+            }`}
+          >
+            {activeMoreSection ? (
+              <>
+                {(() => { const Icon = activeMoreSection.icon; return <Icon size={16} />; })()}
+                {activeMoreSection.label}
+              </>
+            ) : (
+              <>Mehr</>
+            )}
+            <ChevronDown size={14} className={`transition-transform ${showMoreMenu ? 'rotate-180' : ''}`} />
+          </button>
+          {showMoreMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowMoreMenu(false)} />
+              <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-slate-200/60 py-1 min-w-[200px]">
+                {moreSections.map((sec) => {
+                  const Icon = sec.icon;
+                  const isActive = activeSection === sec.id;
+                  return (
+                    <button
+                      key={sec.id}
+                      onClick={() => { setActiveSection(sec.id); setShowMoreMenu(false); }}
+                      className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium transition-all ${
+                        isActive
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Icon size={16} />
+                      {sec.label}
+                      {sec.count != null && (
+                        <span className={`text-xs font-mono px-1.5 py-0.5 rounded ml-auto ${
+                          isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          {sec.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ═══════ USERS SECTION ═══════ */}
@@ -2536,6 +2603,16 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           </div>
         }>
           <APIOverviewPanel />
+        </Suspense>
+      )}
+
+      {activeSection === 'stammdaten-import' && (
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64">
+            <RefreshCw size={20} className="animate-spin text-slate-400" />
+          </div>
+        }>
+          <StammdatenImport />
         </Suspense>
       )}
 

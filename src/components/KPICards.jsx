@@ -4,7 +4,6 @@ import {
   Activity,
   WifiOff,
   AlertTriangle,
-  PlusCircle,
   Clock,
   Skull,
   TrendingUp,
@@ -102,7 +101,10 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
   };
 
   const hasRange = kpis.snapshotCount >= 2;
-  const showAvg = hasRange;
+
+  // When a date range is active, show avg values as main numbers
+  // and current (live) values as subtitle context
+  const useAvg = hasRange && kpis.avgOnline != null;
 
   return (
     <div className="relative">
@@ -117,7 +119,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
           Letzte bekannte Daten{kpis._cachedTimestamp ? ` · ${new Date(kpis._cachedTimestamp).toLocaleString('de-DE')}` : ''}
         </div>
       )}
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
       <KPICard
         label="Health Rate"
         value={`${kpis.healthRate}%`}
@@ -137,20 +139,23 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
       />
       <KPICard
         label="Installierte Displays"
-        value={kpis.installed || kpis.totalActive}
+        value={useAvg ? kpis.avgTotal : (kpis.installed || kpis.totalActive)}
         icon={Monitor}
         color="#3b82f6"
         subtitle={
-          kpis.daynTotal
-            ? `${kpis.heartbeatTotal || ((kpis.installed || kpis.totalActive) - (kpis.daynTotal || 0))} Navori + ${kpis.daynTotal} Dayn`
-            : (showAvg && kpis.avgTotal !== (kpis.installed || kpis.totalActive) ? `Ø ${kpis.avgTotal}` : 'Laut Airtable')
+          useAvg
+            ? `Aktuell: ${kpis.installed || kpis.totalActive}${kpis.daynTotal ? ` (${(kpis.installed || kpis.totalActive) - kpis.daynTotal} + ${kpis.daynTotal} Dayn)` : ''}`
+            : (kpis.daynTotal
+                ? `${kpis.heartbeatTotal || ((kpis.installed || kpis.totalActive) - (kpis.daynTotal || 0))} Navori + ${kpis.daynTotal} Dayn`
+                : 'Laut Airtable')
         }
+        avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.ACTIVE)}
         active={activeFilter === KPI_FILTERS.ACTIVE}
         trend={
           hasRange ? (
             <TrendIndicator
-              current={kpis.installed || kpis.totalActive}
+              current={useAvg ? kpis.avgTotal : (kpis.installed || kpis.totalActive)}
               previous={kpis.firstTotal}
             />
           ) : null
@@ -158,16 +163,17 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
       />
       <KPICard
         label="Online"
-        value={kpis.onlineCount}
+        value={useAvg ? kpis.avgOnline : kpis.onlineCount}
         icon={Activity}
         color="#22c55e"
-        subtitle={showAvg && kpis.avgOnline !== kpis.onlineCount ? `Ø ${kpis.avgOnline}` : '< 24h'}
+        subtitle={useAvg ? `Aktuell: ${kpis.onlineCount}` : '< 24h'}
+        avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.ONLINE)}
         active={activeFilter === KPI_FILTERS.ONLINE}
         trend={
           hasRange ? (
             <TrendIndicator
-              current={kpis.onlineCount}
+              current={useAvg ? kpis.avgOnline : kpis.onlineCount}
               previous={kpis.firstOnline}
             />
           ) : null
@@ -175,16 +181,17 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
       />
       <KPICard
         label="Warnung"
-        value={kpis.warningCount}
+        value={useAvg ? kpis.avgWarning : kpis.warningCount}
         icon={Clock}
         color="#f59e0b"
-        subtitle={showAvg && kpis.avgWarning !== kpis.warningCount ? `Ø ${kpis.avgWarning}` : '24–72h'}
+        subtitle={useAvg ? `Aktuell: ${kpis.warningCount}` : '24–72h'}
+        avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.WARNING)}
         active={activeFilter === KPI_FILTERS.WARNING}
         trend={
           hasRange ? (
             <TrendIndicator
-              current={kpis.warningCount}
+              current={useAvg ? kpis.avgWarning : kpis.warningCount}
               previous={kpis.firstWarning}
               inverted
             />
@@ -193,16 +200,17 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
       />
       <KPICard
         label="Kritisch"
-        value={kpis.criticalCount}
+        value={useAvg ? kpis.avgCritical : kpis.criticalCount}
         icon={AlertTriangle}
         color="#ef4444"
-        subtitle={showAvg && kpis.avgCritical !== kpis.criticalCount ? `Ø ${kpis.avgCritical}` : '72h – 7d'}
+        subtitle={useAvg ? `Aktuell: ${kpis.criticalCount}` : '72h – 7d'}
+        avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.CRITICAL)}
         active={activeFilter === KPI_FILTERS.CRITICAL}
         trend={
           hasRange ? (
             <TrendIndicator
-              current={kpis.criticalCount}
+              current={useAvg ? kpis.avgCritical : kpis.criticalCount}
               previous={kpis.firstCritical}
               inverted
             />
@@ -211,16 +219,17 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
       />
       <KPICard
         label="Dauerhaft Offline"
-        value={kpis.permanentOfflineCount}
+        value={useAvg ? kpis.avgPermanentOffline : kpis.permanentOfflineCount}
         icon={Skull}
         color="#dc2626"
-        subtitle={showAvg && kpis.avgPermanentOffline !== kpis.permanentOfflineCount ? `Ø ${kpis.avgPermanentOffline}` : '> 7 Tage'}
+        subtitle={useAvg ? `Aktuell: ${kpis.permanentOfflineCount}` : '> 7 Tage'}
+        avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.PERMANENT_OFFLINE)}
         active={activeFilter === KPI_FILTERS.PERMANENT_OFFLINE}
         trend={
           hasRange ? (
             <TrendIndicator
-              current={kpis.permanentOfflineCount}
+              current={useAvg ? kpis.avgPermanentOffline : kpis.permanentOfflineCount}
               previous={kpis.firstPermanentOffline}
               inverted
             />
@@ -229,41 +238,19 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
       />
       <KPICard
         label="Nie Online"
-        value={kpis.neverOnlineCount}
+        value={useAvg ? kpis.avgNeverOnline : kpis.neverOnlineCount}
         icon={WifiOff}
         color="#64748b"
-        subtitle={showAvg && kpis.avgNeverOnline !== kpis.neverOnlineCount ? `Ø ${kpis.avgNeverOnline}` : 'Kein Heartbeat'}
+        subtitle={useAvg ? `Aktuell: ${kpis.neverOnlineCount}` : 'Kein Heartbeat'}
+        avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.NEVER_ONLINE)}
         active={activeFilter === KPI_FILTERS.NEVER_ONLINE}
         trend={
           hasRange ? (
             <TrendIndicator
-              current={kpis.neverOnlineCount}
+              current={useAvg ? kpis.avgNeverOnline : kpis.neverOnlineCount}
               previous={kpis.firstNeverOnline}
               inverted
-            />
-          ) : null
-        }
-      />
-      <KPICard
-        label="Neu / Deinstalliert"
-        value={`+${kpis.newlyInstalled} / -${kpis.deinstalled}`}
-        icon={PlusCircle}
-        color="#94a3b8"
-        subtitle={rangeLabel || 'Zeitraum'}
-        avgLabel={comparisonKPIs ? `Vorz. +${comparisonKPIs.newlyInstalled} / -${comparisonKPIs.deinstalled}` : undefined}
-        onClick={() => {
-          // Cycle: null → NEW → DEINSTALLED → null
-          if (activeFilter === KPI_FILTERS.NEW) toggle(KPI_FILTERS.DEINSTALLED);
-          else if (activeFilter === KPI_FILTERS.DEINSTALLED) onFilterClick(null);
-          else toggle(KPI_FILTERS.NEW);
-        }}
-        active={activeFilter === KPI_FILTERS.NEW || activeFilter === KPI_FILTERS.DEINSTALLED}
-        trend={
-          comparisonKPIs ? (
-            <TrendIndicator
-              current={kpis.newlyInstalled - kpis.deinstalled}
-              previous={comparisonKPIs.newlyInstalled - comparisonKPIs.deinstalled}
             />
           ) : null
         }

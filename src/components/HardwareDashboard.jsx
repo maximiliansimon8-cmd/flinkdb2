@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { isAdmin } from '../utils/authService';
 import { useFeatureFlags } from '../hooks/useFeatureFlags';
 import {
   Cpu, Monitor, Wifi, HardDrive, Package, Search, Filter,
@@ -1182,7 +1183,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           { id: 'nocodb', label: 'NocoDB', icon: Database, count: null, featureFlag: 'tab_nocodb' },
           { id: 'data-quality', label: 'Datenqualität', icon: Database, count: null },
           { id: 'freigabe', label: 'Freigabe', icon: ClipboardCheck, count: null, featureFlag: 'tab_installation_inspection' },
-        ].filter(tab => !tab.featureFlag || isFeatureEnabled(tab.featureFlag)).map((tab) => {
+        ].filter(tab => !tab.featureFlag || isAdmin() || isFeatureEnabled(tab.featureFlag)).map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSection === tab.id;
           return (

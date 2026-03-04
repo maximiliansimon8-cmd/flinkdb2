@@ -97,7 +97,7 @@ function getPageContext() {
     userAgent: navigator.userAgent,
     timestamp: new Date().toISOString(),
     activeFilters: activeFilters.length > 0 ? activeFilters : null,
-    hash,
+    hash: raw,
   };
 }
 

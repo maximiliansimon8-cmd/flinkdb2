@@ -17,7 +17,7 @@ import {
   sanitizeString, sanitizeForAirtableFormula, secureCompare,
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
-import { AIRTABLE_BASE, TABLES, FETCH_FIELDS } from './shared/airtableFields.js';
+import { AIRTABLE_BASE, TABLES, FETCH_FIELDS, VALUES } from './shared/airtableFields.js';
 import { transformAkquiseDetail } from './shared/airtableMappers.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -277,7 +277,7 @@ export default async (request, context) => {
           // Fetch all Won/Signed + Approved records for this city (no Display yet)
           const safeCity = sanitizeForAirtableFormula(city);
           const rawRecords = await fetchAkquiseRecords(
-            `AND({City}='${safeCity}', {Lead_Status}='Won / Signed', {approval_status}='Accepted')`,
+            `AND({City}='${safeCity}', {Lead_Status}='${VALUES.LEAD_STATUS.WON_SIGNED}', {approval_status}='${VALUES.APPROVAL_STATUS.ACCEPTED}')`,
             500
           );
           akquiseRecords = rawRecords.map(transformAkquiseRecord);
@@ -349,7 +349,7 @@ export default async (request, context) => {
       if (AIRTABLE_TOKEN) {
         try {
           const rawRecords = await fetchAkquiseRecords(
-            `AND({Lead_Status}='Won / Signed', {approval_status}='Accepted')`,
+            `AND({Lead_Status}='${VALUES.LEAD_STATUS.WON_SIGNED}', {approval_status}='${VALUES.APPROVAL_STATUS.ACCEPTED}')`,
             1000
           );
           akquiseRecords = rawRecords.map(transformAkquiseRecord);

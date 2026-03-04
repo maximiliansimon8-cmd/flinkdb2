@@ -23,7 +23,7 @@ import {
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 import { validateFawToken } from './faw-check-token.js';
-import { AIRTABLE_BASE, TABLES, ACQUISITION_FIELDS as AF } from './shared/airtableFields.js';
+import { AIRTABLE_BASE, TABLES, ACQUISITION_FIELDS as AF, VALUES } from './shared/airtableFields.js';
 import { getAttachmentUrls } from './shared/attachmentHelper.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -117,7 +117,7 @@ async function handleLoadStandorte() {
   const apiStart = Date.now();
 
   const result = await supabaseRequest(
-    `acquisition?frequency_approval=eq.In review&lead_status=eq.Won / Signed&select=${SAFE_ACQUISITION_SELECT}&order=created_at.asc&limit=500`
+    `acquisition?frequency_approval=eq.${VALUES.APPROVAL_STATUS.IN_REVIEW}&lead_status=eq.${VALUES.LEAD_STATUS.WON_SIGNED}&select=${SAFE_ACQUISITION_SELECT}&order=created_at.asc&limit=500`
   );
 
   logApiCall({
@@ -284,7 +284,7 @@ async function handleSetStatus(body) {
     return errorResponse('Ungültige oder fehlende akquise_airtable_id', 400);
   }
 
-  const ALLOWED_STATUSES = ['Accepted', 'Rejected', 'Info required'];
+  const ALLOWED_STATUSES = [VALUES.APPROVAL_STATUS.ACCEPTED, VALUES.APPROVAL_STATUS.REJECTED, VALUES.APPROVAL_STATUS.INFO_REQUIRED];
   if (!status || !ALLOWED_STATUSES.includes(status)) {
     return errorResponse(`Ungültiger Status. Erlaubt: ${ALLOWED_STATUSES.join(', ')}`, 400);
   }
