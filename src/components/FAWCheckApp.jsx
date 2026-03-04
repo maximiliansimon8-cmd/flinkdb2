@@ -47,17 +47,17 @@ async function fawApiCall(body) {
 
 function KPIHeader({ stats }) {
   const cards = [
-    { label: 'Offen', value: stats.open, color: 'text-amber-600' },
-    { label: 'Accepted', value: stats.accepted, color: 'text-green-600' },
-    { label: 'Rejected', value: stats.rejected, color: 'text-red-600' },
-    { label: 'Info Required', value: stats.infoRequired, color: 'text-blue-600' },
+    { label: 'Offen', value: stats.open, color: 'text-status-warning' },
+    { label: 'Accepted', value: stats.accepted, color: 'text-status-online' },
+    { label: 'Rejected', value: stats.rejected, color: 'text-status-offline' },
+    { label: 'Info Required', value: stats.infoRequired, color: 'text-accent' },
   ];
   return (
     <div className="grid grid-cols-4 gap-3 mb-4">
       {cards.map(c => (
-        <div key={c.label} className="bg-white rounded-lg border border-gray-200 p-3 text-center">
+        <div key={c.label} className="bg-surface-primary rounded-lg border border-border-secondary p-3 text-center">
           <div className={`text-xl font-bold ${c.color}`}>{c.value}</div>
-          <div className="text-xs text-gray-500 mt-0.5">{c.label}</div>
+          <div className="text-xs text-text-muted mt-0.5">{c.label}</div>
         </div>
       ))}
     </div>
@@ -68,10 +68,10 @@ function KPIHeader({ stats }) {
 
 function StatusBadge({ status }) {
   const config = {
-    'In review': { bg: 'bg-amber-100 text-amber-800', icon: Clock },
-    'Accepted': { bg: 'bg-green-100 text-green-800', icon: CheckCircle2 },
-    'Rejected': { bg: 'bg-red-100 text-red-800', icon: XCircle },
-    'Info required': { bg: 'bg-blue-100 text-blue-800', icon: Info },
+    'In review': { bg: 'bg-status-warning/10 text-amber-800', icon: Clock },
+    'Accepted': { bg: 'bg-status-online/10 text-green-800', icon: CheckCircle2 },
+    'Rejected': { bg: 'bg-status-offline/10 text-red-800', icon: XCircle },
+    'Info required': { bg: 'bg-accent-light text-blue-800', icon: Info },
   };
   const c = config[status] || config['In review'];
   const Icon = c.icon;
@@ -89,7 +89,7 @@ function PhotoGallery({ images }) {
 
   if (!images || images.length === 0) {
     return (
-      <div className="flex items-center justify-center py-8 text-gray-400">
+      <div className="flex items-center justify-center py-8 text-text-muted">
         <Image size={20} className="mr-2" /> Keine Fotos vorhanden
       </div>
     );
@@ -102,7 +102,7 @@ function PhotoGallery({ images }) {
           <button
             key={idx}
             onClick={() => setSelectedIdx(idx)}
-            className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-amber-400 transition-colors group"
+            className="relative aspect-square rounded-lg overflow-hidden border border-border-secondary hover:border-amber-400 transition-colors group"
           >
             <img
               src={img.url || img.thumbnails?.large?.url || img.thumbnails?.small?.url}
@@ -143,20 +143,20 @@ function HeatmapTable({ hourlyData, label }) {
 
   return (
     <div className="overflow-x-auto">
-      <div className="text-xs font-medium text-gray-500 mb-1">{label}</div>
+      <div className="text-xs font-medium text-text-muted mb-1">{label}</div>
       <table className="w-full text-[10px] border-collapse">
         <thead>
           <tr>
-            <th className="text-left py-0.5 px-1 text-gray-500 font-medium w-8">h</th>
+            <th className="text-left py-0.5 px-1 text-text-muted font-medium w-8">h</th>
             {DAYS.map(d => (
-              <th key={d} className="text-center py-0.5 px-0.5 text-gray-500 font-medium">{d}</th>
+              <th key={d} className="text-center py-0.5 px-0.5 text-text-muted font-medium">{d}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {Array.from({ length: 24 }, (_, h) => (
             <tr key={h}>
-              <td className="text-right py-0.5 px-1 text-gray-400 font-mono">{String(h).padStart(2, '0')}</td>
+              <td className="text-right py-0.5 px-1 text-text-muted font-mono">{String(h).padStart(2, '0')}</td>
               {DAYS.map(day => {
                 const val = hourlyData[day]?.[h] ?? 0;
                 return (
@@ -190,32 +190,32 @@ function DvacSummary({ data }) {
           { label: 'OEPNV', value: data.dvac_oepnv },
           { label: 'Fussgaenger', value: data.dvac_fussgaenger },
         ].map(c => (
-          <div key={c.label} className="bg-gray-50 rounded p-2 text-center">
-            <div className="text-sm font-bold text-gray-900">{fmtNum(c.value)}</div>
-            <div className="text-[10px] text-gray-500">{c.label} / Wo</div>
+          <div key={c.label} className="bg-surface-secondary rounded p-2 text-center">
+            <div className="text-sm font-bold text-text-primary">{fmtNum(c.value)}</div>
+            <div className="text-[10px] text-text-muted">{c.label} / Wo</div>
           </div>
         ))}
       </div>
 
       {/* Derived metrics */}
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="bg-amber-50 rounded p-2">
+        <div className="bg-status-warning/10 rounded p-2">
           <div className="text-sm font-bold text-amber-700">{fmtNum(gesamt.dvacTag)}</div>
-          <div className="text-[10px] text-gray-500">dVAC / Tag</div>
+          <div className="text-[10px] text-text-muted">dVAC / Tag</div>
         </div>
-        <div className="bg-amber-50 rounded p-2">
+        <div className="bg-status-warning/10 rounded p-2">
           <div className="text-sm font-bold text-amber-700">{fmtNum(gesamt.impressionsWoche)}</div>
-          <div className="text-[10px] text-gray-500">Imp. / Wo ({data.sov_factor || 6}x SOV)</div>
+          <div className="text-[10px] text-text-muted">Imp. / Wo ({data.sov_factor || 6}x SOV)</div>
         </div>
-        <div className="bg-amber-50 rounded p-2">
+        <div className="bg-status-warning/10 rounded p-2">
           <div className="text-sm font-bold text-amber-700">{fmtNum(gesamt.impressionsMonat)}</div>
-          <div className="text-[10px] text-gray-500">Imp. / Monat</div>
+          <div className="text-[10px] text-text-muted">Imp. / Monat</div>
         </div>
       </div>
 
       {/* Metadata */}
       {(data.schaltung || data.vac_id || data.gkz) && (
-        <div className="flex gap-3 text-[10px] text-gray-500">
+        <div className="flex gap-3 text-[10px] text-text-muted">
           {data.schaltung && <span>Schaltung: {data.schaltung}</span>}
           {data.vac_id && <span>VAC-ID: {data.vac_id}</span>}
           {data.gkz && <span>GKZ: {data.gkz}</span>}
@@ -297,7 +297,7 @@ function IndaUploadSection({ akquiseId, onSaved }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+      <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
         <FileSpreadsheet size={16} /> INDA Excel Import
       </div>
 
@@ -307,7 +307,7 @@ function IndaUploadSection({ akquiseId, onSaved }) {
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-gray-300 hover:border-amber-400 rounded-lg p-6 text-center cursor-pointer transition-colors"
+          className="border-2 border-dashed border-border-primary hover:border-amber-400 rounded-lg p-6 text-center cursor-pointer transition-colors"
         >
           <input
             ref={fileInputRef}
@@ -317,14 +317,14 @@ function IndaUploadSection({ akquiseId, onSaved }) {
             onChange={(e) => handleFile(e.target.files?.[0])}
           />
           {parsing ? (
-            <div className="flex items-center justify-center gap-2 text-gray-500">
+            <div className="flex items-center justify-center gap-2 text-text-muted">
               <Loader2 size={20} className="animate-spin" /> Wird geparst...
             </div>
           ) : (
             <>
-              <Upload size={24} className="mx-auto text-gray-400 mb-2" />
-              <p className="text-sm text-gray-500">INDA .xlsx Datei hierher ziehen oder klicken</p>
-              <p className="text-[10px] text-gray-400 mt-1">dVAC-Basis Export mit Gesamt / Kfz / OEPNV / Fussgaenger</p>
+              <Upload size={24} className="mx-auto text-text-muted mb-2" />
+              <p className="text-sm text-text-muted">INDA .xlsx Datei hierher ziehen oder klicken</p>
+              <p className="text-[10px] text-text-muted mt-1">dVAC-Basis Export mit Gesamt / Kfz / OEPNV / Fussgaenger</p>
             </>
           )}
         </div>
@@ -332,7 +332,7 @@ function IndaUploadSection({ akquiseId, onSaved }) {
 
       {/* Parsed preview */}
       {parsed && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-3">
+        <div className="bg-status-online/10 border border-status-online/20 rounded-lg p-3 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-green-800">
               <CheckCircle2 size={14} className="inline mr-1" />
@@ -340,7 +340,7 @@ function IndaUploadSection({ akquiseId, onSaved }) {
             </span>
             <button
               onClick={() => { setFile(null); setParsed(null); setError(null); }}
-              className="text-xs text-gray-500 hover:text-red-600"
+              className="text-xs text-text-muted hover:text-status-offline"
             >
               Verwerfen
             </button>
@@ -355,8 +355,8 @@ function IndaUploadSection({ akquiseId, onSaved }) {
               { label: 'Fussgaenger', value: parsed.dvacFussgaenger },
             ].map(c => (
               <div key={c.label} className="text-center">
-                <div className="text-sm font-bold text-gray-900">{fmtNum(c.value)}</div>
-                <div className="text-[10px] text-gray-500">{c.label} / Wo</div>
+                <div className="text-sm font-bold text-text-primary">{fmtNum(c.value)}</div>
+                <div className="text-[10px] text-text-muted">{c.label} / Wo</div>
               </div>
             ))}
           </div>
@@ -371,7 +371,7 @@ function IndaUploadSection({ akquiseId, onSaved }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Anmerkungen (optional)..."
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none"
+            className="w-full border border-border-secondary rounded-lg px-3 py-2 text-sm resize-none"
             rows={2}
           />
 
@@ -379,7 +379,7 @@ function IndaUploadSection({ akquiseId, onSaved }) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-status-warning hover:bg-amber-600 disabled:bg-gray-300 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
           >
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
             {saving ? 'Wird gespeichert...' : 'FAW-Daten speichern'}
@@ -388,7 +388,7 @@ function IndaUploadSection({ akquiseId, onSaved }) {
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
+        <div className="bg-status-offline/10 border border-status-offline/20 text-red-700 text-sm rounded-lg p-3">
           <AlertTriangle size={14} className="inline mr-1" /> {error}
         </div>
       )}
@@ -464,8 +464,8 @@ function DetailView({ standort, onBack, onStatusChanged }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 size={24} className="animate-spin text-amber-500" />
-        <span className="ml-2 text-gray-500">Standort wird geladen...</span>
+        <Loader2 size={24} className="animate-spin text-status-warning" />
+        <span className="ml-2 text-text-muted">Standort wird geladen...</span>
       </div>
     );
   }
@@ -477,12 +477,12 @@ function DetailView({ standort, onBack, onStatusChanged }) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <button onClick={onBack} className="p-2 hover:bg-surface-secondary rounded-lg transition-colors">
           <ChevronLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-bold text-gray-900 truncate">{detail?.location_name || standort.location_name}</h2>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <h2 className="text-lg font-bold text-text-primary truncate">{detail?.location_name || standort.location_name}</h2>
+          <div className="flex items-center gap-2 text-sm text-text-muted">
             <MapPin size={14} />
             {detail?.street && <span>{detail.street},</span>}
             {detail?.postal_code && <span>{detail.postal_code}</span>}
@@ -494,11 +494,11 @@ function DetailView({ standort, onBack, onStatusChanged }) {
 
       {/* Info bar */}
       {standort.jet_id && (
-        <div className="text-xs text-gray-400">JET-ID: {standort.jet_id}</div>
+        <div className="text-xs text-text-muted">JET-ID: {standort.jet_id}</div>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+      <div className="flex gap-1 bg-surface-secondary rounded-lg p-1">
         {[
           { id: 'fotos', label: 'Fotos', icon: Image },
           { id: 'faw', label: 'FAW-Daten', icon: FileSpreadsheet },
@@ -511,8 +511,8 @@ function DetailView({ standort, onBack, onStatusChanged }) {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface-primary text-text-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-primary'
               }`}
             >
               <Icon size={14} /> {tab.label}
@@ -523,7 +523,7 @@ function DetailView({ standort, onBack, onStatusChanged }) {
 
       {/* Tab Content */}
       {activeTab === 'fotos' && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-surface-primary border border-border-secondary rounded-lg p-4">
           <PhotoGallery images={images} />
         </div>
       )}
@@ -532,10 +532,10 @@ function DetailView({ standort, onBack, onStatusChanged }) {
         <div className="space-y-4">
           {/* Existing FAW data */}
           {latestFaw && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="bg-surface-primary border border-border-secondary rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Aktuelle FAW-Daten</span>
-                <span className="text-[10px] text-gray-400">
+                <span className="text-sm font-medium text-text-primary">Aktuelle FAW-Daten</span>
+                <span className="text-[10px] text-text-muted">
                   {latestFaw.reviewer_name && `${latestFaw.reviewer_name} — `}
                   {latestFaw.created_at && new Date(latestFaw.created_at).toLocaleDateString('de-DE')}
                 </span>
@@ -551,7 +551,7 @@ function DetailView({ standort, onBack, onStatusChanged }) {
               )}
 
               {latestFaw.notes && (
-                <div className="text-xs text-gray-500 bg-gray-50 rounded p-2">
+                <div className="text-xs text-text-muted bg-surface-secondary rounded p-2">
                   <strong>Anmerkungen:</strong> {latestFaw.notes}
                 </div>
               )}
@@ -559,7 +559,7 @@ function DetailView({ standort, onBack, onStatusChanged }) {
           )}
 
           {/* Upload new INDA data */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="bg-surface-primary border border-border-secondary rounded-lg p-4">
             <IndaUploadSection
               akquiseId={standort.airtable_id}
               onSaved={handleFawSaved}
@@ -568,11 +568,11 @@ function DetailView({ standort, onBack, onStatusChanged }) {
 
           {/* History */}
           {fawEntries.length > 1 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">Fruehere Eintraege</div>
+            <div className="bg-surface-primary border border-border-secondary rounded-lg p-4">
+              <div className="text-sm font-medium text-text-primary mb-2">Fruehere Eintraege</div>
               <div className="space-y-2">
                 {fawEntries.slice(1).map((entry, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs text-gray-500 bg-gray-50 rounded p-2">
+                  <div key={idx} className="flex items-center justify-between text-xs text-text-muted bg-surface-secondary rounded p-2">
                     <span>{entry.data_source || 'Manuell'} — dVAC: {fmtNum(entry.dvac_gesamt)}</span>
                     <span>
                       {entry.reviewer_name && `${entry.reviewer_name}, `}
@@ -590,23 +590,23 @@ function DetailView({ standort, onBack, onStatusChanged }) {
         <div className="space-y-4">
           {/* Existing comment */}
           {detail?.frequency_approval_comment && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500 mb-1">Bisheriger Kommentar</div>
-              <p className="text-sm text-gray-700">{detail.frequency_approval_comment}</p>
+            <div className="bg-surface-secondary border border-border-secondary rounded-lg p-3">
+              <div className="text-xs text-text-muted mb-1">Bisheriger Kommentar</div>
+              <p className="text-sm text-text-primary">{detail.frequency_approval_comment}</p>
             </div>
           )}
 
           {/* Comment input */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="bg-surface-primary border border-border-secondary rounded-lg p-4">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Bewertungskommentar
-              <span className="text-[10px] text-gray-400 ml-1">(Pflicht bei Rejected / Info required)</span>
+              <span className="text-[10px] text-text-muted ml-1">(Pflicht bei Rejected / Info required)</span>
             </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Bewertung der Passantenfrequenz, Sichtbarkeit, Empfehlung..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
+              className="w-full border border-border-secondary rounded-lg px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
               rows={4}
             />
           </div>
@@ -616,7 +616,7 @@ function DetailView({ standort, onBack, onStatusChanged }) {
             <button
               onClick={() => handleSetStatus('Accepted')}
               disabled={submitting}
-              className="bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="bg-status-online hover:bg-status-online disabled:bg-gray-300 text-white py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               {submitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
               Accepted
@@ -624,7 +624,7 @@ function DetailView({ standort, onBack, onStatusChanged }) {
             <button
               onClick={() => handleSetStatus('Info required')}
               disabled={submitting}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="bg-accent hover:bg-accent disabled:bg-gray-300 text-white py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               {submitting ? <Loader2 size={16} className="animate-spin" /> : <Info size={16} />}
               Info required
@@ -632,7 +632,7 @@ function DetailView({ standort, onBack, onStatusChanged }) {
             <button
               onClick={() => handleSetStatus('Rejected')}
               disabled={submitting}
-              className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="bg-status-offline hover:bg-status-offline disabled:bg-gray-300 text-white py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               {submitting ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
               Rejected
@@ -640,7 +640,7 @@ function DetailView({ standort, onBack, onStatusChanged }) {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
+            <div className="bg-status-offline/10 border border-status-offline/20 text-red-700 text-sm rounded-lg p-3">
               <AlertTriangle size={14} className="inline mr-1" /> {error}
             </div>
           )}
@@ -669,18 +669,18 @@ function ListView({ standorte, onSelect }) {
     <div className="space-y-3">
       {/* Search */}
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Standort, Stadt oder JET-ID suchen..."
-          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
+          className="w-full pl-9 pr-4 py-2 border border-border-secondary rounded-lg text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
         />
       </div>
 
       {/* Count */}
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-text-muted">
         {filtered.length} Standort{filtered.length !== 1 ? 'e' : ''} zur Pruefung
       </div>
 
@@ -690,11 +690,11 @@ function ListView({ standorte, onSelect }) {
           <button
             key={s.airtable_id}
             onClick={() => onSelect(s)}
-            className="w-full text-left bg-white border border-gray-200 hover:border-amber-300 rounded-lg p-3 transition-colors"
+            className="w-full text-left bg-surface-primary border border-border-secondary hover:border-amber-300 rounded-lg p-3 transition-colors"
           >
             <div className="flex items-start gap-3">
               {/* Thumbnail */}
-              <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+              <div className="w-14 h-14 rounded-lg overflow-hidden bg-surface-secondary flex-shrink-0">
                 {s.images?.[0] ? (
                   <img
                     src={s.images[0].thumbnails?.small?.url || s.images[0].url}
@@ -703,7 +703,7 @@ function ListView({ standorte, onSelect }) {
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300">
+                  <div className="w-full h-full flex items-center justify-center text-text-muted">
                     <Image size={20} />
                   </div>
                 )}
@@ -711,13 +711,13 @@ function ListView({ standorte, onSelect }) {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-gray-900 truncate text-sm">{s.location_name || 'Unbekannt'}</div>
-                <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                <div className="font-medium text-text-primary truncate text-sm">{s.location_name || 'Unbekannt'}</div>
+                <div className="text-xs text-text-muted flex items-center gap-1 mt-0.5">
                   <MapPin size={11} /> {s.city || 'Unbekannt'}
-                  {s.jet_id && <span className="text-gray-400 ml-1">({s.jet_id})</span>}
+                  {s.jet_id && <span className="text-text-muted ml-1">({s.jet_id})</span>}
                 </div>
                 {s.faw_data?.dvac_gesamt && (
-                  <div className="text-[10px] text-amber-600 mt-1">
+                  <div className="text-[10px] text-status-warning mt-1">
                     dVAC: {fmtNum(s.faw_data.dvac_gesamt)} / Woche
                   </div>
                 )}
@@ -730,7 +730,7 @@ function ListView({ standorte, onSelect }) {
         ))}
 
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-gray-400 text-sm">
+          <div className="text-center py-12 text-text-muted text-sm">
             {search ? 'Keine Treffer' : 'Keine Standorte zur Pruefung vorhanden'}
           </div>
         )}
@@ -791,8 +791,8 @@ export default function FAWCheckApp() {
   if (loading && standorte.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 size={24} className="animate-spin text-amber-500" />
-        <span className="ml-2 text-gray-500">Standorte werden geladen...</span>
+        <Loader2 size={24} className="animate-spin text-status-warning" />
+        <span className="ml-2 text-text-muted">Standorte werden geladen...</span>
       </div>
     );
   }
@@ -802,11 +802,11 @@ export default function FAWCheckApp() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center max-w-md">
-          <AlertTriangle size={32} className="mx-auto text-red-400 mb-3" />
-          <p className="text-sm text-red-600 mb-3">{error}</p>
+          <AlertTriangle size={32} className="mx-auto text-status-offline mb-3" />
+          <p className="text-sm text-status-offline mb-3">{error}</p>
           <button
             onClick={loadStandorte}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-status-warning hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
           >
             <RefreshCw size={14} className="inline mr-1" /> Erneut versuchen
           </button>
@@ -820,13 +820,13 @@ export default function FAWCheckApp() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Frequenzpruefung (FAW Check)</h2>
-          <p className="text-xs text-gray-500">Standorte mit frequency_approval = "In review" bewerten</p>
+          <h2 className="text-lg font-bold text-text-primary">Frequenzpruefung (FAW Check)</h2>
+          <p className="text-xs text-text-muted">Standorte mit frequency_approval = "In review" bewerten</p>
         </div>
         <button
           onClick={loadStandorte}
           disabled={loading}
-          className="p-2 text-gray-400 hover:text-amber-500 transition-colors"
+          className="p-2 text-text-muted hover:text-status-warning transition-colors"
           title="Aktualisieren"
         >
           <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />

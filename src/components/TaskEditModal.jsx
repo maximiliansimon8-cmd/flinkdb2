@@ -235,16 +235,16 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
       style={{ backgroundColor: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
       onClick={handleBackdropClick}
     >
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08]">
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface-primary border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border-secondary">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">Task bearbeiten</h2>
-            <p className="text-[10px] text-slate-400 mt-0.5 font-mono">{task.id}</p>
+            <h2 className="text-sm font-semibold text-text-primary">Task bearbeiten</h2>
+            <p className="text-[10px] text-text-muted mt-0.5 font-mono">{task.id}</p>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50/80 border border-slate-200/60 text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-surface-secondary/80 border border-border-secondary text-text-muted hover:text-text-secondary hover:border-border-primary transition-colors"
           >
             <X size={14} />
           </button>
@@ -254,34 +254,34 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
         <div className="px-6 py-5 space-y-4">
           {/* Task Title */}
           <div>
-            <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
-              Aufgabentitel <span className="text-[#ef4444]">*</span>
+            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
+              Aufgabentitel <span className="text-[#FF3B30]">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Titel der Aufgabe..."
-              className="w-full px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
             />
             {!title.trim() && (
               <div className="flex items-center gap-1 mt-1">
-                <AlertCircle size={10} className="text-[#ef4444]" />
-                <span className="text-[10px] text-[#ef4444]">Titel ist erforderlich</span>
+                <AlertCircle size={10} className="text-[#FF3B30]" />
+                <span className="text-[10px] text-[#FF3B30]">Titel ist erforderlich</span>
               </div>
             )}
           </div>
 
           {/* ── Partner ── */}
           <div>
-            <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
               <Briefcase size={10} className="inline -mt-0.5 mr-1" />
               Partner
             </label>
             <select
               value={partner}
               onChange={(e) => setPartner(e.target.value)}
-              className="w-full appearance-none px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full appearance-none px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
                 backgroundRepeat: 'no-repeat',
@@ -299,13 +299,13 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
           <div className="grid grid-cols-2 gap-3">
             {/* Status */}
             <div>
-              <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
                 Status
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none"
+                className="w-full px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors appearance-none"
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
@@ -320,13 +320,13 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
             {/* Priority */}
             <div>
-              <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
                 Priorität
               </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none"
+                className="w-full px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors appearance-none"
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
@@ -342,19 +342,19 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* ── Standort / Location (searchable) ── */}
           <div ref={locationDropdownRef} className="relative">
-            <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
               <MapPin size={10} className="inline -mt-0.5 mr-1" />
               Standort / Partner
             </label>
 
             {selectedLocation ? (
-              <div className="flex items-center gap-2 px-3 py-2 bg-[#3b82f6]/5 border border-[#3b82f6]/30 rounded-lg">
-                <Building2 size={13} className="text-[#3b82f6] shrink-0" />
+              <div className="flex items-center gap-2 px-3 py-2 bg-[#007AFF]/5 border border-[#007AFF]/30 rounded-lg">
+                <Building2 size={13} className="text-[#007AFF] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium text-slate-900 truncate">
+                  <div className="text-xs font-medium text-text-primary truncate">
                     {selectedLocation.name}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono truncate">
+                  <div className="text-[10px] text-text-muted font-mono truncate">
                     {selectedLocation.city}
                     {selectedLocation.jetIds?.length > 0 && ` · ${selectedLocation.jetIds[0]}`}
                     {selectedLocation.displayIds?.length > 0 && ` · ${selectedLocation.displayIds.length} Display${selectedLocation.displayIds.length !== 1 ? 's' : ''}`}
@@ -363,14 +363,14 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                 <button
                   type="button"
                   onClick={handleClearLocation}
-                  className="p-1 rounded hover:bg-slate-100/60 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-1 rounded hover:bg-surface-secondary/60 text-text-muted hover:text-text-secondary transition-colors"
                 >
                   <X size={12} />
                 </button>
               </div>
             ) : (
               <div className="relative">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   value={locationSearch}
@@ -381,19 +381,19 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                   onFocus={() => setShowLocationDropdown(true)}
                   placeholder={locationsLoading ? 'Standorte laden...' : 'Standort suchen (Name, Stadt, JET ID)...'}
                   disabled={locationsLoading}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors disabled:opacity-50"
+                  className="w-full pl-9 pr-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors disabled:opacity-50"
                 />
                 {locationsLoading && (
-                  <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 animate-spin" />
+                  <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted animate-spin" />
                 )}
               </div>
             )}
 
             {/* Location dropdown */}
             {showLocationDropdown && !selectedLocation && (
-              <div className="absolute z-20 left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-lg shadow-lg shadow-black/[0.08] max-h-[200px] overflow-y-auto">
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-surface-primary border border-border-secondary rounded-lg shadow-lg shadow-black/[0.08] max-h-[200px] overflow-y-auto">
                 {filteredLocations.length === 0 ? (
-                  <div className="px-3 py-4 text-xs text-slate-400 text-center">
+                  <div className="px-3 py-4 text-xs text-text-muted text-center">
                     {locationsLoading ? 'Laden...' : 'Kein Standort gefunden'}
                   </div>
                 ) : (
@@ -402,18 +402,18 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                       key={loc.id}
                       type="button"
                       onClick={() => handleSelectLocation(loc)}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-50/80 transition-colors border-b border-slate-200/30 last:border-b-0"
+                      className="w-full text-left px-3 py-2 hover:bg-surface-secondary/80 transition-colors border-b border-border-secondary/30 last:border-b-0"
                     >
-                      <div className="text-xs font-medium text-slate-900 truncate">
+                      <div className="text-xs font-medium text-text-primary truncate">
                         {loc.name}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-slate-400 font-mono">{loc.city}</span>
+                        <span className="text-[10px] text-text-muted font-mono">{loc.city}</span>
                         {loc.jetIds?.length > 0 && (
-                          <span className="text-[10px] text-slate-400 font-mono">{loc.jetIds[0]}</span>
+                          <span className="text-[10px] text-text-muted font-mono">{loc.jetIds[0]}</span>
                         )}
                         {loc.displayIds?.length > 0 && (
-                          <span className="text-[9px] text-slate-400 bg-slate-100/80 px-1.5 py-0.5 rounded">
+                          <span className="text-[9px] text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
                             {loc.displayIds.length} Display{loc.displayIds.length !== 1 ? 's' : ''}
                           </span>
                         )}
@@ -427,28 +427,28 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* ═══════ STANDORT INFO-BOX (collapsible) ═══════ */}
           {hasLocationInfo && (
-            <div className="border border-[#3b82f6]/20 rounded-xl overflow-hidden">
+            <div className="border border-[#007AFF]/20 rounded-xl overflow-hidden">
               {/* Toggle header */}
               <button
                 type="button"
                 onClick={() => setShowInfoBox(!showInfoBox)}
-                className="w-full flex items-center gap-2 px-3 py-2 bg-[#3b82f6]/5 hover:bg-[#3b82f6]/10 transition-colors text-left"
+                className="w-full flex items-center gap-2 px-3 py-2 bg-[#007AFF]/5 hover:bg-[#007AFF]/10 transition-colors text-left"
               >
-                <Info size={12} className="text-[#3b82f6] shrink-0" />
-                <span className="text-[10px] font-medium text-[#3b82f6] flex-1">
+                <Info size={12} className="text-[#007AFF] shrink-0" />
+                <span className="text-[10px] font-medium text-[#007AFF] flex-1">
                   Standort-Details
                   {installationLoading && <Loader2 size={10} className="inline ml-1 animate-spin" />}
                 </span>
                 {showInfoBox ? (
-                  <ChevronUp size={12} className="text-[#3b82f6]" />
+                  <ChevronUp size={12} className="text-[#007AFF]" />
                 ) : (
-                  <ChevronDown size={12} className="text-[#3b82f6]" />
+                  <ChevronDown size={12} className="text-[#007AFF]" />
                 )}
               </button>
 
               {/* Expandable content */}
               {showInfoBox && (
-                <div className="px-3 py-3 space-y-3 bg-[#3b82f6]/[0.02]">
+                <div className="px-3 py-3 space-y-3 bg-[#007AFF]/[0.02]">
                   {/* Location info */}
                   <div className="space-y-1.5">
                     {selectedLocation.city && (
@@ -478,8 +478,8 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
                   {/* Contact info */}
                   {(selectedLocation.contactPerson || selectedLocation.contactPhone || selectedLocation.contactEmail) && (
-                    <div className="pt-2 border-t border-[#3b82f6]/10 space-y-1.5">
-                      <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">Kontakt</div>
+                    <div className="pt-2 border-t border-[#007AFF]/10 space-y-1.5">
+                      <div className="text-[9px] font-medium text-text-muted uppercase tracking-wider">Kontakt</div>
                       {selectedLocation.contactPerson && (
                         <InfoRow icon={<User size={10} />} label="Person" value={selectedLocation.contactPerson} />
                       )}
@@ -494,8 +494,8 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
                   {/* Installation info */}
                   {installationData && (
-                    <div className="pt-2 border-t border-[#3b82f6]/10 space-y-1.5">
-                      <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">Installation</div>
+                    <div className="pt-2 border-t border-[#007AFF]/10 space-y-1.5">
+                      <div className="text-[9px] font-medium text-text-muted uppercase tracking-wider">Installation</div>
                       {installationData.installDate && (
                         <InfoRow icon={<Calendar size={10} />} label="Aufbaudatum" value={formatDateDE(installationData.installDate)} />
                       )}
@@ -510,12 +510,12 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                       )}
                       {installationData.protocol?.[0]?.url && (
                         <div className="flex items-center gap-2">
-                          <div className="w-4 flex items-center justify-center text-slate-400"><FileText size={10} /></div>
+                          <div className="w-4 flex items-center justify-center text-text-muted"><FileText size={10} /></div>
                           <a
                             href={installationData.protocol[0].url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[10px] font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors"
+                            className="inline-flex items-center gap-1 text-[10px] font-medium text-[#007AFF] hover:text-[#2563eb] transition-colors"
                           >
                             <Download size={9} />
                             {installationData.protocol[0].filename || 'Installationsprotokoll'}
@@ -528,11 +528,11 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
                   {/* Lead status */}
                   {selectedLocation.leadStatus?.length > 0 && (
-                    <div className="pt-2 border-t border-[#3b82f6]/10">
-                      <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1">Akquise-Status</div>
+                    <div className="pt-2 border-t border-[#007AFF]/10">
+                      <div className="text-[9px] font-medium text-text-muted uppercase tracking-wider mb-1">Akquise-Status</div>
                       <div className="flex flex-wrap gap-1">
                         {selectedLocation.leadStatus.map((s, i) => (
-                          <span key={i} className="text-[9px] px-1.5 py-0.5 bg-[#3b82f6]/10 text-[#3b82f6] rounded font-medium">
+                          <span key={i} className="text-[9px] px-1.5 py-0.5 bg-[#007AFF]/10 text-[#007AFF] rounded font-medium">
                             {s}
                           </span>
                         ))}
@@ -546,14 +546,14 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* ── Zuständig / Assigned User ── */}
           <div>
-            <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
               <User size={10} className="inline -mt-0.5 mr-1" />
               Zuständig
             </label>
             <select
               value={assignedUserId}
               onChange={(e) => setAssignedUserId(e.target.value)}
-              className="w-full appearance-none px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full appearance-none px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
                 backgroundRepeat: 'no-repeat',
@@ -571,20 +571,20 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
 
           {/* Due Date */}
           <div>
-            <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
               Fälligkeitsdatum
             </label>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
               Beschreibung
             </label>
             <textarea
@@ -592,14 +592,14 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Beschreibung der Aufgabe..."
               rows={description.split('\n').length > 4 ? 8 : 3}
-              className="w-full px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors resize-none"
+              className="w-full px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors resize-none"
             />
           </div>
 
           {/* ── Existing Attachments ── */}
           {existingAttachments.length > 0 && (
             <div>
-              <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[10px] font-medium text-text-muted uppercase tracking-wider mb-1.5">
                 <Paperclip size={10} className="inline -mt-0.5 mr-1" />
                 Anhänge ({existingAttachments.length})
               </label>
@@ -610,7 +610,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                     href={att.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50/80 border border-slate-200/60 rounded-lg hover:border-[#3b82f6]/40 transition-colors group"
+                    className="flex items-center gap-2 px-2.5 py-1.5 bg-surface-secondary/80 border border-border-secondary rounded-lg hover:border-[#007AFF]/40 transition-colors group"
                   >
                     {att.type?.startsWith('image/') ? (
                       <img
@@ -619,19 +619,19 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                         className="w-8 h-8 rounded object-cover shrink-0"
                       />
                     ) : (
-                      <FileText size={14} className="text-[#3b82f6] shrink-0" />
+                      <FileText size={14} className="text-[#007AFF] shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="text-[11px] font-medium text-slate-900 truncate group-hover:text-[#3b82f6] transition-colors">
+                      <div className="text-[11px] font-medium text-text-primary truncate group-hover:text-[#007AFF] transition-colors">
                         {att.filename || 'Datei'}
                       </div>
                       {att.size > 0 && (
-                        <div className="text-[9px] text-slate-400">
+                        <div className="text-[9px] text-text-muted">
                           {att.size < 1024 * 1024 ? `${(att.size / 1024).toFixed(0)} KB` : `${(att.size / (1024 * 1024)).toFixed(1)} MB`}
                         </div>
                       )}
                     </div>
-                    <ExternalLink size={10} className="text-slate-300 group-hover:text-[#3b82f6] transition-colors shrink-0" />
+                    <ExternalLink size={10} className="text-text-muted group-hover:text-[#007AFF] transition-colors shrink-0" />
                   </a>
                 ))}
               </div>
@@ -646,7 +646,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
             <button
               onClick={handleSave}
               disabled={!title.trim() || loading}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#3b82f6] text-white text-xs font-medium rounded-lg hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#007AFF] text-white text-xs font-medium rounded-lg hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -658,17 +658,17 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
             <button
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2.5 bg-slate-50/80 border border-slate-200/60 text-xs text-slate-600 font-medium rounded-lg hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 transition-colors"
+              className="px-4 py-2.5 bg-surface-secondary/80 border border-border-secondary text-xs text-text-secondary font-medium rounded-lg hover:border-border-primary hover:text-text-primary disabled:opacity-40 transition-colors"
             >
               Abbrechen
             </button>
           </div>
 
           {/* Delete */}
-          <div className="pt-3 border-t border-slate-200/60">
+          <div className="pt-3 border-t border-border-secondary">
             {showDeleteConfirm ? (
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 text-xs text-[#ef4444]">
+                <div className="flex items-center gap-1.5 text-xs text-[#FF3B30]">
                   <AlertCircle size={12} />
                   <span>Task wirklich löschen?</span>
                 </div>
@@ -676,7 +676,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                 <button
                   onClick={handleDelete}
                   disabled={loading}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ef4444] text-white text-xs font-medium rounded-lg hover:bg-[#dc2626] disabled:opacity-40 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FF3B30] text-white text-xs font-medium rounded-lg hover:bg-[#FF3B30] disabled:opacity-40 transition-colors"
                 >
                   {loading ? (
                     <Loader2 size={12} className="animate-spin" />
@@ -688,7 +688,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={loading}
-                  className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 transition-colors"
+                  className="px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary transition-colors"
                 >
                   Nein
                 </button>
@@ -697,7 +697,7 @@ export default function TaskEditModal({ isOpen, onClose, onSave, onDelete, task,
               <button
                 onClick={handleDelete}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#ef4444] hover:text-[#dc2626] hover:bg-[#ef4444]/5 rounded-lg disabled:opacity-40 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#FF3B30] hover:text-[#FF3B30] hover:bg-[#FF3B30]/5 rounded-lg disabled:opacity-40 transition-colors"
               >
                 <Trash2 size={12} />
                 Task löschen
@@ -715,10 +715,10 @@ function InfoRow({ icon, label, value, mono = false }) {
   if (!value) return null;
   return (
     <div className="flex items-start gap-2">
-      <div className="w-4 flex items-center justify-center text-slate-400 mt-0.5 shrink-0">{icon}</div>
+      <div className="w-4 flex items-center justify-center text-text-muted mt-0.5 shrink-0">{icon}</div>
       <div className="min-w-0">
-        <div className="text-[9px] text-slate-400">{label}</div>
-        <div className={`text-[10px] text-slate-700 ${mono ? 'font-mono' : ''} break-all`}>{value}</div>
+        <div className="text-[9px] text-text-muted">{label}</div>
+        <div className={`text-[10px] text-text-primary ${mono ? 'font-mono' : ''} break-all`}>{value}</div>
       </div>
     </div>
   );

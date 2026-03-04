@@ -81,30 +81,30 @@ export default function StimmcheckModal({ isOpen, onClose, locationName, locatio
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/30"
         onClick={handleClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm mx-4 animate-fade-in">
+      <div className="relative bg-surface-primary rounded-2xl shadow-xl border border-border-secondary w-full max-w-sm mx-4 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-secondary">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
               <Phone size={14} className="text-emerald-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">
+              <h3 className="text-sm font-semibold text-text-primary">
                 Stimmcheck planen
               </h3>
-              <p className="text-xs text-slate-500">Sentiment-Anruf terminieren</p>
+              <p className="text-xs text-text-muted">Sentiment-Anruf terminieren</p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors"
           >
-            <X size={16} className="text-slate-500" />
+            <X size={16} className="text-text-muted" />
           </button>
         </div>
 
@@ -114,8 +114,8 @@ export default function StimmcheckModal({ isOpen, onClose, locationName, locatio
             <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 size={24} className="text-emerald-500" />
             </div>
-            <div className="text-sm font-medium text-slate-900 mb-1">Termin erstellt</div>
-            <div className="text-xs text-slate-500">
+            <div className="text-sm font-medium text-text-primary mb-1">Termin erstellt</div>
+            <div className="text-xs text-text-muted">
               Stimmcheck am {formattedDate} um {time} Uhr
             </div>
           </div>
@@ -124,13 +124,13 @@ export default function StimmcheckModal({ isOpen, onClose, locationName, locatio
             {/* Body */}
             <div className="px-5 py-4 space-y-4">
               {/* Location info (read-only) */}
-              <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-200/60">
-                <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Standort</div>
-                <div className="text-sm font-medium text-slate-900 truncate">
+              <div className="bg-surface-secondary/80 rounded-lg p-3 border border-border-secondary">
+                <div className="text-xs text-text-muted uppercase tracking-wider mb-1">Standort</div>
+                <div className="text-sm font-medium text-text-primary truncate">
                   {locationName || '–'}
                 </div>
                 {locationAddress && (
-                  <div className="text-xs text-slate-500 mt-0.5 truncate">
+                  <div className="text-xs text-text-muted mt-0.5 truncate">
                     {locationAddress}
                   </div>
                 )}
@@ -138,7 +138,7 @@ export default function StimmcheckModal({ isOpen, onClose, locationName, locatio
 
               {/* Date picker */}
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-medium text-slate-600 mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-text-secondary mb-1.5">
                   <Calendar size={12} />
                   Datum
                 </label>
@@ -147,20 +147,20 @@ export default function StimmcheckModal({ isOpen, onClose, locationName, locatio
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2 bg-white border border-slate-200/60 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30"
+                  className="w-full px-3 py-2 bg-surface-primary border border-border-secondary rounded-lg text-sm text-text-primary focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30"
                 />
               </div>
 
               {/* Time dropdown */}
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-medium text-slate-600 mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-text-secondary mb-1.5">
                   <Clock size={12} />
                   Uhrzeit
                 </label>
                 <select
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200/60 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30"
+                  className="w-full px-3 py-2 bg-surface-primary border border-border-secondary rounded-lg text-sm text-text-primary focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30"
                 >
                   {TIME_SLOTS.map((slot) => (
                     <option key={slot} value={slot}>
@@ -172,26 +172,26 @@ export default function StimmcheckModal({ isOpen, onClose, locationName, locatio
 
               {/* Notes */}
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-medium text-slate-600 mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-text-secondary mb-1.5">
                   <FileText size={12} />
                   Notizen
-                  <span className="text-slate-400 font-normal">(optional)</span>
+                  <span className="text-text-muted font-normal">(optional)</span>
                 </label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="z.B. Ansprechpartner, besondere Hinweise..."
                   rows={3}
-                  className="w-full px-3 py-2 bg-white border border-slate-200/60 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30 resize-none"
+                  className="w-full px-3 py-2 bg-surface-primary border border-border-secondary rounded-lg text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30 resize-none"
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-200/60 flex items-center justify-end gap-2">
+            <div className="px-5 py-4 border-t border-border-secondary flex items-center justify-end gap-2">
               <button
                 onClick={handleClose}
-                className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 transition-colors"
+                className="px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary transition-colors"
               >
                 Abbrechen
               </button>

@@ -18,18 +18,18 @@ function KpiCard({ label, value, icon: Icon, color, subtitle, onClick, active })
   return (
     <div
       onClick={onClick}
-      className={`bg-white/60 backdrop-blur-xl border rounded-2xl p-4 shadow-sm shadow-black/[0.03] transition-all ${
-        onClick ? 'cursor-pointer hover:bg-white/80' : ''
-      } ${active ? 'border-blue-400 ring-1 ring-blue-400/30' : 'border-slate-200/60'}`}
+      className={`bg-surface-primary border rounded-2xl p-4 shadow-card transition-all ${
+        onClick ? 'cursor-pointer hover:bg-surface-secondary' : ''
+      } ${active ? 'border-blue-400 ring-1 ring-blue-400/30' : 'border-border-secondary'}`}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}12` }}>
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-slate-800 font-mono">{value}</div>
-      {subtitle && <div className="text-xs text-slate-500 mt-1">{subtitle}</div>}
+      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      {subtitle && <div className="text-xs text-text-muted mt-1">{subtitle}</div>}
     </div>
   );
 }
@@ -41,20 +41,20 @@ function CategoryCard({ icon: Icon, color, title, count, total, description, onC
   return (
     <div
       onClick={onClick}
-      className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm shadow-black/[0.03] cursor-pointer hover:bg-white/80 transition-all"
+      className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card cursor-pointer hover:bg-surface-secondary transition-all"
     >
       <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
           <Icon size={18} style={{ color }} />
         </div>
         <div>
-          <div className="text-sm font-semibold text-slate-700">{title}</div>
-          <div className="text-xs text-slate-500">{description}</div>
+          <div className="text-sm font-semibold text-text-primary">{title}</div>
+          <div className="text-xs text-text-muted">{description}</div>
         </div>
       </div>
       <div className="flex items-end justify-between">
         <div className="text-3xl font-bold font-mono" style={{ color }}>{count}</div>
-        <div className="text-xs text-slate-500">{pct}% von {total}</div>
+        <div className="text-xs text-text-muted">{pct}% von {total}</div>
       </div>
     </div>
   );
@@ -226,8 +226,8 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
   if (!comparisonData || !rawData) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
-        <span className="ml-2 text-sm text-slate-500">Warte auf Daten...</span>
+        <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
+        <span className="ml-2 text-sm text-text-muted">Warte auf Daten...</span>
       </div>
     );
   }
@@ -236,7 +236,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
     return (
       <div className="flex items-center justify-center py-20">
         <AlertTriangle className="w-6 h-6 text-amber-400" />
-        <span className="ml-2 text-sm text-slate-500">Keine Airtable-Display-Daten vorhanden</span>
+        <span className="ml-2 text-sm text-text-muted">Keine Airtable-Display-Daten vorhanden</span>
       </div>
     );
   }
@@ -260,18 +260,18 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-            <Database size={20} className="text-blue-600" />
+          <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center">
+            <Database size={20} className="text-accent" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-800">Datenqualität</h2>
-            <p className="text-xs text-slate-500">Cross-System Abgleich: Airtable / Navori / Vistar / OPS</p>
+            <h2 className="text-lg font-bold text-text-primary">Datenqualität</h2>
+            <p className="text-xs text-text-muted">Cross-System Abgleich: Airtable / Navori / Vistar / OPS</p>
           </div>
         </div>
         <button
           onClick={loadOps}
           disabled={opsLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-secondary bg-surface-primary text-xs text-text-secondary hover:bg-surface-secondary transition-colors disabled:opacity-50"
         >
           <RefreshCw size={12} className={opsLoading ? 'animate-spin' : ''} />
           Aktualisieren
@@ -284,21 +284,21 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           label="Live Displays"
           value={analysis.totalLive}
           icon={Monitor}
-          color="#3b82f6"
+          color="#007AFF"
           subtitle="Airtable Master"
         />
         <KpiCard
           label="Vollständig"
           value={analysis.matchedAll3.length}
           icon={CheckCircle2}
-          color="#22c55e"
+          color="#34C759"
           subtitle={`${matchPct}% in allen 3 Quellen`}
         />
         <KpiCard
           label="Fehlt überall"
           value={analysis.missingInBoth.length}
           icon={AlertTriangle}
-          color="#dc2626"
+          color="#FF3B30"
           subtitle="Weder Navori noch Vistar"
           onClick={() => setActiveSection('missing-both')}
           active={activeSection === 'missing-both'}
@@ -307,7 +307,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           label="Fehlt in Vistar"
           value={analysis.missingInVistar.length}
           icon={BarChart3}
-          color="#ef4444"
+          color="#FF3B30"
           subtitle="Umsatzverlust"
           onClick={() => setActiveSection('missing-vistar')}
           active={activeSection === 'missing-vistar'}
@@ -316,7 +316,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           label="Fehlt in Navori"
           value={analysis.missingInNavori.length}
           icon={WifiOff}
-          color="#f59e0b"
+          color="#FF9500"
           subtitle="Nicht überwacht"
           onClick={() => setActiveSection('missing-navori')}
           active={activeSection === 'missing-navori'}
@@ -325,7 +325,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           label="Ohne Venue-ID"
           value={analysis.missingVenueId.length}
           icon={Link2Off}
-          color="#8b5cf6"
+          color="#AF52DE"
           subtitle="Kein Matching möglich"
           onClick={() => setActiveSection('no-venue-id')}
           active={activeSection === 'no-venue-id'}
@@ -333,7 +333,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
       </div>
 
       {/* Section Tabs */}
-      <div className="flex items-center gap-0 bg-white/40 backdrop-blur-sm border border-slate-200/60 rounded-xl p-1 overflow-x-auto">
+      <div className="flex items-center gap-0 bg-surface-primary border border-border-secondary rounded-xl p-1 overflow-x-auto">
         {sections.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSection === tab.id;
@@ -343,15 +343,15 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
               onClick={() => { setActiveSection(tab.id); setSearchTerm(''); }}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                 isActive
-                  ? 'bg-white shadow-sm text-slate-800 border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-600'
+                  ? 'bg-surface-primary shadow-sm text-text-primary border border-border-secondary'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
             >
               <Icon size={13} />
               {tab.label}
               {tab.count != null && (
                 <span className={`text-xs font-mono px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-slate-100 text-slate-600' : 'bg-transparent text-slate-500'
+                  isActive ? 'bg-surface-secondary text-text-secondary' : 'bg-transparent text-text-muted'
                 }`}>
                   {tab.count}
                 </span>
@@ -367,16 +367,16 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
       {activeSection === 'uebersicht' && (
         <div className="space-y-4">
           {/* Quality Bar */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-6 shadow-sm">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-700">Gesamt-Datenqualität</h3>
-              <span className="text-xs font-mono text-slate-500">{analysis.matchedAll3.length} / {analysis.totalLive} vollständig</span>
+              <h3 className="text-sm font-semibold text-text-primary">Gesamt-Datenqualität</h3>
+              <span className="text-xs font-mono text-text-muted">{analysis.matchedAll3.length} / {analysis.totalLive} vollständig</span>
             </div>
-            <div className="h-6 bg-slate-100 rounded-full overflow-hidden flex mb-3">
+            <div className="h-6 bg-surface-secondary rounded-full overflow-hidden flex mb-3">
               {analysis.totalLive > 0 && (
                 <>
                   <div className="bg-emerald-500 h-full transition-all" style={{ width: `${(analysis.matchedAll3.length / analysis.totalLive) * 100}%` }} title={`Vollständig: ${analysis.matchedAll3.length}`} />
-                  <div className="bg-red-500 h-full transition-all" style={{ width: `${(analysis.missingInBoth.length / analysis.totalLive) * 100}%` }} title={`Fehlt überall: ${analysis.missingInBoth.length}`} />
+                  <div className="bg-status-offline h-full transition-all" style={{ width: `${(analysis.missingInBoth.length / analysis.totalLive) * 100}%` }} title={`Fehlt überall: ${analysis.missingInBoth.length}`} />
                   <div className="bg-red-300 h-full transition-all" style={{ width: `${(analysis.missingInVistar.length / analysis.totalLive) * 100}%` }} title={`Nur Vistar fehlt: ${analysis.missingInVistar.length}`} />
                   <div className="bg-amber-400 h-full transition-all" style={{ width: `${(analysis.missingInNavori.length / analysis.totalLive) * 100}%` }} title={`Nur Navori fehlt: ${analysis.missingInNavori.length}`} />
                 </>
@@ -384,21 +384,21 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
             </div>
             <div className="flex flex-wrap gap-4 text-xs">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Vollständig ({analysis.matchedAll3.length})</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Fehlt überall ({analysis.missingInBoth.length})</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-status-offline" /> Fehlt überall ({analysis.missingInBoth.length})</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-300" /> Nur Vistar fehlt ({analysis.missingInVistar.length})</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Nur Navori fehlt ({analysis.missingInNavori.length})</span>
             </div>
           </div>
 
           {/* Nacharbeit-Matrix: Prioritäten */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">Nacharbeit-Prioritäten</h3>
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-text-primary mb-4">Nacharbeit-Prioritäten</h3>
             <div className="space-y-2">
               {[
-                { label: 'Displays fehlen in Navori + Vistar', count: analysis.missingInBoth.length, color: '#dc2626', prio: 'KRITISCH', desc: 'Kein Monitoring, kein Revenue', section: 'missing-both' },
-                { label: 'Displays ohne Venue-ID', count: analysis.missingVenueId.length, color: '#8b5cf6', prio: 'HOCH', desc: 'Matching unmöglich — Venue-ID in Airtable pflegen', section: 'no-venue-id' },
-                { label: 'Displays fehlen in Vistar', count: analysis.missingInVistar.length, color: '#ef4444', prio: 'HOCH', desc: 'Programmatic Revenue geht verloren', section: 'missing-vistar' },
-                { label: 'Displays fehlen in Navori', count: analysis.missingInNavori.length, color: '#f59e0b', prio: 'MITTEL', desc: 'Kein CMS-Heartbeat, nicht überwacht', section: 'missing-navori' },
+                { label: 'Displays fehlen in Navori + Vistar', count: analysis.missingInBoth.length, color: '#FF3B30', prio: 'KRITISCH', desc: 'Kein Monitoring, kein Revenue', section: 'missing-both' },
+                { label: 'Displays ohne Venue-ID', count: analysis.missingVenueId.length, color: '#AF52DE', prio: 'HOCH', desc: 'Matching unmöglich — Venue-ID in Airtable pflegen', section: 'no-venue-id' },
+                { label: 'Displays fehlen in Vistar', count: analysis.missingInVistar.length, color: '#FF3B30', prio: 'HOCH', desc: 'Programmatic Revenue geht verloren', section: 'missing-vistar' },
+                { label: 'Displays fehlen in Navori', count: analysis.missingInNavori.length, color: '#FF9500', prio: 'MITTEL', desc: 'Kein CMS-Heartbeat, nicht überwacht', section: 'missing-navori' },
                 { label: 'Displays fehlen in DAYN', count: analysis.missingInDayn.length, color: '#06b6d4', prio: 'NIEDRIG', desc: `${analysis.daynTotal} DAYN-Screens vorhanden`, section: 'missing-dayn' },
                 { label: 'OPS ohne Standort-Zuordnung', count: opsAnalysis.opsWithoutDisplay.length, color: '#64748b', prio: 'MITTEL', desc: 'Hardware nicht zugeordnet', section: 'ops-issues' },
                 { label: 'Standorte mit mehreren OPS', count: opsAnalysis.duplicateOpsLocations.length, color: '#64748b', prio: 'NIEDRIG', desc: 'Prüfen ob Swap/Tausch läuft', section: 'ops-issues' },
@@ -410,8 +410,8 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                     key={i}
                     onClick={() => row.section !== 'uebersicht' && setActiveSection(row.section)}
                     className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                      row.section !== 'uebersicht' ? 'cursor-pointer hover:bg-white/80' : ''
-                    } ${row.prio === 'KRITISCH' ? 'border-red-200 bg-red-50/50' : 'border-slate-200/60 bg-white/30'}`}
+                      row.section !== 'uebersicht' ? 'cursor-pointer hover:bg-surface-secondary' : ''
+                    } ${row.prio === 'KRITISCH' ? 'border-status-offline/20 bg-status-offline/10/50' : 'border-border-secondary bg-surface-primary/40'}`}
                   >
                     <span
                       className="text-xs font-bold px-1.5 py-0.5 rounded-md shrink-0"
@@ -420,8 +420,8 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                       {row.prio}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-slate-700 truncate">{row.label}</div>
-                      <div className="text-xs text-slate-500 truncate">{row.desc}</div>
+                      <div className="text-xs font-medium text-text-primary truncate">{row.label}</div>
+                      <div className="text-xs text-text-muted truncate">{row.desc}</div>
                     </div>
                     <div className="text-lg font-bold font-mono shrink-0" style={{ color: row.color }}>{row.count}</div>
                   </div>
@@ -436,8 +436,8 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           </div>
 
           {/* Datenquellen-Status */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">Datenquellen-Status</h3>
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-text-primary mb-4">Datenquellen-Status</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { name: 'Airtable', count: analysis.totalLive, label: 'Live Displays', ok: analysis.totalLive > 0 },
@@ -445,13 +445,13 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                 { name: 'Vistar', count: analysis.vistarTotal, label: 'Aktive Venues', ok: analysis.vistarTotal > 0 },
                 { name: 'DAYN', count: analysis.daynTotal, label: 'Screens', ok: analysis.daynTotal > 0 },
               ].map(src => (
-                <div key={src.name} className={`p-3 rounded-xl border ${src.ok ? 'border-emerald-200 bg-emerald-50/30' : 'border-red-200 bg-red-50/30'}`}>
+                <div key={src.name} className={`p-3 rounded-xl border ${src.ok ? 'border-emerald-200 bg-emerald-50/30' : 'border-status-offline/20 bg-status-offline/10/30'}`}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`w-2 h-2 rounded-full ${src.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                    <span className="text-xs font-semibold text-slate-700">{src.name}</span>
+                    <span className={`w-2 h-2 rounded-full ${src.ok ? 'bg-emerald-500' : 'bg-status-offline'}`} />
+                    <span className="text-xs font-semibold text-text-primary">{src.name}</span>
                   </div>
-                  <div className="text-lg font-bold font-mono text-slate-800">{src.count}</div>
-                  <div className="text-xs text-slate-500">{src.label}</div>
+                  <div className="text-lg font-bold font-mono text-text-primary">{src.count}</div>
+                  <div className="text-xs text-text-muted">{src.label}</div>
                 </div>
               ))}
             </div>
@@ -460,7 +460,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
           {/* Category Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <CategoryCard
-              icon={AlertTriangle} color="#dc2626"
+              icon={AlertTriangle} color="#FF3B30"
               title="Fehlt in Navori + Vistar"
               count={analysis.missingInBoth.length}
               total={analysis.totalLive}
@@ -468,7 +468,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
               onClick={() => setActiveSection('missing-both')}
             />
             <CategoryCard
-              icon={BarChart3} color="#ef4444"
+              icon={BarChart3} color="#FF3B30"
               title="Nur in Vistar fehlend"
               count={analysis.missingInVistar.length}
               total={analysis.totalLive}
@@ -476,7 +476,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
               onClick={() => setActiveSection('missing-vistar')}
             />
             <CategoryCard
-              icon={WifiOff} color="#f59e0b"
+              icon={WifiOff} color="#FF9500"
               title="Nur in Navori fehlend"
               count={analysis.missingInNavori.length}
               total={analysis.totalLive}
@@ -484,7 +484,7 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
               onClick={() => setActiveSection('missing-navori')}
             />
             <CategoryCard
-              icon={Link2Off} color="#8b5cf6"
+              icon={Link2Off} color="#AF52DE"
               title="Ohne Venue-ID"
               count={analysis.missingVenueId.length}
               total={analysis.totalLive}
@@ -606,8 +606,8 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
         <div className="space-y-4">
           {opsLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
-              <span className="ml-2 text-xs text-slate-500">Lade OPS-Daten...</span>
+              <Loader2 className="w-5 h-5 animate-spin text-text-muted" />
+              <span className="ml-2 text-xs text-text-muted">Lade OPS-Daten...</span>
             </div>
           ) : (
             <>
@@ -635,17 +635,17 @@ export default function DataQualityDashboard({ comparisonData, rawData }) {
                   onSearchChange={setSearchTerm}
                   columns={[
                     { key: 'opsNr', label: 'OPS-Nr (erster)', mono: true },
-                    { key: 'count', label: 'Anzahl OPS', render: (d) => <span className="text-amber-600 font-bold">{d.count}x</span> },
+                    { key: 'count', label: 'Anzahl OPS', render: (d) => <span className="text-status-warning font-bold">{d.count}x</span> },
                     { key: 'locationOnlineStatus', label: 'Online-Status' },
                     { key: 'locationId', label: 'Location-ID', mono: true, truncate: true },
                   ]}
                 />
               )}
               {opsAnalysis.opsWithoutDisplay.length === 0 && opsAnalysis.duplicateOpsLocations.length === 0 && (
-                <div className="bg-white/60 border border-slate-200/60 rounded-2xl p-12 text-center">
+                <div className="bg-surface-primary border border-border-secondary rounded-2xl p-12 text-center">
                   <CheckCircle2 size={32} className="text-emerald-400 mx-auto mb-3" />
-                  <div className="text-sm font-medium text-slate-600">Keine OPS-Probleme gefunden</div>
-                  <div className="text-xs text-slate-500 mt-1">Alle aktiven OPS-Player sind korrekt zugeordnet</div>
+                  <div className="text-sm font-medium text-text-secondary">Keine OPS-Probleme gefunden</div>
+                  <div className="text-xs text-text-muted mt-1">Alle aktiven OPS-Player sind korrekt zugeordnet</div>
                 </div>
               )}
             </>
@@ -671,41 +671,41 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
   }, [items, searchTerm, columns]);
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-slate-200/40">
-        <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
-        {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+      <div className="px-5 py-4 border-b border-border-secondary/40">
+        <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
+        {subtitle && <p className="text-xs text-text-muted mt-0.5">{subtitle}</p>}
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200/40">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border-secondary/40">
         <div className="relative flex-1 max-w-sm">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Display-ID, Standort suchen..."
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
         </div>
-        <span className="text-xs text-slate-500 font-mono">{filtered.length} Ergebnisse</span>
+        <span className="text-xs text-text-muted font-mono">{filtered.length} Ergebnisse</span>
       </div>
 
       {/* Table */}
       {filtered.length === 0 ? (
         <div className="p-12 text-center">
           <CheckCircle2 size={28} className="text-emerald-400 mx-auto mb-2" />
-          <div className="text-xs text-slate-500">Keine Einträge</div>
+          <div className="text-xs text-text-muted">Keine Einträge</div>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200/40">
+              <tr className="border-b border-border-secondary/40">
                 {columns.map((col) => (
-                  <th key={col.key} className="text-left px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th key={col.key} className="text-left px-4 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">
                     {col.label}
                   </th>
                 ))}
@@ -713,11 +713,11 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
             </thead>
             <tbody>
               {filtered.slice(0, 100).map((item, idx) => (
-                <tr key={item.displayId || item.opsNr || idx} className="border-b border-slate-100/60 hover:bg-slate-50/40 transition-colors">
+                <tr key={item.displayId || item.opsNr || idx} className="border-b border-border-secondary/60 hover:bg-surface-secondary/40 transition-colors">
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className={`px-4 py-2.5 ${col.mono ? 'font-mono' : ''} ${col.truncate ? 'max-w-[140px] truncate' : ''} text-slate-700`}
+                      className={`px-4 py-2.5 ${col.mono ? 'font-mono' : ''} ${col.truncate ? 'max-w-[140px] truncate' : ''} text-text-primary`}
                     >
                       {col.render ? col.render(item) : (item[col.key] || '–')}
                     </td>
@@ -727,7 +727,7 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
             </tbody>
           </table>
           {filtered.length > 100 && (
-            <div className="px-4 py-2.5 text-center text-xs text-slate-500 border-t border-slate-200/40">
+            <div className="px-4 py-2.5 text-center text-xs text-text-muted border-t border-border-secondary/40">
               Zeige 100 von {filtered.length} Einträgen
             </div>
           )}
@@ -740,10 +740,10 @@ function MismatchTable({ title, subtitle, items, columns, searchTerm, onSearchCh
 /* ──────────────────────── Status Badge ──────────────────────── */
 
 function StatusBadge({ status }) {
-  if (!status) return <span className="text-slate-500">–</span>;
+  if (!status) return <span className="text-text-muted">–</span>;
   const isLive = /live/i.test(status);
   const isDeinstalled = /deinstall/i.test(status);
-  const color = isLive ? '#22c55e' : isDeinstalled ? '#f97316' : '#64748b';
+  const color = isLive ? '#34C759' : isDeinstalled ? '#f97316' : '#64748b';
   return (
     <span
       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"

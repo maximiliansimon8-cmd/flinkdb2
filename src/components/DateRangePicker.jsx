@@ -54,7 +54,7 @@ export default function DateRangePicker({
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <Calendar size={14} className="text-slate-500 flex-shrink-0" />
+      <Calendar size={14} className="text-text-muted flex-shrink-0" />
 
       {/* Preset buttons */}
       <div className="flex gap-1">
@@ -64,8 +64,8 @@ export default function DateRangePicker({
             onClick={() => handlePreset(p.days)}
             className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
               activePreset?.label === p.label
-                ? 'bg-[#3b82f6] text-white'
-                : 'bg-slate-50/80 border border-slate-200/60 text-slate-600 hover:border-[#3b82f6] hover:text-slate-900'
+                ? 'bg-[#007AFF] text-white'
+                : 'bg-surface-secondary/80 border border-border-secondary text-text-secondary hover:border-[#007AFF] hover:text-text-primary'
             }`}
           >
             {p.label}
@@ -73,7 +73,7 @@ export default function DateRangePicker({
         ))}
       </div>
 
-      <div className="w-px h-5 bg-slate-200 mx-1" />
+      <div className="w-px h-5 bg-surface-tertiary mx-1" />
 
       {/* Custom date inputs */}
       <div className="flex items-center gap-1.5">
@@ -83,16 +83,16 @@ export default function DateRangePicker({
           min={toInputValue(dataEarliest)}
           max={toInputValue(rangeEnd || dataLatest)}
           onChange={(e) => onRangeChange(fromInputValue(e.target.value), rangeEnd)}
-          className="bg-slate-50/80 border border-slate-200/60 rounded px-2 py-1 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#3b82f6] [color-scheme:light]"
+          className="bg-surface-secondary/80 border border-border-secondary rounded px-2 py-1 text-xs font-mono text-text-primary focus:outline-none focus:border-[#007AFF] [color-scheme:light]"
         />
-        <span className="text-slate-500 text-xs">–</span>
+        <span className="text-text-muted text-xs">–</span>
         <input
           type="date"
           value={toInputValue(rangeEnd)}
           min={toInputValue(rangeStart || dataEarliest)}
           max={toInputValue(dataLatest)}
           onChange={(e) => onRangeChange(rangeStart, fromInputValue(e.target.value))}
-          className="bg-slate-50/80 border border-slate-200/60 rounded px-2 py-1 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#3b82f6] [color-scheme:light]"
+          className="bg-surface-secondary/80 border border-border-secondary rounded px-2 py-1 text-xs font-mono text-text-primary focus:outline-none focus:border-[#007AFF] [color-scheme:light]"
         />
       </div>
     </div>

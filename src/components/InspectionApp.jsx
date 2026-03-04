@@ -39,7 +39,7 @@ function getAuthFromURL() {
 function FreigabeBadge({ label, value }) {
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-      value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
+      value ? 'bg-status-online/10 text-green-800' : 'bg-surface-secondary text-text-muted'
     }`}>
       {value ? <CheckCircle2 size={12} /> : <Clock size={12} />}
       {label}
@@ -50,18 +50,18 @@ function FreigabeBadge({ label, value }) {
 /* ── KPI Cards ── */
 function KPIHeader({ stats }) {
   const cards = [
-    { label: 'Gesamt', value: stats.total, color: 'text-gray-900' },
-    { label: 'Noch offen', value: stats.pending, color: 'text-amber-600' },
-    { label: 'Freigegeben', value: stats.approved, color: 'text-green-600' },
-    { label: 'Nacharbeit', value: stats.rework, color: 'text-red-600' },
-    { label: 'CHG bereit', value: stats.chgReady, color: 'text-blue-600' },
+    { label: 'Gesamt', value: stats.total, color: 'text-text-primary' },
+    { label: 'Noch offen', value: stats.pending, color: 'text-status-warning' },
+    { label: 'Freigegeben', value: stats.approved, color: 'text-status-online' },
+    { label: 'Nacharbeit', value: stats.rework, color: 'text-status-offline' },
+    { label: 'CHG bereit', value: stats.chgReady, color: 'text-accent' },
   ];
   return (
     <div className="grid grid-cols-5 gap-3 mb-4">
       {cards.map(c => (
-        <div key={c.label} className="bg-white rounded-lg border border-gray-200 p-3 text-center">
+        <div key={c.label} className="bg-surface-primary rounded-lg border border-border-secondary p-3 text-center">
           <div className={`text-xl font-bold ${c.color}`}>{c.value}</div>
-          <div className="text-xs text-gray-500 mt-0.5">{c.label}</div>
+          <div className="text-xs text-text-muted mt-0.5">{c.label}</div>
         </div>
       ))}
     </div>
@@ -74,7 +74,7 @@ function PhotoGallery({ photos }) {
 
   if (!photos || photos.length === 0) {
     return (
-      <div className="flex items-center justify-center py-8 text-gray-400">
+      <div className="flex items-center justify-center py-8 text-text-muted">
         <Image size={20} className="mr-2" /> Keine Protokollfotos vorhanden
       </div>
     );
@@ -87,7 +87,7 @@ function PhotoGallery({ photos }) {
           <button
             key={idx}
             onClick={() => setSelectedIdx(idx)}
-            className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-orange-400 transition-colors group"
+            className="relative aspect-square rounded-lg overflow-hidden border border-border-secondary hover:border-orange-400 transition-colors group"
           >
             <img
               src={photo.url || photo.thumbnails?.large?.url || photo.thumbnails?.small?.url}
@@ -128,13 +128,13 @@ function NacharbeitDialog({ installation, onSubmit, onClose, submitting }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Nacharbeit-Task erstellen</h3>
-        <p className="text-sm text-gray-600 mb-4">
+      <div className="bg-surface-primary rounded-xl shadow-xl max-w-lg w-full p-6">
+        <h3 className="text-lg font-bold text-text-primary mb-4">Nacharbeit-Task erstellen</h3>
+        <p className="text-sm text-text-secondary mb-4">
           {installation.location_name || 'Unbekannt'} — {installation.city || ''}
         </p>
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
+        <label className="block text-sm font-medium text-text-primary mb-1">Kategorie</label>
         <div className="grid grid-cols-2 gap-2 mb-4">
           {NACHARBEIT_CATEGORIES.map(cat => (
             <button
@@ -142,32 +142,32 @@ function NacharbeitDialog({ installation, onSubmit, onClose, submitting }) {
               onClick={() => setCategory(cat.id)}
               className={`text-left p-2 rounded-lg border text-sm transition-colors ${
                 category === cat.id
-                  ? 'border-orange-500 bg-orange-50 text-orange-800'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  ? 'border-orange-500 bg-status-warning/10 text-orange-800'
+                  : 'border-border-secondary hover:border-border-primary text-text-primary'
               }`}
             >
               <div className="font-medium">{cat.label}</div>
-              <div className="text-xs text-gray-500">{cat.desc}</div>
+              <div className="text-xs text-text-muted">{cat.desc}</div>
             </button>
           ))}
         </div>
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+        <label className="block text-sm font-medium text-text-primary mb-1">Beschreibung</label>
         <textarea
           value={description}
           onChange={e => setDescription(e.target.value)}
           placeholder="Was genau ist das Problem?"
-          className="w-full p-3 border border-gray-300 rounded-lg text-sm resize-none h-24 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          className="w-full p-3 border border-border-primary rounded-lg text-sm resize-none h-24 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
         />
 
         <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary">
             Abbrechen
           </button>
           <button
             onClick={() => onSubmit(category, description)}
             disabled={!category || !description.trim() || submitting}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-status-offline text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {submitting ? <Loader2 size={14} className="animate-spin" /> : <SendIcon size={14} />}
             Task erstellen
@@ -193,10 +193,10 @@ function InspectionDetail({ installation, onFreigabe, onNacharbeit, onClose, act
   }, [installation]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-surface-primary rounded-xl border border-border-secondary shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
-        <button onClick={onClose} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-surface-secondary">
+        <button onClick={onClose} className="flex items-center gap-1 text-sm text-text-muted hover:text-text-primary">
           <ChevronLeft size={16} /> Zurueck
         </button>
         <div className="flex items-center gap-2">
@@ -209,8 +209,8 @@ function InspectionDetail({ installation, onFreigabe, onNacharbeit, onClose, act
       <div className="p-4">
         {/* Standort Info (reduced — no full address for external) */}
         <div className="mb-4">
-          <h3 className="text-lg font-bold text-gray-900">{installation.location_name || 'Unbekannt'}</h3>
-          <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+          <h3 className="text-lg font-bold text-text-primary">{installation.location_name || 'Unbekannt'}</h3>
+          <div className="flex flex-wrap gap-3 mt-2 text-xs text-text-muted">
             <span>Stadt: <strong>{installation.city || '—'}</strong></span>
             <span>JET-ID: <strong>{installation.jet_id || '—'}</strong></span>
             <span>Display: <strong>{(installation.display_ids || [])[0] || '—'}</strong></span>
@@ -222,7 +222,7 @@ function InspectionDetail({ installation, onFreigabe, onNacharbeit, onClose, act
 
         {/* Fotos */}
         <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
+          <h4 className="text-sm font-semibold text-text-primary mb-2 flex items-center gap-1">
             <Image size={14} /> Installationsfotos
           </h4>
           <PhotoGallery photos={photos} />
@@ -231,16 +231,16 @@ function InspectionDetail({ installation, onFreigabe, onNacharbeit, onClose, act
         {/* Related Tasks (Feedback Loop) */}
         {relatedTasks.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Nacharbeit-Tasks</h4>
+            <h4 className="text-sm font-semibold text-text-primary mb-2">Nacharbeit-Tasks</h4>
             <div className="space-y-2">
               {relatedTasks.map(task => (
                 <div key={task.id} className={`p-3 rounded-lg border text-sm ${
                   task.status === 'Completed'
-                    ? 'bg-green-50 border-green-200'
-                    : 'bg-amber-50 border-amber-200'
+                    ? 'bg-status-online/10 border-status-online/20'
+                    : 'bg-status-warning/10 border-status-warning/20'
                 }`}>
                   <div className="font-medium">{task.title}</div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-text-muted mt-1">
                     Status: {task.status} | Prioritaet: {task.priority} | Erstellt: {task.created_time ? new Date(task.created_time).toLocaleDateString('de-DE') : '—'}
                   </div>
                 </div>
@@ -256,7 +256,7 @@ function InspectionDetail({ installation, onFreigabe, onNacharbeit, onClose, act
               <button
                 onClick={onFreigabe}
                 disabled={actionLoading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-status-online text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {actionLoading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                 Freigabe erteilen
@@ -264,7 +264,7 @@ function InspectionDetail({ installation, onFreigabe, onNacharbeit, onClose, act
               <button
                 onClick={onNacharbeit}
                 disabled={actionLoading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 disabled:opacity-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-status-offline/10 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 disabled:opacity-50 transition-colors"
               >
                 <XCircle size={16} />
                 Nacharbeit erforderlich
@@ -275,14 +275,14 @@ function InspectionDetail({ installation, onFreigabe, onNacharbeit, onClose, act
             <button
               onClick={onFreigabe}
               disabled={actionLoading}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/80 disabled:opacity-50 transition-colors"
             >
               <RefreshCw size={16} />
               Nachpruefung abgeschlossen
             </button>
           )}
           {installation.freigabe_installation_vorort && !hasOpenTask && (
-            <div className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
+            <div className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-status-online/10 text-green-700 rounded-lg text-sm font-medium">
               <CheckCircle2 size={16} />
               Vorort-Freigabe erteilt
             </div>
@@ -296,12 +296,12 @@ function InspectionDetail({ installation, onFreigabe, onNacharbeit, onClose, act
 /* ── Auth Error Screen ── */
 function AuthError({ message }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-8 text-center">
-        <AlertTriangle size={48} className="mx-auto text-amber-500 mb-4" />
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Zugriff nicht moeglich</h1>
-        <p className="text-sm text-gray-600 mb-6">{message}</p>
-        <p className="text-xs text-gray-400">
+    <div className="min-h-screen bg-surface-secondary flex items-center justify-center p-4">
+      <div className="bg-surface-primary rounded-xl shadow-lg max-w-md w-full p-8 text-center">
+        <AlertTriangle size={48} className="mx-auto text-status-warning mb-4" />
+        <h1 className="text-xl font-bold text-text-primary mb-2">Zugriff nicht moeglich</h1>
+        <p className="text-sm text-text-secondary mb-6">{message}</p>
+        <p className="text-xs text-text-muted">
           Bitte fordern Sie einen neuen Prueferlink vom Dashboard-Administrator an.
         </p>
       </div>
@@ -312,10 +312,10 @@ function AuthError({ message }) {
 /* ── Loading Screen ── */
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-surface-secondary flex items-center justify-center">
       <div className="text-center">
-        <Loader2 size={32} className="animate-spin text-orange-500 mx-auto mb-4" />
-        <p className="text-sm text-gray-500">Pruefungsdaten werden geladen...</p>
+        <Loader2 size={32} className="animate-spin text-status-warning mx-auto mb-4" />
+        <p className="text-sm text-text-muted">Pruefungsdaten werden geladen...</p>
       </div>
     </div>
   );
@@ -485,14 +485,14 @@ export default function InspectionApp() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-secondary">
       {/* Top Bar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+      <div className="bg-surface-primary border-b border-border-secondary px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <ShieldCheck size={20} className="text-orange-500" />
+          <ShieldCheck size={20} className="text-status-warning" />
           <div>
-            <h1 className="text-sm font-bold text-gray-900">JET Protokollpruefung</h1>
-            <p className="text-xs text-gray-500">
+            <h1 className="text-sm font-bold text-text-primary">JET Protokollpruefung</h1>
+            <p className="text-xs text-text-muted">
               Pruefer: {auth.inspector}
               {auth.city && <> | Stadt: {auth.city}</>}
               {auth.integrator && <> | Integrator: {auth.integrator}</>}
@@ -501,7 +501,7 @@ export default function InspectionApp() {
         </div>
         <button
           onClick={loadData}
-          className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs text-text-muted hover:text-text-primary bg-surface-secondary rounded-lg hover:bg-surface-tertiary transition-colors"
         >
           <RefreshCw size={12} />
           Aktualisieren
@@ -535,19 +535,19 @@ export default function InspectionApp() {
             <KPIHeader stats={stats} />
 
             {/* Filters */}
-            <div className="flex items-center gap-3 bg-white rounded-lg border border-gray-200 p-3">
+            <div className="flex items-center gap-3 bg-surface-primary rounded-lg border border-border-secondary p-3">
               <div className="relative flex-1 max-w-xs">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   placeholder="Standort, Stadt, JET-ID..."
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full pl-9 pr-3 py-2 border border-border-primary rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
               <div className="flex items-center gap-1">
-                <Filter size={14} className="text-gray-400" />
+                <Filter size={14} className="text-text-muted" />
                 {[
                   { id: 'all', label: 'Alle' },
                   { id: 'pending', label: 'Offen' },
@@ -559,15 +559,15 @@ export default function InspectionApp() {
                     onClick={() => setStatusFilter(f.id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       statusFilter === f.id
-                        ? 'bg-orange-100 text-orange-800'
-                        : 'text-gray-500 hover:bg-gray-100'
+                        ? 'bg-status-warning/10 text-orange-800'
+                        : 'text-text-muted hover:bg-surface-secondary'
                     }`}
                   >
                     {f.label}
                   </button>
                 ))}
               </div>
-              <div className="ml-auto text-xs text-gray-400">
+              <div className="ml-auto text-xs text-text-muted">
                 {filtered.length} von {installations.length}
               </div>
             </div>
@@ -575,7 +575,7 @@ export default function InspectionApp() {
             {/* Installation List */}
             <div className="space-y-2">
               {filtered.length === 0 && (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-text-muted">
                   <ClipboardCheck size={32} className="mx-auto mb-2 opacity-50" />
                   <p className="text-sm">Keine Installationen gefunden</p>
                 </div>
@@ -589,26 +589,26 @@ export default function InspectionApp() {
                   <button
                     key={inst.id}
                     onClick={() => setSelectedId(inst.airtable_id || inst.id)}
-                    className="w-full text-left bg-white rounded-lg border border-gray-200 p-4 hover:border-orange-300 hover:shadow-sm transition-all group"
+                    className="w-full text-left bg-surface-primary rounded-lg border border-border-secondary p-4 hover:border-orange-300 hover:shadow-sm transition-all group"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900 truncate">
+                          <span className="font-medium text-text-primary truncate">
                             {inst.location_name || 'Unbekannt'}
                           </span>
                           {hasOpenTask && (
-                            <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-medium">
+                            <span className="px-1.5 py-0.5 bg-status-warning/10 text-amber-700 rounded text-[10px] font-medium">
                               Nacharbeit offen
                             </span>
                           )}
                           {hasCompletedTask && !inst.freigabe_installation_vorort && (
-                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">
+                            <span className="px-1.5 py-0.5 bg-accent-light text-blue-700 rounded text-[10px] font-medium">
                               Nachpruefung noetig
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                        <div className="flex items-center gap-3 text-xs text-text-muted mt-1">
                           <span>{inst.city || '—'}</span>
                           <span>{inst.jet_id || '—'}</span>
                           <span>{inst.install_date || '—'}</span>
@@ -621,7 +621,7 @@ export default function InspectionApp() {
                         {inst.freigabe_online_rate && inst.freigabe_installation_vorort && (
                           <FreigabeBadge label="CHG" value={inst.freigabe_chg} />
                         )}
-                        <ChevronLeft size={16} className="text-gray-300 rotate-180 group-hover:text-orange-400 transition-colors" />
+                        <ChevronLeft size={16} className="text-text-muted rotate-180 group-hover:text-orange-400 transition-colors" />
                       </div>
                     </div>
                   </button>

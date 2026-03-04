@@ -21,11 +21,11 @@ function fmtDate(d) {
 }
 
 const STATUS_COLORS = {
-  'active': { bg: '#22c55e15', text: '#22c55e', border: '#22c55e33', label: 'Aktiv' },
-  'defect': { bg: '#ef444415', text: '#ef4444', border: '#ef444433', label: 'Defekt' },
+  'active': { bg: '#34C75915', text: '#34C759', border: '#34C75933', label: 'Aktiv' },
+  'defect': { bg: '#FF3B3015', text: '#FF3B30', border: '#FF3B3033', label: 'Defekt' },
   'prep/ warehouse': { bg: '#64748b15', text: '#64748b', border: '#64748b33', label: 'Lager' },
-  'out for installation': { bg: '#f59e0b15', text: '#f59e0b', border: '#f59e0b33', label: 'Unterwegs' },
-  'test device': { bg: '#8b5cf615', text: '#8b5cf6', border: '#8b5cf633', label: 'Test' },
+  'out for installation': { bg: '#FF950015', text: '#FF9500', border: '#FF950033', label: 'Unterwegs' },
+  'test device': { bg: '#AF52DE15', text: '#AF52DE', border: '#AF52DE33', label: 'Test' },
   'deinstalled': { bg: '#f9731615', text: '#f97316', border: '#f9731633', label: 'Deinstalliert' },
   'to be deinstalled': { bg: '#f9731615', text: '#f97316', border: '#f9731633', label: 'Deinstall geplant' },
   'to be swapped': { bg: '#eab30815', text: '#eab308', border: '#eab30833', label: 'Tausch geplant' },
@@ -47,9 +47,9 @@ function statusBadge(status) {
 function InfoRow({ icon: Icon, label, value, mono }) {
   return (
     <div className="flex items-center gap-3 py-1.5">
-      <Icon size={14} className="text-slate-500 flex-shrink-0" />
-      <span className="text-slate-500 text-xs w-32 flex-shrink-0">{label}</span>
-      <span className={`text-slate-900 text-xs ${mono ? 'font-mono' : ''}`}>
+      <Icon size={14} className="text-text-muted flex-shrink-0" />
+      <span className="text-text-muted text-xs w-32 flex-shrink-0">{label}</span>
+      <span className={`text-text-primary text-xs ${mono ? 'font-mono' : ''}`}>
         {value || '\u2013'}
       </span>
     </div>
@@ -59,20 +59,20 @@ function InfoRow({ icon: Icon, label, value, mono }) {
 /* ────────── Timeline Event Config ────────── */
 
 const TIMELINE_CONFIG = {
-  installation:   { icon: Wrench,         color: '#22c55e', bg: '#22c55e15' },
-  sim_activation: { icon: Wifi,           color: '#3b82f6', bg: '#3b82f615' },
-  swap_in:        { icon: ArrowLeftRight, color: '#f59e0b', bg: '#f59e0b15' },
+  installation:   { icon: Wrench,         color: '#34C759', bg: '#34C75915' },
+  sim_activation: { icon: Wifi,           color: '#007AFF', bg: '#007AFF15' },
+  swap_in:        { icon: ArrowLeftRight, color: '#FF9500', bg: '#FF950015' },
   swap_out:       { icon: ArrowLeftRight, color: '#f97316', bg: '#f9731615' },
-  deinstall:      { icon: XCircle,        color: '#ef4444', bg: '#ef444415' },
-  leasing_start:  { icon: Landmark,       color: '#8b5cf6', bg: '#8b5cf615' },
+  deinstall:      { icon: XCircle,        color: '#FF3B30', bg: '#FF3B3015' },
+  leasing_start:  { icon: Landmark,       color: '#AF52DE', bg: '#AF52DE15' },
 };
 
 /* ────────── Component Type Config ────────── */
 
 const TYPE_CONFIG = {
-  ops:     { icon: Cpu,     color: '#3b82f6', label: 'OPS Player' },
-  sim:     { icon: Wifi,    color: '#22c55e', label: 'SIM-Karte' },
-  display: { icon: Monitor, color: '#8b5cf6', label: 'Display' },
+  ops:     { icon: Cpu,     color: '#007AFF', label: 'OPS Player' },
+  sim:     { icon: Wifi,    color: '#34C759', label: 'SIM-Karte' },
+  display: { icon: Monitor, color: '#AF52DE', label: 'Display' },
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -119,12 +119,12 @@ export default function HardwareComponentDetail({ componentType, componentId, on
 
   return (
     <div
-      className="fixed inset-0 bg-black/25 backdrop-blur-sm z-[60] flex items-start justify-center pt-10 px-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/25 z-[60] flex items-start justify-center pt-10 px-4 overflow-y-auto"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white/90 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-2xl shadow-black/10 w-full max-w-3xl mb-12 animate-fade-in">
+      <div className="bg-surface-primary2xl border border-white/60 rounded-2xl shadow-2xl shadow-black/10 w-full max-w-3xl mb-12 animate-fade-in">
         {/* ──── Header ──── */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-200/60">
+        <div className="flex items-center justify-between p-5 border-b border-border-secondary">
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -134,26 +134,26 @@ export default function HardwareComponentDetail({ componentType, componentId, on
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-mono font-bold text-slate-900">
+                <h2 className="text-base font-mono font-bold text-text-primary">
                   {loading ? 'Lade...' : getIdentifier()}
                 </h2>
                 {!loading && lifecycle?.component && statusBadge(
                   lifecycle.component.status
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">{typeConf.label}</p>
+              <p className="text-xs text-text-muted mt-0.5">{typeConf.label}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors"
+            className="p-1.5 rounded-md hover:bg-surface-secondary/60 text-text-muted hover:text-text-primary transition-colors"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* ──── Tabs ──── */}
-        <div className="flex border-b border-slate-200/60">
+        <div className="flex border-b border-border-secondary">
           {[
             { id: 'details', label: 'Details' },
             { id: 'timeline', label: 'Lifecycle' },
@@ -164,8 +164,8 @@ export default function HardwareComponentDetail({ componentType, componentId, on
               onClick={() => setActiveTab(tab.id)}
               className={`px-5 py-3 text-xs font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'text-blue-600 border-b-2 border-blue-500 -mb-px'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'text-accent border-b-2 border-accent -mb-px'
+                  : 'text-text-muted hover:text-text-primary'
               }`}
             >
               {tab.label}
@@ -177,13 +177,13 @@ export default function HardwareComponentDetail({ componentType, componentId, on
         <div className="p-5 min-h-[300px]">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <Loader2 size={24} className="text-blue-500 animate-spin" />
-              <span className="text-xs text-slate-500 font-mono">Lade Lifecycle-Daten...</span>
+              <Loader2 size={24} className="text-accent animate-spin" />
+              <span className="text-xs text-text-muted font-mono">Lade Lifecycle-Daten...</span>
             </div>
           ) : !lifecycle ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <AlertTriangle size={24} className="text-amber-400" />
-              <span className="text-sm text-slate-500">Keine Daten gefunden</span>
+              <span className="text-sm text-text-muted">Keine Daten gefunden</span>
             </div>
           ) : (
             <>
@@ -219,7 +219,7 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
     <div className="space-y-5">
       {/* Component fields */}
       <div>
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
           Komponenten-Details
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
@@ -233,7 +233,7 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
               <InfoRow icon={Hash} label="Display-SN" value={component.displaySn} mono />
               <InfoRow icon={Hash} label="SIM-ID" value={component.simIdImprecise ? '(ungenau)' : component.simId} mono />
               {component.note && (
-                <div className="col-span-2 mt-2 p-2.5 bg-amber-50/80 border border-amber-200/50 rounded-lg text-xs text-amber-700">
+                <div className="col-span-2 mt-2 p-2.5 bg-status-warning/10/80 border border-status-warning/20/50 rounded-lg text-xs text-amber-700">
                   {component.note}
                 </div>
               )}
@@ -264,25 +264,25 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
       {/* Related Hardware Set */}
       {opsRecord && (
         <div>
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
             Hardware-Set
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* OPS Card */}
             <button
               onClick={() => onSelectComponent?.({ type: 'ops', id: opsRecord.id })}
-              className={`text-left bg-slate-50/60 border rounded-lg p-3 transition-all ${
+              className={`text-left bg-surface-secondary/60 border rounded-lg p-3 transition-all ${
                 componentType === 'ops'
                   ? 'border-blue-300 ring-2 ring-blue-100'
-                  : 'border-slate-200/40 cursor-pointer hover:ring-2 hover:ring-blue-200'
+                  : 'border-border-secondary/40 cursor-pointer hover:ring-2 hover:ring-accent/20'
               }`}
             >
               <div className="flex items-center gap-1.5 mb-2">
-                <Cpu size={12} className="text-blue-500" />
-                <span className="text-xs font-mono font-medium text-slate-500 uppercase">OPS</span>
-                {componentType !== 'ops' && <ChevronRight size={10} className="text-slate-400 ml-auto" />}
+                <Cpu size={12} className="text-accent" />
+                <span className="text-xs font-mono font-medium text-text-muted uppercase">OPS</span>
+                {componentType !== 'ops' && <ChevronRight size={10} className="text-text-muted ml-auto" />}
               </div>
-              <div className="text-xs font-mono text-slate-700">{opsRecord.opsNr || opsRecord.opsSn || '\u2013'}</div>
+              <div className="text-xs font-mono text-text-primary">{opsRecord.opsNr || opsRecord.opsSn || '\u2013'}</div>
               <div className="mt-1">{statusBadge(opsRecord.status)}</div>
             </button>
 
@@ -291,25 +291,25 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
               <button
                 key={sim.id}
                 onClick={() => onSelectComponent?.({ type: 'sim', id: sim.id })}
-                className={`text-left bg-slate-50/60 border rounded-lg p-3 transition-all ${
+                className={`text-left bg-surface-secondary/60 border rounded-lg p-3 transition-all ${
                   componentType === 'sim' && component?.id === sim.id
                     ? 'border-green-300 ring-2 ring-green-100'
-                    : 'border-slate-200/40 cursor-pointer hover:ring-2 hover:ring-green-200'
+                    : 'border-border-secondary/40 cursor-pointer hover:ring-2 hover:ring-green-200'
                 }`}
               >
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Wifi size={12} className="text-green-500" />
-                  <span className="text-xs font-mono font-medium text-slate-500 uppercase">SIM</span>
-                  {!(componentType === 'sim' && component?.id === sim.id) && <ChevronRight size={10} className="text-slate-400 ml-auto" />}
+                  <Wifi size={12} className="text-status-online" />
+                  <span className="text-xs font-mono font-medium text-text-muted uppercase">SIM</span>
+                  {!(componentType === 'sim' && component?.id === sim.id) && <ChevronRight size={10} className="text-text-muted ml-auto" />}
                 </div>
-                <div className="text-xs font-mono text-slate-700">
+                <div className="text-xs font-mono text-text-primary">
                   {sim.simIdImprecise ? '(ungenau)' : (sim.simId ? sim.simId.substring(0, 14) + '...' : '\u2013')}
                 </div>
                 <div className="mt-1">{statusBadge(sim.status)}</div>
               </button>
             )) : (
-              <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex items-center justify-center">
-                <span className="text-xs text-slate-400">Keine SIM</span>
+              <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex items-center justify-center">
+                <span className="text-xs text-text-muted">Keine SIM</span>
               </div>
             )}
 
@@ -318,23 +318,23 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
               <button
                 key={disp.id}
                 onClick={() => onSelectComponent?.({ type: 'display', id: disp.id })}
-                className={`text-left bg-slate-50/60 border rounded-lg p-3 transition-all ${
+                className={`text-left bg-surface-secondary/60 border rounded-lg p-3 transition-all ${
                   componentType === 'display' && component?.id === disp.id
                     ? 'border-purple-300 ring-2 ring-purple-100'
-                    : 'border-slate-200/40 cursor-pointer hover:ring-2 hover:ring-purple-200'
+                    : 'border-border-secondary/40 cursor-pointer hover:ring-2 hover:ring-purple-200'
                 }`}
               >
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Monitor size={12} className="text-purple-500" />
-                  <span className="text-xs font-mono font-medium text-slate-500 uppercase">Display</span>
-                  {!(componentType === 'display' && component?.id === disp.id) && <ChevronRight size={10} className="text-slate-400 ml-auto" />}
+                  <Monitor size={12} className="text-brand-purple" />
+                  <span className="text-xs font-mono font-medium text-text-muted uppercase">Display</span>
+                  {!(componentType === 'display' && component?.id === disp.id) && <ChevronRight size={10} className="text-text-muted ml-auto" />}
                 </div>
-                <div className="text-xs font-mono text-slate-700">{disp.displaySerialNumber || '\u2013'}</div>
+                <div className="text-xs font-mono text-text-primary">{disp.displaySerialNumber || '\u2013'}</div>
                 <div className="mt-1">{statusBadge(disp.status)}</div>
               </button>
             )) : (
-              <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex items-center justify-center">
-                <span className="text-xs text-slate-400">Kein Display</span>
+              <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex items-center justify-center">
+                <span className="text-xs text-text-muted">Kein Display</span>
               </div>
             )}
           </div>
@@ -344,10 +344,10 @@ function DetailsTab({ lifecycle, componentType, onSelectComponent }) {
       {/* Current Location */}
       {location && (
         <div>
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
             Aktueller Standort
           </h3>
-          <div className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-4">
+          <div className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
               <InfoRow icon={MapPin} label="Standort" value={location.locationName} />
               <InfoRow icon={MapPin} label="Stadt" value={location.city} />
@@ -396,20 +396,20 @@ function SnCrossReference({ lifecycle }) {
   if (mismatches.length === 0) return null;
 
   return (
-    <div className="bg-red-50/80 border border-red-200/60 rounded-lg p-3">
+    <div className="bg-status-offline/10/80 border border-status-offline/20/60 rounded-lg p-3">
       <div className="flex items-center gap-2 mb-2">
-        <AlertTriangle size={14} className="text-red-600" />
+        <AlertTriangle size={14} className="text-status-offline" />
         <span className="text-sm font-bold text-red-800">SN-Abweichung</span>
-        <span className="text-xs text-red-500 font-mono">({mismatches.length})</span>
+        <span className="text-xs text-status-offline font-mono">({mismatches.length})</span>
       </div>
       <div className="space-y-2">
         {mismatches.map((m, i) => (
-          <div key={i} className="text-xs bg-red-100/50 rounded-lg px-3 py-2">
+          <div key={i} className="text-xs bg-status-offline/10/50 rounded-lg px-3 py-2">
             <div className="text-red-700 font-semibold mb-1">{m.label}</div>
             <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
-              <span className="text-red-500 text-xs">{m.source1}:</span>
+              <span className="text-status-offline text-xs">{m.source1}:</span>
               <span className="font-mono text-red-800 text-xs break-all">{m.value1}</span>
-              <span className="text-red-500 text-xs">{m.source2}:</span>
+              <span className="text-status-offline text-xs">{m.source2}:</span>
               <span className="font-mono text-red-800 text-xs break-all">{m.value2}</span>
             </div>
           </div>
@@ -444,9 +444,9 @@ function TimelineTab({ lifecycle }) {
   if (events.length <= 1) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <Clock size={24} className="text-slate-300" />
-        <span className="text-sm text-slate-500">Keine Lifecycle-Ereignisse gefunden</span>
-        <span className="text-xs text-slate-400">
+        <Clock size={24} className="text-text-muted" />
+        <span className="text-sm text-text-muted">Keine Lifecycle-Ereignisse gefunden</span>
+        <span className="text-xs text-text-muted">
           Tausch-, Installations- und Deinstallations-Daten werden hier angezeigt
         </span>
       </div>
@@ -455,17 +455,17 @@ function TimelineTab({ lifecycle }) {
 
   return (
     <div>
-      <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-4">
+      <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-4">
         Ereignis-Timeline
       </h3>
       <div className="relative">
         {/* Vertical line */}
-        <div className="absolute left-4 top-3 bottom-3 w-px bg-slate-200" />
+        <div className="absolute left-4 top-3 bottom-3 w-px bg-surface-tertiary" />
 
         <div className="space-y-0">
           {events.map((event, idx) => {
             const conf = event.type === 'current'
-              ? { icon: CheckCircle2, color: '#3b82f6', bg: '#3b82f615' }
+              ? { icon: CheckCircle2, color: '#007AFF', bg: '#007AFF15' }
               : TIMELINE_CONFIG[event.type] || { icon: Clock, color: '#64748b', bg: '#64748b15' };
             const EventIcon = conf.icon;
 
@@ -482,20 +482,20 @@ function TimelineTab({ lifecycle }) {
                 {/* Content */}
                 <div className="flex-1 min-w-0 pt-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-slate-800">{event.label}</span>
+                    <span className="text-sm font-medium text-text-primary">{event.label}</span>
                     {event.date && (
-                      <span className="text-xs font-mono text-slate-500 bg-slate-100/80 px-2 py-0.5 rounded">
+                      <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                         {fmtDate(event.date)}
                       </span>
                     )}
                     {!event.date && event.type === 'current' && (
-                      <span className="text-xs font-mono text-blue-500 bg-blue-50 px-2 py-0.5 rounded">
+                      <span className="text-xs font-mono text-accent bg-accent-light px-2 py-0.5 rounded">
                         Jetzt
                       </span>
                     )}
                   </div>
                   {event.detail && (
-                    <p className="text-xs text-slate-500 mt-0.5">{event.detail}</p>
+                    <p className="text-xs text-text-muted mt-0.5">{event.detail}</p>
                   )}
                 </div>
               </div>
@@ -517,9 +517,9 @@ function LeasingTab({ lifecycle }) {
   if (!leasing || (!leasing.chg && !leasing.bank)) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <Landmark size={24} className="text-slate-300" />
-        <span className="text-sm text-slate-500">Keine Leasing-Daten gefunden</span>
-        <span className="text-xs text-slate-400">
+        <Landmark size={24} className="text-text-muted" />
+        <span className="text-sm text-text-muted">Keine Leasing-Daten gefunden</span>
+        <span className="text-xs text-text-muted">
           CHG Approval und Bank TESMA Daten werden hier angezeigt
         </span>
       </div>
@@ -552,14 +552,14 @@ function LeasingTab({ lifecycle }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-1">
-        <Landmark size={14} className="text-[#3b82f6]" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <Landmark size={14} className="text-[#007AFF]" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Leasing
         </h3>
         {bank?.contractStatus && (
           <span
             className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-medium"
-            style={{ backgroundColor: '#22c55e15', color: '#22c55e', border: '1px solid #22c55e33' }}
+            style={{ backgroundColor: '#34C75915', color: '#34C759', border: '1px solid #34C75933' }}
           >
             {bank.contractStatus}
           </span>
@@ -606,15 +606,15 @@ function LeasingTab({ lifecycle }) {
       {progress !== null && (
         <div className="mt-2">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-slate-500 font-mono">Laufzeit-Fortschritt</span>
-            <span className="text-xs text-slate-500 font-mono font-medium">{progress}%</span>
+            <span className="text-xs text-text-muted font-mono">Laufzeit-Fortschritt</span>
+            <span className="text-xs text-text-muted font-mono font-medium">{progress}%</span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-1.5">
+          <div className="w-full bg-surface-secondary rounded-full h-1.5">
             <div
               className="h-1.5 rounded-full transition-all"
               style={{
                 width: `${progress}%`,
-                backgroundColor: progress > 80 ? '#f59e0b' : '#3b82f6',
+                backgroundColor: progress > 80 ? '#FF9500' : '#007AFF',
               }}
             />
           </div>
@@ -623,8 +623,8 @@ function LeasingTab({ lifecycle }) {
 
       {/* CHG Details */}
       {chg && (
-        <div className="mt-3 pt-3 border-t border-slate-100">
-          <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">CHG Approval</h4>
+        <div className="mt-3 pt-3 border-t border-border-secondary">
+          <h4 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">CHG Approval</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
             <InfoRow icon={Hash} label="Display-SN" value={chg.displaySn} mono />
             <InfoRow icon={FileText} label="Rechnungs-Nr" value={chg.integratorInvoiceNo} mono />
@@ -636,8 +636,8 @@ function LeasingTab({ lifecycle }) {
 
       {/* Bank Details */}
       {bank && (
-        <div className="mt-3 pt-3 border-t border-slate-100">
-          <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Bank TESMA</h4>
+        <div className="mt-3 pt-3 border-t border-border-secondary">
+          <h4 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">Bank TESMA</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
             <InfoRow icon={Hash} label="Seriennummer" value={bank.serialNumber} mono />
             <InfoRow icon={Hash} label="Bestellnummer" value={bank.orderNumber} mono />

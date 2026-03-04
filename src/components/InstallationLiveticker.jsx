@@ -45,36 +45,36 @@ const EVENT_TYPES = {
   booked: {
     icon: '\ud83d\udcc5',
     color: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    bgColor: 'bg-accent-light',
+    borderColor: 'border-accent/20',
     label: 'Neuer Termin vereinbart',
   },
   confirmed: {
     icon: '\u2705',
     color: 'text-green-700',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
+    bgColor: 'bg-status-online/10',
+    borderColor: 'border-status-online/20',
     label: 'Termin bestaetigt',
   },
   whatsapp_sent: {
     icon: '\ud83d\udce8',
     color: 'text-purple-700',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
+    bgColor: 'bg-brand-purple/10',
+    borderColor: 'border-brand-purple/20',
     label: 'Einladung versendet',
   },
   route_created: {
     icon: '\ud83d\uddfa\ufe0f',
     color: 'text-orange-700',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
+    bgColor: 'bg-status-warning/10',
+    borderColor: 'border-status-warning/20',
     label: 'Neue Route geplant',
   },
   cancelled: {
     icon: '\u274c',
     color: 'text-red-700',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
+    bgColor: 'bg-status-offline/10',
+    borderColor: 'border-status-offline/20',
     label: 'Termin storniert',
   },
 };
@@ -186,20 +186,20 @@ function deriveRouteEvents(routes) {
 function EventRow({ event }) {
   const config = EVENT_TYPES[event.type] || EVENT_TYPES.booked;
   return (
-    <div className="flex items-start gap-3 py-2.5 px-3 rounded-xl hover:bg-white/40 transition-colors group">
+    <div className="flex items-start gap-3 py-2.5 px-3 rounded-xl hover:bg-surface-primary/60 transition-colors group">
       {/* Icon */}
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${config.bgColor} ${config.borderColor}`}>
         <span className="text-sm leading-none">{config.icon}</span>
       </div>
       {/* Text */}
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-gray-800 leading-snug">{event.text}</p>
+        <p className="text-sm text-text-primary leading-snug">{event.text}</p>
         {event.subtitle && (
-          <p className="text-[11px] text-gray-400 mt-0.5">Grund: {event.subtitle}</p>
+          <p className="text-[11px] text-text-muted mt-0.5">Grund: {event.subtitle}</p>
         )}
       </div>
       {/* Time */}
-      <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap shrink-0 pt-0.5">
+      <span className="text-[11px] text-text-muted font-medium whitespace-nowrap shrink-0 pt-0.5">
         {relativeTimeDE(event.timestamp)}
       </span>
     </div>
@@ -282,12 +282,12 @@ export default function InstallationLiveticker({ filterCity, maxEvents = 20 }) {
 
   if (loading) {
     return (
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <Activity size={16} className="text-orange-500" />
-          <h3 className="text-sm font-semibold text-gray-700">Liveticker</h3>
+          <Activity size={16} className="text-status-warning" />
+          <h3 className="text-sm font-semibold text-text-primary">Liveticker</h3>
         </div>
-        <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
+        <div className="flex items-center justify-center py-8 text-text-muted gap-2">
           <Loader2 size={18} className="animate-spin text-orange-400" />
           <span className="text-sm">Lade Events...</span>
         </div>
@@ -296,28 +296,28 @@ export default function InstallationLiveticker({ filterCity, maxEvents = 20 }) {
   }
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <Activity size={16} className="text-orange-500" />
-          <h3 className="text-sm font-semibold text-gray-700">Liveticker</h3>
+          <div className="w-2 h-2 rounded-full bg-status-online animate-pulse" />
+          <Activity size={16} className="text-status-warning" />
+          <h3 className="text-sm font-semibold text-text-primary">Liveticker</h3>
           {events.length > 0 && (
-            <span className="text-[10px] text-gray-400 font-medium">
+            <span className="text-[10px] text-text-muted font-medium">
               {events.length} Events
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {lastRefresh && (
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-text-muted">
               {lastRefresh.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
           <button
             onClick={loadData}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-surface-secondary text-text-muted hover:text-text-secondary transition-colors"
             title="Aktualisieren"
           >
             <RefreshCw size={13} />
@@ -327,10 +327,10 @@ export default function InstallationLiveticker({ filterCity, maxEvents = 20 }) {
 
       {/* Event List */}
       {events.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-2">
-          <Activity size={24} className="text-gray-300" />
+        <div className="flex flex-col items-center justify-center py-8 text-text-muted gap-2">
+          <Activity size={24} className="text-text-muted" />
           <p className="text-sm">Keine aktuellen Events</p>
-          <p className="text-xs text-gray-300">Events der letzten 14 Tage erscheinen hier</p>
+          <p className="text-xs text-text-muted">Events der letzten 14 Tage erscheinen hier</p>
         </div>
       ) : (
         <div className="space-y-0.5 max-h-[400px] overflow-y-auto">

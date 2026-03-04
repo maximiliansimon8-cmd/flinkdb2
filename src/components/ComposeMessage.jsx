@@ -149,23 +149,23 @@ export default function ComposeMessage({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface-primary2xl border border-border-secondary rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* ═══════ Header ═══════ */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/40 sticky top-0 bg-white/80 backdrop-blur-2xl rounded-t-2xl z-10">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-secondary/40 sticky top-0 bg-surface-primary2xl rounded-t-2xl z-10">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-semibold text-text-primary">
               Neue Nachricht
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-text-muted mt-0.5">
               Via Superchat senden
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-secondary hover:bg-surface-secondary/60 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -180,8 +180,8 @@ export default function ComposeMessage({
               onClick={() => setChannelType("whats_app")}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 channelType === "whats_app"
-                  ? "bg-green-500 text-white shadow-sm"
-                  : "bg-slate-100/60 text-slate-500 hover:bg-slate-200/60"
+                  ? "bg-status-online text-white shadow-sm"
+                  : "bg-surface-secondary/60 text-text-muted hover:bg-surface-tertiary/60"
               }`}
             >
               <MessageSquare className="w-4 h-4" />
@@ -192,8 +192,8 @@ export default function ComposeMessage({
               onClick={() => setChannelType("mail")}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 channelType === "mail"
-                  ? "bg-blue-500 text-white shadow-sm"
-                  : "bg-slate-100/60 text-slate-500 hover:bg-slate-200/60"
+                  ? "bg-accent text-white shadow-sm"
+                  : "bg-surface-secondary/60 text-text-muted hover:bg-surface-tertiary/60"
               }`}
             >
               <Mail className="w-4 h-4" />
@@ -203,8 +203,8 @@ export default function ComposeMessage({
 
           {/* No channel warning */}
           {!selectedChannel && channels.length > 0 && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50/60 border border-amber-200/40 rounded-xl">
-              <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-2 bg-status-warning/10/60 border border-status-warning/20/40 rounded-xl">
+              <Clock className="w-4 h-4 text-status-warning flex-shrink-0" />
               <p className="text-xs text-amber-700">
                 Kein {channelType === "whats_app" ? "WhatsApp" : "Email"}-Kanal in Superchat gefunden.
               </p>
@@ -213,20 +213,20 @@ export default function ComposeMessage({
 
           {/* ─── Kontakt-Auswahl ─── */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-xs font-medium text-text-muted mb-1.5">
               <User className="w-3 h-3 inline mr-1" />
               Empfänger (Superchat Kontakt)
             </label>
             {selectedContact ? (
-              <div className="flex items-center gap-3 px-3 py-2.5 bg-white/60 border border-slate-200/60 rounded-xl">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                  <User size={14} className="text-blue-500" />
+              <div className="flex items-center gap-3 px-3 py-2.5 bg-surface-primary border border-border-secondary rounded-xl">
+                <div className="w-8 h-8 rounded-lg bg-accent-light flex items-center justify-center flex-shrink-0">
+                  <User size={14} className="text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">
+                  <p className="text-sm font-medium text-text-primary truncate">
                     {getContactDisplayName(selectedContact)}
                   </p>
-                  <p className="text-xs text-slate-400 truncate">
+                  <p className="text-xs text-text-muted truncate">
                     {selectedContact.phone || selectedContact.email || ''}
                   </p>
                 </div>
@@ -235,7 +235,7 @@ export default function ComposeMessage({
                     setSelectedContact(null);
                     setShowContactPicker(true);
                   }}
-                  className="text-xs text-blue-500 hover:text-blue-600 flex-shrink-0"
+                  className="text-xs text-accent hover:text-accent flex-shrink-0"
                 >
                   Ändern
                 </button>
@@ -243,7 +243,7 @@ export default function ComposeMessage({
             ) : (
               <div className="relative">
                 <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
                     value={contactSearch}
@@ -253,13 +253,13 @@ export default function ComposeMessage({
                     }}
                     onFocus={() => setShowContactPicker(true)}
                     placeholder="Kontakt suchen (Name, Telefon, Email)..."
-                    className="w-full pl-9 pr-3 py-2.5 bg-white/60 border border-slate-200/60 rounded-xl text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                    className="w-full pl-9 pr-3 py-2.5 bg-surface-primary border border-border-secondary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-400 transition-all"
                   />
                 </div>
                 {showContactPicker && (
-                  <div className="absolute z-20 w-full mt-1 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-20 w-full mt-1 bg-surface-primary border border-border-secondary rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {filteredContacts.length === 0 ? (
-                      <div className="px-3 py-4 text-center text-xs text-slate-400">
+                      <div className="px-3 py-4 text-center text-xs text-text-muted">
                         Keine Kontakte gefunden
                       </div>
                     ) : (
@@ -271,16 +271,16 @@ export default function ComposeMessage({
                             setShowContactPicker(false);
                             setContactSearch("");
                           }}
-                          className="w-full text-left px-3 py-2 hover:bg-blue-50/60 transition-colors flex items-center gap-2 border-b border-slate-100/60 last:border-b-0"
+                          className="w-full text-left px-3 py-2 hover:bg-accent-light/60 transition-colors flex items-center gap-2 border-b border-border-secondary/60 last:border-b-0"
                         >
-                          <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                            <User size={12} className="text-slate-500" />
+                          <div className="w-7 h-7 rounded-lg bg-surface-secondary flex items-center justify-center flex-shrink-0">
+                            <User size={12} className="text-text-muted" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium text-slate-900 truncate">
+                            <p className="text-xs font-medium text-text-primary truncate">
                               {getContactDisplayName(c)}
                             </p>
-                            <p className="text-[10px] text-slate-400 truncate">
+                            <p className="text-[10px] text-text-muted truncate">
                               {c.phone || c.email || ''}
                             </p>
                           </div>
@@ -295,20 +295,20 @@ export default function ComposeMessage({
 
           {/* ─── Standort-Verknüpfung ─── */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-xs font-medium text-text-muted mb-1.5">
               <MapPin className="w-3 h-3 inline mr-1" />
               Standort verknüpfen (optional)
             </label>
             {selectedLocation ? (
-              <div className="flex items-center gap-3 px-3 py-2.5 bg-white/60 border border-slate-200/60 rounded-xl">
+              <div className="flex items-center gap-3 px-3 py-2.5 bg-surface-primary border border-border-secondary rounded-xl">
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
                   <MapPin size={14} className="text-emerald-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">
+                  <p className="text-sm font-medium text-text-primary truncate">
                     {selectedLocation.name}
                   </p>
-                  <p className="text-xs text-slate-400 truncate">
+                  <p className="text-xs text-text-muted truncate">
                     {selectedLocation.city}
                     {selectedLocation.contactPerson ? ` · ${selectedLocation.contactPerson}` : ''}
                   </p>
@@ -318,7 +318,7 @@ export default function ComposeMessage({
                     setSelectedLocation(null);
                     setShowLocationPicker(true);
                   }}
-                  className="text-xs text-blue-500 hover:text-blue-600 flex-shrink-0"
+                  className="text-xs text-accent hover:text-accent flex-shrink-0"
                 >
                   Ändern
                 </button>
@@ -326,7 +326,7 @@ export default function ComposeMessage({
             ) : (
               <div className="relative">
                 <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
                     value={locationSearch}
@@ -336,13 +336,13 @@ export default function ComposeMessage({
                     }}
                     onFocus={() => setShowLocationPicker(true)}
                     placeholder="Standort suchen (Name, Stadt, JET ID)..."
-                    className="w-full pl-9 pr-3 py-2.5 bg-white/60 border border-slate-200/60 rounded-xl text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                    className="w-full pl-9 pr-3 py-2.5 bg-surface-primary border border-border-secondary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-400 transition-all"
                   />
                 </div>
                 {showLocationPicker && (
-                  <div className="absolute z-20 w-full mt-1 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-20 w-full mt-1 bg-surface-primary border border-border-secondary rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {filteredLocations.length === 0 ? (
-                      <div className="px-3 py-4 text-center text-xs text-slate-400">
+                      <div className="px-3 py-4 text-center text-xs text-text-muted">
                         Keine Standorte gefunden
                       </div>
                     ) : (
@@ -354,21 +354,21 @@ export default function ComposeMessage({
                             setShowLocationPicker(false);
                             setLocationSearch("");
                           }}
-                          className="w-full text-left px-3 py-2 hover:bg-emerald-50/60 transition-colors flex items-center gap-2 border-b border-slate-100/60 last:border-b-0"
+                          className="w-full text-left px-3 py-2 hover:bg-emerald-50/60 transition-colors flex items-center gap-2 border-b border-border-secondary/60 last:border-b-0"
                         >
                           <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
                             <MapPin size={12} className="text-emerald-500" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium text-slate-900 truncate">
+                            <p className="text-xs font-medium text-text-primary truncate">
                               {l.name}
                             </p>
-                            <p className="text-[10px] text-slate-400 truncate">
+                            <p className="text-[10px] text-text-muted truncate">
                               {l.city}{l.contactPerson ? ` · ${l.contactPerson}` : ''}
                             </p>
                           </div>
                           {l.jetIds?.[0] && (
-                            <span className="text-[10px] font-mono text-slate-400 flex-shrink-0">
+                            <span className="text-[10px] font-mono text-text-muted flex-shrink-0">
                               {l.jetIds[0]}
                             </span>
                           )}
@@ -384,7 +384,7 @@ export default function ComposeMessage({
           {/* ─── Subject (Email only) ─── */}
           {channelType === "mail" && (
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+              <label className="block text-xs font-medium text-text-muted mb-1.5">
                 Betreff
               </label>
               <input
@@ -392,7 +392,7 @@ export default function ComposeMessage({
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="Betreff eingeben..."
-                className="w-full px-3 py-2.5 bg-white/60 border border-slate-200/60 rounded-xl text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                className="w-full px-3 py-2.5 bg-surface-primary border border-border-secondary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-400 transition-all"
               />
             </div>
           )}
@@ -400,32 +400,32 @@ export default function ComposeMessage({
           {/* ─── WhatsApp Template Selector ─── */}
           {channelType === "whats_app" && whatsappTemplates.length > 0 && (
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+              <label className="block text-xs font-medium text-text-muted mb-1.5">
                 <FileText className="w-3 h-3 inline mr-1" />
                 WhatsApp Template (optional)
               </label>
               <button
                 type="button"
                 onClick={() => setShowTemplates(!showTemplates)}
-                className="w-full flex items-center justify-between px-3 py-2.5 bg-white/60 border border-slate-200/60 rounded-xl text-sm text-left transition-all hover:bg-white/80"
+                className="w-full flex items-center justify-between px-3 py-2.5 bg-surface-primary border border-border-secondary rounded-xl text-sm text-left transition-all hover:bg-surface-secondary"
               >
-                <span className={selectedTemplate ? "text-slate-900" : "text-slate-400"}>
+                <span className={selectedTemplate ? "text-text-primary" : "text-text-muted"}>
                   {selectedTemplate
                     ? whatsappTemplates.find((t) => t.id === selectedTemplate)?.name || "Template ausgewählt"
                     : "Template auswählen..."}
                 </span>
-                <ChevronDown size={14} className={`text-slate-400 transition-transform ${showTemplates ? "rotate-180" : ""}`} />
+                <ChevronDown size={14} className={`text-text-muted transition-transform ${showTemplates ? "rotate-180" : ""}`} />
               </button>
 
               {showTemplates && (
-                <div className="mt-1 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                <div className="mt-1 bg-surface-primary border border-border-secondary rounded-xl shadow-lg max-h-40 overflow-y-auto">
                   {/* Clear selection */}
                   <button
                     onClick={() => {
                       setSelectedTemplate("");
                       setShowTemplates(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-slate-50/60 transition-colors border-b border-slate-100/60"
+                    className="w-full text-left px-3 py-2 text-xs text-text-muted hover:bg-surface-secondary/60 transition-colors border-b border-border-secondary/60"
                   >
                     Kein Template
                   </button>
@@ -437,13 +437,13 @@ export default function ComposeMessage({
                         if (tpl.body) setMessage(tpl.body);
                         setShowTemplates(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50/60 transition-colors border-b border-slate-100/60 last:border-b-0 ${
-                        selectedTemplate === tpl.id ? "bg-blue-50 text-blue-700" : "text-slate-700"
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-accent-light/60 transition-colors border-b border-border-secondary/60 last:border-b-0 ${
+                        selectedTemplate === tpl.id ? "bg-accent-light text-blue-700" : "text-text-primary"
                       }`}
                     >
                       <span className="font-medium">{tpl.name || tpl.id}</span>
                       {tpl.body && (
-                        <p className="text-slate-400 mt-0.5 truncate">{tpl.body}</p>
+                        <p className="text-text-muted mt-0.5 truncate">{tpl.body}</p>
                       )}
                     </button>
                   ))}
@@ -454,7 +454,7 @@ export default function ComposeMessage({
 
           {/* ─── Message Textarea ─── */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-xs font-medium text-text-muted mb-1.5">
               Nachricht
             </label>
             <div className="relative">
@@ -463,9 +463,9 @@ export default function ComposeMessage({
                 onChange={(e) => setMessage(e.target.value)}
                 rows={5}
                 placeholder="Nachricht verfassen..."
-                className="w-full px-3 py-2.5 bg-white/60 border border-slate-200/60 rounded-xl text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all resize-none"
+                className="w-full px-3 py-2.5 bg-surface-primary border border-border-secondary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-400 transition-all resize-none"
               />
-              <span className="absolute bottom-2 right-3 text-[11px] text-slate-300 pointer-events-none">
+              <span className="absolute bottom-2 right-3 text-[11px] text-text-muted pointer-events-none">
                 {message.length}
               </span>
             </div>
@@ -473,8 +473,8 @@ export default function ComposeMessage({
 
           {/* ─── WhatsApp 24h Template Notice ─── */}
           {channelType === "whats_app" && (
-            <div className="flex items-start gap-2.5 bg-amber-50/60 border border-amber-200/40 rounded-xl p-3">
-              <Clock className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-2.5 bg-status-warning/10/60 border border-status-warning/20/40 rounded-xl p-3">
+              <Clock className="w-4 h-4 text-status-warning mt-0.5 shrink-0" />
               <p className="text-xs text-amber-700 leading-relaxed">
                 Außerhalb des 24h-Fensters können nur genehmigte
                 Templates gesendet werden.
@@ -484,11 +484,11 @@ export default function ComposeMessage({
         </div>
 
         {/* ═══════ Footer ═══════ */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200/40 sticky bottom-0 bg-white/80 backdrop-blur-2xl rounded-b-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border-secondary/40 sticky bottom-0 bg-surface-primary2xl rounded-b-2xl">
           <button
             type="button"
             onClick={onClose}
-            className="border border-slate-200/60 text-slate-600 hover:bg-slate-50/60 rounded-xl px-4 py-2.5 text-sm transition-colors"
+            className="border border-border-secondary text-text-secondary hover:bg-surface-secondary/60 rounded-xl px-4 py-2.5 text-sm transition-colors"
           >
             Abbrechen
           </button>
@@ -496,7 +496,7 @@ export default function ComposeMessage({
             type="button"
             onClick={handleSend}
             disabled={!canSend}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-500"
+            className="flex items-center gap-2 bg-accent hover:bg-accent text-white rounded-xl px-5 py-2.5 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent"
           >
             {loading ? (
               <>

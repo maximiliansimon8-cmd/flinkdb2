@@ -9,10 +9,10 @@ import { supabase, getCurrentUser } from '../utils/authService';
 
 /* ── Farben für Quellen ── */
 const SOURCE_COLORS = {
-  bot:          '#3b82f6', // Blau — WhatsApp Bot
-  self_booking: '#3b82f6',
-  portal:       '#22c55e', // Grün — Telefon
-  airtable:     '#22c55e', // Grün — Telefon (aus Airtable = auch Telefon)
+  bot:          '#007AFF', // Blau — WhatsApp Bot
+  self_booking: '#007AFF',
+  portal:       '#34C759', // Grün — Telefon
+  airtable:     '#34C759', // Grün — Telefon (aus Airtable = auch Telefon)
   unknown:      '#6b7280', // Grau
 };
 
@@ -60,16 +60,16 @@ const ACTION_LABELS = {
 };
 
 const ACTION_COLORS = {
-  invite_sent:             'text-blue-600 bg-blue-50',
-  reminder_sent:           'text-amber-600 bg-amber-50',
-  phone_call:              'text-green-600 bg-green-50',
+  invite_sent:             'text-accent bg-accent-light',
+  reminder_sent:           'text-status-warning bg-status-warning/10',
+  phone_call:              'text-status-online bg-status-online/10',
   booking_created:         'text-emerald-600 bg-emerald-50',
-  booking_confirmed:       'text-green-600 bg-green-50',
-  booking_cancelled:       'text-red-600 bg-red-50',
+  booking_confirmed:       'text-status-online bg-status-online/10',
+  booking_cancelled:       'text-status-offline bg-status-offline/10',
   booking_completed:       'text-emerald-600 bg-emerald-50',
-  booking_rescheduled:     'text-purple-600 bg-purple-50',
-  status_changed:          'text-gray-600 bg-gray-50',
-  airtable_termin_created: 'text-orange-600 bg-orange-50',
+  booking_rescheduled:     'text-brand-purple bg-brand-purple/10',
+  status_changed:          'text-text-secondary bg-surface-secondary',
+  airtable_termin_created: 'text-status-warning bg-status-warning/10',
 };
 
 /* ── Hilfsfunktionen ── */
@@ -105,17 +105,17 @@ function timeAgoShort(iso) {
 }
 
 /* ── KPI Card ── */
-function KpiCard({ label, value, icon: Icon, color = 'text-gray-600', bgColor = 'bg-gray-50', sub }) {
+function KpiCard({ label, value, icon: Icon, color = 'text-text-secondary', bgColor = 'bg-surface-secondary', sub }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 hover:bg-white/80 transition-all">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 hover:bg-surface-secondary transition-all">
       <div className="flex items-center gap-3 mb-2">
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${bgColor}`}>
           <Icon size={18} className={color} />
         </div>
-        <div className="text-xs text-gray-500 font-medium">{label}</div>
+        <div className="text-xs text-text-muted font-medium">{label}</div>
       </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      {sub && <div className="text-[11px] text-gray-400 mt-1">{sub}</div>}
+      <div className="text-2xl font-bold text-text-primary">{value}</div>
+      {sub && <div className="text-[11px] text-text-muted mt-1">{sub}</div>}
     </div>
   );
 }
@@ -543,15 +543,15 @@ export default function TeamAnalyticsDashboard() {
     if (!active || !payload || !payload.length) return null;
     const total = payload.reduce((s, p) => s + (p.value || 0), 0);
     return (
-      <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-xl px-3 py-2 text-xs shadow-lg">
-        <div className="font-semibold text-gray-700 mb-1">{label}</div>
+      <div className="bg-surface-primary border border-border-secondary rounded-xl px-3 py-2 text-xs shadow-lg">
+        <div className="font-semibold text-text-primary mb-1">{label}</div>
         {payload.map((p, i) => (
           <div key={i} className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
-            <span className="text-gray-600">{p.name}: <strong>{p.value}</strong></span>
+            <span className="text-text-secondary">{p.name}: <strong>{p.value}</strong></span>
           </div>
         ))}
-        <div className="mt-1 pt-1 border-t border-gray-100 font-semibold text-gray-800">Gesamt: {total}</div>
+        <div className="mt-1 pt-1 border-t border-gray-100 font-semibold text-text-primary">Gesamt: {total}</div>
       </div>
     );
   }, []);
@@ -562,22 +562,22 @@ export default function TeamAnalyticsDashboard() {
       {/* Header + Filter */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <BarChart3 size={22} className="text-orange-500" /> Team-Auswertung
+          <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
+            <BarChart3 size={22} className="text-status-warning" /> Team-Auswertung
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">Wer macht was? Termine, Anrufe & Aktivitäten im Überblick.</p>
+          <p className="text-sm text-text-muted mt-0.5">Wer macht was? Termine, Anrufe & Aktivitäten im Überblick.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Zeitraum Pills */}
-          <div className="flex bg-gray-100 rounded-xl p-0.5">
+          <div className="flex bg-surface-secondary rounded-xl p-0.5">
             {RANGES.map(r => (
               <button
                 key={r.id}
                 onClick={() => setRangeId(r.id)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                   rangeId === r.id
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-surface-primary text-text-primary shadow-sm'
+                    : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 {r.label}
@@ -591,12 +591,12 @@ export default function TeamAnalyticsDashboard() {
               <select
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
-                className="appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-300"
+                className="appearance-none bg-surface-primary border border-border-secondary rounded-xl pl-3 pr-8 py-1.5 text-xs font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-300"
               >
                 <option value="">Alle Städte</option>
                 {cities.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-              <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             </div>
           )}
 
@@ -604,13 +604,13 @@ export default function TeamAnalyticsDashboard() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="p-2 bg-surface-primary border border-border-secondary rounded-xl text-text-muted hover:text-text-primary hover:bg-surface-secondary transition-colors disabled:opacity-50"
             title="Aktualisieren"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
           {lastRefresh && (
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-text-muted">
               Aktualisiert: {formatTimeDE(lastRefresh.toISOString())}
             </span>
           )}
@@ -618,13 +618,13 @@ export default function TeamAnalyticsDashboard() {
       </div>
 
       {/* Info */}
-      <div className="bg-blue-50/60 border border-blue-200/50 rounded-xl px-4 py-2.5 text-xs text-blue-700 flex items-center gap-2">
+      <div className="bg-accent-light/60 border border-accent/20/50 rounded-xl px-4 py-2.5 text-xs text-blue-700 flex items-center gap-2">
         <AlertCircle size={14} className="shrink-0" />
         Termine und Wochen-Statistik basieren auf historischen Daten (install_bookings + Airtable). Activity-Feed zeigt nur Events seit Aktivierung.
       </div>
 
       {loading && !activityLogs.length ? (
-        <div className="flex items-center justify-center py-20 text-gray-400 gap-2">
+        <div className="flex items-center justify-center py-20 text-text-muted gap-2">
           <Loader2 size={20} className="animate-spin" /> Lade Daten...
         </div>
       ) : (
@@ -635,70 +635,70 @@ export default function TeamAnalyticsDashboard() {
               label="Gebuchte Termine"
               value={kpis.totalBookings}
               icon={Calendar}
-              color="text-gray-700"
-              bgColor="bg-gray-100"
+              color="text-text-primary"
+              bgColor="bg-surface-secondary"
               sub="nach Installationsdatum im Zeitraum"
             />
             <KpiCard
               label="davon WhatsApp Bot"
               value={kpis.botBookings}
               icon={MessageSquare}
-              color="text-blue-600"
-              bgColor="bg-blue-50"
+              color="text-accent"
+              bgColor="bg-accent-light"
               sub={kpis.totalBookings > 0 ? `${Math.round(kpis.botBookings / kpis.totalBookings * 100)}%` : ''}
             />
             <KpiCard
               label="davon Telefon"
               value={kpis.phoneBookings}
               icon={PhoneCall}
-              color="text-green-600"
-              bgColor="bg-green-50"
+              color="text-status-online"
+              bgColor="bg-status-online/10"
               sub={kpis.totalBookings > 0 ? `${Math.round(kpis.phoneBookings / kpis.totalBookings * 100)}%` : ''}
             />
             <KpiCard
               label="Offene Einladungen"
               value={kpis.pendingInvites}
               icon={Send}
-              color="text-amber-600"
-              bgColor="bg-amber-50"
+              color="text-status-warning"
+              bgColor="bg-status-warning/10"
               sub="alle offenen (kein Zeitfilter)"
             />
             <KpiCard
               label="Anrufe Gesamt"
               value={kpis.totalCalls}
               icon={Phone}
-              color="text-purple-600"
-              bgColor="bg-purple-50"
+              color="text-brand-purple"
+              bgColor="bg-brand-purple/10"
             />
             <KpiCard
               label="Davon erreicht"
               value={kpis.callsReached}
               icon={CheckCircle}
-              color="text-green-600"
-              bgColor="bg-green-50"
+              color="text-status-online"
+              bgColor="bg-status-online/10"
               sub={kpis.totalCalls > 0 ? `${Math.round(kpis.callsReached / kpis.totalCalls * 100)}%` : ''}
             />
             <KpiCard
               label="WA-Einladungen"
               value={kpis.invites}
               icon={Send}
-              color="text-blue-600"
-              bgColor="bg-blue-50"
+              color="text-accent"
+              bgColor="bg-accent-light"
               sub="Activity-Log (seit Aktivierung)"
             />
             <KpiCard
               label="Logins"
               value={kpis.logins}
               icon={LogIn}
-              color="text-gray-600"
-              bgColor="bg-gray-100"
+              color="text-text-secondary"
+              bgColor="bg-surface-secondary"
             />
           </div>
 
           {/* ── Stacked Bar Chart ── */}
           {RC && chartData.length > 0 && (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
                 <BarChart3 size={16} /> Termine pro Tag nach Quelle
               </h3>
               <div className="h-64">
@@ -723,7 +723,7 @@ export default function TeamAnalyticsDashboard() {
                   { key: 'bot', label: 'WhatsApp Bot', color: SOURCE_COLORS.bot },
                   { key: 'telefon', label: 'Telefon', color: SOURCE_COLORS.portal },
                 ].map(l => (
-                  <div key={l.key} className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <div key={l.key} className="flex items-center gap-1.5 text-xs text-text-muted">
                     <span className="w-3 h-3 rounded" style={{ backgroundColor: l.color }} />
                     {l.label}
                   </div>
@@ -734,8 +734,8 @@ export default function TeamAnalyticsDashboard() {
 
           {/* ── Created pro Tag: Wann wurden Termine erstellt? ── */}
           {RC && createdPerDay.length > 0 && (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
                 <Activity size={16} /> Termine erstellt pro Tag
               </h3>
               <div className="h-64">
@@ -759,7 +759,7 @@ export default function TeamAnalyticsDashboard() {
                   { key: 'bot', label: 'WhatsApp Bot', color: SOURCE_COLORS.bot },
                   { key: 'telefon', label: 'Telefon', color: SOURCE_COLORS.portal },
                 ].map(l => (
-                  <div key={l.key} className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <div key={l.key} className="flex items-center gap-1.5 text-xs text-text-muted">
                     <span className="w-3 h-3 rounded" style={{ backgroundColor: l.color }} />
                     {l.label}
                   </div>
@@ -770,8 +770,8 @@ export default function TeamAnalyticsDashboard() {
 
           {/* ── Wochen-Chart: WA vs Telefon nach KW ── */}
           {RC && weeklyData.length > 0 && (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
                 <Calendar size={16} /> Termine pro Woche — WhatsApp Bot vs. Telefon
               </h3>
               <div className="h-64">
@@ -791,7 +791,7 @@ export default function TeamAnalyticsDashboard() {
                   { key: 'bot', label: 'WhatsApp Bot', color: SOURCE_COLORS.bot },
                   { key: 'telefon', label: 'Telefon', color: SOURCE_COLORS.portal },
                 ].map(l => (
-                  <div key={l.key} className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <div key={l.key} className="flex items-center gap-1.5 text-xs text-text-muted">
                     <span className="w-3 h-3 rounded" style={{ backgroundColor: l.color }} />
                     {l.label}
                   </div>
@@ -801,16 +801,16 @@ export default function TeamAnalyticsDashboard() {
           )}
 
           {/* ── User-Aktivitäts-Tabelle ── */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
                 <Users size={16} /> Aktivität pro Nutzer
               </h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-gray-500 bg-gray-50/50">
+                  <tr className="text-left text-xs text-text-muted bg-surface-secondary/50">
                     <th className="px-5 py-3 font-medium">Name</th>
                     <th className="px-4 py-3 font-medium text-center">Anrufe</th>
                     <th className="px-4 py-3 font-medium text-center">WA-Einladungen</th>
@@ -820,36 +820,36 @@ export default function TeamAnalyticsDashboard() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {userRows.length === 0 ? (
-                    <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400 text-sm">Keine Aktivität im gewählten Zeitraum.</td></tr>
+                    <tr><td colSpan={5} className="px-5 py-8 text-center text-text-muted text-sm">Keine Aktivität im gewählten Zeitraum.</td></tr>
                   ) : userRows.map(u => (
-                    <tr key={u.id} className={`hover:bg-gray-50/50 transition-colors ${u.id === '__bot__' ? 'bg-blue-50/30' : ''}`}>
+                    <tr key={u.id} className={`hover:bg-surface-secondary/50 transition-colors ${u.id === '__bot__' ? 'bg-accent-light/30' : ''}`}>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
                           {u.id === '__bot__' ? (
-                            <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-                              <MessageSquare size={14} className="text-blue-600" />
+                            <div className="w-7 h-7 rounded-lg bg-accent-light flex items-center justify-center">
+                              <MessageSquare size={14} className="text-accent" />
                             </div>
                           ) : (
-                            <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center">
-                              <Users size={14} className="text-gray-500" />
+                            <div className="w-7 h-7 rounded-lg bg-surface-secondary flex items-center justify-center">
+                              <Users size={14} className="text-text-muted" />
                             </div>
                           )}
                           <div>
-                            <div className="font-medium text-gray-900 text-sm">{u.name}</div>
-                            <div className="text-[10px] text-gray-400">{u.group}</div>
+                            <div className="font-medium text-text-primary text-sm">{u.name}</div>
+                            <div className="text-[10px] text-text-muted">{u.group}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`font-semibold ${u.calls > 0 ? 'text-green-600' : 'text-gray-300'}`}>{u.calls}</span>
+                        <span className={`font-semibold ${u.calls > 0 ? 'text-status-online' : 'text-text-muted'}`}>{u.calls}</span>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`font-semibold ${u.invites > 0 ? 'text-blue-600' : 'text-gray-300'}`}>{u.invites}</span>
+                        <span className={`font-semibold ${u.invites > 0 ? 'text-accent' : 'text-text-muted'}`}>{u.invites}</span>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`font-semibold ${u.bookings > 0 ? 'text-emerald-600' : 'text-gray-300'}`}>{u.bookings}</span>
+                        <span className={`font-semibold ${u.bookings > 0 ? 'text-emerald-600' : 'text-text-muted'}`}>{u.bookings}</span>
                       </td>
-                      <td className="px-4 py-3 text-right text-xs text-gray-500">
+                      <td className="px-4 py-3 text-right text-xs text-text-muted">
                         {u.lastLogin ? timeAgoShort(u.lastLogin) : '--'}
                       </td>
                     </tr>
@@ -860,26 +860,26 @@ export default function TeamAnalyticsDashboard() {
           </div>
 
           {/* ── Activity Feed ── */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
                 <Activity size={16} /> Letzte Aktivitäten
               </h3>
             </div>
             <div className="divide-y divide-gray-50 max-h-[400px] overflow-y-auto">
               {activityFeed.length === 0 ? (
-                <div className="px-5 py-8 text-center text-gray-400 text-sm">Keine Aktivitäten im gewählten Zeitraum.</div>
+                <div className="px-5 py-8 text-center text-text-muted text-sm">Keine Aktivitäten im gewählten Zeitraum.</div>
               ) : activityFeed.map((a, i) => {
                 const Icon = ACTION_ICONS[a.action] || Activity;
-                const colorClasses = ACTION_COLORS[a.action] || 'text-gray-600 bg-gray-50';
+                const colorClasses = ACTION_COLORS[a.action] || 'text-text-secondary bg-surface-secondary';
                 return (
-                  <div key={a.id || i} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
+                  <div key={a.id || i} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-secondary/50 transition-colors">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colorClasses}`}>
                       <Icon size={14} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-900 truncate">
+                        <span className="text-sm font-medium text-text-primary truncate">
                           {ACTION_LABELS[a.action] || a.action}
                         </span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded-md font-medium border"
@@ -892,11 +892,11 @@ export default function TeamAnalyticsDashboard() {
                           {SOURCE_LABELS[a.source] || a.source}
                         </span>
                       </div>
-                      <div className="text-xs text-gray-500 truncate">
+                      <div className="text-xs text-text-muted truncate">
                         {a.user_name || 'System'} — {a.location_name || ''} {a.city ? `(${a.city})` : ''}
                       </div>
                     </div>
-                    <div className="text-[11px] text-gray-400 shrink-0 whitespace-nowrap">
+                    <div className="text-[11px] text-text-muted shrink-0 whitespace-nowrap">
                       {formatDateDE(a.created_at)} {formatTimeDE(a.created_at)}
                     </div>
                   </div>

@@ -165,19 +165,19 @@ const STATUS_OPTIONS = [
 const PRIORITY_OPTIONS = ['Urgent', 'High', 'Medium', 'Low'];
 
 const STATUS_COLORS = {
-  'New':         '#3b82f6',
-  'In Progress': '#f59e0b',
+  'New':         '#007AFF',
+  'In Progress': '#FF9500',
   'Follow Up':   '#a855f7',
   'On Hold':     '#64748b',
   'In Review':   '#06b6d4',
-  'Completed':   '#22c55e',
+  'Completed':   '#34C759',
 };
 
 const PRIORITY_COLORS = {
-  'Urgent': '#dc2626',
-  'High':   '#ef4444',
-  'Medium': '#f59e0b',
-  'Low':    '#22c55e',
+  'Urgent': '#FF3B30',
+  'High':   '#FF3B30',
+  'Medium': '#FF9500',
+  'Low':    '#34C759',
 };
 
 /* ──────────────────────── component ──────────────────────── */
@@ -482,20 +482,20 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
       }}
     >
       {/* ──── Modal Card ──── */}
-      <div className="w-full max-w-lg bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08] animate-fade-in">
+      <div className="w-full max-w-lg bg-surface-primary border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08] animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border-secondary">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2 className="text-base font-semibold text-text-primary">
               Neuen Task erstellen
             </h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-text-muted mt-0.5">
               Aufgabe zum JET DooH Projekt hinzufügen
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100/80 transition-colors text-slate-400 hover:text-slate-600"
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-secondary/80 transition-colors text-text-muted hover:text-text-secondary"
           >
             <X size={16} />
           </button>
@@ -505,20 +505,20 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
           {/* ── 1. Standort / Location (searchable) — first, so template can use details ── */}
           <div ref={locationDropdownRef} className="relative">
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              <MapPin size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
-              Standort <span className="text-[#ef4444]">*</span>
+            <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
+              <MapPin size={11} className="inline -mt-0.5 mr-1 text-text-muted" />
+              Standort <span className="text-[#FF3B30]">*</span>
             </label>
 
             {selectedLocation ? (
               /* Selected location pill */
-              <div className="flex items-center gap-2 px-3 py-2.5 bg-[#3b82f6]/5 border border-[#3b82f6]/30 rounded-lg">
-                <Building2 size={13} className="text-[#3b82f6] shrink-0" />
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-[#007AFF]/5 border border-[#007AFF]/30 rounded-lg">
+                <Building2 size={13} className="text-[#007AFF] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium text-slate-900 truncate">
+                  <div className="text-xs font-medium text-text-primary truncate">
                     {selectedLocation.name}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono truncate">
+                  <div className="text-[10px] text-text-muted font-mono truncate">
                     {selectedLocation.city}
                     {selectedLocation.jetIds?.length > 0 && ` · ${selectedLocation.jetIds[0]}`}
                     {selectedLocation.displayIds?.length > 0 && ` · ${selectedLocation.displayIds.length} Display${selectedLocation.displayIds.length !== 1 ? 's' : ''}`}
@@ -527,7 +527,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                 <button
                   type="button"
                   onClick={handleClearLocation}
-                  className="p-1 rounded hover:bg-slate-100/60 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-1 rounded hover:bg-surface-secondary/60 text-text-muted hover:text-text-secondary transition-colors"
                 >
                   <X size={12} />
                 </button>
@@ -535,7 +535,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
             ) : (
               /* Search input */
               <div className="relative">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   value={locationSearch}
@@ -546,23 +546,23 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                   onFocus={() => setShowLocationDropdown(true)}
                   placeholder={locationsLoading ? 'Standorte laden...' : 'Standort suchen (Name, Stadt, JET ID)...'}
                   disabled={locationsLoading}
-                  className={`w-full pl-9 pr-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-colors disabled:opacity-50 ${
+                  className={`w-full pl-9 pr-3 py-2.5 bg-surface-secondary/80 border rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none transition-colors disabled:opacity-50 ${
                     errors.location
-                      ? 'border-[#ef4444] focus:border-[#ef4444]'
-                      : 'border-slate-200/60 focus:border-[#3b82f6]'
+                      ? 'border-[#FF3B30] focus:border-[#FF3B30]'
+                      : 'border-border-secondary focus:border-[#007AFF]'
                   }`}
                 />
                 {locationsLoading && (
-                  <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 animate-spin" />
+                  <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted animate-spin" />
                 )}
               </div>
             )}
 
             {/* Location dropdown */}
             {showLocationDropdown && !selectedLocation && (
-              <div className="absolute z-20 left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-lg shadow-lg shadow-black/[0.08] max-h-[200px] overflow-y-auto">
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-surface-primary border border-border-secondary rounded-lg shadow-lg shadow-black/[0.08] max-h-[200px] overflow-y-auto">
                 {filteredLocations.length === 0 ? (
-                  <div className="px-3 py-4 text-xs text-slate-400 text-center">
+                  <div className="px-3 py-4 text-xs text-text-muted text-center">
                     {locationsLoading ? 'Laden...' : 'Kein Standort gefunden'}
                   </div>
                 ) : (
@@ -571,22 +571,22 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                       key={loc.id}
                       type="button"
                       onClick={() => handleSelectLocation(loc)}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-50/80 transition-colors border-b border-slate-200/30 last:border-b-0"
+                      className="w-full text-left px-3 py-2 hover:bg-surface-secondary/80 transition-colors border-b border-border-secondary/30 last:border-b-0"
                     >
-                      <div className="text-xs font-medium text-slate-900 truncate">
+                      <div className="text-xs font-medium text-text-primary truncate">
                         {loc.name}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-slate-400 font-mono">
+                        <span className="text-[10px] text-text-muted font-mono">
                           {loc.city}
                         </span>
                         {loc.jetIds?.length > 0 && (
-                          <span className="text-[10px] text-slate-400 font-mono">
+                          <span className="text-[10px] text-text-muted font-mono">
                             {loc.jetIds[0]}
                           </span>
                         )}
                         {loc.displayIds?.length > 0 && (
-                          <span className="text-[9px] text-slate-400 bg-slate-100/80 px-1.5 py-0.5 rounded">
+                          <span className="text-[9px] text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
                             {loc.displayIds.length} Display{loc.displayIds.length !== 1 ? 's' : ''}
                           </span>
                         )}
@@ -598,7 +598,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
             )}
 
             {errors.location && (
-              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
+              <div className="flex items-center gap-1 mt-1.5 text-[#FF3B30]">
                 <AlertCircle size={11} />
                 <span className="text-[10px]">{errors.location}</span>
               </div>
@@ -607,8 +607,8 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
           {/* ── Vorlage / Template Selector (after location so details are available) ── */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              <ClipboardList size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+            <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
+              <ClipboardList size={11} className="inline -mt-0.5 mr-1 text-text-muted" />
               Vorlage verwenden
             </label>
             <select
@@ -616,14 +616,14 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                 handleApplyTemplate(e.target.value);
                 e.target.value = ''; // reset select after applying
               }}
-              className="w-full appearance-none px-3 py-2.5 bg-gradient-to-r from-slate-50/80 to-[#3b82f6]/[0.03] border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full appearance-none px-3 py-2.5 bg-gradient-to-r from-slate-50/80 to-[#007AFF]/[0.03] border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors"
             >
               <option value="">– Vorlage auswählen (optional) –</option>
               {TASK_TEMPLATES.map((t) => (
                 <option key={t.id} value={t.id}>{t.label}</option>
               ))}
             </select>
-            <p className="text-[9px] text-slate-400 mt-1">
+            <p className="text-[9px] text-text-muted mt-1">
               {selectedLocation
                 ? 'Füllt Titel, Beschreibung & Priorität mit Standort-Details aus'
                 : 'Erst Standort auswählen für vollständige Details'}
@@ -632,8 +632,8 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
           {/* ── 3. Title ── */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              Titel <span className="text-[#ef4444]">*</span>
+            <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
+              Titel <span className="text-[#FF3B30]">*</span>
             </label>
             <input
               ref={titleInputRef}
@@ -644,14 +644,14 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                 if (errors.title) setErrors((prev) => ({ ...prev, title: null }));
               }}
               placeholder="Task-Bezeichnung eingeben..."
-              className={`w-full px-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-colors ${
+              className={`w-full px-3 py-2.5 bg-surface-secondary/80 border rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none transition-colors ${
                 errors.title
-                  ? 'border-[#ef4444] focus:border-[#ef4444]'
-                  : 'border-slate-200/60 focus:border-[#3b82f6]'
+                  ? 'border-[#FF3B30] focus:border-[#FF3B30]'
+                  : 'border-border-secondary focus:border-[#007AFF]'
               }`}
             />
             {errors.title && (
-              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
+              <div className="flex items-center gap-1 mt-1.5 text-[#FF3B30]">
                 <AlertCircle size={11} />
                 <span className="text-[10px]">{errors.title}</span>
               </div>
@@ -660,9 +660,9 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
           {/* ── 4. Partner (required) ── */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              <Briefcase size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
-              Partner <span className="text-[#ef4444]">*</span>
+            <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
+              <Briefcase size={11} className="inline -mt-0.5 mr-1 text-text-muted" />
+              Partner <span className="text-[#FF3B30]">*</span>
             </label>
             <select
               value={partner}
@@ -670,10 +670,10 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                 setPartner(e.target.value);
                 if (errors.partner) setErrors((prev) => ({ ...prev, partner: null }));
               }}
-              className={`w-full appearance-none px-3 py-2.5 bg-slate-50/80 border rounded-lg text-xs text-slate-900 focus:outline-none transition-colors pr-8 ${
+              className={`w-full appearance-none px-3 py-2.5 bg-surface-secondary/80 border rounded-lg text-xs text-text-primary focus:outline-none transition-colors pr-8 ${
                 errors.partner
-                  ? 'border-[#ef4444] focus:border-[#ef4444]'
-                  : 'border-slate-200/60 focus:border-[#3b82f6]'
+                  ? 'border-[#FF3B30] focus:border-[#FF3B30]'
+                  : 'border-border-secondary focus:border-[#007AFF]'
               }`}
             >
               <option value="">– Partner auswählen –</option>
@@ -682,7 +682,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
               ))}
             </select>
             {errors.partner && (
-              <div className="flex items-center gap-1 mt-1.5 text-[#ef4444]">
+              <div className="flex items-center gap-1 mt-1.5 text-[#FF3B30]">
                 <AlertCircle size={11} />
                 <span className="text-[10px]">{errors.partner}</span>
               </div>
@@ -693,14 +693,14 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
           <div className="grid grid-cols-2 gap-3">
             {/* Status */}
             <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+              <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
                 Status
               </label>
               <div className="relative">
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors pr-8"
+                  className="w-full appearance-none px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors pr-8"
                 >
                   {STATUS_OPTIONS.map((s) => (
                     <option key={s} value={s}>
@@ -717,14 +717,14 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
             {/* Priority */}
             <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+              <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
                 Priorität
               </label>
               <div className="relative">
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
-                  className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors pr-8"
+                  className="w-full appearance-none px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors pr-8"
                 >
                   {PRIORITY_OPTIONS.map((p) => (
                     <option key={p} value={p}>
@@ -742,14 +742,14 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
           {/* ── 6. Zuständig / Assigned User ── */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              <User size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+            <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
+              <User size={11} className="inline -mt-0.5 mr-1 text-text-muted" />
               Zuständig
             </label>
             <select
               value={assignedUserId}
               onChange={(e) => setAssignedUserId(e.target.value)}
-              className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full appearance-none px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors"
             >
               <option value="">– Nicht zugewiesen –</option>
               {dashboardUsers.map((u) => (
@@ -762,21 +762,21 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
 
           {/* Due Date */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
+            <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
               Fälligkeitsdatum
             </label>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
           {/* Description + Auto-Details */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-[11px] font-medium text-slate-600">
+              <label className="block text-[11px] font-medium text-text-secondary">
                 Beschreibung
               </label>
               {selectedLocation && (
@@ -784,7 +784,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                   type="button"
                   onClick={handleInsertDetails}
                   disabled={installationLoading}
-                  className="inline-flex items-center gap-1 text-[10px] font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-[10px] font-medium text-[#007AFF] hover:text-[#2563eb] transition-colors disabled:opacity-50"
                 >
                   {installationLoading ? (
                     <Loader2 size={10} className="animate-spin" />
@@ -800,14 +800,14 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
               onChange={(e) => setDescription(e.target.value)}
               rows={description.split('\n').length > 4 ? 8 : 3}
               placeholder="Optionale Beschreibung der Aufgabe..."
-              className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors resize-none"
+              className="w-full px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors resize-none"
             />
           </div>
 
           {/* ── Anhänge / Attachments ── */}
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
-              <Paperclip size={11} className="inline -mt-0.5 mr-1 text-slate-400" />
+            <label className="block text-[11px] font-medium text-text-secondary mb-1.5">
+              <Paperclip size={11} className="inline -mt-0.5 mr-1 text-text-muted" />
               Anhänge
             </label>
 
@@ -817,17 +817,17 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
                 {pendingFiles.map((file, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50/80 border border-slate-200/60 rounded-lg"
+                    className="flex items-center gap-2 px-2.5 py-1.5 bg-surface-secondary/80 border border-border-secondary rounded-lg"
                   >
-                    <FileText size={13} className="text-[#3b82f6] shrink-0" />
+                    <FileText size={13} className="text-[#007AFF] shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="text-[11px] font-medium text-slate-900 truncate">{file.name}</div>
-                      <div className="text-[9px] text-slate-400">{formatFileSize(file.size)}</div>
+                      <div className="text-[11px] font-medium text-text-primary truncate">{file.name}</div>
+                      <div className="text-[9px] text-text-muted">{formatFileSize(file.size)}</div>
                     </div>
                     <button
                       type="button"
                       onClick={() => removePendingFile(i)}
-                      className="p-0.5 rounded hover:bg-slate-100/60 text-slate-400 hover:text-[#ef4444] transition-colors"
+                      className="p-0.5 rounded hover:bg-surface-secondary/60 text-text-muted hover:text-[#FF3B30] transition-colors"
                     >
                       <Trash2 size={11} />
                     </button>
@@ -839,7 +839,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50/80 border border-dashed border-slate-300/60 rounded-lg text-[10px] font-medium text-slate-500 hover:text-[#3b82f6] hover:border-[#3b82f6]/40 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-secondary/80 border border-dashed border-border-primary/60 rounded-lg text-[10px] font-medium text-text-muted hover:text-[#007AFF] hover:border-[#007AFF]/40 transition-colors"
             >
               <Paperclip size={11} />
               Datei anfügen
@@ -852,16 +852,16 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
               onChange={handleFileSelect}
               accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv,.txt"
             />
-            <p className="text-[9px] text-slate-400 mt-1">Max. 10 MB pro Datei · Bilder, PDF, Office-Dokumente</p>
+            <p className="text-[9px] text-text-muted mt-1">Max. 10 MB pro Datei · Bilder, PDF, Office-Dokumente</p>
           </div>
         </form>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-200/60 space-y-3">
+        <div className="px-6 py-4 border-t border-border-secondary space-y-3">
           {externalError && (
-            <div className="flex items-center gap-2 px-3 py-2.5 bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-lg">
-              <AlertCircle size={13} className="text-[#ef4444] shrink-0" />
-              <span className="text-[11px] text-[#ef4444] font-medium">{externalError}</span>
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-[#FF3B30]/5 border border-[#FF3B30]/20 rounded-lg">
+              <AlertCircle size={13} className="text-[#FF3B30] shrink-0" />
+              <span className="text-[11px] text-[#FF3B30] font-medium">{externalError}</span>
             </div>
           )}
           <div className="flex items-center justify-end gap-2">
@@ -869,7 +869,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:border-slate-300 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs font-medium text-text-secondary hover:bg-surface-secondary/80 hover:border-border-primary transition-colors disabled:opacity-50"
           >
             Abbrechen
           </button>
@@ -877,7 +877,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
             type="submit"
             onClick={handleSubmit}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-5 py-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg text-xs font-medium transition-colors shadow-sm shadow-[#3b82f6]/20 disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-5 py-2 bg-[#007AFF] hover:bg-[#2563eb] text-white rounded-lg text-xs font-medium transition-colors shadow-sm shadow-[#007AFF]/20 disabled:opacity-60"
           >
             {loading ? (
               <>

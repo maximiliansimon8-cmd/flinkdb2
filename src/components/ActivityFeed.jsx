@@ -52,7 +52,7 @@ const ACTIVITY_TYPES = {
 const TYPE_CONFIG = {
   [ACTIVITY_TYPES.NEU]: {
     label: 'Neu',
-    color: '#22c55e',
+    color: '#34C759',
     bg: 'bg-emerald-500/15',
     text: 'text-emerald-400',
     border: 'border-emerald-500/30',
@@ -61,36 +61,36 @@ const TYPE_CONFIG = {
   },
   [ACTIVITY_TYPES.UPDATE]: {
     label: 'Update',
-    color: '#3b82f6',
-    bg: 'bg-blue-500/15',
-    text: 'text-blue-400',
-    border: 'border-blue-500/30',
-    ring: 'ring-blue-500/20',
+    color: '#007AFF',
+    bg: 'bg-accent/15',
+    text: 'text-accent',
+    border: 'border-accent/30',
+    ring: 'ring-accent/20',
     icon: ArrowUpRight,
   },
   [ACTIVITY_TYPES.WARNUNG]: {
     label: 'Warnung',
-    color: '#f59e0b',
-    bg: 'bg-amber-500/15',
+    color: '#FF9500',
+    bg: 'bg-status-warning/15',
     text: 'text-amber-400',
-    border: 'border-amber-500/30',
+    border: 'border-status-warning/30',
     ring: 'ring-amber-500/20',
     icon: AlertTriangle,
   },
   [ACTIVITY_TYPES.KRITISCH]: {
     label: 'Kritisch',
-    color: '#ef4444',
-    bg: 'bg-red-500/15',
-    text: 'text-red-400',
-    border: 'border-red-500/30',
+    color: '#FF3B30',
+    bg: 'bg-status-offline/15',
+    text: 'text-status-offline',
+    border: 'border-status-offline/30',
     ring: 'ring-red-500/20',
     icon: WifiOff,
   },
   [ACTIVITY_TYPES.SYSTEM]: {
     label: 'System',
     color: '#a855f7',
-    bg: 'bg-purple-500/15',
-    text: 'text-purple-400',
+    bg: 'bg-brand-purple/15',
+    text: 'text-brand-purple',
     border: 'border-purple-500/30',
     ring: 'ring-purple-500/20',
     icon: Zap,
@@ -194,7 +194,7 @@ function generateTaskActivities(tasks) {
         timestamp: new Date(task.createdTime),
         icon: ClipboardList,
         tag: task.priority || null,
-        tagColor: task.priority === 'Urgent' ? '#ef4444' : task.priority === 'High' ? '#f59e0b' : null,
+        tagColor: task.priority === 'Urgent' ? '#FF3B30' : task.priority === 'High' ? '#FF9500' : null,
       });
     }
 
@@ -208,7 +208,7 @@ function generateTaskActivities(tasks) {
         timestamp: new Date(task.completedDate),
         icon: CheckCircle2,
         tag: 'Erledigt',
-        tagColor: '#22c55e',
+        tagColor: '#34C759',
       });
     }
 
@@ -224,7 +224,7 @@ function generateTaskActivities(tasks) {
         timestamp: new Date(task.createdTime),
         icon: Clock,
         tag: 'In Bearbeitung',
-        tagColor: '#f59e0b',
+        tagColor: '#FF9500',
       });
     }
   }
@@ -254,7 +254,7 @@ function generateDisplayActivities(displays) {
         timestamp: display.firstSeen,
         icon: Monitor,
         tag: display.city || null,
-        tagColor: '#3b82f6',
+        tagColor: '#007AFF',
       });
     }
 
@@ -272,7 +272,7 @@ function generateDisplayActivities(displays) {
         timestamp: offlineDate || now,
         icon: AlertTriangle,
         tag: display.city || null,
-        tagColor: '#f59e0b',
+        tagColor: '#FF9500',
       });
     }
 
@@ -290,7 +290,7 @@ function generateDisplayActivities(displays) {
         timestamp: offlineDate || now,
         icon: WifiOff,
         tag: `${Math.round(display.offlineHours)}h`,
-        tagColor: '#ef4444',
+        tagColor: '#FF3B30',
       });
     }
 
@@ -388,7 +388,7 @@ function generateReadyForInstallActivities(records) {
       timestamp: ts,
       icon: MapPinIcon,
       tag: city || null,
-      tagColor: '#22c55e',
+      tagColor: '#34C759',
     });
   }
 
@@ -422,13 +422,13 @@ function ActivityCard({ activity, isLast, isUnread }) {
           <IconComponent size={18} style={{ color: config.color }} />
         </div>
         {isUnread && (
-          <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-900 shadow-sm shadow-blue-500/40" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent border-2 border-[#1D1D1F] shadow-sm shadow-blue-500/40" />
         )}
       </div>
 
       {/* Content area */}
       <div className="flex-1 min-w-0 pb-6">
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700/50 p-5 transition-all duration-200 group-hover:bg-slate-800/80 group-hover:border-slate-600/50 group-hover:shadow-lg group-hover:shadow-slate-900/20">
+        <div className="bg-surface-primary/60 rounded-xl border border-border-primary p-5 transition-all duration-200 group-hover:bg-surface-primary/80 group-hover:border-border-primary group-hover:shadow-lg group-hover:shadow-black/10">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               {/* Type badge + Title */}
@@ -438,13 +438,13 @@ function ActivityCard({ activity, isLast, isUnread }) {
                 >
                   {config.label}
                 </span>
-                <h4 className="text-base font-semibold text-slate-100">
+                <h4 className="text-base font-semibold text-text-primary">
                   {activity.title}
                 </h4>
               </div>
 
               {/* Description */}
-              <p className="text-sm text-slate-300 leading-relaxed line-clamp-3">
+              <p className="text-sm text-text-muted leading-relaxed line-clamp-3">
                 {activity.description}
               </p>
 
@@ -468,7 +468,7 @@ function ActivityCard({ activity, isLast, isUnread }) {
             {/* Timestamp */}
             <div className="flex-shrink-0 text-right">
               <span
-                className="text-xs text-slate-400 font-medium whitespace-nowrap"
+                className="text-xs text-text-muted font-medium whitespace-nowrap"
                 title={formatFullDate(activity.timestamp)}
               >
                 {relativeTime(activity.timestamp)}
@@ -487,11 +487,11 @@ function ActivityCard({ activity, isLast, isUnread }) {
 function DateGroupHeader({ label }) {
   return (
     <div className="flex items-center gap-3 py-3">
-      <div className="h-px flex-1 bg-slate-700/50" />
-      <span className="text-sm font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+      <div className="h-px flex-1 bg-surface-tertiary" />
+      <span className="text-sm font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">
         {label}
       </span>
-      <div className="h-px flex-1 bg-slate-700/50" />
+      <div className="h-px flex-1 bg-surface-tertiary" />
     </div>
   );
 }
@@ -509,7 +509,7 @@ function FilterPill({ type, active, count, onClick }) {
       className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all duration-150 ${
         active
           ? `${config.bg} ${config.text} ${config.border}`
-          : 'bg-slate-800/40 text-slate-500 border-slate-700/40 hover:bg-slate-800/60 hover:text-slate-500'
+          : 'bg-surface-primary/40 text-text-muted border-border-secondary hover:bg-surface-primary/60 hover:text-text-muted'
       }`}
     >
       <config.icon size={12} />
@@ -517,7 +517,7 @@ function FilterPill({ type, active, count, onClick }) {
       {count > 0 && (
         <span
           className={`ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-bold ${
-            active ? 'bg-white/10' : 'bg-slate-700/60'
+            active ? 'bg-white/10' : 'bg-surface-tertiary'
           }`}
         >
           {count}
@@ -551,7 +551,7 @@ function SummaryStats({ activities }) {
           <div className={`text-3xl font-bold ${config.text}`}>
             {counts[type] || 0}
           </div>
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">
+          <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mt-1">
             {config.label}
           </div>
         </div>
@@ -706,16 +706,16 @@ export default function ActivityFeed({ rawData }) {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center ring-1 ring-blue-500/20">
-            <Activity size={20} className="text-blue-400" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center ring-1 ring-accent/20">
+            <Activity size={20} className="text-accent" />
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-slate-100">Aktivitäten</h2>
-            <p className="text-sm text-slate-400">
+            <h2 className="text-2xl font-bold text-text-primary">Aktivitäten</h2>
+            <p className="text-sm text-text-muted">
               {allActivities.length} Aktivitäten insgesamt
               {(() => {
                 const unread = lastRead ? allActivities.filter(a => a.timestamp > lastRead).length : allActivities.length;
-                return unread > 0 ? <span className="text-blue-400 font-medium"> · {unread} neu</span> : null;
+                return unread > 0 ? <span className="text-accent font-medium"> · {unread} neu</span> : null;
               })()}
               {loadingTasks && ' — Lade Tasks...'}
             </p>
@@ -725,7 +725,7 @@ export default function ActivityFeed({ rawData }) {
             return unread > 0 ? (
               <button
                 onClick={handleMarkAllRead}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium bg-blue-500/15 text-blue-400 border border-blue-500/30 hover:bg-blue-500/25 transition-all"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25 transition-all"
               >
                 <CheckCheck size={15} />
                 Alle gelesen
@@ -750,12 +750,12 @@ export default function ActivityFeed({ rawData }) {
               setVisibleCount(PAGE_SIZE);
             }}
             placeholder="Aktivitäten durchsuchen..."
-            className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all"
+            className="w-full bg-surface-primary/60 border border-border-primary rounded-xl px-4 py-3 text-base text-text-muted placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/50 transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-muted transition-colors"
             >
               <X size={14} />
             </button>
@@ -764,7 +764,7 @@ export default function ActivityFeed({ rawData }) {
 
         {/* Type filter pills */}
         <div className="flex items-center gap-2 flex-wrap">
-          <Filter size={14} className="text-slate-500" />
+          <Filter size={14} className="text-text-muted" />
           {Object.values(ACTIVITY_TYPES).map((type) => (
             <FilterPill
               key={type}
@@ -777,7 +777,7 @@ export default function ActivityFeed({ rawData }) {
           {(activeFilters.size > 0 || searchQuery) && (
             <button
               onClick={clearFilters}
-              className="text-xs text-slate-500 hover:text-slate-300 underline underline-offset-2 ml-2 transition-colors"
+              className="text-xs text-text-muted hover:text-text-muted underline underline-offset-2 ml-2 transition-colors"
             >
               Zurücksetzen
             </button>
@@ -786,7 +786,7 @@ export default function ActivityFeed({ rawData }) {
 
         {/* Result count */}
         {(activeFilters.size > 0 || searchQuery) && (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-text-muted">
             {filteredActivities.length} von {allActivities.length} Aktivitäten
           </p>
         )}
@@ -795,21 +795,21 @@ export default function ActivityFeed({ rawData }) {
       {/* Loading state */}
       {loadingTasks && allActivities.length === 0 && (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
-          <span className="ml-2 text-base text-slate-400">Lade Aktivitäten...</span>
+          <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
+          <span className="ml-2 text-base text-text-muted">Lade Aktivitäten...</span>
         </div>
       )}
 
       {/* Empty state */}
       {!loadingTasks && filteredActivities.length === 0 && (
         <div className="text-center py-16">
-          <div className="w-16 h-16 rounded-2xl bg-slate-800/60 flex items-center justify-center mx-auto mb-4">
-            <Activity size={24} className="text-slate-600" />
+          <div className="w-16 h-16 rounded-2xl bg-surface-primary/60 flex items-center justify-center mx-auto mb-4">
+            <Activity size={24} className="text-text-secondary" />
           </div>
-          <h3 className="text-base font-semibold text-slate-400 mb-1">
+          <h3 className="text-base font-semibold text-text-muted mb-1">
             Keine Aktivitäten gefunden
           </h3>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-text-muted">
             {searchQuery || activeFilters.size > 0
               ? 'Versuche andere Filter oder Suchbegriffe.'
               : 'Noch keine Aktivitäten vorhanden.'}
@@ -849,7 +849,7 @@ export default function ActivityFeed({ rawData }) {
         <div className="text-center mt-6 mb-4">
           <button
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-base font-medium text-slate-500 hover:bg-slate-800/80 hover:border-slate-600/50 hover:text-slate-200 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-surface-primary/60 border border-border-primary text-base font-medium text-text-muted hover:bg-surface-primary/80 hover:border-border-primary hover:text-text-muted transition-all duration-200"
           >
             <ChevronDown size={14} />
             Mehr laden ({filteredActivities.length - visibleCount} weitere)

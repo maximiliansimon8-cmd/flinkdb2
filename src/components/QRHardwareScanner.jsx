@@ -94,10 +94,10 @@ function ResultCard({ type, icon: Icon, color, title, subtitle, badges, details,
   const [open, setOpen] = useState(defaultOpen || false);
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm shadow-black/[0.03] mobile-card-enter">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden shadow-card mobile-card-enter">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 p-4 text-left active:bg-slate-50/60 transition-colors"
+        className="w-full flex items-center gap-3 p-4 text-left active:bg-surface-secondary/60 transition-colors"
       >
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -114,23 +114,23 @@ function ResultCard({ type, icon: Icon, color, title, subtitle, badges, details,
               <StatusBadge key={i} status={b.label} color={b.color} />
             ))}
           </div>
-          <div className="font-mono text-sm font-semibold text-slate-800 truncate mt-0.5">{title}</div>
-          {subtitle && <div className="text-xs text-slate-400 truncate">{subtitle}</div>}
+          <div className="font-mono text-sm font-semibold text-text-primary truncate mt-0.5">{title}</div>
+          {subtitle && <div className="text-xs text-text-muted truncate">{subtitle}</div>}
         </div>
         <ChevronRight
           size={16}
-          className={`text-slate-300 transition-transform duration-200 shrink-0 ${open ? 'rotate-90' : ''}`}
+          className={`text-text-muted transition-transform duration-200 shrink-0 ${open ? 'rotate-90' : ''}`}
         />
       </button>
 
       {open && details && (
-        <div className="border-t border-slate-100/80 bg-slate-50/40 px-4 py-3 space-y-2">
+        <div className="border-t border-border-secondary/80 bg-surface-secondary/40 px-4 py-3 space-y-2">
           {details.map((d, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider w-28 shrink-0 pt-0.5">
+              <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider w-28 shrink-0 pt-0.5">
                 {d.label}
               </span>
-              <span className={`text-sm text-slate-700 break-all ${d.mono ? 'font-mono' : ''}`}>
+              <span className={`text-sm text-text-primary break-all ${d.mono ? 'font-mono' : ''}`}>
                 {d.value || '\u2013'}
               </span>
             </div>
@@ -146,15 +146,15 @@ function ResultCard({ type, icon: Icon, color, title, subtitle, badges, details,
    ═══════════════════════════════════════════════════ */
 
 function OpsResultCard({ ops, isOnly }) {
-  const statusColor = (ops.status || '').toLowerCase().includes('active') ? '#22c55e'
-    : (ops.status || '').toLowerCase().includes('defect') ? '#ef4444'
+  const statusColor = (ops.status || '').toLowerCase().includes('active') ? '#34C759'
+    : (ops.status || '').toLowerCase().includes('defect') ? '#FF3B30'
     : '#64748b';
 
   return (
     <ResultCard
       type="OPS Player"
       icon={Cpu}
-      color="#3b82f6"
+      color="#007AFF"
       title={ops.ops_nr || ops.id || 'Unbekannt'}
       subtitle={ops.display_location_id ? `Standort: ${ops.display_location_id}` : null}
       badges={ops.status ? [{ label: ops.status, color: statusColor }] : []}
@@ -180,10 +180,10 @@ function SimResultCard({ sim, isOnly }) {
     <ResultCard
       type="SIM Karte"
       icon={CreditCard}
-      color="#8b5cf6"
+      color="#AF52DE"
       title={sim.sim_id || sim.id || 'Unbekannt'}
       subtitle={sim.ops_record_id ? `OPS: ${sim.ops_record_id}` : null}
-      badges={sim.activate_date ? [{ label: 'Aktiviert', color: '#22c55e' }] : [{ label: 'Nicht aktiviert', color: '#64748b' }]}
+      badges={sim.activate_date ? [{ label: 'Aktiviert', color: '#34C759' }] : [{ label: 'Nicht aktiviert', color: '#64748b' }]}
       defaultOpen={isOnly}
       details={[
         { label: 'SIM ID', value: sim.sim_id, mono: true },
@@ -203,7 +203,7 @@ function DisplayResultCard({ display, isOnly }) {
     <ResultCard
       type="Display"
       icon={Monitor}
-      color="#f59e0b"
+      color="#FF9500"
       title={display.display_serial_number || display.id || 'Unbekannt'}
       subtitle={display.location || null}
       defaultOpen={isOnly}
@@ -223,7 +223,7 @@ function DisplayResultCard({ display, isOnly }) {
 function LocationResultCard({ loc, isOnly }) {
   const isOnline = (loc.online_status || '').toLowerCase().includes('live') ||
                    (loc.online_status || '').toLowerCase().includes('online');
-  const statusColor = isOnline ? '#22c55e' : '#ef4444';
+  const statusColor = isOnline ? '#34C759' : '#FF3B30';
 
   return (
     <ResultCard
@@ -356,16 +356,16 @@ function CameraScanner({ onScan, onError }) {
   if (!hasCamera) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <AlertCircle size={28} className="text-red-400" />
+        <div className="w-16 h-16 rounded-2xl bg-status-offline/10 flex items-center justify-center mb-4">
+          <AlertCircle size={28} className="text-status-offline" />
         </div>
-        <p className="text-sm font-medium text-slate-700 mb-1">Kamera nicht verfuegbar</p>
-        <p className="text-xs text-slate-400 max-w-[260px]">
+        <p className="text-sm font-medium text-text-primary mb-1">Kamera nicht verfuegbar</p>
+        <p className="text-xs text-text-muted max-w-[260px]">
           Bitte erlaube den Kamera-Zugriff in deinen Browser-Einstellungen oder nutze die manuelle Eingabe.
         </p>
         <button
           onClick={startCamera}
-          className="mt-4 flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium active:bg-blue-600 transition-colors"
+          className="mt-4 flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium active:bg-accent transition-colors"
         >
           <RotateCcw size={14} />
           Erneut versuchen
@@ -410,7 +410,7 @@ function CameraScanner({ onScan, onError }) {
       </div>
 
       {/* Status indicator */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50">
         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
         <span className="text-[11px] font-medium text-white/90">
           {barcodeDetectorSupported ? 'Scanne...' : 'Kamera aktiv - manuelle Eingabe empfohlen'}
@@ -421,7 +421,7 @@ function CameraScanner({ onScan, onError }) {
       {!scanning && hasCamera && (
         <button
           onClick={startCamera}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-500 text-white font-medium text-sm shadow-lg active:bg-blue-600 transition-colors"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 px-5 py-3 rounded-xl bg-accent text-white font-medium text-sm shadow-lg active:bg-accent transition-colors"
         >
           <Camera size={18} />
           Scanner starten
@@ -563,7 +563,7 @@ export default function QRHardwareScanner({ onClose }) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/30"
         onClick={onClose}
         style={{ opacity: dragOffset > 0 ? 1 - dragOffset / 300 : 1 }}
       />
@@ -579,31 +579,31 @@ export default function QRHardwareScanner({ onClose }) {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="w-9 h-1 rounded-full bg-slate-300" />
+          <div className="w-9 h-1 rounded-full bg-surface-tertiary" />
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pb-3">
           <div>
-            <h2 className="text-lg font-bold text-slate-800">Hardware Scanner</h2>
-            <p className="text-xs text-slate-400">QR-Code scannen oder ID eingeben</p>
+            <h2 className="text-lg font-bold text-text-primary">Hardware Scanner</h2>
+            <p className="text-xs text-text-muted">QR-Code scannen oder ID eingeben</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center active:bg-slate-200 transition-colors"
+            className="w-8 h-8 rounded-full bg-surface-secondary flex items-center justify-center active:bg-surface-tertiary transition-colors"
           >
-            <X size={16} className="text-slate-500" />
+            <X size={16} className="text-text-muted" />
           </button>
         </div>
 
         {/* Mode Toggle */}
-        <div className="flex mx-5 mb-4 p-1 rounded-xl bg-slate-100/80">
+        <div className="flex mx-5 mb-4 p-1 rounded-xl bg-surface-secondary/80">
           <button
             onClick={() => { setMode('camera'); handleClear(); }}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
               mode === 'camera'
-                ? 'bg-white text-blue-600 shadow-sm shadow-black/[0.06]'
-                : 'text-slate-400'
+                ? 'bg-surface-primary text-accent shadow-sm shadow-black/[0.06]'
+                : 'text-text-muted'
             }`}
           >
             <Camera size={16} />
@@ -613,8 +613,8 @@ export default function QRHardwareScanner({ onClose }) {
             onClick={() => setMode('manual')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
               mode === 'manual'
-                ? 'bg-white text-blue-600 shadow-sm shadow-black/[0.06]'
-                : 'text-slate-400'
+                ? 'bg-surface-primary text-accent shadow-sm shadow-black/[0.06]'
+                : 'text-text-muted'
             }`}
           >
             <Keyboard size={16} />
@@ -636,15 +636,15 @@ export default function QRHardwareScanner({ onClose }) {
                 onError={setCameraError}
               />
               {cameraError && (
-                <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-amber-50/80 border border-amber-200/50">
-                  <AlertCircle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+                <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-status-warning/10/80 border border-status-warning/20/50">
+                  <AlertCircle size={14} className="text-status-warning mt-0.5 shrink-0" />
                   <span className="text-xs text-amber-700">{cameraError}</span>
                 </div>
               )}
 
               {/* Supported formats note */}
               <div className="mt-3 text-center">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                <span className="text-[10px] text-text-muted uppercase tracking-wider">
                   QR-Code, Code128, EAN-13, Data Matrix
                 </span>
               </div>
@@ -656,7 +656,7 @@ export default function QRHardwareScanner({ onClose }) {
             <div className="mb-4">
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     ref={inputRef}
                     type="text"
@@ -664,21 +664,21 @@ export default function QRHardwareScanner({ onClose }) {
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
                     placeholder="OPS-Nr., Seriennummer, SIM ID..."
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/80 border border-slate-200/60 text-sm font-mono text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-300 transition-all"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-primary border border-border-secondary text-sm font-mono text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-300 transition-all"
                   />
                   {query && (
                     <button
                       onClick={handleClear}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                     >
-                      <X size={14} className="text-slate-300" />
+                      <X size={14} className="text-text-muted" />
                     </button>
                   )}
                 </div>
                 <button
                   onClick={handleManualSearch}
                   disabled={!query.trim() || loading}
-                  className="px-5 py-3 rounded-xl bg-blue-500 text-white font-semibold text-sm active:bg-blue-600 disabled:opacity-40 disabled:active:bg-blue-500 transition-all flex items-center gap-2 shrink-0"
+                  className="px-5 py-3 rounded-xl bg-accent text-white font-semibold text-sm active:bg-accent disabled:opacity-40 disabled:active:bg-accent transition-all flex items-center gap-2 shrink-0"
                 >
                   {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
                   Suchen
@@ -688,11 +688,11 @@ export default function QRHardwareScanner({ onClose }) {
               {/* Scanned value indicator */}
               {scannedValue && mode === 'manual' && (
                 <div className="mt-2 flex items-center gap-2">
-                  <ScanLine size={12} className="text-green-500" />
-                  <span className="text-[11px] text-green-600 font-medium">Gescannt</span>
+                  <ScanLine size={12} className="text-status-online" />
+                  <span className="text-[11px] text-status-online font-medium">Gescannt</span>
                   <button
                     onClick={() => { setMode('camera'); handleClear(); }}
-                    className="ml-auto text-[11px] text-blue-500 font-medium"
+                    className="ml-auto text-[11px] text-accent font-medium"
                   >
                     Erneut scannen
                   </button>
@@ -704,20 +704,20 @@ export default function QRHardwareScanner({ onClose }) {
           {/* Loading State */}
           {loading && (
             <div className="flex flex-col items-center py-12">
-              <Loader2 size={28} className="text-blue-500 animate-spin mb-3" />
-              <span className="text-sm text-slate-400 font-medium">Hardware wird gesucht...</span>
+              <Loader2 size={28} className="text-accent animate-spin mb-3" />
+              <span className="text-sm text-text-muted font-medium">Hardware wird gesucht...</span>
             </div>
           )}
 
           {/* Error */}
           {error && (
-            <div className="flex items-start gap-3 p-4 rounded-2xl bg-red-50/80 border border-red-200/50 mb-4">
-              <AlertCircle size={18} className="text-red-400 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-4 rounded-2xl bg-status-offline/10/80 border border-status-offline/20/50 mb-4">
+              <AlertCircle size={18} className="text-status-offline mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-medium text-red-700">{error}</p>
                 <button
                   onClick={() => doSearch(query)}
-                  className="mt-2 text-xs text-red-500 font-medium underline"
+                  className="mt-2 text-xs text-status-offline font-medium underline"
                 >
                   Erneut versuchen
                 </button>
@@ -730,11 +730,11 @@ export default function QRHardwareScanner({ onClose }) {
             <div className="space-y-3">
               {/* Results Header */}
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                   {totalResults} {totalResults === 1 ? 'Ergebnis' : 'Ergebnisse'}
                 </span>
                 {scannedValue && (
-                  <span className="text-xs text-slate-400 font-mono truncate max-w-[180px]">
+                  <span className="text-xs text-text-muted font-mono truncate max-w-[180px]">
                     {scannedValue}
                   </span>
                 )}
@@ -743,11 +743,11 @@ export default function QRHardwareScanner({ onClose }) {
               {/* No Results */}
               {totalResults === 0 && (
                 <div className="flex flex-col items-center py-10 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                    <Search size={24} className="text-slate-300" />
+                  <div className="w-14 h-14 rounded-2xl bg-surface-secondary flex items-center justify-center mb-4">
+                    <Search size={24} className="text-text-muted" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-600 mb-1">Kein Ergebnis</p>
-                  <p className="text-xs text-slate-400 max-w-[240px]">
+                  <p className="text-sm font-semibold text-text-secondary mb-1">Kein Ergebnis</p>
+                  <p className="text-xs text-text-muted max-w-[240px]">
                     Keine Hardware mit "{scannedValue || query}" gefunden. Versuche eine andere ID oder Seriennummer.
                   </p>
                 </div>
@@ -757,7 +757,7 @@ export default function QRHardwareScanner({ onClose }) {
               {results.ops?.length > 0 && (
                 <div className="space-y-2">
                   {results.ops.length > 1 && (
-                    <h3 className="text-[10px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-[10px] font-bold text-accent uppercase tracking-wider flex items-center gap-1.5">
                       <Cpu size={12} />
                       OPS Player ({results.ops.length})
                     </h3>
@@ -772,7 +772,7 @@ export default function QRHardwareScanner({ onClose }) {
               {results.sim?.length > 0 && (
                 <div className="space-y-2">
                   {results.sim.length > 1 && (
-                    <h3 className="text-[10px] font-bold text-purple-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-[10px] font-bold text-brand-purple uppercase tracking-wider flex items-center gap-1.5">
                       <CreditCard size={12} />
                       SIM Karten ({results.sim.length})
                     </h3>
@@ -787,7 +787,7 @@ export default function QRHardwareScanner({ onClose }) {
               {results.displays?.length > 0 && (
                 <div className="space-y-2">
                   {results.displays.length > 1 && (
-                    <h3 className="text-[10px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-[10px] font-bold text-status-warning uppercase tracking-wider flex items-center gap-1.5">
                       <Monitor size={12} />
                       Displays ({results.displays.length})
                     </h3>
@@ -819,13 +819,13 @@ export default function QRHardwareScanner({ onClose }) {
           {!loading && !results && history.length > 0 && (
             <div className="mt-2">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
                   <History size={12} />
                   Letzte Scans
                 </h3>
                 <button
                   onClick={() => { clearHistory(); setHistory([]); }}
-                  className="text-[10px] text-slate-400 font-medium active:text-red-500 transition-colors"
+                  className="text-[10px] text-text-muted font-medium active:text-status-offline transition-colors"
                 >
                   Alle loeschen
                 </button>
@@ -836,12 +836,12 @@ export default function QRHardwareScanner({ onClose }) {
                   <button
                     key={i}
                     onClick={() => handleHistoryTap(item.query)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/50 border border-slate-100/60 active:bg-slate-50 transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-surface-primary/80 border border-border-secondary/60 active:bg-surface-secondary transition-colors text-left"
                   >
-                    <Clock size={14} className="text-slate-300 shrink-0" />
+                    <Clock size={14} className="text-text-muted shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm font-mono font-medium text-slate-700 truncate block">{item.query}</span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-sm font-mono font-medium text-text-primary truncate block">{item.query}</span>
+                      <span className="text-[10px] text-text-muted">
                         {item.resultCount} {item.resultCount === 1 ? 'Treffer' : 'Treffer'}
                         {' \u00b7 '}
                         {new Date(item.timestamp).toLocaleString('de-DE', {
@@ -849,7 +849,7 @@ export default function QRHardwareScanner({ onClose }) {
                         })}
                       </span>
                     </div>
-                    <ChevronRight size={14} className="text-slate-300 shrink-0" />
+                    <ChevronRight size={14} className="text-text-muted shrink-0" />
                   </button>
                 ))}
               </div>
@@ -859,11 +859,11 @@ export default function QRHardwareScanner({ onClose }) {
           {/* Empty state: no history, no results, manual mode */}
           {!loading && !results && history.length === 0 && mode === 'manual' && (
             <div className="flex flex-col items-center py-10 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-accent-light flex items-center justify-center mb-4">
                 <Search size={24} className="text-blue-300" />
               </div>
-              <p className="text-sm font-semibold text-slate-600 mb-1">Hardware suchen</p>
-              <p className="text-xs text-slate-400 max-w-[260px]">
+              <p className="text-sm font-semibold text-text-secondary mb-1">Hardware suchen</p>
+              <p className="text-xs text-text-muted max-w-[260px]">
                 Gib eine OPS-Nr., Seriennummer, SIM-ID oder Display-ID ein, um die zugehoerige Hardware zu finden.
               </p>
             </div>

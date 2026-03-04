@@ -103,20 +103,20 @@ function ChatBubble({ message }) {
       <div
         className={`max-w-[80%] px-3 py-2 ${
           isOutbound
-            ? 'bg-green-600 text-white rounded-2xl rounded-br-sm'
-            : 'bg-white text-gray-900 border border-gray-200 rounded-2xl rounded-bl-sm shadow-sm'
+            ? 'bg-status-online text-white rounded-2xl rounded-br-sm'
+            : 'bg-surface-primary text-text-primary border border-border-secondary rounded-2xl rounded-bl-sm shadow-sm'
         }`}
       >
         {message.subject && (
-          <p className={`text-xs font-semibold mb-0.5 ${isOutbound ? 'text-white/90' : 'text-gray-900'}`}>
+          <p className={`text-xs font-semibold mb-0.5 ${isOutbound ? 'text-white/90' : 'text-text-primary'}`}>
             {message.subject}
           </p>
         )}
-        <p className={`text-[13px] leading-relaxed whitespace-pre-wrap break-words ${isOutbound ? 'text-white' : 'text-gray-700'}`}>
+        <p className={`text-[13px] leading-relaxed whitespace-pre-wrap break-words ${isOutbound ? 'text-white' : 'text-text-primary'}`}>
           {body}
         </p>
         <div className={`flex items-center gap-1.5 mt-1 ${isOutbound ? 'justify-end' : 'justify-start'}`}>
-          <span className={`text-[10px] ${isOutbound ? 'text-white/50' : 'text-gray-400'}`}>
+          <span className={`text-[10px] ${isOutbound ? 'text-white/50' : 'text-text-muted'}`}>
             {formatTimestamp(ts)}
           </span>
           {isOutbound && <StatusIcon status={status} />}
@@ -130,11 +130,11 @@ function ChatBubble({ message }) {
 function DateDivider({ timestamp }) {
   return (
     <div className="flex items-center gap-2 py-2">
-      <div className="flex-1 h-px bg-gray-200" />
-      <span className="text-[10px] text-gray-400 font-medium px-2">
+      <div className="flex-1 h-px bg-surface-tertiary" />
+      <span className="text-[10px] text-text-muted font-medium px-2">
         {formatDateDivider(timestamp)}
       </span>
-      <div className="flex-1 h-px bg-gray-200" />
+      <div className="flex-1 h-px bg-surface-tertiary" />
     </div>
   );
 }
@@ -145,19 +145,19 @@ function ChatSkeleton() {
     <div className="space-y-3 p-3 animate-pulse">
       {/* Inbound */}
       <div className="flex justify-start">
-        <div className="w-48 h-10 bg-gray-100 rounded-2xl rounded-bl-sm" />
+        <div className="w-48 h-10 bg-surface-secondary rounded-2xl rounded-bl-sm" />
       </div>
       {/* Outbound */}
       <div className="flex justify-end">
-        <div className="w-56 h-14 bg-green-100 rounded-2xl rounded-br-sm" />
+        <div className="w-56 h-14 bg-status-online/10 rounded-2xl rounded-br-sm" />
       </div>
       {/* Inbound */}
       <div className="flex justify-start">
-        <div className="w-40 h-8 bg-gray-100 rounded-2xl rounded-bl-sm" />
+        <div className="w-40 h-8 bg-surface-secondary rounded-2xl rounded-bl-sm" />
       </div>
       {/* Outbound */}
       <div className="flex justify-end">
-        <div className="w-44 h-10 bg-green-100 rounded-2xl rounded-br-sm" />
+        <div className="w-44 h-10 bg-status-online/10 rounded-2xl rounded-br-sm" />
       </div>
     </div>
   );
@@ -309,44 +309,44 @@ export default function SuperChatHistory({
   if (!contactPhone) return null;
 
   return (
-    <div className={`bg-white/60 backdrop-blur-xl border border-green-200/60 rounded-2xl overflow-hidden shadow-sm ${className}`}>
+    <div className={`bg-surface-primary border border-status-online/20/60 rounded-2xl overflow-hidden shadow-sm ${className}`}>
       {/* Header / Toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-green-50/50 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-status-online/10/50 transition-colors"
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-            <MessageSquare size={15} className="text-green-600" />
+          <div className="w-8 h-8 rounded-lg bg-status-online/10 flex items-center justify-center">
+            <MessageSquare size={15} className="text-status-online" />
           </div>
           <div className="text-left">
-            <div className="text-sm font-semibold text-gray-800">WhatsApp Verlauf</div>
-            <div className="text-[10px] text-gray-400 flex items-center gap-1.5">
+            <div className="text-sm font-semibold text-text-primary">WhatsApp Verlauf</div>
+            <div className="text-[10px] text-text-muted flex items-center gap-1.5">
               <Phone size={9} /> {contactPhone}
               {hasLoaded && !loading && messageCount > 0 && (
-                <span className="text-green-600 font-medium">| {messageCount} Nachricht{messageCount !== 1 ? 'en' : ''}</span>
+                <span className="text-status-online font-medium">| {messageCount} Nachricht{messageCount !== 1 ? 'en' : ''}</span>
               )}
               {hasLoaded && noContact && (
-                <span className="text-gray-400">| Kein Chat gefunden</span>
+                <span className="text-text-muted">| Kein Chat gefunden</span>
               )}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {loading && <Loader2 size={14} className="animate-spin text-green-500" />}
+          {loading && <Loader2 size={14} className="animate-spin text-status-online" />}
           {hasLoaded && messageCount > 0 && !collapsed && (
             <button
               onClick={(e) => { e.stopPropagation(); loadChatHistory(); }}
-              className="p-1 hover:bg-green-100 rounded-lg transition-colors"
+              className="p-1 hover:bg-status-online/10 rounded-lg transition-colors"
               title="Aktualisieren"
             >
-              <RefreshCw size={12} className="text-green-500" />
+              <RefreshCw size={12} className="text-status-online" />
             </button>
           )}
           {collapsed ? (
-            <ChevronDown size={16} className="text-gray-400" />
+            <ChevronDown size={16} className="text-text-muted" />
           ) : (
-            <ChevronUp size={16} className="text-gray-400" />
+            <ChevronUp size={16} className="text-text-muted" />
           )}
         </div>
       </button>
@@ -361,12 +361,12 @@ export default function SuperChatHistory({
 
           {/* Error state */}
           {error && !loading && (
-            <div className="p-4 flex items-center gap-2 text-sm text-red-600">
+            <div className="p-4 flex items-center gap-2 text-sm text-status-offline">
               <AlertCircle size={14} className="shrink-0" />
               <span>{error}</span>
               <button
                 onClick={loadChatHistory}
-                className="ml-auto text-xs text-red-500 hover:text-red-700 underline"
+                className="ml-auto text-xs text-status-offline hover:text-red-700 underline"
               >
                 Erneut versuchen
               </button>
@@ -376,18 +376,18 @@ export default function SuperChatHistory({
           {/* Forbidden (API not available) */}
           {forbidden && !loading && (
             <div className="p-4 flex flex-col items-center text-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center">
-                <Lock size={18} className="text-amber-500" />
+              <div className="w-10 h-10 rounded-xl bg-status-warning/10 border border-status-warning/20 flex items-center justify-center">
+                <Lock size={18} className="text-status-warning" />
               </div>
-              <p className="text-xs font-medium text-gray-700">
+              <p className="text-xs font-medium text-text-primary">
                 Nachrichtenverlauf nicht verfuegbar
               </p>
-              <p className="text-[10px] text-gray-400 max-w-[250px]">
+              <p className="text-[10px] text-text-muted max-w-[250px]">
                 Die SuperChat Messages API ist in eurem Plan nicht freigeschaltet.
               </p>
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 border border-blue-200 rounded-lg mt-1">
-                <Info size={10} className="text-blue-500 shrink-0" />
-                <span className="text-[10px] text-blue-600">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-accent-light border border-accent/20 rounded-lg mt-1">
+                <Info size={10} className="text-accent shrink-0" />
+                <span className="text-[10px] text-accent">
                   Tipp: Verlauf direkt in der SuperChat App einsehen.
                 </span>
               </div>
@@ -397,13 +397,13 @@ export default function SuperChatHistory({
           {/* No contact found */}
           {noContact && !loading && !forbidden && (
             <div className="p-4 flex flex-col items-center text-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center">
-                <MessageSquare size={18} className="text-gray-300" />
+              <div className="w-10 h-10 rounded-xl bg-surface-secondary border border-border-secondary flex items-center justify-center">
+                <MessageSquare size={18} className="text-text-muted" />
               </div>
-              <p className="text-xs font-medium text-gray-600">
+              <p className="text-xs font-medium text-text-secondary">
                 Kein Chat-Verlauf gefunden
               </p>
-              <p className="text-[10px] text-gray-400 max-w-[250px]">
+              <p className="text-[10px] text-text-muted max-w-[250px]">
                 Fuer {contactName || contactPhone} wurde noch keine WhatsApp-Konversation in SuperChat gefunden.
               </p>
             </div>
@@ -429,14 +429,14 @@ export default function SuperChatHistory({
           {/* Loaded but empty */}
           {hasLoaded && !forbidden && !noContact && !error && messageCount === 0 && !loading && (
             <div className="p-4 flex flex-col items-center text-center gap-2">
-              <MessageSquare size={20} className="text-gray-300" />
-              <p className="text-xs text-gray-500">Konversation gefunden, aber keine Nachrichten vorhanden.</p>
+              <MessageSquare size={20} className="text-text-muted" />
+              <p className="text-xs text-text-muted">Konversation gefunden, aber keine Nachrichten vorhanden.</p>
             </div>
           )}
 
           {/* Loading more (when already loaded) */}
           {loading && hasLoaded && (
-            <div className="flex items-center justify-center py-2 gap-2 text-xs text-green-600">
+            <div className="flex items-center justify-center py-2 gap-2 text-xs text-status-online">
               <Loader2 size={12} className="animate-spin" />
               Aktualisiere...
             </div>

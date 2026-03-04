@@ -80,7 +80,7 @@ export default function MobileBottomNav({ activeTab, onTabChange, badges = {}, o
 
       {/* ─── Bottom Navigation ─── */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 mobile-bottom-nav">
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-2xl border-t border-slate-200/60" />
+        <div className="absolute inset-0 bg-surface-primary2xl border-t border-border-secondary" />
 
         <div className="relative flex items-stretch justify-around px-1 safe-bottom" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)' }}>
           {NAV_ITEMS.map((item) => {
@@ -111,7 +111,7 @@ export default function MobileBottomNav({ activeTab, onTabChange, badges = {}, o
                   w-10 h-7 rounded-full
                   transition-all duration-300 ease-out
                   ${isActive
-                    ? 'bg-blue-500/12'
+                    ? 'bg-accent/12'
                     : 'bg-transparent'
                   }
                 `}>
@@ -121,8 +121,8 @@ export default function MobileBottomNav({ activeTab, onTabChange, badges = {}, o
                     className={`
                       transition-all duration-300
                       ${isActive
-                        ? 'text-blue-600'
-                        : 'text-slate-400'
+                        ? 'text-accent'
+                        : 'text-text-muted'
                       }
                     `}
                   />
@@ -130,7 +130,7 @@ export default function MobileBottomNav({ activeTab, onTabChange, badges = {}, o
                   {badge != null && badge !== 0 && (
                     <span className={`
                       absolute -top-1 -right-1 flex items-center justify-center
-                      rounded-full text-[9px] font-bold text-white bg-red-500 mobile-badge-pop
+                      rounded-full text-[9px] font-bold text-white bg-status-offline mobile-badge-pop
                       ${typeof badge === 'number'
                         ? 'min-w-[16px] h-[16px] px-1'
                         : 'w-2.5 h-2.5'
@@ -145,15 +145,15 @@ export default function MobileBottomNav({ activeTab, onTabChange, badges = {}, o
                   text-[10px] font-semibold leading-tight
                   transition-all duration-300
                   ${isActive
-                    ? 'text-blue-600'
-                    : 'text-slate-400'
+                    ? 'text-accent'
+                    : 'text-text-muted'
                   }
                 `}>
                   {item.label}
                 </span>
 
                 {isActive && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-blue-500 mobile-indicator-slide" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-accent mobile-indicator-slide" />
                 )}
               </button>
             );

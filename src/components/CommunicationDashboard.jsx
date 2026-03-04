@@ -28,9 +28,9 @@ import {
 
 function KPICard({ label, value, icon: Icon, color }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+        <span className="text-text-muted text-xs font-medium uppercase tracking-wider">
           {label}
         </span>
         <div
@@ -51,16 +51,16 @@ function KPICard({ label, value, icon: Icon, color }) {
 
 function ChannelBadge({ channel }) {
   const config = {
-    WhatsApp: { bg: 'bg-green-100 text-green-700', icon: MessageSquare, label: 'WhatsApp' },
-    whatsapp: { bg: 'bg-green-100 text-green-700', icon: MessageSquare, label: 'WhatsApp' },
-    Email: { bg: 'bg-blue-100 text-blue-700', icon: Mail, label: 'Email' },
-    email: { bg: 'bg-blue-100 text-blue-700', icon: Mail, label: 'Email' },
-    SMS: { bg: 'bg-orange-100 text-orange-700', icon: Phone, label: 'SMS' },
-    sms: { bg: 'bg-orange-100 text-orange-700', icon: Phone, label: 'SMS' },
-    Phone: { bg: 'bg-purple-100 text-purple-700', icon: Phone, label: 'Telefon' },
-    phone: { bg: 'bg-purple-100 text-purple-700', icon: Phone, label: 'Telefon' },
+    WhatsApp: { bg: 'bg-status-online/10 text-green-700', icon: MessageSquare, label: 'WhatsApp' },
+    whatsapp: { bg: 'bg-status-online/10 text-green-700', icon: MessageSquare, label: 'WhatsApp' },
+    Email: { bg: 'bg-accent-light text-blue-700', icon: Mail, label: 'Email' },
+    email: { bg: 'bg-accent-light text-blue-700', icon: Mail, label: 'Email' },
+    SMS: { bg: 'bg-status-warning/10 text-orange-700', icon: Phone, label: 'SMS' },
+    sms: { bg: 'bg-status-warning/10 text-orange-700', icon: Phone, label: 'SMS' },
+    Phone: { bg: 'bg-brand-purple/10 text-purple-700', icon: Phone, label: 'Telefon' },
+    phone: { bg: 'bg-brand-purple/10 text-purple-700', icon: Phone, label: 'Telefon' },
   };
-  const c = config[channel] || { bg: 'bg-slate-100 text-slate-600', icon: MessageSquare, label: channel || '–' };
+  const c = config[channel] || { bg: 'bg-surface-secondary text-text-secondary', icon: MessageSquare, label: channel || '–' };
   const Icon = c.icon;
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${c.bg}`}>
@@ -75,7 +75,7 @@ function ChannelBadge({ channel }) {
 function DirectionBadge({ direction }) {
   if (direction === 'Outbound') {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-accent-light text-accent">
         <ArrowUpRight size={10} />
         Ausgehend
       </span>
@@ -83,7 +83,7 @@ function DirectionBadge({ direction }) {
   }
   if (direction === 'Inbound') {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-status-online/10 text-status-online">
         <ArrowDownLeft size={10} />
         Eingehend
       </span>
@@ -96,13 +96,13 @@ function DirectionBadge({ direction }) {
 
 function StatusBadge({ status }) {
   const config = {
-    Sent: { bg: 'bg-blue-100 text-blue-700', label: 'Gesendet' },
-    Delivered: { bg: 'bg-green-100 text-green-700', label: 'Zugestellt' },
+    Sent: { bg: 'bg-accent-light text-blue-700', label: 'Gesendet' },
+    Delivered: { bg: 'bg-status-online/10 text-green-700', label: 'Zugestellt' },
     Read: { bg: 'bg-emerald-100 text-emerald-700', label: 'Gelesen' },
-    Failed: { bg: 'bg-red-100 text-red-700', label: 'Fehlgeschlagen' },
-    Pending: { bg: 'bg-amber-100 text-amber-700', label: 'Wartend' },
+    Failed: { bg: 'bg-status-offline/10 text-red-700', label: 'Fehlgeschlagen' },
+    Pending: { bg: 'bg-status-warning/10 text-amber-700', label: 'Wartend' },
   };
-  const c = config[status] || { bg: 'bg-slate-100 text-slate-600', label: status || '–' };
+  const c = config[status] || { bg: 'bg-surface-secondary text-text-secondary', label: status || '–' };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${c.bg}`}>
       {c.label}
@@ -132,10 +132,10 @@ function CommRow({ comm }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border-b border-slate-100/80 last:border-0">
+    <div className="border-b border-border-secondary/80 last:border-0">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-white/40 transition-colors text-left group"
+        className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-surface-primary/60 transition-colors text-left group"
       >
         {/* Icon */}
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
@@ -144,31 +144,31 @@ function CommRow({ comm }) {
             : 'bg-gradient-to-br from-green-100 to-green-50'
         }`}>
           {comm.direction === 'Outbound' ? (
-            <ArrowUpRight size={18} className="text-blue-500" />
+            <ArrowUpRight size={18} className="text-accent" />
           ) : (
-            <ArrowDownLeft size={18} className="text-green-500" />
+            <ArrowDownLeft size={18} className="text-status-online" />
           )}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-0.5">
-            <h4 className="text-sm font-semibold text-slate-900 truncate">
+            <h4 className="text-sm font-semibold text-text-primary truncate">
               {comm.recipientName || comm.sender || 'Unbekannt'}
             </h4>
-            <span className="text-xs font-mono text-slate-500 flex-shrink-0 ml-2">
+            <span className="text-xs font-mono text-text-muted flex-shrink-0 ml-2">
               {formatCommDate(comm.timestamp)}
             </span>
           </div>
           {comm.subject && (
-            <p className="text-xs text-slate-600 truncate mb-1">{comm.subject}</p>
+            <p className="text-xs text-text-secondary truncate mb-1">{comm.subject}</p>
           )}
           <div className="flex items-center gap-1.5 flex-wrap">
             <ChannelBadge channel={comm.channel} />
             <DirectionBadge direction={comm.direction} />
             {comm.status && <StatusBadge status={comm.status} />}
             {comm.locationNames?.length > 0 && (
-              <span className="text-xs text-slate-500 truncate max-w-[200px]">
+              <span className="text-xs text-text-muted truncate max-w-[200px]">
                 📍 {comm.locationNames.join(', ')}
               </span>
             )}
@@ -178,37 +178,37 @@ function CommRow({ comm }) {
 
       {/* Expanded details */}
       {expanded && (
-        <div className="px-4 pb-4 pt-1 bg-slate-50/40 animate-fade-in">
+        <div className="px-4 pb-4 pt-1 bg-surface-secondary/40 animate-fade-in">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             {comm.recipientContact && (
               <div>
-                <span className="text-slate-500 font-medium">Kontakt:</span>{' '}
-                <span className="text-slate-700 font-mono">{comm.recipientContact}</span>
+                <span className="text-text-muted font-medium">Kontakt:</span>{' '}
+                <span className="text-text-primary font-mono">{comm.recipientContact}</span>
               </div>
             )}
             {comm.sender && (
               <div>
-                <span className="text-slate-500 font-medium">Absender:</span>{' '}
-                <span className="text-slate-700">{comm.sender}</span>
+                <span className="text-text-muted font-medium">Absender:</span>{' '}
+                <span className="text-text-primary">{comm.sender}</span>
               </div>
             )}
             {comm.displayIds?.length > 0 && (
               <div>
-                <span className="text-slate-500 font-medium">Display IDs:</span>{' '}
-                <span className="text-slate-700 font-mono">{comm.displayIds.join(', ')}</span>
+                <span className="text-text-muted font-medium">Display IDs:</span>{' '}
+                <span className="text-text-primary font-mono">{comm.displayIds.join(', ')}</span>
               </div>
             )}
             {comm.externalId && (
               <div>
-                <span className="text-slate-500 font-medium">External ID:</span>{' '}
-                <span className="text-slate-700 font-mono">{comm.externalId}</span>
+                <span className="text-text-muted font-medium">External ID:</span>{' '}
+                <span className="text-text-primary font-mono">{comm.externalId}</span>
               </div>
             )}
           </div>
           {comm.message && (
-            <div className="mt-3 p-3 bg-white/60 rounded-xl border border-slate-200/40">
-              <span className="text-xs text-slate-500 font-medium uppercase tracking-wider block mb-1">Nachricht</span>
-              <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">{comm.message}</p>
+            <div className="mt-3 p-3 bg-surface-primary rounded-xl border border-border-secondary/40">
+              <span className="text-xs text-text-muted font-medium uppercase tracking-wider block mb-1">Nachricht</span>
+              <p className="text-xs text-text-primary whitespace-pre-wrap leading-relaxed">{comm.message}</p>
             </div>
           )}
         </div>
@@ -333,14 +333,14 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(15, 23, 42, 0.25)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
     >
-      <div className="w-full max-w-lg bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08] animate-fade-in">
+      <div className="w-full max-w-lg bg-surface-primary border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08] animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border-secondary">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Neue Kommunikation</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Nachricht an Standort protokollieren</p>
+            <h2 className="text-base font-semibold text-text-primary">Neue Kommunikation</h2>
+            <p className="text-xs text-text-muted mt-0.5">Nachricht an Standort protokollieren</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100/80 text-slate-500 hover:text-slate-600">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-secondary/80 text-text-muted hover:text-text-secondary">
             <X size={16} />
           </button>
         </div>
@@ -350,7 +350,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
           {/* Channel & Direction */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">Kanal</label>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">Kanal</label>
               <div className="flex flex-wrap gap-1.5">
                 {['WhatsApp', 'Email', 'SMS', 'Phone'].map((ch) => (
                   <button
@@ -359,8 +359,8 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
                     onClick={() => setChannel(ch)}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                       channel === ch
-                        ? 'bg-[#3b82f6]/10 border-[#3b82f6]/40 text-[#3b82f6]'
-                        : 'bg-slate-50/80 border-slate-200/60 text-slate-500 hover:border-slate-300'
+                        ? 'bg-[#007AFF]/10 border-[#007AFF]/40 text-[#007AFF]'
+                        : 'bg-surface-secondary/80 border-border-secondary text-text-muted hover:border-border-primary'
                     }`}
                   >
                     {ch}
@@ -369,7 +369,7 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">Richtung</label>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">Richtung</label>
               <div className="flex gap-1.5">
                 {[
                   { id: 'Outbound', label: 'Ausgehend', icon: ArrowUpRight },
@@ -381,8 +381,8 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
                     onClick={() => setDirection(d.id)}
                     className={`flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                       direction === d.id
-                        ? 'bg-[#3b82f6]/10 border-[#3b82f6]/40 text-[#3b82f6]'
-                        : 'bg-slate-50/80 border-slate-200/60 text-slate-500 hover:border-slate-300'
+                        ? 'bg-[#007AFF]/10 border-[#007AFF]/40 text-[#007AFF]'
+                        : 'bg-surface-secondary/80 border-border-secondary text-text-muted hover:border-border-primary'
                     }`}
                   >
                     <d.icon size={12} />
@@ -395,24 +395,24 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
 
           {/* Standort */}
           <div ref={locationDropdownRef} className="relative">
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
-              <MapPin size={11} className="inline -mt-0.5 mr-1 text-slate-500" />
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">
+              <MapPin size={11} className="inline -mt-0.5 mr-1 text-text-muted" />
               Standort
             </label>
             {selectedLocation ? (
-              <div className="flex items-center gap-2 px-3 py-2.5 bg-[#3b82f6]/5 border border-[#3b82f6]/30 rounded-lg">
-                <Building2 size={13} className="text-[#3b82f6] shrink-0" />
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-[#007AFF]/5 border border-[#007AFF]/30 rounded-lg">
+                <Building2 size={13} className="text-[#007AFF] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium text-slate-900 truncate">{selectedLocation.name}</div>
-                  <div className="text-xs text-slate-500 font-mono truncate">{selectedLocation.city}</div>
+                  <div className="text-xs font-medium text-text-primary truncate">{selectedLocation.name}</div>
+                  <div className="text-xs text-text-muted font-mono truncate">{selectedLocation.city}</div>
                 </div>
-                <button type="button" onClick={() => setSelectedLocation(null)} className="p-1 rounded hover:bg-slate-100/60 text-slate-500 hover:text-slate-600">
+                <button type="button" onClick={() => setSelectedLocation(null)} className="p-1 rounded hover:bg-surface-secondary/60 text-text-muted hover:text-text-secondary">
                   <X size={12} />
                 </button>
               </div>
             ) : (
               <div className="relative">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   value={locationSearch}
@@ -420,24 +420,24 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
                   onFocus={() => setShowLocationDropdown(true)}
                   placeholder={locationsLoading ? 'Standorte laden...' : 'Standort suchen...'}
                   disabled={locationsLoading}
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] disabled:opacity-50"
+                  className="w-full pl-9 pr-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] disabled:opacity-50"
                 />
               </div>
             )}
             {showLocationDropdown && !selectedLocation && (
-              <div className="absolute z-20 left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-surface-primary border border-border-secondary rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
                 {filteredLocations.length === 0 ? (
-                  <div className="px-3 py-4 text-xs text-slate-500 text-center">{locationsLoading ? 'Laden...' : 'Nicht gefunden'}</div>
+                  <div className="px-3 py-4 text-xs text-text-muted text-center">{locationsLoading ? 'Laden...' : 'Nicht gefunden'}</div>
                 ) : (
                   filteredLocations.map((loc) => (
                     <button
                       key={loc.id}
                       type="button"
                       onClick={() => { setSelectedLocation(loc); setLocationSearch(''); setShowLocationDropdown(false); }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-50/80 border-b border-slate-200/30 last:border-0"
+                      className="w-full text-left px-3 py-2 hover:bg-surface-secondary/80 border-b border-border-secondary/30 last:border-0"
                     >
-                      <div className="text-xs font-medium text-slate-900 truncate">{loc.name}</div>
-                      <div className="text-xs text-slate-500 font-mono">{loc.city}</div>
+                      <div className="text-xs font-medium text-text-primary truncate">{loc.name}</div>
+                      <div className="text-xs text-text-muted font-mono">{loc.city}</div>
                     </button>
                   ))
                 )}
@@ -448,34 +448,34 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
           {/* Empfänger & Kontakt */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">Empfänger Name</label>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">Empfänger Name</label>
               <input
                 type="text"
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
                 placeholder="Name..."
-                className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6]"
+                className="w-full px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">Kontakt (Tel/Email)</label>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">Kontakt (Tel/Email)</label>
               <input
                 type="text"
                 value={recipientContact}
                 onChange={(e) => setRecipientContact(e.target.value)}
                 placeholder="+49... oder email@..."
-                className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6]"
+                className="w-full px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
               />
             </div>
           </div>
 
           {/* Sender */}
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Absender</label>
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">Absender</label>
             <select
               value={sender}
               onChange={(e) => setSender(e.target.value)}
-              className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] appearance-none"
+              className="w-full px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] appearance-none"
             >
               <option value="">– Absender wählen –</option>
               <option value="Anna Schmidt">Anna Schmidt</option>
@@ -485,49 +485,49 @@ function CreateCommModal({ isOpen, onClose, onSaved }) {
 
           {/* Subject */}
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Betreff</label>
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">Betreff</label>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Betreff der Nachricht..."
-              className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6]"
+              className="w-full px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
             />
           </div>
 
           {/* Message */}
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Nachricht</label>
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">Nachricht</label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
               placeholder="Inhalt der Nachricht..."
-              className="w-full px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] resize-none"
+              className="w-full px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] resize-none"
             />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
-              <AlertCircle size={14} className="text-red-500" />
-              <span className="text-xs text-red-600">{error}</span>
+            <div className="flex items-center gap-2 px-3 py-2 bg-status-offline/10 border border-status-offline/20 rounded-lg">
+              <AlertCircle size={14} className="text-status-offline" />
+              <span className="text-xs text-status-offline">{error}</span>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200/60">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border-secondary">
           <button
             onClick={onClose}
             disabled={saving}
-            className="px-4 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100/80 disabled:opacity-50"
+            className="px-4 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs font-medium text-text-secondary hover:bg-surface-secondary/80 disabled:opacity-50"
           >
             Abbrechen
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 px-5 py-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg text-xs font-medium shadow-sm disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-5 py-2 bg-[#007AFF] hover:bg-[#2563eb] text-white rounded-lg text-xs font-medium shadow-sm disabled:opacity-60"
           >
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
             {saving ? 'Wird gespeichert...' : 'Protokollieren'}
@@ -617,18 +617,18 @@ export default function CommunicationDashboard() {
       {/* ═══════ Header ═══════ */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <MessageSquare size={20} className="text-[#3b82f6]" />
+          <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+            <MessageSquare size={20} className="text-[#007AFF]" />
             Kommunikation
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-text-muted mt-0.5">
             Kommunikationsprotokoll – Alle Nachrichten an Standorte
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#3b82f6] text-white rounded-xl text-xs font-medium hover:bg-[#2563eb] transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#007AFF] text-white rounded-xl text-xs font-medium hover:bg-[#2563eb] transition-all shadow-sm"
           >
             <Plus size={14} />
             Neue Kommunikation
@@ -636,7 +636,7 @@ export default function CommunicationDashboard() {
           <button
             onClick={() => loadData(true)}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl text-xs font-medium text-slate-600 hover:bg-white/80 transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-primary border border-border-secondary rounded-xl text-xs font-medium text-text-secondary hover:bg-surface-secondary transition-all disabled:opacity-50"
           >
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
             Aktualisieren
@@ -650,25 +650,25 @@ export default function CommunicationDashboard() {
           label="Gesamt"
           value={kpis.total}
           icon={Inbox}
-          color="#3b82f6"
+          color="#007AFF"
         />
         <KPICard
           label="Ausgehend"
           value={kpis.outbound}
           icon={ArrowUpRight}
-          color="#8b5cf6"
+          color="#AF52DE"
         />
         <KPICard
           label="Eingehend"
           value={kpis.inbound}
           icon={ArrowDownLeft}
-          color="#22c55e"
+          color="#34C759"
         />
         <KPICard
           label="Kanäle"
           value={kpis.channels}
           icon={MessageSquare}
-          color="#f59e0b"
+          color="#FF9500"
         />
       </div>
 
@@ -678,14 +678,14 @@ export default function CommunicationDashboard() {
         <div className="relative flex-1 w-full sm:max-w-sm">
           <Search
             size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Kontakt, Standort oder Display suchen..."
-            className="w-full pl-9 pr-3 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+            className="w-full pl-9 pr-3 py-2 bg-surface-primary border border-border-secondary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-400 transition-all"
           />
         </div>
 
@@ -701,8 +701,8 @@ export default function CommunicationDashboard() {
               onClick={() => setDirectionFilter(f.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                 directionFilter === f.id
-                  ? 'bg-blue-500 text-white shadow-sm'
-                  : 'bg-white/60 backdrop-blur-xl border border-slate-200/60 text-slate-500 hover:bg-white/80'
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'bg-surface-primary border border-border-secondary text-text-muted hover:bg-surface-secondary'
               }`}
             >
               {f.label}
@@ -722,8 +722,8 @@ export default function CommunicationDashboard() {
               onClick={() => setChannelFilter(f.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                 channelFilter === f.id
-                  ? 'bg-slate-700 text-white shadow-sm'
-                  : 'bg-white/60 backdrop-blur-xl border border-slate-200/60 text-slate-500 hover:bg-white/80'
+                  ? 'bg-[#1D1D1F] text-white shadow-sm'
+                  : 'bg-surface-primary border border-border-secondary text-text-muted hover:bg-surface-secondary'
               }`}
             >
               {f.label}
@@ -733,36 +733,36 @@ export default function CommunicationDashboard() {
       </div>
 
       {/* ═══════ Communication List ═══════ */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={24} className="text-blue-500 animate-spin" />
-            <span className="ml-3 text-sm text-slate-500">
+            <Loader2 size={24} className="text-accent animate-spin" />
+            <span className="ml-3 text-sm text-text-muted">
               Kommunikationsdaten werden geladen...
             </span>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <AlertCircle size={20} className="text-red-400 mb-2" />
-            <span className="text-sm text-red-500 mb-3">{error}</span>
+            <AlertCircle size={20} className="text-status-offline mb-2" />
+            <span className="text-sm text-status-offline mb-3">{error}</span>
             <button
               onClick={() => loadData(true)}
-              className="text-xs text-blue-500 hover:text-blue-600 underline"
+              className="text-xs text-accent hover:text-accent underline"
             >
               Erneut versuchen
             </button>
           </div>
         ) : filteredComms.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-14 h-14 rounded-2xl bg-slate-100/80 flex items-center justify-center mb-4">
-              <MessageSquare size={28} className="text-slate-500" />
+            <div className="w-14 h-14 rounded-2xl bg-surface-secondary/80 flex items-center justify-center mb-4">
+              <MessageSquare size={28} className="text-text-muted" />
             </div>
-            <p className="text-sm font-medium text-slate-500 mb-1">
+            <p className="text-sm font-medium text-text-muted mb-1">
               {search || channelFilter !== 'all' || directionFilter !== 'all'
                 ? 'Keine Ergebnisse gefunden'
                 : 'Noch keine Kommunikation vorhanden'}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-text-muted">
               {search || channelFilter !== 'all' || directionFilter !== 'all'
                 ? 'Versuchen Sie andere Filter'
                 : 'Kommunikationsprotokolle werden in Airtable erfasst und automatisch synchronisiert'}
@@ -780,7 +780,7 @@ export default function CommunicationDashboard() {
       {/* ═══════ Total count ═══════ */}
       {!loading && !error && (
         <div className="text-center">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-text-muted">
             {filteredComms.length} von {communications.length} Einträgen angezeigt
           </p>
         </div>

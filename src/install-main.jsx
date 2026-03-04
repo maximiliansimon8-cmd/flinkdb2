@@ -20,7 +20,7 @@ class InstallErrorBoundary extends Component {
             </p>
             <button
               onClick={() => { sessionStorage.clear(); window.location.reload(); }}
-              style={{ padding: '10px 20px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+              style={{ padding: '10px 20px', background: '#FF9500', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
             >
               Neu laden
             </button>

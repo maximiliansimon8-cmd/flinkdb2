@@ -8,15 +8,15 @@ import { fetchAllStammdaten } from '../utils/airtableService';
 /* ─── KPI Card ─── */
 function KpiCard({ label, value, icon: Icon, color, subtitle }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
         <div style={{ backgroundColor: `${color}12` }} className="w-7 h-7 rounded-lg flex items-center justify-center">
           <Icon size={14} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-slate-800 font-mono">{value}</div>
-      {subtitle && <div className="text-[10px] text-slate-400 mt-1 font-mono">{subtitle}</div>}
+      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      {subtitle && <div className="text-[10px] text-text-muted mt-1 font-mono">{subtitle}</div>}
     </div>
   );
 }
@@ -99,8 +99,8 @@ export default function ContactDirectory() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-        <span className="ml-2 text-sm text-slate-500 font-mono">Lade Kontaktdaten...</span>
+        <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
+        <span className="ml-2 text-sm text-text-muted font-mono">Lade Kontaktdaten...</span>
       </div>
     );
   }
@@ -109,52 +109,52 @@ export default function ContactDirectory() {
     <div className="space-y-5">
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Gesamt Standorte" value={kpis.total} icon={Building2} color="#3b82f6" />
-        <KpiCard label="Mit Kontaktperson" value={kpis.withContact} icon={User} color="#22c55e" subtitle={kpis.total > 0 ? `${Math.round(kpis.withContact / kpis.total * 100)}%` : undefined} />
-        <KpiCard label="Mit Email" value={kpis.withEmail} icon={Mail} color="#8b5cf6" />
-        <KpiCard label="Mit Telefon" value={kpis.withPhone} icon={Phone} color="#f59e0b" />
+        <KpiCard label="Gesamt Standorte" value={kpis.total} icon={Building2} color="#007AFF" />
+        <KpiCard label="Mit Kontaktperson" value={kpis.withContact} icon={User} color="#34C759" subtitle={kpis.total > 0 ? `${Math.round(kpis.withContact / kpis.total * 100)}%` : undefined} />
+        <KpiCard label="Mit Email" value={kpis.withEmail} icon={Mail} color="#AF52DE" />
+        <KpiCard label="Mit Telefon" value={kpis.withPhone} icon={Phone} color="#FF9500" />
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="Suche (Name, Kontakt, JET-ID, Stadt, Email...)"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-white/60 border border-slate-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-surface-primary border border-border-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
         </div>
 
         <select value={cityFilter} onChange={e => setCityFilter(e.target.value)}
-          className="text-xs font-mono bg-white/60 border border-slate-200/60 rounded-xl px-3 py-2">
+          className="text-xs font-mono bg-surface-primary border border-border-secondary rounded-xl px-3 py-2">
           <option value="all">Alle Städte</option>
           {cities.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
 
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="text-xs font-mono bg-white/60 border border-slate-200/60 rounded-xl px-3 py-2">
+          className="text-xs font-mono bg-surface-primary border border-border-secondary rounded-xl px-3 py-2">
           <option value="all">Alle Status</option>
           {statuses.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
 
-        <button onClick={loadData} className="flex items-center gap-1.5 px-3 py-2 text-xs font-mono text-slate-500 bg-white/60 border border-slate-200/60 rounded-xl hover:bg-slate-50 transition-colors">
+        <button onClick={loadData} className="flex items-center gap-1.5 px-3 py-2 text-xs font-mono text-text-muted bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-secondary transition-colors">
           <RefreshCw size={12} /> Refresh
         </button>
 
-        <span className="text-[10px] text-slate-400 font-mono ml-auto">{filtered.length} Einträge</span>
+        <span className="text-[10px] text-text-muted font-mono ml-auto">{filtered.length} Einträge</span>
       </div>
 
       {/* Table */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-100">
+              <tr className="border-b border-border-secondary">
                 {['Standort', 'JET-ID', 'Stadt', 'PLZ', 'Adresse', 'Kontaktperson', 'Email', 'Telefon', 'Rechtsform', 'Status'].map(h => (
-                  <th key={h} className="text-left px-3 py-2.5 text-[10px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} className="text-left px-3 py-2.5 text-[10px] font-medium text-text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -163,37 +163,37 @@ export default function ContactDirectory() {
                 const f = r.fields || {};
                 const contactEmail = f['Contact Email'] || f['Location Email'] || '';
                 const contactPhone = f['Contact Phone'] || f['Location Phone'] || '';
-                const statusColor = f.Status === 'Live' ? '#22c55e' : f.Status === 'Deinstalled' ? '#ef4444' : '#64748b';
+                const statusColor = f.Status === 'Live' ? '#34C759' : f.Status === 'Deinstalled' ? '#FF3B30' : '#64748b';
 
                 return (
-                  <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                    <td className="px-3 py-2 text-slate-700 font-medium max-w-[200px] truncate">{f['Location Name'] || '–'}</td>
-                    <td className="px-3 py-2 font-mono text-slate-500">{f['JET ID'] || '–'}</td>
-                    <td className="px-3 py-2 text-slate-500">{f.City || '–'}</td>
-                    <td className="px-3 py-2 font-mono text-slate-500">{f['Postal Code'] || '–'}</td>
-                    <td className="px-3 py-2 text-slate-500 max-w-[180px] truncate">{[f.Street, f['Street Number']].filter(Boolean).join(' ') || '–'}</td>
-                    <td className="px-3 py-2 text-slate-700">{f['Contact Person'] || '–'}</td>
+                  <tr key={r.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors">
+                    <td className="px-3 py-2 text-text-primary font-medium max-w-[200px] truncate">{f['Location Name'] || '–'}</td>
+                    <td className="px-3 py-2 font-mono text-text-muted">{f['JET ID'] || '–'}</td>
+                    <td className="px-3 py-2 text-text-muted">{f.City || '–'}</td>
+                    <td className="px-3 py-2 font-mono text-text-muted">{f['Postal Code'] || '–'}</td>
+                    <td className="px-3 py-2 text-text-muted max-w-[180px] truncate">{[f.Street, f['Street Number']].filter(Boolean).join(' ') || '–'}</td>
+                    <td className="px-3 py-2 text-text-primary">{f['Contact Person'] || '–'}</td>
                     <td className="px-3 py-2">
                       {contactEmail ? (
-                        <a href={`mailto:${contactEmail}`} className="text-blue-500 hover:text-blue-700 flex items-center gap-1 max-w-[160px] truncate" title={contactEmail}>
+                        <a href={`mailto:${contactEmail}`} className="text-accent hover:text-blue-700 flex items-center gap-1 max-w-[160px] truncate" title={contactEmail}>
                           <Mail size={11} className="shrink-0" />
                           <span className="truncate font-mono">{contactEmail}</span>
                         </a>
                       ) : (
-                        <span className="text-slate-300">–</span>
+                        <span className="text-text-muted">–</span>
                       )}
                     </td>
                     <td className="px-3 py-2">
                       {contactPhone ? (
-                        <a href={`tel:${contactPhone}`} className="text-green-600 hover:text-green-800 flex items-center gap-1" title={contactPhone}>
+                        <a href={`tel:${contactPhone}`} className="text-status-online hover:text-green-800 flex items-center gap-1" title={contactPhone}>
                           <Phone size={11} className="shrink-0" />
                           <span className="font-mono">{contactPhone}</span>
                         </a>
                       ) : (
-                        <span className="text-slate-300">–</span>
+                        <span className="text-text-muted">–</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-slate-500 text-[10px]">{f['Legal Entity'] || '–'}</td>
+                    <td className="px-3 py-2 text-text-muted text-[10px]">{f['Legal Entity'] || '–'}</td>
                     <td className="px-3 py-2">
                       {f.Status ? (
                         <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium"
@@ -201,7 +201,7 @@ export default function ContactDirectory() {
                           {f.Status}
                         </span>
                       ) : (
-                        <span className="text-slate-300">–</span>
+                        <span className="text-text-muted">–</span>
                       )}
                     </td>
                   </tr>
@@ -212,27 +212,27 @@ export default function ContactDirectory() {
         </div>
 
         {filtered.length === 0 && (
-          <div className="text-xs text-slate-400 text-center py-10">Keine Standorte gefunden</div>
+          <div className="text-xs text-text-muted text-center py-10">Keine Standorte gefunden</div>
         )}
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
-            <span className="text-[10px] text-slate-400 font-mono">
+          <div className="flex items-center justify-between px-5 py-3 border-t border-border-secondary">
+            <span className="text-[10px] text-text-muted font-mono">
               Seite {page + 1} von {totalPages} ({filtered.length} Einträge)
             </span>
             <div className="flex gap-1">
               <button
                 onClick={() => setPage(Math.max(0, page - 1))}
                 disabled={page === 0}
-                className="px-3 py-1 text-xs font-mono rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-xs font-mono rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 ← Zurück
               </button>
               <button
                 onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-3 py-1 text-xs font-mono rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-xs font-mono rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Weiter →
               </button>

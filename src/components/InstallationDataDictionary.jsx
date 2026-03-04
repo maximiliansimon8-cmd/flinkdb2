@@ -364,21 +364,21 @@ const COMPUTED_KPIS = [
 // ─── Booking Status Pipeline ─────
 const BOOKING_PIPELINE = [
   { status: 'pending', label: 'Eingeladen', color: '#eab308', description: 'WhatsApp-Einladung gesendet, wartet auf Buchung' },
-  { status: 'booked', label: 'Bestätigt', color: '#22c55e', description: 'Termin gebucht und automatisch bestätigt' },
-  { status: 'confirmed', label: 'Bestaetigt', color: '#22c55e', description: 'Termin telefonisch oder per WhatsApp bestaetigt' },
+  { status: 'booked', label: 'Bestätigt', color: '#34C759', description: 'Termin gebucht und automatisch bestätigt' },
+  { status: 'confirmed', label: 'Bestaetigt', color: '#34C759', description: 'Termin telefonisch oder per WhatsApp bestaetigt' },
   { status: 'completed', label: 'Abgeschlossen', color: '#10b981', description: 'Installation erfolgreich durchgefuehrt' },
-  { status: 'cancelled', label: 'Storniert', color: '#ef4444', description: 'Termin vom Kunden oder Team storniert' },
+  { status: 'cancelled', label: 'Storniert', color: '#FF3B30', description: 'Termin vom Kunden oder Team storniert' },
   { status: 'no_show', label: 'No-Show', color: '#6b7280', description: 'Kunde war beim Termin nicht anwesend' },
 ];
 
 // ─── Data Flow ─────
 const DATA_FLOW_STEPS = [
-  { step: 1, label: 'Airtable', description: 'Akquise-Daten werden in Airtable Acquisition_DB gepflegt', color: '#f59e0b' },
-  { step: 2, label: 'Sync (2h)', description: 'Netlify Function synct alle 2h via LAST_MODIFIED_TIME nach Supabase', color: '#8b5cf6' },
-  { step: 3, label: 'Supabase', description: 'acquisition Tabelle mit gemappten Feldern (camelCase → snake_case)', color: '#3b82f6' },
+  { step: 1, label: 'Airtable', description: 'Akquise-Daten werden in Airtable Acquisition_DB gepflegt', color: '#FF9500' },
+  { step: 2, label: 'Sync (2h)', description: 'Netlify Function synct alle 2h via LAST_MODIFIED_TIME nach Supabase', color: '#AF52DE' },
+  { step: 3, label: 'Supabase', description: 'acquisition Tabelle mit gemappten Feldern (camelCase → snake_case)', color: '#007AFF' },
   { step: 4, label: 'airtableService.js', description: 'Frontend laedt via fetchAllAcquisition() + 1min Cache', color: '#06b6d4' },
   { step: 5, label: 'src/metrics/', description: 'Predicates + Constants = Single Source of Truth fuer KPI-Berechnungen', color: '#ec4899' },
-  { step: 6, label: 'Komponenten', description: 'Alle Install-Views importieren aus src/metrics/ statt lokale Checks', color: '#22c55e' },
+  { step: 6, label: 'Komponenten', description: 'Alle Install-Views importieren aus src/metrics/ statt lokale Checks', color: '#34C759' },
 ];
 
 
@@ -411,31 +411,31 @@ export default function InstallationDataDictionary() {
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
           <Database size={24} className="text-pink-500" />
           Data Dictionary
         </h2>
-        <p className="text-gray-500 mt-1">
+        <p className="text-text-muted mt-1">
           Alle Felder, Predicates und KPI-Definitionen des Installations-Moduls. Single Source of Truth: <code className="text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded text-xs">src/metrics/</code>
         </p>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Suche nach Feld, Predicate, Threshold..."
-          className="w-full pl-10 pr-4 py-2.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400/30 focus:border-pink-400 text-sm transition-all"
+          className="w-full pl-10 pr-4 py-2.5 bg-surface-primary border border-border-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400/30 focus:border-pink-400 text-sm transition-all"
         />
       </div>
 
       {/* Data Flow */}
-      <div className="bg-gradient-to-r from-amber-50 via-purple-50 via-blue-50 to-emerald-50 rounded-2xl p-5 border border-slate-200/60">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <Zap size={16} className="text-amber-500" /> Datenfluss
+      <div className="bg-gradient-to-r from-amber-50 via-purple-50 via-blue-50 to-emerald-50 rounded-2xl p-5 border border-border-secondary">
+        <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+          <Zap size={16} className="text-status-warning" /> Datenfluss
         </h3>
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
           {DATA_FLOW_STEPS.map((step, i) => (
@@ -447,11 +447,11 @@ export default function InstallationDataDictionary() {
                 >
                   {step.step}
                 </div>
-                <div className="text-xs font-semibold text-gray-700 mt-1">{step.label}</div>
-                <div className="text-[10px] text-gray-500 text-center mt-0.5 max-w-[140px]">{step.description}</div>
+                <div className="text-xs font-semibold text-text-primary mt-1">{step.label}</div>
+                <div className="text-[10px] text-text-muted text-center mt-0.5 max-w-[140px]">{step.description}</div>
               </div>
               {i < DATA_FLOW_STEPS.length - 1 && (
-                <ArrowRight size={16} className="text-gray-300 shrink-0" />
+                <ArrowRight size={16} className="text-text-muted shrink-0" />
               )}
             </React.Fragment>
           ))}
@@ -459,59 +459,59 @@ export default function InstallationDataDictionary() {
       </div>
 
       {/* Predicates Section */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
         <button
           onClick={() => toggleSection('predicates')}
-          className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/80 transition-colors"
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-secondary transition-colors"
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-pink-100 flex items-center justify-center">
               <Shield size={18} className="text-pink-600" />
             </div>
             <div className="text-left">
-              <h3 className="text-sm font-semibold text-gray-900">Predicates (Source of Truth)</h3>
-              <p className="text-xs text-gray-500">{filteredPredicates.length} Funktionen in src/metrics/predicates.js</p>
+              <h3 className="text-sm font-semibold text-text-primary">Predicates (Source of Truth)</h3>
+              <p className="text-xs text-text-muted">{filteredPredicates.length} Funktionen in src/metrics/predicates.js</p>
             </div>
           </div>
-          {expandedSection === 'predicates' ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronRight size={18} className="text-gray-400" />}
+          {expandedSection === 'predicates' ? <ChevronDown size={18} className="text-text-muted" /> : <ChevronRight size={18} className="text-text-muted" />}
         </button>
 
         {expandedSection === 'predicates' && (
           <div className="px-5 pb-5 space-y-4">
             {filteredPredicates.map(pred => (
-              <div key={pred.id} className="bg-white rounded-xl border border-slate-200/60 p-4 space-y-3">
+              <div key={pred.id} className="bg-surface-primary rounded-xl border border-border-secondary p-4 space-y-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <code className="text-sm font-bold text-pink-700 bg-pink-50 px-2 py-0.5 rounded">{pred.name}</code>
-                  <span className="text-xs text-gray-400">→ {pred.returnType}</span>
+                  <span className="text-xs text-text-muted">→ {pred.returnType}</span>
                 </div>
-                <p className="text-sm text-gray-600">{pred.description}</p>
+                <p className="text-sm text-text-secondary">{pred.description}</p>
 
                 {/* Logic Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 px-2 text-gray-500 font-medium">Bedingung</th>
-                        <th className="text-left py-2 px-2 text-gray-500 font-medium">Supabase Feld</th>
-                        <th className="text-left py-2 px-2 text-gray-500 font-medium">Airtable Tabelle</th>
-                        <th className="text-left py-2 px-2 text-gray-500 font-medium">Airtable Feld</th>
-                        <th className="text-left py-2 px-2 text-gray-500 font-medium">Bedeutung</th>
+                        <th className="text-left py-2 px-2 text-text-muted font-medium">Bedingung</th>
+                        <th className="text-left py-2 px-2 text-text-muted font-medium">Supabase Feld</th>
+                        <th className="text-left py-2 px-2 text-text-muted font-medium">Airtable Tabelle</th>
+                        <th className="text-left py-2 px-2 text-text-muted font-medium">Airtable Feld</th>
+                        <th className="text-left py-2 px-2 text-text-muted font-medium">Bedeutung</th>
                       </tr>
                     </thead>
                     <tbody>
                       {pred.logic.map((l, i) => (
-                        <tr key={i} className="border-b border-gray-50">
-                          <td className="py-2 px-2 font-mono text-gray-700">{l.condition}</td>
+                        <tr key={i} className="border-b border-border-secondary">
+                          <td className="py-2 px-2 font-mono text-text-primary">{l.condition}</td>
                           <td className="py-2 px-2">
-                            <code className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">{l.field}</code>
+                            <code className="bg-accent-light text-blue-700 px-1.5 py-0.5 rounded">{l.field}</code>
                           </td>
                           <td className="py-2 px-2">
-                            <code className="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">{l.airtableTable}</code>
+                            <code className="bg-status-warning/10 text-amber-700 px-1.5 py-0.5 rounded">{l.airtableTable}</code>
                           </td>
                           <td className="py-2 px-2">
-                            <code className="bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded">{l.airtableField}</code>
+                            <code className="bg-status-warning/10 text-orange-700 px-1.5 py-0.5 rounded">{l.airtableField}</code>
                           </td>
-                          <td className="py-2 px-2 text-gray-600">{l.meaning}</td>
+                          <td className="py-2 px-2 text-text-secondary">{l.meaning}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -520,7 +520,7 @@ export default function InstallationDataDictionary() {
 
                 {/* Notes */}
                 {pred.notes && (
-                  <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5">
+                  <div className="flex items-start gap-2 text-xs text-amber-700 bg-status-warning/10 rounded-lg p-2.5">
                     <Info size={14} className="shrink-0 mt-0.5" />
                     {pred.notes}
                   </div>
@@ -528,9 +528,9 @@ export default function InstallationDataDictionary() {
 
                 {/* Used In */}
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] text-gray-400 font-medium">Verwendet in:</span>
+                  <span className="text-[10px] text-text-muted font-medium">Verwendet in:</span>
                   {pred.usedIn.map(comp => (
-                    <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono">
+                    <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-secondary rounded font-mono">
                       {comp}
                     </span>
                   ))}
@@ -542,38 +542,38 @@ export default function InstallationDataDictionary() {
       </div>
 
       {/* Thresholds Section */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
         <button
           onClick={() => toggleSection('thresholds')}
-          className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/80 transition-colors"
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-secondary transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center">
-              <Zap size={18} className="text-orange-600" />
+            <div className="w-9 h-9 rounded-xl bg-status-warning/10 flex items-center justify-center">
+              <Zap size={18} className="text-status-warning" />
             </div>
             <div className="text-left">
-              <h3 className="text-sm font-semibold text-gray-900">Schwellenwerte & Konstanten</h3>
-              <p className="text-xs text-gray-500">{filteredThresholds.length} Werte in src/metrics/constants.js</p>
+              <h3 className="text-sm font-semibold text-text-primary">Schwellenwerte & Konstanten</h3>
+              <p className="text-xs text-text-muted">{filteredThresholds.length} Werte in src/metrics/constants.js</p>
             </div>
           </div>
-          {expandedSection === 'thresholds' ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronRight size={18} className="text-gray-400" />}
+          {expandedSection === 'thresholds' ? <ChevronDown size={18} className="text-text-muted" /> : <ChevronRight size={18} className="text-text-muted" />}
         </button>
 
         {expandedSection === 'thresholds' && (
           <div className="px-5 pb-5">
             <div className="grid gap-3">
               {filteredThresholds.map(t => (
-                <div key={t.id} className="bg-white rounded-xl border border-slate-200/60 p-4 flex items-start gap-4">
+                <div key={t.id} className="bg-surface-primary rounded-xl border border-border-secondary p-4 flex items-start gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <code className="text-sm font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded">{t.name}</code>
-                      <span className="text-sm font-semibold text-gray-900">{t.value}</span>
+                      <code className="text-sm font-bold text-orange-700 bg-status-warning/10 px-2 py-0.5 rounded">{t.name}</code>
+                      <span className="text-sm font-semibold text-text-primary">{t.value}</span>
                     </div>
-                    <p className="text-xs text-gray-600">{t.meaning}</p>
+                    <p className="text-xs text-text-secondary">{t.meaning}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded">{t.severity}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-muted rounded">{t.severity}</span>
                       {t.usedIn.map(comp => (
-                        <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-slate-50 text-slate-400 rounded font-mono">{comp}</span>
+                        <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-muted rounded font-mono">{comp}</span>
                       ))}
                     </div>
                   </div>
@@ -585,21 +585,21 @@ export default function InstallationDataDictionary() {
       </div>
 
       {/* Berechnete KPIs Section */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
         <button
           onClick={() => toggleSection('kpis')}
-          className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/80 transition-colors"
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-secondary transition-colors"
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center">
               <Calculator size={18} className="text-emerald-600" />
             </div>
             <div className="text-left">
-              <h3 className="text-sm font-semibold text-gray-900">Berechnete KPIs</h3>
-              <p className="text-xs text-gray-500">{filteredKpis.length} Metriken — Formeln, Eingabefelder & Filter</p>
+              <h3 className="text-sm font-semibold text-text-primary">Berechnete KPIs</h3>
+              <p className="text-xs text-text-muted">{filteredKpis.length} Metriken — Formeln, Eingabefelder & Filter</p>
             </div>
           </div>
-          {expandedSection === 'kpis' ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronRight size={18} className="text-gray-400" />}
+          {expandedSection === 'kpis' ? <ChevronDown size={18} className="text-text-muted" /> : <ChevronRight size={18} className="text-text-muted" />}
         </button>
 
         {expandedSection === 'kpis' && (
@@ -611,54 +611,54 @@ export default function InstallationDataDictionary() {
               return (
                 <div key={cat}>
                   <div className="flex items-center gap-2 mb-3 mt-2">
-                    <div className={`w-2 h-2 rounded-full ${cat === 'booking' ? 'bg-blue-500' : 'bg-amber-500'}`} />
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <div className={`w-2 h-2 rounded-full ${cat === 'booking' ? 'bg-accent' : 'bg-status-warning'}`} />
+                    <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                       {cat === 'booking' ? 'Booking-KPIs (install_bookings)' : 'Akquise-KPIs (acquisition)'}
                     </h4>
                   </div>
                   {catKpis.map(kpi => (
-                    <div key={kpi.id} className="bg-white rounded-xl border border-slate-200/60 p-4 space-y-3 mb-3">
+                    <div key={kpi.id} className="bg-surface-primary rounded-xl border border-border-secondary p-4 space-y-3 mb-3">
                       {/* KPI Header */}
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-bold text-gray-900">{kpi.name}</span>
+                            <span className="text-sm font-bold text-text-primary">{kpi.name}</span>
                             <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded font-mono">{kpi.unit}</span>
                           </div>
-                          <code className="text-xs text-gray-500 mt-1 block">{kpi.source}</code>
+                          <code className="text-xs text-text-muted mt-1 block">{kpi.source}</code>
                         </div>
                         <TrendingUp size={16} className="text-emerald-400 shrink-0 mt-1" />
                       </div>
 
                       {/* Formula */}
-                      <div className="bg-slate-50 rounded-lg p-3">
-                        <div className="text-[10px] text-gray-400 font-medium mb-1">FORMEL</div>
-                        <code className="text-xs text-slate-700 font-mono leading-relaxed">{kpi.formula}</code>
+                      <div className="bg-surface-secondary rounded-lg p-3">
+                        <div className="text-[10px] text-text-muted font-medium mb-1">FORMEL</div>
+                        <code className="text-xs text-text-primary font-mono leading-relaxed">{kpi.formula}</code>
                       </div>
 
                       {/* Input Fields Table */}
                       <div className="overflow-x-auto">
-                        <div className="text-[10px] text-gray-400 font-medium mb-1.5 flex items-center gap-1">
+                        <div className="text-[10px] text-text-muted font-medium mb-1.5 flex items-center gap-1">
                           <Database size={10} /> EINGABE-FELDER
                         </div>
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="border-b border-gray-100">
-                              <th className="text-left py-1.5 px-2 text-gray-500 font-medium">Feld</th>
-                              <th className="text-left py-1.5 px-2 text-gray-500 font-medium">Tabelle</th>
-                              <th className="text-left py-1.5 px-2 text-gray-500 font-medium">Beschreibung</th>
+                              <th className="text-left py-1.5 px-2 text-text-muted font-medium">Feld</th>
+                              <th className="text-left py-1.5 px-2 text-text-muted font-medium">Tabelle</th>
+                              <th className="text-left py-1.5 px-2 text-text-muted font-medium">Beschreibung</th>
                             </tr>
                           </thead>
                           <tbody>
                             {kpi.inputFields.map((f, i) => (
-                              <tr key={i} className="border-b border-gray-50">
+                              <tr key={i} className="border-b border-border-secondary">
                                 <td className="py-1.5 px-2">
-                                  <code className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">{f.field}</code>
+                                  <code className="bg-accent-light text-blue-700 px-1.5 py-0.5 rounded">{f.field}</code>
                                 </td>
                                 <td className="py-1.5 px-2">
-                                  <code className="bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded">{f.table}</code>
+                                  <code className="bg-brand-purple/10 text-brand-purple px-1.5 py-0.5 rounded">{f.table}</code>
                                 </td>
-                                <td className="py-1.5 px-2 text-gray-600">{f.description}</td>
+                                <td className="py-1.5 px-2 text-text-secondary">{f.description}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -668,13 +668,13 @@ export default function InstallationDataDictionary() {
                       {/* Filters */}
                       {kpi.filters.length > 0 && (
                         <div>
-                          <div className="text-[10px] text-gray-400 font-medium mb-1.5 flex items-center gap-1">
+                          <div className="text-[10px] text-text-muted font-medium mb-1.5 flex items-center gap-1">
                             <Filter size={10} /> FILTER & BEDINGUNGEN
                           </div>
                           <div className="space-y-1">
                             {kpi.filters.map((f, i) => (
-                              <div key={i} className="flex items-start gap-2 text-xs text-gray-600">
-                                <span className="text-amber-500 shrink-0 mt-0.5">▸</span>
+                              <div key={i} className="flex items-start gap-2 text-xs text-text-secondary">
+                                <span className="text-status-warning shrink-0 mt-0.5">▸</span>
                                 <span>{f}</span>
                               </div>
                             ))}
@@ -684,9 +684,9 @@ export default function InstallationDataDictionary() {
 
                       {/* Used In */}
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] text-gray-400 font-medium">Verwendet in:</span>
+                        <span className="text-[10px] text-text-muted font-medium">Verwendet in:</span>
                         {kpi.usedIn.map(comp => (
-                          <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono">
+                          <span key={comp} className="text-[10px] px-1.5 py-0.5 bg-surface-secondary text-text-secondary rounded font-mono">
                             {comp}
                           </span>
                         ))}
@@ -701,21 +701,21 @@ export default function InstallationDataDictionary() {
       </div>
 
       {/* Booking Pipeline Section */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
         <button
           onClick={() => toggleSection('pipeline')}
-          className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/80 transition-colors"
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-secondary transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Layers size={18} className="text-blue-600" />
+            <div className="w-9 h-9 rounded-xl bg-accent-light flex items-center justify-center">
+              <Layers size={18} className="text-accent" />
             </div>
             <div className="text-left">
-              <h3 className="text-sm font-semibold text-gray-900">Booking Pipeline</h3>
-              <p className="text-xs text-gray-500">Status-Abfolge der Installationstermine</p>
+              <h3 className="text-sm font-semibold text-text-primary">Booking Pipeline</h3>
+              <p className="text-xs text-text-muted">Status-Abfolge der Installationstermine</p>
             </div>
           </div>
-          {expandedSection === 'pipeline' ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronRight size={18} className="text-gray-400" />}
+          {expandedSection === 'pipeline' ? <ChevronDown size={18} className="text-text-muted" /> : <ChevronRight size={18} className="text-text-muted" />}
         </button>
 
         {expandedSection === 'pipeline' && (
@@ -727,21 +727,21 @@ export default function InstallationDataDictionary() {
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: step.color }}>
                       {i + 1}
                     </div>
-                    <div className="text-xs font-semibold text-gray-700 mt-1">{step.label}</div>
+                    <div className="text-xs font-semibold text-text-primary mt-1">{step.label}</div>
                   </div>
-                  {i < arr.length - 1 && <ArrowRight size={16} className="text-gray-300 shrink-0" />}
+                  {i < arr.length - 1 && <ArrowRight size={16} className="text-text-muted shrink-0" />}
                 </React.Fragment>
               ))}
             </div>
             <div className="grid gap-2">
               {BOOKING_PIPELINE.map(step => (
-                <div key={step.status} className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-100">
+                <div key={step.status} className="flex items-center gap-3 p-3 rounded-lg bg-surface-primary border border-border-secondary">
                   <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: step.color }} />
                   <div>
-                    <span className="text-sm font-medium text-gray-900">{step.label}</span>
-                    <span className="text-xs text-gray-400 ml-2 font-mono">({step.status})</span>
+                    <span className="text-sm font-medium text-text-primary">{step.label}</span>
+                    <span className="text-xs text-text-muted ml-2 font-mono">({step.status})</span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-auto">{step.description}</span>
+                  <span className="text-xs text-text-muted ml-auto">{step.description}</span>
                 </div>
               ))}
             </div>
@@ -750,21 +750,21 @@ export default function InstallationDataDictionary() {
       </div>
 
       {/* Field Origins Section */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
         <button
           onClick={() => toggleSection('fields')}
-          className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/80 transition-colors"
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-secondary transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
-              <Code size={18} className="text-purple-600" />
+            <div className="w-9 h-9 rounded-xl bg-brand-purple/10 flex items-center justify-center">
+              <Code size={18} className="text-brand-purple" />
             </div>
             <div className="text-left">
-              <h3 className="text-sm font-semibold text-gray-900">Feld-Herkunft</h3>
-              <p className="text-xs text-gray-500">{filteredFields.length} Felder: Frontend → Supabase → Airtable</p>
+              <h3 className="text-sm font-semibold text-text-primary">Feld-Herkunft</h3>
+              <p className="text-xs text-text-muted">{filteredFields.length} Felder: Frontend → Supabase → Airtable</p>
             </div>
           </div>
-          {expandedSection === 'fields' ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronRight size={18} className="text-gray-400" />}
+          {expandedSection === 'fields' ? <ChevronDown size={18} className="text-text-muted" /> : <ChevronRight size={18} className="text-text-muted" />}
         </button>
 
         {expandedSection === 'fields' && (
@@ -772,41 +772,41 @@ export default function InstallationDataDictionary() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2.5 px-2 text-gray-500 font-semibold">Frontend (camelCase)</th>
-                    <th className="text-left py-2.5 px-2 text-gray-500 font-semibold">Supabase Tabelle.Feld</th>
-                    <th className="text-left py-2.5 px-2 text-gray-500 font-semibold">Airtable Tabelle</th>
-                    <th className="text-left py-2.5 px-2 text-gray-500 font-semibold">Airtable Feld</th>
-                    <th className="text-left py-2.5 px-2 text-gray-500 font-semibold">Typ</th>
-                    <th className="text-left py-2.5 px-2 text-gray-500 font-semibold">Beschreibung</th>
+                  <tr className="border-b border-border-secondary">
+                    <th className="text-left py-2.5 px-2 text-text-muted font-semibold">Frontend (camelCase)</th>
+                    <th className="text-left py-2.5 px-2 text-text-muted font-semibold">Supabase Tabelle.Feld</th>
+                    <th className="text-left py-2.5 px-2 text-text-muted font-semibold">Airtable Tabelle</th>
+                    <th className="text-left py-2.5 px-2 text-text-muted font-semibold">Airtable Feld</th>
+                    <th className="text-left py-2.5 px-2 text-text-muted font-semibold">Typ</th>
+                    <th className="text-left py-2.5 px-2 text-text-muted font-semibold">Beschreibung</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredFields.map(f => (
-                    <tr key={f.frontend} className="border-b border-gray-50 hover:bg-white/80">
+                    <tr key={f.frontend} className="border-b border-border-secondary hover:bg-surface-secondary">
                       <td className="py-2 px-2">
-                        <code className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{f.frontend}</code>
+                        <code className="text-blue-700 bg-accent-light px-1.5 py-0.5 rounded">{f.frontend}</code>
                       </td>
                       <td className="py-2 px-2">
-                        <code className="text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">{f.supabaseTable}.{f.supabase}</code>
+                        <code className="text-brand-purple bg-brand-purple/10 px-1.5 py-0.5 rounded">{f.supabaseTable}.{f.supabase}</code>
                       </td>
                       <td className="py-2 px-2">
-                        <code className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">{f.airtableTable}</code>
+                        <code className="text-amber-700 bg-status-warning/10 px-1.5 py-0.5 rounded">{f.airtableTable}</code>
                       </td>
                       <td className="py-2 px-2">
-                        <code className="text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">{f.airtable}</code>
+                        <code className="text-orange-700 bg-status-warning/10 px-1.5 py-0.5 rounded">{f.airtable}</code>
                       </td>
                       <td className="py-2 px-2">
                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${
-                          f.type === 'array' ? 'bg-orange-50 text-orange-700' :
-                          f.type === 'boolean' || f.type === 'boolean/text' ? 'bg-green-50 text-green-700' :
+                          f.type === 'array' ? 'bg-status-warning/10 text-orange-700' :
+                          f.type === 'boolean' || f.type === 'boolean/text' ? 'bg-status-online/10 text-green-700' :
                           f.type === 'number' ? 'bg-cyan-50 text-cyan-700' :
-                          'bg-slate-50 text-slate-600'
+                          'bg-surface-secondary text-text-secondary'
                         }`}>
                           {f.type}
                         </span>
                       </td>
-                      <td className="py-2 px-2 text-gray-600" title={f.values}>{f.description}</td>
+                      <td className="py-2 px-2 text-text-secondary" title={f.values}>{f.description}</td>
                     </tr>
                   ))}
                 </tbody>

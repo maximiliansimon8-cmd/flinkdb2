@@ -85,9 +85,9 @@ import HardwareComponentDetail from './HardwareComponentDetail';
 function InfoRow({ icon: Icon, label, value, mono }) {
   return (
     <div className="flex items-center gap-3 py-1.5">
-      <Icon size={14} className="text-slate-500 flex-shrink-0" />
-      <span className="text-slate-500 text-xs w-32 flex-shrink-0">{label}</span>
-      <span className={`text-slate-900 text-xs ${mono ? 'font-mono' : ''}`}>
+      <Icon size={14} className="text-text-muted flex-shrink-0" />
+      <span className="text-text-muted text-xs w-32 flex-shrink-0">{label}</span>
+      <span className={`text-text-primary text-xs ${mono ? 'font-mono' : ''}`}>
         {value || '–'}
       </span>
     </div>
@@ -136,7 +136,7 @@ function DayDetailChart({ segments }) {
 
   return (
     <div>
-      <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-3">
+      <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
         Tagesverlauf – Status pro Snapshot
       </h3>
 
@@ -146,17 +146,17 @@ function DayDetailChart({ segments }) {
             row.rate == null
               ? '#64748b'
               : row.rate >= 90
-                ? '#22c55e'
+                ? '#34C759'
                 : row.rate >= 70
-                  ? '#f59e0b'
+                  ? '#FF9500'
                   : row.rate >= 50
                     ? '#f97316'
-                    : '#ef4444';
+                    : '#FF3B30';
 
           return (
             <div key={row.dateKey} className="flex items-center gap-2">
               {/* Date label */}
-              <div className="w-[72px] flex-shrink-0 text-xs font-mono text-slate-500 text-right">
+              <div className="w-[72px] flex-shrink-0 text-xs font-mono text-text-muted text-right">
                 {row.label}
               </div>
 
@@ -194,20 +194,20 @@ function DayDetailChart({ segments }) {
       {/* Legend */}
       <div className="flex items-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-2.5 rounded-sm bg-[#22c55e] opacity-75" />
-          <span className="text-xs text-slate-500">Online (&lt;24h)</span>
+          <span className="w-3 h-2.5 rounded-sm bg-[#34C759] opacity-75" />
+          <span className="text-xs text-text-muted">Online (&lt;24h)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-2.5 rounded-sm bg-[#f59e0b]" />
-          <span className="text-xs text-slate-500">Warnung (24–72h)</span>
+          <span className="w-3 h-2.5 rounded-sm bg-[#FF9500]" />
+          <span className="text-xs text-text-muted">Warnung (24–72h)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-2.5 rounded-sm bg-[#ef4444]" />
-          <span className="text-xs text-slate-500">Kritisch (&gt;72h)</span>
+          <span className="w-3 h-2.5 rounded-sm bg-[#FF3B30]" />
+          <span className="text-xs text-text-muted">Kritisch (&gt;72h)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-2.5 rounded-sm bg-[#dc2626]" />
-          <span className="text-xs text-slate-500">Dauerhaft (&gt;7d)</span>
+          <span className="w-3 h-2.5 rounded-sm bg-[#FF3B30]" />
+          <span className="text-xs text-text-muted">Dauerhaft (&gt;7d)</span>
         </div>
       </div>
 
@@ -217,20 +217,20 @@ function DayDetailChart({ segments }) {
           className="fixed z-50 pointer-events-none"
           style={{ left: mousePos.x + 14, top: mousePos.y - 8 }}
         >
-          <div className="bg-white/90 backdrop-blur-xl border border-white/60 rounded-xl px-3 py-2 text-xs font-mono shadow-lg shadow-black/5">
-            <div className="text-slate-600 mb-1">
+          <div className="bg-surface-primary border border-white/60 rounded-xl px-3 py-2 text-xs font-mono shadow-lg shadow-black/5">
+            <div className="text-text-secondary mb-1">
               {formatDateTime(hoveredSeg.timestamp)}
             </div>
             <div className="font-bold" style={{ color: getStatusColor(hoveredSeg.status) }}>
               {getStatusLabel(hoveredSeg.status)}
             </div>
             {hoveredSeg.heartbeat && (
-              <div className="text-slate-500 mt-0.5">
+              <div className="text-text-muted mt-0.5">
                 Heartbeat: {formatDateTime(hoveredSeg.heartbeat)}
               </div>
             )}
             {hoveredSeg.offlineHours != null && hoveredSeg.offlineHours >= 1 && (
-              <div className="text-slate-500">
+              <div className="text-text-muted">
                 Offline seit {formatDuration(hoveredSeg.offlineHours)}
               </div>
             )}
@@ -247,7 +247,7 @@ function TimelineBar({ segments }) {
   if (!segments || segments.length === 0) return null;
 
   return (
-    <div className="flex w-full h-5 rounded overflow-hidden border border-slate-200/60">
+    <div className="flex w-full h-5 rounded overflow-hidden border border-border-secondary">
       {segments.map((seg, i) => (
         <div
           key={i}
@@ -306,18 +306,18 @@ function computeHourStats(segments) {
 
 function statusRateColor(rate) {
   if (rate == null) return '#cbd5e1';
-  if (rate >= 90) return '#22c55e';
-  if (rate >= 70) return '#f59e0b';
+  if (rate >= 90) return '#34C759';
+  if (rate >= 70) return '#FF9500';
   if (rate >= 50) return '#f97316';
-  return '#ef4444';
+  return '#FF3B30';
 }
 
 function rateBg(rate) {
   if (rate == null) return '#cbd5e120';
-  if (rate >= 90) return '#22c55e18';
-  if (rate >= 70) return '#f59e0b18';
+  if (rate >= 90) return '#34C75918';
+  if (rate >= 70) return '#FF950018';
   if (rate >= 50) return '#f9731618';
-  return '#ef444418';
+  return '#FF3B3018';
 }
 
 function WeekdayChart({ segments }) {
@@ -328,8 +328,8 @@ function WeekdayChart({ segments }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <CalendarDays size={14} className="text-slate-500" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <CalendarDays size={14} className="text-text-muted" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Online-Rate nach Wochentag
         </h3>
       </div>
@@ -348,14 +348,14 @@ function WeekdayChart({ segments }) {
                   }}
                 />
               </div>
-              <div className="text-xs font-mono text-slate-500 mt-1">{day.label}</div>
+              <div className="text-xs font-mono text-text-muted mt-1">{day.label}</div>
               <div
                 className="text-xs font-mono font-bold"
                 style={{ color: day.rate != null ? statusRateColor(day.rate) : '#64748b' }}
               >
                 {day.rate != null ? `${day.rate}%` : '–'}
               </div>
-              <div className="text-xs font-mono text-slate-500">
+              <div className="text-xs font-mono text-text-muted">
                 {day.total > 0 ? `n=${day.total}` : ''}
               </div>
             </div>
@@ -363,8 +363,8 @@ function WeekdayChart({ segments }) {
         })}
       </div>
       {worstDay && worstDay.rate != null && worstDay.rate < 90 && (
-        <div className="mt-3 px-3 py-2 rounded bg-slate-50/80 border border-slate-200/60">
-          <span className="text-xs text-slate-500">
+        <div className="mt-3 px-3 py-2 rounded bg-surface-secondary/80 border border-border-secondary">
+          <span className="text-xs text-text-muted">
             Schwächster Tag:{' '}
             <span className="font-bold" style={{ color: statusRateColor(worstDay.rate) }}>
               {worstDay.label} ({worstDay.rate}%)
@@ -380,12 +380,12 @@ function HourChartTooltip({ active, payload }) {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
   return (
-    <div className="bg-white/90 backdrop-blur-xl border border-slate-300/40 rounded-lg px-3 py-2 text-xs font-mono shadow-sm shadow-black/[0.03]">
-      <div className="text-slate-600 mb-1">{data.label}:00 Uhr</div>
+    <div className="bg-surface-primary border border-border-primary/40 rounded-lg px-3 py-2 text-xs font-mono shadow-card">
+      <div className="text-text-secondary mb-1">{data.label}:00 Uhr</div>
       <div className="font-bold" style={{ color: data.rate != null ? statusRateColor(data.rate) : '#64748b' }}>
         {data.rate != null ? `${data.rate}%` : '–'} online
       </div>
-      <div className="text-slate-500">
+      <div className="text-text-muted">
         {data.online}/{data.total} Checks
       </div>
     </div>
@@ -428,13 +428,13 @@ function HourChart({ segments }) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Sun size={14} className="text-slate-500" />
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+          <Sun size={14} className="text-text-muted" />
+          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
             Online-Rate nach Tageszeit
           </h3>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+          <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
             06:00 – 23:00
           </span>
           {avgRate != null && (
@@ -452,7 +452,7 @@ function HourChart({ segments }) {
       </div>
 
       {!hasData ? (
-        <div className="h-[180px] flex items-center justify-center text-slate-500 text-xs font-mono">
+        <div className="h-[180px] flex items-center justify-center text-text-muted text-xs font-mono">
           Keine Stundendaten verfügbar
         </div>
       ) : (
@@ -461,8 +461,8 @@ function HourChart({ segments }) {
             <AreaChart data={stats} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="hourRateGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="#007AFF" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#007AFF" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f033" />
@@ -484,23 +484,23 @@ function HourChart({ segments }) {
               <Tooltip content={<HourChartTooltip />} />
               <ReferenceLine
                 y={90}
-                stroke="#22c55e"
+                stroke="#34C759"
                 strokeDasharray="4 4"
                 strokeOpacity={0.5}
                 label={{
                   value: '90%',
                   position: 'right',
-                  style: { fontSize: 11, fill: '#22c55e', fontFamily: 'monospace' },
+                  style: { fontSize: 11, fill: '#34C759', fontFamily: 'monospace' },
                 }}
               />
               <Area
                 type="monotone"
                 dataKey="rate"
-                stroke="#3b82f6"
+                stroke="#007AFF"
                 strokeWidth={2.5}
                 fill="url(#hourRateGradient)"
                 dot={renderDot}
-                activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2, fill: '#fff' }}
+                activeDot={{ r: 6, stroke: '#007AFF', strokeWidth: 2, fill: '#fff' }}
                 connectNulls
               />
             </AreaChart>
@@ -511,27 +511,27 @@ function HourChart({ segments }) {
       {/* Legend */}
       <div className="flex items-center gap-3 mt-2">
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#22c55e]" />
-          <span className="text-xs text-slate-500">&ge;90%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#34C759]" />
+          <span className="text-xs text-text-muted">&ge;90%</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]" />
-          <span className="text-xs text-slate-500">70–90%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#FF9500]" />
+          <span className="text-xs text-text-muted">70–90%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#f97316]" />
-          <span className="text-xs text-slate-500">50–70%</span>
+          <span className="text-xs text-text-muted">50–70%</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#ef4444]" />
-          <span className="text-xs text-slate-500">&lt;50%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#FF3B30]" />
+          <span className="text-xs text-text-muted">&lt;50%</span>
         </div>
       </div>
 
       {/* Problem hours callout */}
       {problemHours.length > 0 && (
-        <div className="mt-3 px-3 py-2 rounded bg-slate-50/80 border border-slate-200/60">
-          <span className="text-xs text-slate-500">
+        <div className="mt-3 px-3 py-2 rounded bg-surface-secondary/80 border border-border-secondary">
+          <span className="text-xs text-text-muted">
             Problemzeiten:{' '}
             {problemHours.map((h, i) => (
               <span key={h.label}>
@@ -572,8 +572,8 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
-        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
-        <span className="text-xs text-slate-500 font-mono">Lade Standortdaten...</span>
+        <Loader2 size={14} className="text-[#007AFF] animate-spin" />
+        <span className="text-xs text-text-muted font-mono">Lade Standortdaten...</span>
       </div>
     );
   }
@@ -598,12 +598,12 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
   return (
     <div>
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <Building2 size={14} className="text-[#3b82f6]" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <Building2 size={14} className="text-[#007AFF]" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Standort-Informationen
         </h3>
         {stammdaten['JET ID'] && (
-          <span className="text-xs font-mono bg-[#3b82f6]/15 text-[#3b82f6] px-2 py-0.5 rounded-full border border-[#3b82f6]/25">
+          <span className="text-xs font-mono bg-[#007AFF]/15 text-[#007AFF] px-2 py-0.5 rounded-full border border-[#007AFF]/25">
             JET ID: {stammdaten['JET ID']}
           </span>
         )}
@@ -652,7 +652,7 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
           </button>
         )}
         {!canViewContacts && (
-          <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1 text-xs font-mono text-text-muted bg-surface-secondary px-2 py-0.5 rounded-full">
             <Lock size={9} />
             Kontaktdaten eingeschränkt
           </span>
@@ -682,8 +682,8 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
             </>
           ) : (
             <div className="flex items-center gap-2 py-3">
-              <Lock size={12} className="text-slate-500" />
-              <span className="text-xs text-slate-500 italic">
+              <Lock size={12} className="text-text-muted" />
+              <span className="text-xs text-text-muted italic">
                 Kontaktdaten nur für berechtigte Benutzer sichtbar
               </span>
             </div>
@@ -712,19 +712,19 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
 
       {/* ─── Airtable Display Enrichment (from airtable_displays) ─── */}
       {airtableDisplay && (
-        <div className="mt-3 pt-3 border-t border-slate-100">
+        <div className="mt-3 pt-3 border-t border-border-secondary">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0">
             <div>
               {airtableDisplay.online_status && (
                 <div className="flex items-center gap-3 py-1.5">
-                  <Monitor size={14} className="text-slate-500 flex-shrink-0" />
-                  <span className="text-slate-500 text-xs w-32 flex-shrink-0">AT Status</span>
+                  <Monitor size={14} className="text-text-muted flex-shrink-0" />
+                  <span className="text-text-muted text-xs w-32 flex-shrink-0">AT Status</span>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                     /^live$/i.test(airtableDisplay.online_status)
                       ? 'bg-emerald-100 text-emerald-700'
                       : /deinstall/i.test(airtableDisplay.online_status)
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-amber-100 text-amber-700'
+                        ? 'bg-status-offline/10 text-red-700'
+                        : 'bg-status-warning/10 text-amber-700'
                   }`}>
                     {airtableDisplay.online_status}
                   </span>
@@ -743,16 +743,16 @@ function ContactInfoPanel({ stammdaten, loading, airtableDisplay, onStimmcheck }
             <div>
               {airtableDisplay.sov_partner_ad != null && airtableDisplay.sov_partner_ad > 0 && (
                 <div className="flex items-center gap-3 py-1.5">
-                  <TrendingUp size={14} className="text-slate-500 flex-shrink-0" />
-                  <span className="text-slate-500 text-xs w-32 flex-shrink-0">SoV Partner Ad</span>
+                  <TrendingUp size={14} className="text-text-muted flex-shrink-0" />
+                  <span className="text-text-muted text-xs w-32 flex-shrink-0">SoV Partner Ad</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-20 h-2 bg-surface-secondary rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#3b82f6] rounded-full"
+                        className="h-full bg-[#007AFF] rounded-full"
                         style={{ width: `${Math.min(100, airtableDisplay.sov_partner_ad)}%` }}
                       />
                     </div>
-                    <span className="text-xs font-mono font-medium text-slate-900">
+                    <span className="text-xs font-mono font-medium text-text-primary">
                       {airtableDisplay.sov_partner_ad}%
                     </span>
                   </div>
@@ -782,13 +782,13 @@ function getTaskStatusIcon(status) {
     case 'completed':
     case 'done':
     case 'erledigt':
-      return <CheckCircle2 size={12} className="text-[#22c55e]" />;
+      return <CheckCircle2 size={12} className="text-[#34C759]" />;
     case 'in progress':
     case 'in bearbeitung':
-      return <Circle size={12} className="text-[#3b82f6]" />;
+      return <Circle size={12} className="text-[#007AFF]" />;
     case 'blocked':
     case 'blockiert':
-      return <AlertTriangle size={12} className="text-[#ef4444]" />;
+      return <AlertTriangle size={12} className="text-[#FF3B30]" />;
     default:
       return <Circle size={12} className="text-[#64748b]" />;
   }
@@ -799,13 +799,13 @@ function getTaskStatusColor(status) {
     case 'completed':
     case 'done':
     case 'erledigt':
-      return { bg: '#22c55e15', text: '#22c55e', border: '#22c55e33' };
+      return { bg: '#34C75915', text: '#34C759', border: '#34C75933' };
     case 'in progress':
     case 'in bearbeitung':
-      return { bg: '#3b82f615', text: '#3b82f6', border: '#3b82f633' };
+      return { bg: '#007AFF15', text: '#007AFF', border: '#007AFF33' };
     case 'blocked':
     case 'blockiert':
-      return { bg: '#ef444415', text: '#ef4444', border: '#ef444433' };
+      return { bg: '#FF3B3015', text: '#FF3B30', border: '#FF3B3033' };
     default:
       return { bg: '#64748b15', text: '#64748b', border: '#64748b33' };
   }
@@ -817,13 +817,13 @@ function getPriorityColor(priority) {
     case 'hoch':
     case 'urgent':
     case 'dringend':
-      return '#ef4444';
+      return '#FF3B30';
     case 'medium':
     case 'mittel':
-      return '#f59e0b';
+      return '#FF9500';
     case 'low':
     case 'niedrig':
-      return '#22c55e';
+      return '#34C759';
     default:
       return '#64748b';
   }
@@ -835,8 +835,8 @@ function TasksPanel({ tasks, loading }) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
-        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
-        <span className="text-xs text-slate-500 font-mono">Lade Aufgaben...</span>
+        <Loader2 size={14} className="text-[#007AFF] animate-spin" />
+        <span className="text-xs text-text-muted font-mono">Lade Aufgaben...</span>
       </div>
     );
   }
@@ -871,7 +871,7 @@ function TasksPanel({ tasks, loading }) {
     return (
       <div
         key={task.id}
-        className="bg-slate-50/80 rounded-lg border border-slate-200/60 overflow-hidden transition-colors hover:border-slate-300/40"
+        className="bg-surface-secondary/80 rounded-lg border border-border-secondary overflow-hidden transition-colors hover:border-border-primary/40"
       >
         <div
           className="flex items-start gap-3 px-3 py-2.5 cursor-pointer"
@@ -883,7 +883,7 @@ function TasksPanel({ tasks, loading }) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-slate-900 font-medium truncate">
+              <span className="text-xs text-text-primary font-medium truncate">
                 {task.title}
               </span>
             </div>
@@ -913,15 +913,15 @@ function TasksPanel({ tasks, loading }) {
 
               {/* Assigned / Responsible */}
               {(task.responsibleUser || (task.assigned && task.assigned.length > 0)) && (
-                <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-600">
-                  <User size={9} className="text-slate-500" />
+                <span className="inline-flex items-center gap-1 text-xs font-mono text-text-secondary">
+                  <User size={9} className="text-text-muted" />
                   {task.responsibleUser || task.assigned?.join(', ')}
                 </span>
               )}
 
               {/* Partner badge */}
               {task.partner && (
-                <span className="text-xs font-mono text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">
+                <span className="text-xs font-mono text-text-secondary bg-surface-tertiary px-1.5 py-0.5 rounded">
                   {task.partner}
                 </span>
               )}
@@ -929,38 +929,38 @@ function TasksPanel({ tasks, loading }) {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs font-mono text-slate-500">
+            <span className="text-xs font-mono text-text-muted">
               {formatTaskDateTime(task.createdTime)}
             </span>
             {isExpanded ? (
-              <ChevronDown size={12} className="text-slate-500" />
+              <ChevronDown size={12} className="text-text-muted" />
             ) : (
-              <ChevronRight size={12} className="text-slate-500" />
+              <ChevronRight size={12} className="text-text-muted" />
             )}
           </div>
         </div>
 
         {/* Expanded details */}
         {isExpanded && (
-          <div className="px-3 pb-3 pt-0 border-t border-slate-200/60 ml-6">
+          <div className="px-3 pb-3 pt-0 border-t border-border-secondary ml-6">
             <div className="space-y-1.5 mt-2">
               {task.description && (
-                <div className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed bg-white/60 backdrop-blur-xl rounded p-2 max-h-32 overflow-y-auto">
+                <div className="text-xs text-text-secondary whitespace-pre-wrap leading-relaxed bg-surface-primary rounded p-2 max-h-32 overflow-y-auto">
                   {task.description}
                 </div>
               )}
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-mono text-slate-500">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-mono text-text-muted">
                 {task.dueDate && (
-                  <span>Fällig: <span className="text-slate-600">{formatTaskDate(task.dueDate)}</span></span>
+                  <span>Fällig: <span className="text-text-secondary">{formatTaskDate(task.dueDate)}</span></span>
                 )}
                 {task.responsibleUser && (
-                  <span>Verantwortlich: <span className="text-slate-600">{task.responsibleUser}</span></span>
+                  <span>Verantwortlich: <span className="text-text-secondary">{task.responsibleUser}</span></span>
                 )}
                 {task.assigned && task.assigned.length > 0 && (
-                  <span>Zugewiesen: <span className="text-slate-600">{task.assigned.join(', ')}</span></span>
+                  <span>Zugewiesen: <span className="text-text-secondary">{task.assigned.join(', ')}</span></span>
                 )}
                 {task.createdBy && (
-                  <span>Erstellt von: <span className="text-slate-600">{task.createdBy}</span></span>
+                  <span>Erstellt von: <span className="text-text-secondary">{task.createdBy}</span></span>
                 )}
               </div>
             </div>
@@ -973,15 +973,15 @@ function TasksPanel({ tasks, loading }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <ClipboardList size={14} className="text-[#3b82f6]" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <ClipboardList size={14} className="text-[#007AFF]" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Aufgaben
         </h3>
-        <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+        <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
           {tasks.length} gesamt
         </span>
         {openTasks.length > 0 && (
-          <span className="text-xs font-mono text-[#f59e0b] bg-[#f59e0b]/10 px-2 py-0.5 rounded border border-[#f59e0b]/25">
+          <span className="text-xs font-mono text-[#FF9500] bg-[#FF9500]/10 px-2 py-0.5 rounded border border-[#FF9500]/25">
             {openTasks.length} offen
           </span>
         )}
@@ -999,7 +999,7 @@ function TasksPanel({ tasks, loading }) {
         {completedTasks.length > 0 && (
           <>
             {openTasks.length > 0 && (
-              <div className="text-xs font-mono text-slate-500 uppercase tracking-wider pt-2 pb-1">
+              <div className="text-xs font-mono text-text-muted uppercase tracking-wider pt-2 pb-1">
                 Abgeschlossen ({completedTasks.length})
               </div>
             )}
@@ -1017,8 +1017,8 @@ function InstallationPanel({ installation, loading }) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
-        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
-        <span className="text-xs text-slate-500 font-mono">Lade Installationsdaten...</span>
+        <Loader2 size={14} className="text-[#007AFF] animate-spin" />
+        <span className="text-xs text-text-muted font-mono">Lade Installationsdaten...</span>
       </div>
     );
   }
@@ -1034,9 +1034,9 @@ function InstallationPanel({ installation, loading }) {
 
   const getStatusBadge = (status) => {
     const colors = {
-      'Installiert': { bg: '#22c55e15', text: '#22c55e', border: '#22c55e33' },
-      'In Planung': { bg: '#3b82f615', text: '#3b82f6', border: '#3b82f633' },
-      'Abgebrochen': { bg: '#ef444415', text: '#ef4444', border: '#ef444433' },
+      'Installiert': { bg: '#34C75915', text: '#34C759', border: '#34C75933' },
+      'In Planung': { bg: '#007AFF15', text: '#007AFF', border: '#007AFF33' },
+      'Abgebrochen': { bg: '#FF3B3015', text: '#FF3B30', border: '#FF3B3033' },
     };
     const c = colors[status] || { bg: '#64748b15', text: '#64748b', border: '#64748b33' };
     return (
@@ -1055,8 +1055,8 @@ function InstallationPanel({ installation, loading }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <Wrench size={14} className="text-[#3b82f6]" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <Wrench size={14} className="text-[#007AFF]" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Installation
         </h3>
         {installation.status && getStatusBadge(installation.status)}
@@ -1100,9 +1100,9 @@ function InstallationPanel({ installation, loading }) {
           )}
           {installation.remarks && (
             <div className="flex items-start gap-3 py-1.5">
-              <FileText size={14} className="text-slate-500 flex-shrink-0 mt-0.5" />
-              <span className="text-slate-500 text-xs w-32 flex-shrink-0">Bemerkungen</span>
-              <span className="text-slate-600 text-xs whitespace-pre-wrap leading-relaxed">
+              <FileText size={14} className="text-text-muted flex-shrink-0 mt-0.5" />
+              <span className="text-text-muted text-xs w-32 flex-shrink-0">Bemerkungen</span>
+              <span className="text-text-secondary text-xs whitespace-pre-wrap leading-relaxed">
                 {installation.remarks}
               </span>
             </div>
@@ -1117,11 +1117,11 @@ function InstallationPanel({ installation, loading }) {
             href={protocolPdf.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50/80 border border-slate-200/60 text-xs font-mono text-slate-600 hover:border-[#3b82f6] hover:text-slate-900 transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-secondary/80 border border-border-secondary text-xs font-mono text-text-secondary hover:border-[#007AFF] hover:text-text-primary transition-colors"
           >
-            <Download size={12} className="text-[#3b82f6]" />
+            <Download size={12} className="text-[#007AFF]" />
             <span>Installationsprotokoll</span>
-            <span className="text-slate-500">({protocolPdf.filename || 'PDF'})</span>
+            <span className="text-text-muted">({protocolPdf.filename || 'PDF'})</span>
           </a>
         </div>
       )}
@@ -1135,8 +1135,8 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
-        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
-        <span className="text-xs text-slate-500 font-mono">Lade Hardware-Daten...</span>
+        <Loader2 size={14} className="text-[#007AFF] animate-spin" />
+        <span className="text-xs text-text-muted font-mono">Lade Hardware-Daten...</span>
       </div>
     );
   }
@@ -1147,11 +1147,11 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
 
   const statusBadge = (status) => {
     const colors = {
-      'active': { bg: '#22c55e15', text: '#22c55e', border: '#22c55e33', label: 'Aktiv' },
-      'defect': { bg: '#ef444415', text: '#ef4444', border: '#ef444433', label: 'Defekt' },
+      'active': { bg: '#34C75915', text: '#34C759', border: '#34C75933', label: 'Aktiv' },
+      'defect': { bg: '#FF3B3015', text: '#FF3B30', border: '#FF3B3033', label: 'Defekt' },
       'prep/ warehouse': { bg: '#64748b15', text: '#64748b', border: '#64748b33', label: 'Lager' },
-      'out for installation': { bg: '#f59e0b15', text: '#f59e0b', border: '#f59e0b33', label: 'Unterwegs' },
-      'test device': { bg: '#8b5cf615', text: '#8b5cf6', border: '#8b5cf633', label: 'Test' },
+      'out for installation': { bg: '#FF950015', text: '#FF9500', border: '#FF950033', label: 'Unterwegs' },
+      'test device': { bg: '#AF52DE15', text: '#AF52DE', border: '#AF52DE33', label: 'Test' },
     };
     const c = colors[status] || { bg: '#64748b15', text: '#64748b', border: '#64748b33', label: status || '–' };
     return (
@@ -1171,16 +1171,16 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
     if (!info || !info.location) return null;
     const loc = info.location;
     return (
-      <div className="mt-2 bg-blue-50/80 border border-blue-200/50 rounded-md px-2.5 py-1.5">
+      <div className="mt-2 bg-accent-light/80 border border-accent/20/50 rounded-md px-2.5 py-1.5">
         <div className="flex items-center gap-1.5">
-          <MapPinned size={10} className="text-blue-500 flex-shrink-0" />
+          <MapPinned size={10} className="text-accent flex-shrink-0" />
           <span className="text-xs text-blue-700 font-medium">Jetzt bei:</span>
           <span className="text-xs text-blue-800 font-mono">
             {loc.locationName}{loc.city ? ` (${loc.city})` : ''}
           </span>
         </div>
         {info.opsRecord?.status && (
-          <div className="text-xs text-blue-500 mt-0.5 ml-4">
+          <div className="text-xs text-accent mt-0.5 ml-4">
             Status: {info.opsRecord.status} · OPS {info.opsRecord.opsNr || info.opsRecord.opsSn}
           </div>
         )}
@@ -1193,7 +1193,7 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
     return (
       <button
         onClick={() => onShowHistory(snType, snValue, label)}
-        className="mt-1.5 flex items-center gap-1 text-xs text-slate-500 hover:text-blue-500 transition-colors"
+        className="mt-1.5 flex items-center gap-1 text-xs text-text-muted hover:text-accent transition-colors"
         title={`Bewegungshistorie für ${label}`}
       >
         <History size={10} />
@@ -1284,31 +1284,31 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <HardDrive size={14} className="text-[#3b82f6]" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <HardDrive size={14} className="text-[#007AFF]" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Hardware-Set
         </h3>
         {reassignmentLoading && (
-          <Loader2 size={10} className="text-blue-400 animate-spin" />
+          <Loader2 size={10} className="text-accent animate-spin" />
         )}
       </div>
 
       {/* SN Mismatch Warnings */}
       {mismatches.length > 0 && (
-        <div className="mb-3 bg-red-50/80 border border-red-200/60 rounded-lg p-3">
+        <div className="mb-3 bg-status-offline/10/80 border border-status-offline/20/60 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-2">
-            <TriangleAlert size={14} className="text-red-600" />
+            <TriangleAlert size={14} className="text-status-offline" />
             <span className="text-sm font-bold text-red-800">Abweichung</span>
-            <span className="text-xs text-red-500 font-mono">({mismatches.length} {mismatches.length === 1 ? 'Fehler' : 'Fehler'})</span>
+            <span className="text-xs text-status-offline font-mono">({mismatches.length} {mismatches.length === 1 ? 'Fehler' : 'Fehler'})</span>
           </div>
           <div className="space-y-2">
             {mismatches.map((m, i) => (
-              <div key={i} className="text-xs bg-red-100/50 rounded-lg px-3 py-2">
+              <div key={i} className="text-xs bg-status-offline/10/50 rounded-lg px-3 py-2">
                 <div className="text-red-700 font-semibold mb-1">{m.label}</div>
                 <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
-                  <span className="text-red-500 text-xs whitespace-nowrap">{m.source1}:</span>
+                  <span className="text-status-offline text-xs whitespace-nowrap">{m.source1}:</span>
                   <span className="font-mono text-red-800 text-xs break-all">{m.value1}</span>
-                  <span className="text-red-500 text-xs whitespace-nowrap">{m.source2}:</span>
+                  <span className="text-status-offline text-xs whitespace-nowrap">{m.source2}:</span>
                   <span className="font-mono text-red-800 text-xs break-all">{m.value2}</span>
                 </div>
               </div>
@@ -1319,31 +1319,31 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
 
       {/* Cross-reference: Leasing + Installation SNs */}
       {(leasingDisplaySn || installOpsSn) && (
-        <div className="mb-3 bg-slate-50/80 border border-slate-200/40 rounded-lg px-3 py-2">
-          <div className="text-xs font-mono text-slate-500 uppercase mb-1">Abgleich-Referenz</div>
+        <div className="mb-3 bg-surface-secondary/80 border border-border-secondary/40 rounded-lg px-3 py-2">
+          <div className="text-xs font-mono text-text-muted uppercase mb-1">Abgleich-Referenz</div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
             {leasingDisplaySn && (
               <div className="text-xs">
-                <span className="text-slate-500">Leasing-SN: </span>
-                <span className="font-mono text-slate-600">{leasingDisplaySn}</span>
+                <span className="text-text-muted">Leasing-SN: </span>
+                <span className="font-mono text-text-secondary">{leasingDisplaySn}</span>
               </div>
             )}
             {installOpsSn && (
               <div className="text-xs">
-                <span className="text-slate-500">Install-Protokoll OPS: </span>
-                <span className="font-mono text-slate-600">{installOpsSn}</span>
+                <span className="text-text-muted">Install-Protokoll OPS: </span>
+                <span className="font-mono text-text-secondary">{installOpsSn}</span>
               </div>
             )}
             {installation?.simId && (
               <div className="text-xs">
-                <span className="text-slate-500">Install-Protokoll SIM: </span>
-                <span className="font-mono text-slate-600">{installation.simId}</span>
+                <span className="text-text-muted">Install-Protokoll SIM: </span>
+                <span className="font-mono text-text-secondary">{installation.simId}</span>
               </div>
             )}
             {installation?.screenType && (
               <div className="text-xs">
-                <span className="text-slate-500">Install Screen: </span>
-                <span className="font-mono text-slate-600">{installation.screenType} {installation.screenSize || ''}</span>
+                <span className="text-text-muted">Install Screen: </span>
+                <span className="font-mono text-text-secondary">{installation.screenType} {installation.screenSize || ''}</span>
               </div>
             )}
           </div>
@@ -1352,34 +1352,34 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
 
       {/* Reassignment Summary Banner */}
       {hasReassignment && (
-        <div className="mb-3 bg-amber-50/80 border border-amber-200/60 rounded-lg p-3">
+        <div className="mb-3 bg-status-warning/10/80 border border-status-warning/20/60 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-1.5">
-            <ArrowRight size={12} className="text-amber-600" />
+            <ArrowRight size={12} className="text-status-warning" />
             <span className="text-xs font-medium text-amber-800">Hardware umgezogen</span>
           </div>
           <div className="space-y-1">
             {reassignment.opsSn?.location && (
               <div className="text-xs text-amber-700">
-                <span className="text-amber-500">OPS-SN</span>
+                <span className="text-status-warning">OPS-SN</span>
                 <ArrowRight size={9} className="inline mx-1 text-amber-400" />
                 <span className="font-mono">{reassignment.opsSn.location.locationName}</span>
-                {reassignment.opsSn.location.city && <span className="text-amber-500"> ({reassignment.opsSn.location.city})</span>}
+                {reassignment.opsSn.location.city && <span className="text-status-warning"> ({reassignment.opsSn.location.city})</span>}
               </div>
             )}
             {reassignment.displaySn?.location && (
               <div className="text-xs text-amber-700">
-                <span className="text-amber-500">Display-SN</span>
+                <span className="text-status-warning">Display-SN</span>
                 <ArrowRight size={9} className="inline mx-1 text-amber-400" />
                 <span className="font-mono">{reassignment.displaySn.location.locationName}</span>
-                {reassignment.displaySn.location.city && <span className="text-amber-500"> ({reassignment.displaySn.location.city})</span>}
+                {reassignment.displaySn.location.city && <span className="text-status-warning"> ({reassignment.displaySn.location.city})</span>}
               </div>
             )}
             {reassignment.simId?.location && (
               <div className="text-xs text-amber-700">
-                <span className="text-amber-500">SIM-ID</span>
+                <span className="text-status-warning">SIM-ID</span>
                 <ArrowRight size={9} className="inline mx-1 text-amber-400" />
                 <span className="font-mono">{reassignment.simId.location.locationName}</span>
-                {reassignment.simId.location.city && <span className="text-amber-500"> ({reassignment.simId.location.city})</span>}
+                {reassignment.simId.location.city && <span className="text-status-warning"> ({reassignment.simId.location.city})</span>}
               </div>
             )}
           </div>
@@ -1391,22 +1391,22 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
         {hardware.displays.length > 0 ? hardware.displays.map((disp, i) => (
           <div
             key={disp.id || i}
-            className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-purple-200 transition-all"
+            className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-purple-200 transition-all"
             onClick={() => onSelectComponent?.({ type: 'display', id: disp.id })}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <Monitor size={12} className="text-purple-500" />
-                <span className="text-xs font-mono font-medium text-slate-500 uppercase">Display</span>
+                <Monitor size={12} className="text-brand-purple" />
+                <span className="text-xs font-mono font-medium text-text-muted uppercase">Display</span>
               </div>
               {statusBadge(disp.status)}
             </div>
             <div className="space-y-1">
-              {disp.displaySerialNumber && <div className="text-xs"><span className="text-slate-500">SN: </span><span className="font-mono text-slate-700 text-[11px]">{disp.displaySerialNumber}</span></div>}
+              {disp.displaySerialNumber && <div className="text-xs"><span className="text-text-muted">SN: </span><span className="font-mono text-text-primary text-[11px]">{disp.displaySerialNumber}</span></div>}
               {(airtableDisplay?.screen_type || airtableDisplay?.screen_size) && (
-                <div className="text-xs"><span className="text-slate-500">Typ: </span><span className="text-slate-700">{airtableDisplay.screen_size ? `${airtableDisplay.screen_size} ` : ''}{airtableDisplay.screen_type || ''}</span></div>
+                <div className="text-xs"><span className="text-text-muted">Typ: </span><span className="text-text-primary">{airtableDisplay.screen_size ? `${airtableDisplay.screen_size} ` : ''}{airtableDisplay.screen_type || ''}</span></div>
               )}
-              {disp.location && <div className="text-xs"><span className="text-slate-500">Standort: </span><span className="text-slate-700">{disp.location}</span></div>}
+              {disp.location && <div className="text-xs"><span className="text-text-muted">Standort: </span><span className="text-text-primary">{disp.location}</span></div>}
             </div>
             {disp.displaySerialNumber && reassignmentForSn('displaySn', disp.displaySerialNumber)}
             <div onClick={(e) => e.stopPropagation()}>
@@ -1414,10 +1414,10 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             </div>
           </div>
         )) : (
-          <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
-            <Monitor size={16} className="text-slate-300 mb-1" />
-            <span className="text-xs text-slate-400 font-mono">Display</span>
-            <span className="text-[10px] text-slate-300">nicht zugewiesen</span>
+          <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
+            <Monitor size={16} className="text-text-muted mb-1" />
+            <span className="text-xs text-text-muted font-mono">Display</span>
+            <span className="text-[10px] text-text-muted">nicht zugewiesen</span>
           </div>
         )}
 
@@ -1425,26 +1425,26 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
         {hardware.ops.length > 0 ? hardware.ops.map((ops, i) => (
           <div
             key={ops.id || i}
-            className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-blue-200 transition-all"
+            className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-accent/20 transition-all"
             onClick={() => onSelectComponent?.({ type: 'ops', id: ops.id })}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <Cpu size={12} className="text-blue-500" />
-                <span className="text-xs font-mono font-medium text-slate-500 uppercase">OPS Player</span>
+                <Cpu size={12} className="text-accent" />
+                <span className="text-xs font-mono font-medium text-text-muted uppercase">OPS Player</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {ops._enriched && (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-mono text-blue-600 bg-blue-50 border border-blue-200/50">NocoDB</span>
+                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-mono text-accent bg-accent-light border border-accent/20/50">NocoDB</span>
                 )}
                 {statusBadge(ops.status)}
               </div>
             </div>
             <div className="space-y-1">
-              {ops.opsNr && <div className="text-xs"><span className="text-slate-500">Nr: </span><span className="font-mono text-slate-700">{ops.opsNr}</span></div>}
-              {ops.opsSn && <div className="text-xs"><span className="text-slate-500">SN: </span><span className="font-mono text-slate-700 text-[11px]">{ops.opsSn}</span></div>}
-              {ops.hardwareType && <div className="text-xs"><span className="text-slate-500">Typ: </span><span className="text-slate-700">{ops.hardwareType}</span></div>}
-              {ops.nocoKundenNr && <div className="text-xs"><span className="text-slate-500">Kunden-Nr: </span><span className="font-mono text-slate-700">{ops.nocoKundenNr}</span></div>}
+              {ops.opsNr && <div className="text-xs"><span className="text-text-muted">Nr: </span><span className="font-mono text-text-primary">{ops.opsNr}</span></div>}
+              {ops.opsSn && <div className="text-xs"><span className="text-text-muted">SN: </span><span className="font-mono text-text-primary text-[11px]">{ops.opsSn}</span></div>}
+              {ops.hardwareType && <div className="text-xs"><span className="text-text-muted">Typ: </span><span className="text-text-primary">{ops.hardwareType}</span></div>}
+              {ops.nocoKundenNr && <div className="text-xs"><span className="text-text-muted">Kunden-Nr: </span><span className="font-mono text-text-primary">{ops.nocoKundenNr}</span></div>}
             </div>
             {reassignmentForSn('opsSn', ops.opsSn)}
             <div onClick={(e) => e.stopPropagation()}>
@@ -1452,23 +1452,23 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             </div>
           </div>
         )) : installation?.opsNr ? (
-          <div className="bg-amber-50/60 border border-amber-200/40 rounded-lg p-3 min-h-[80px]">
+          <div className="bg-status-warning/10/60 border border-status-warning/20/40 rounded-lg p-3 min-h-[80px]">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <Cpu size={12} className="text-amber-500" />
-                <span className="text-xs font-mono font-medium text-amber-600 uppercase">OPS Player</span>
+                <Cpu size={12} className="text-status-warning" />
+                <span className="text-xs font-mono font-medium text-status-warning uppercase">OPS Player</span>
               </div>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-100 text-amber-700 border border-amber-200">aus Protokoll</span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-status-warning/10 text-amber-700 border border-status-warning/20">aus Protokoll</span>
             </div>
             <div className="space-y-1">
-              <div className="text-xs"><span className="text-amber-600">Nr: </span><span className="font-mono text-amber-800">{installation.opsNr}</span></div>
+              <div className="text-xs"><span className="text-status-warning">Nr: </span><span className="font-mono text-amber-800">{installation.opsNr}</span></div>
             </div>
           </div>
         ) : (
-          <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
-            <Cpu size={16} className="text-slate-300 mb-1" />
-            <span className="text-xs text-slate-400 font-mono">OPS Player</span>
-            <span className="text-[10px] text-slate-300">nicht zugewiesen</span>
+          <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
+            <Cpu size={16} className="text-text-muted mb-1" />
+            <span className="text-xs text-text-muted font-mono">OPS Player</span>
+            <span className="text-[10px] text-text-muted">nicht zugewiesen</span>
           </div>
         )}
 
@@ -1476,17 +1476,17 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
         {hardware.sims.length > 0 ? hardware.sims.map((sim, i) => (
           <div
             key={sim.id || i}
-            className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-green-200 transition-all"
+            className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-3 cursor-pointer hover:ring-2 hover:ring-green-200 transition-all"
             onClick={() => onSelectComponent?.({ type: 'sim', id: sim.id })}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <CardSim size={12} className="text-green-500" />
-                <span className="text-xs font-mono font-medium text-slate-500 uppercase">SIM-Karte</span>
+                <CardSim size={12} className="text-status-online" />
+                <span className="text-xs font-mono font-medium text-text-muted uppercase">SIM-Karte</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {sim._source === 'nocodb' && (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-mono text-blue-600 bg-blue-50 border border-blue-200/50">NocoDB</span>
+                  <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-mono text-accent bg-accent-light border border-accent/20/50">NocoDB</span>
                 )}
                 {statusBadge(sim.status)}
               </div>
@@ -1494,16 +1494,16 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             <div className="space-y-1">
               {sim.simId && (
                 <div className="text-xs">
-                  <span className="text-slate-500">ICCID: </span>
+                  <span className="text-text-muted">ICCID: </span>
                   {sim.simIdImprecise ? (
-                    <span className="text-amber-500 text-xs" title="ICCID ungenau – Airtable speichert als Zahl (Präzisionsverlust)">⚠ ungenau</span>
+                    <span className="text-status-warning text-xs" title="ICCID ungenau – Airtable speichert als Zahl (Präzisionsverlust)">⚠ ungenau</span>
                   ) : (
-                    <span className="font-mono text-slate-700 text-[11px]">{sim.simId}</span>
+                    <span className="font-mono text-text-primary text-[11px]">{sim.simId}</span>
                   )}
                 </div>
               )}
-              {sim.activateDate && <div className="text-xs"><span className="text-slate-500">Aktiv seit: </span><span className="font-mono text-slate-700">{new Date(sim.activateDate).toLocaleDateString('de-DE')}</span></div>}
-              {sim.kundenId && <div className="text-xs"><span className="text-slate-500">Kunden-Nr: </span><span className="font-mono text-slate-700">{sim.kundenId}</span></div>}
+              {sim.activateDate && <div className="text-xs"><span className="text-text-muted">Aktiv seit: </span><span className="font-mono text-text-primary">{new Date(sim.activateDate).toLocaleDateString('de-DE')}</span></div>}
+              {sim.kundenId && <div className="text-xs"><span className="text-text-muted">Kunden-Nr: </span><span className="font-mono text-text-primary">{sim.kundenId}</span></div>}
             </div>
             {sim.simId && !sim.simIdImprecise && reassignmentForSn('simId', sim.simId)}
             <div onClick={(e) => e.stopPropagation()}>
@@ -1511,23 +1511,23 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
             </div>
           </div>
         )) : installation?.simId ? (
-          <div className="bg-amber-50/60 border border-amber-200/40 rounded-lg p-3 min-h-[80px]">
+          <div className="bg-status-warning/10/60 border border-status-warning/20/40 rounded-lg p-3 min-h-[80px]">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <CardSim size={12} className="text-amber-500" />
-                <span className="text-xs font-mono font-medium text-amber-600 uppercase">SIM-Karte</span>
+                <CardSim size={12} className="text-status-warning" />
+                <span className="text-xs font-mono font-medium text-status-warning uppercase">SIM-Karte</span>
               </div>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-100 text-amber-700 border border-amber-200">aus Protokoll</span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-status-warning/10 text-amber-700 border border-status-warning/20">aus Protokoll</span>
             </div>
             <div className="space-y-1">
-              <div className="text-xs"><span className="text-amber-600">ICCID: </span><span className="font-mono text-amber-800 text-[11px]">{installation.simId}</span></div>
+              <div className="text-xs"><span className="text-status-warning">ICCID: </span><span className="font-mono text-amber-800 text-[11px]">{installation.simId}</span></div>
             </div>
           </div>
         ) : (
-          <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
-            <CardSim size={16} className="text-slate-300 mb-1" />
-            <span className="text-xs text-slate-400 font-mono">SIM-Karte</span>
-            <span className="text-[10px] text-slate-300">nicht zugewiesen</span>
+          <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
+            <CardSim size={16} className="text-text-muted mb-1" />
+            <span className="text-xs text-text-muted font-mono">SIM-Karte</span>
+            <span className="text-[10px] text-text-muted">nicht zugewiesen</span>
           </div>
         )}
 
@@ -1541,32 +1541,32 @@ function HardwareSetPanel({ hardware, loading, reassignment, reassignmentLoading
 
           if (hasMountData) {
             return (
-              <div className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-3">
+              <div className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5">
-                    <Grip size={12} className="text-orange-500" />
-                    <span className="text-xs font-mono font-medium text-slate-500 uppercase">Halterung</span>
+                    <Grip size={12} className="text-status-warning" />
+                    <span className="text-xs font-mono font-medium text-text-muted uppercase">Halterung</span>
                   </div>
                   {mountType && (
                     <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium"
-                      style={{ backgroundColor: '#f59e0b15', color: '#f59e0b', border: '1px solid #f59e0b33' }}>
+                      style={{ backgroundColor: '#FF950015', color: '#FF9500', border: '1px solid #FF950033' }}>
                       {mountType}
                     </span>
                   )}
                 </div>
                 <div className="space-y-1">
-                  {screenInfo && <div className="text-xs"><span className="text-slate-500">Screen: </span><span className="text-slate-700">{screenInfo}</span></div>}
-                  {integrator && <div className="text-xs"><span className="text-slate-500">Integrator: </span><span className="text-slate-700">{integrator}</span></div>}
-                  {installDate && <div className="text-xs"><span className="text-slate-500">Aufbau: </span><span className="font-mono text-slate-700">{new Date(installDate).toLocaleDateString('de-DE')}</span></div>}
+                  {screenInfo && <div className="text-xs"><span className="text-text-muted">Screen: </span><span className="text-text-primary">{screenInfo}</span></div>}
+                  {integrator && <div className="text-xs"><span className="text-text-muted">Integrator: </span><span className="text-text-primary">{integrator}</span></div>}
+                  {installDate && <div className="text-xs"><span className="text-text-muted">Aufbau: </span><span className="font-mono text-text-primary">{new Date(installDate).toLocaleDateString('de-DE')}</span></div>}
                 </div>
               </div>
             );
           }
           return (
-            <div className="bg-slate-50/40 border border-dashed border-slate-200/60 rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
-              <Grip size={16} className="text-slate-300 mb-1" />
-              <span className="text-xs text-slate-400 font-mono">Halterung</span>
-              <span className="text-[10px] text-slate-300">keine Daten</span>
+            <div className="bg-surface-secondary/40 border border-dashed border-border-secondary rounded-lg p-3 flex flex-col items-center justify-center text-center min-h-[80px]">
+              <Grip size={16} className="text-text-muted mb-1" />
+              <span className="text-xs text-text-muted font-mono">Halterung</span>
+              <span className="text-[10px] text-text-muted">keine Daten</span>
             </div>
           );
         })()}
@@ -1599,10 +1599,10 @@ function HardwareHistoryModal({ isOpen, onClose, snType, snValue, label }) {
 
   const typeIcon = (type) => {
     switch (type) {
-      case 'assignment': return <MapPinned size={11} className="text-blue-500" />;
-      case 'installed': return <ArrowRight size={11} className="text-green-500" />;
-      case 'removed': return <ArrowRight size={11} className="text-red-400 rotate-180" />;
-      default: return <Circle size={11} className="text-slate-500" />;
+      case 'assignment': return <MapPinned size={11} className="text-accent" />;
+      case 'installed': return <ArrowRight size={11} className="text-status-online" />;
+      case 'removed': return <ArrowRight size={11} className="text-status-offline rotate-180" />;
+      default: return <Circle size={11} className="text-text-muted" />;
     }
   };
 
@@ -1617,19 +1617,19 @@ function HardwareHistoryModal({ isOpen, onClose, snType, snValue, label }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md mx-4 max-h-[80vh] flex flex-col">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-surface-primary rounded-2xl shadow-xl border border-border-secondary w-full max-w-md mx-4 max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-secondary">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-              <History size={14} className="text-[#3b82f6]" />
+            <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+              <History size={14} className="text-[#007AFF]" />
               Hardware-Historie
             </h3>
-            <p className="text-xs text-slate-500 font-mono mt-0.5">{label}</p>
+            <p className="text-xs text-text-muted font-mono mt-0.5">{label}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-            <X size={16} className="text-slate-500" />
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors">
+            <X size={16} className="text-text-muted" />
           </button>
         </div>
 
@@ -1637,46 +1637,46 @@ function HardwareHistoryModal({ isOpen, onClose, snType, snValue, label }) {
         <div className="flex-1 overflow-y-auto p-5">
           {loading ? (
             <div className="flex items-center gap-2 py-8 justify-center">
-              <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
-              <span className="text-xs text-slate-500 font-mono">Lade Historie...</span>
+              <Loader2 size={14} className="text-[#007AFF] animate-spin" />
+              <span className="text-xs text-text-muted font-mono">Lade Historie...</span>
             </div>
           ) : timeline.length === 0 ? (
             <div className="text-center py-8">
-              <History size={20} className="text-slate-500 mx-auto mb-2" />
-              <p className="text-xs text-slate-500">Keine Bewegungshistorie gefunden</p>
+              <History size={20} className="text-text-muted mx-auto mb-2" />
+              <p className="text-xs text-text-muted">Keine Bewegungshistorie gefunden</p>
             </div>
           ) : (
             <div className="space-y-0">
               {timeline.map((entry, i) => (
                 <div key={i} className={`flex gap-3 pb-3 ${i < timeline.length - 1 ? 'border-l-2 ml-[5px] pl-4 ' + typeBg(entry.type) : 'ml-[5px] pl-4'}`}>
-                  <div className="flex-shrink-0 -ml-[21px] mt-0.5 bg-white p-0.5 rounded-full">
+                  <div className="flex-shrink-0 -ml-[21px] mt-0.5 bg-surface-primary p-0.5 rounded-full">
                     {typeIcon(entry.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-medium text-slate-700 truncate">
+                      <span className="text-xs font-medium text-text-primary truncate">
                         {entry.locationName}
                       </span>
                       {entry.city && (
-                        <span className="text-xs text-slate-500">{entry.city}</span>
+                        <span className="text-xs text-text-muted">{entry.city}</span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">
+                    <div className="text-xs text-text-muted mt-0.5">
                       {entry.detail}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
                       {entry.date && (
-                        <span className="text-xs font-mono text-slate-500">
+                        <span className="text-xs font-mono text-text-muted">
                           {fmtDate(entry.date)}
                         </span>
                       )}
                       {entry.liveSince && !entry.date && (
-                        <span className="text-xs font-mono text-slate-500">
+                        <span className="text-xs font-mono text-text-muted">
                           Live seit {fmtDate(entry.liveSince)}
                         </span>
                       )}
                       {entry.status && (
-                        <span className="text-xs font-mono text-slate-500 bg-slate-50 px-1 py-0.5 rounded">
+                        <span className="text-xs font-mono text-text-muted bg-surface-secondary px-1 py-0.5 rounded">
                           {entry.status}
                         </span>
                       )}
@@ -1698,8 +1698,8 @@ function LeasingPanel({ leaseData, loading, canViewFinancial }) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
-        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
-        <span className="text-xs text-slate-500 font-mono">Lade Leasing-Daten...</span>
+        <Loader2 size={14} className="text-[#007AFF] animate-spin" />
+        <span className="text-xs text-text-muted font-mono">Lade Leasing-Daten...</span>
       </div>
     );
   }
@@ -1739,13 +1739,13 @@ function LeasingPanel({ leaseData, loading, canViewFinancial }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <Landmark size={14} className="text-[#3b82f6]" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <Landmark size={14} className="text-[#007AFF]" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Leasing
         </h3>
         {bank?.contractStatus && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-medium"
-            style={{ backgroundColor: '#22c55e15', color: '#22c55e', border: '1px solid #22c55e33' }}>
+            style={{ backgroundColor: '#34C75915', color: '#34C759', border: '1px solid #34C75933' }}>
             {bank.contractStatus}
           </span>
         )}
@@ -1786,15 +1786,15 @@ function LeasingPanel({ leaseData, loading, canViewFinancial }) {
       {progress !== null && (
         <div className="mt-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-slate-500 font-mono">Laufzeit-Fortschritt</span>
-            <span className="text-xs text-slate-500 font-mono font-medium">{progress}%</span>
+            <span className="text-xs text-text-muted font-mono">Laufzeit-Fortschritt</span>
+            <span className="text-xs text-text-muted font-mono font-medium">{progress}%</span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-1.5">
+          <div className="w-full bg-surface-secondary rounded-full h-1.5">
             <div
               className="h-1.5 rounded-full transition-all"
               style={{
                 width: `${progress}%`,
-                backgroundColor: progress > 80 ? '#f59e0b' : '#3b82f6',
+                backgroundColor: progress > 80 ? '#FF9500' : '#007AFF',
               }}
             />
           </div>
@@ -1810,8 +1810,8 @@ function SwapHistoryPanel({ swaps, deinstalls, loading }) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
-        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
-        <span className="text-xs text-slate-500 font-mono">Lade Hardware-Historie...</span>
+        <Loader2 size={14} className="text-[#007AFF] animate-spin" />
+        <span className="text-xs text-text-muted font-mono">Lade Hardware-Historie...</span>
       </div>
     );
   }
@@ -1826,16 +1826,16 @@ function SwapHistoryPanel({ swaps, deinstalls, loading }) {
   };
 
   const statusColors = {
-    'Geplant': { bg: '#3b82f615', text: '#3b82f6', border: '#3b82f633' },
-    'In Bearbeitung': { bg: '#f59e0b15', text: '#f59e0b', border: '#f59e0b33' },
-    'Abgeschlossen': { bg: '#22c55e15', text: '#22c55e', border: '#22c55e33' },
+    'Geplant': { bg: '#007AFF15', text: '#007AFF', border: '#007AFF33' },
+    'In Bearbeitung': { bg: '#FF950015', text: '#FF9500', border: '#FF950033' },
+    'Abgeschlossen': { bg: '#34C75915', text: '#34C759', border: '#34C75933' },
   };
 
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <ArrowLeftRight size={14} className="text-[#3b82f6]" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <ArrowLeftRight size={14} className="text-[#007AFF]" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Hardware-Historie
         </h3>
       </div>
@@ -1843,27 +1843,27 @@ function SwapHistoryPanel({ swaps, deinstalls, loading }) {
       {/* Swaps */}
       {hasSwaps && (
         <div className="mb-3">
-          <div className="text-xs font-mono font-medium text-slate-500 uppercase mb-2">Tausch-Aufträge</div>
+          <div className="text-xs font-mono font-medium text-text-muted uppercase mb-2">Tausch-Aufträge</div>
           <div className="space-y-2">
             {swaps.map((swap) => {
               const sc = statusColors[swap.status] || statusColors['Geplant'];
               return (
-                <div key={swap.id} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-2.5">
+                <div key={swap.id} className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-2.5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono font-medium text-slate-700">{swap.swapId || swap.id?.substring(0, 8)}</span>
+                    <span className="text-xs font-mono font-medium text-text-primary">{swap.swapId || swap.id?.substring(0, 8)}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 font-mono">{fmtDate(swap.swapDate)}</span>
+                      <span className="text-xs text-text-muted font-mono">{fmtDate(swap.swapDate)}</span>
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium"
                         style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>
                         {swap.status}
                       </span>
                     </div>
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-text-muted">
                     {swap.swapType?.join(', ')}{swap.swapReason ? ` — ${swap.swapReason}` : ''}
                   </div>
                   {swap.defectDescription && (
-                    <div className="text-xs text-slate-500 mt-1">{swap.defectDescription}</div>
+                    <div className="text-xs text-text-muted mt-1">{swap.defectDescription}</div>
                   )}
                 </div>
               );
@@ -1875,27 +1875,27 @@ function SwapHistoryPanel({ swaps, deinstalls, loading }) {
       {/* Deinstalls */}
       {hasDeinstalls && (
         <div>
-          <div className="text-xs font-mono font-medium text-slate-500 uppercase mb-2">Deinstallationen</div>
+          <div className="text-xs font-mono font-medium text-text-muted uppercase mb-2">Deinstallationen</div>
           <div className="space-y-2">
             {deinstalls.map((d) => {
               const sc = statusColors[d.status] || statusColors['Geplant'];
               return (
-                <div key={d.id} className="bg-slate-50/60 border border-slate-200/40 rounded-lg p-2.5">
+                <div key={d.id} className="bg-surface-secondary/60 border border-border-secondary/40 rounded-lg p-2.5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono font-medium text-slate-700">{d.deinstallId || d.id?.substring(0, 8)}</span>
+                    <span className="text-xs font-mono font-medium text-text-primary">{d.deinstallId || d.id?.substring(0, 8)}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 font-mono">{fmtDate(d.deinstallDate)}</span>
+                      <span className="text-xs text-text-muted font-mono">{fmtDate(d.deinstallDate)}</span>
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium"
                         style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>
                         {d.status}
                       </span>
                     </div>
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-text-muted">
                     {d.reason}{d.hardwareCondition ? ` — Zustand: ${d.hardwareCondition}` : ''}
                   </div>
                   {d.conditionDescription && (
-                    <div className="text-xs text-slate-500 mt-1">{d.conditionDescription}</div>
+                    <div className="text-xs text-text-muted mt-1">{d.conditionDescription}</div>
                   )}
                 </div>
               );
@@ -1915,8 +1915,8 @@ function CommunicationsPanel({ communications, loading }) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
-        <Loader2 size={14} className="text-[#3b82f6] animate-spin" />
-        <span className="text-xs text-slate-500 font-mono">Lade Kommunikation...</span>
+        <Loader2 size={14} className="text-[#007AFF] animate-spin" />
+        <span className="text-xs text-text-muted font-mono">Lade Kommunikation...</span>
       </div>
     );
   }
@@ -1952,18 +1952,18 @@ function CommunicationsPanel({ communications, loading }) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Mail size={14} className="text-[#3b82f6]" />
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+          <Mail size={14} className="text-[#007AFF]" />
+          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
             Kommunikation
           </h3>
-          <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-1.5 py-0.5 rounded">
+          <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
             {communications.length}
           </span>
         </div>
         {sorted.length > 3 && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-xs text-[#3b82f6] hover:text-[#2563eb] font-medium"
+            className="text-xs text-[#007AFF] hover:text-[#2563eb] font-medium"
           >
             {expanded ? 'Weniger' : `Alle ${sorted.length} anzeigen`}
           </button>
@@ -1972,31 +1972,31 @@ function CommunicationsPanel({ communications, loading }) {
 
       <div className="space-y-2">
         {shown.map((comm) => (
-          <div key={comm.id} className="flex items-start gap-3 p-2.5 rounded-lg bg-slate-50/60 border border-slate-200/40">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/80 border border-slate-200/40 shrink-0 text-sm">
+          <div key={comm.id} className="flex items-start gap-3 p-2.5 rounded-lg bg-surface-secondary/60 border border-border-secondary/40">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-surface-primary border border-border-secondary/40 shrink-0 text-sm">
               {channelIcon(comm.channel)}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-slate-900 truncate">
+                  <span className="text-xs font-medium text-text-primary truncate">
                     {comm.recipientName || comm.sender || 'Unbekannt'}
                   </span>
                   <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-                    comm.direction === 'Outbound' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'
+                    comm.direction === 'Outbound' ? 'bg-accent-light text-accent' : 'bg-status-online/10 text-status-online'
                   }`}>
                     {comm.direction === 'Outbound' ? '→ Ausgehend' : '← Eingehend'}
                   </span>
                 </div>
-                <span className="text-xs font-mono text-slate-500 shrink-0">
+                <span className="text-xs font-mono text-text-muted shrink-0">
                   {formatTs(comm.timestamp)}
                 </span>
               </div>
               {comm.subject && (
-                <p className="text-xs text-slate-600 truncate mt-0.5">{comm.subject}</p>
+                <p className="text-xs text-text-secondary truncate mt-0.5">{comm.subject}</p>
               )}
               {comm.message && (
-                <p className="text-xs text-slate-500 truncate mt-0.5">{comm.message}</p>
+                <p className="text-xs text-text-muted truncate mt-0.5">{comm.message}</p>
               )}
             </div>
           </div>
@@ -2069,20 +2069,20 @@ function VistarPanel({ data, loading }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <TrendingUp size={14} className="text-[#8b5cf6]" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <TrendingUp size={14} className="text-[#AF52DE]" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Programmatic Performance
         </h3>
-        <span className="text-xs font-mono text-[#8b5cf6] bg-[#8b5cf6]/10 px-2 py-0.5 rounded-full border border-[#8b5cf6]/25">
+        <span className="text-xs font-mono text-[#AF52DE] bg-[#AF52DE]/10 px-2 py-0.5 rounded-full border border-[#AF52DE]/25">
           Vistar SSP · 30 Tage
         </span>
         {!hasData && !loading && (
-          <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+          <span className="text-xs font-mono text-text-muted bg-surface-secondary px-2 py-0.5 rounded-full">
             API nicht verbunden
           </span>
         )}
         {loading && (
-          <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-500">
+          <span className="inline-flex items-center gap-1 text-xs font-mono text-text-muted">
             <Loader2 size={10} className="animate-spin" /> Lade...
           </span>
         )}
@@ -2090,59 +2090,59 @@ function VistarPanel({ data, loading }) {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
-        <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
-          <div className={`text-lg font-mono font-bold ${hasData ? 'text-[#8b5cf6]' : 'text-slate-500'}`}>
+        <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
+          <div className={`text-lg font-mono font-bold ${hasData ? 'text-[#AF52DE]' : 'text-text-muted'}`}>
             {hasData ? formatNum(totals.impressions) : '–'}
           </div>
-          <div className="text-xs text-slate-500 mt-0.5">Impressions</div>
+          <div className="text-xs text-text-muted mt-0.5">Impressions</div>
         </div>
-        <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
-          <div className={`text-lg font-mono font-bold ${hasData ? 'text-slate-700' : 'text-slate-500'}`}>
+        <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
+          <div className={`text-lg font-mono font-bold ${hasData ? 'text-text-primary' : 'text-text-muted'}`}>
             {hasData ? formatNum(totals.spots) : '–'}
           </div>
-          <div className="text-xs text-slate-500 mt-0.5">Ad Plays</div>
+          <div className="text-xs text-text-muted mt-0.5">Ad Plays</div>
         </div>
         {canViewRevenue ? (
-          <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
-            <div className={`text-lg font-mono font-bold ${hasData ? 'text-emerald-600' : 'text-slate-500'}`}>
+          <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
+            <div className={`text-lg font-mono font-bold ${hasData ? 'text-emerald-600' : 'text-text-muted'}`}>
               {hasData ? `${totals.revenue.toFixed(2)}€` : '–'}
             </div>
-            <div className="text-xs text-slate-500 mt-0.5">Revenue</div>
+            <div className="text-xs text-text-muted mt-0.5">Revenue</div>
           </div>
         ) : (
-          <div className="bg-slate-50/80 rounded-lg p-2.5 text-center flex items-center justify-center">
-            <div className="flex items-center gap-1 text-slate-500">
+          <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center flex items-center justify-center">
+            <div className="flex items-center gap-1 text-text-muted">
               <Lock size={12} />
               <span className="text-xs">Revenue</span>
             </div>
           </div>
         )}
         {canViewRevenue ? (
-          <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
-            <div className={`text-lg font-mono font-bold ${hasData ? 'text-slate-600' : 'text-slate-500'}`}>
+          <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
+            <div className={`text-lg font-mono font-bold ${hasData ? 'text-text-secondary' : 'text-text-muted'}`}>
               {hasData ? `${avgECPM.toFixed(2)}€` : '–'}
             </div>
-            <div className="text-xs text-slate-500 mt-0.5">Ø eCPM</div>
+            <div className="text-xs text-text-muted mt-0.5">Ø eCPM</div>
           </div>
         ) : (
-          <div className="bg-slate-50/80 rounded-lg p-2.5 text-center flex items-center justify-center">
-            <div className="flex items-center gap-1 text-slate-500">
+          <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center flex items-center justify-center">
+            <div className="flex items-center gap-1 text-text-muted">
               <Lock size={12} />
               <span className="text-xs">eCPM</span>
             </div>
           </div>
         )}
-        <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
-          <div className={`text-lg font-mono font-bold ${hasData ? 'text-slate-600' : 'text-slate-500'}`}>
-            {hasData ? <>{activeDays}<span className="text-xs text-slate-500">/{totalDays}</span></> : '–'}
+        <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
+          <div className={`text-lg font-mono font-bold ${hasData ? 'text-text-secondary' : 'text-text-muted'}`}>
+            {hasData ? <>{activeDays}<span className="text-xs text-text-muted">/{totalDays}</span></> : '–'}
           </div>
-          <div className="text-xs text-slate-500 mt-0.5">Active Days</div>
+          <div className="text-xs text-text-muted mt-0.5">Active Days</div>
         </div>
       </div>
 
       {/* Daily bar chart or placeholder */}
       <div>
-        <div className="text-xs font-mono text-slate-500 mb-1.5">
+        <div className="text-xs font-mono text-text-muted mb-1.5">
           {hasData ? `Spots pro Tag (Ø ${avgSpotsPerDay}/Tag)` : 'Spots pro Tag'}
         </div>
         <div className="flex items-end gap-[2px] h-[60px]">
@@ -2156,7 +2156,7 @@ function VistarPanel({ data, loading }) {
                   className="flex-1 rounded-t-sm transition-all hover:opacity-80"
                   style={{
                     height: `${h}px`,
-                    backgroundColor: day.spots > 0 ? '#8b5cf6' : '#e2e8f0',
+                    backgroundColor: day.spots > 0 ? '#AF52DE' : '#e2e8f0',
                     opacity: day.spots > 0 ? 0.7 : 0.3,
                   }}
                   title={`${day.label}: ${day.spots} Spots, ${formatNum(day.impressions)} Impr.${canViewRevenue ? `, ${day.revenue.toFixed(2)}€` : ''}`}
@@ -2179,12 +2179,12 @@ function VistarPanel({ data, loading }) {
           )}
         </div>
         {dailyChart.length > 0 ? (
-          <div className="flex justify-between mt-1 text-xs font-mono text-slate-500">
+          <div className="flex justify-between mt-1 text-xs font-mono text-text-muted">
             <span>{dailyChart[0]?.label}</span>
             <span>{dailyChart[dailyChart.length - 1]?.label}</span>
           </div>
         ) : (
-          <div className="text-center mt-2 text-xs font-mono text-slate-500">
+          <div className="text-center mt-2 text-xs font-mono text-text-muted">
             Vistar API-Credentials in Netlify hinterlegen um Live-Daten zu sehen
           </div>
         )}
@@ -2210,17 +2210,17 @@ class DisplayDetailErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
-            <AlertTriangle size={32} className="text-red-500 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-slate-800 mb-2">Display-Detail Fehler</h3>
-            <p className="text-xs text-slate-500 mb-3">Ein Fehler ist beim Rendern aufgetreten:</p>
-            <pre className="text-xs bg-red-50 text-red-700 p-3 rounded-lg text-left overflow-auto max-h-32 mb-4 font-mono">
+        <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center">
+          <div className="bg-surface-primary rounded-2xl shadow-xl p-8 max-w-md text-center">
+            <AlertTriangle size={32} className="text-status-offline mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-text-primary mb-2">Display-Detail Fehler</h3>
+            <p className="text-xs text-text-muted mb-3">Ein Fehler ist beim Rendern aufgetreten:</p>
+            <pre className="text-xs bg-status-offline/10 text-red-700 p-3 rounded-lg text-left overflow-auto max-h-32 mb-4 font-mono">
               {this.state.error?.message || 'Unbekannter Fehler'}
             </pre>
             <button
               onClick={this.props.onClose}
-              className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700"
+              className="px-4 py-2 bg-surface-primary text-white rounded-lg text-sm font-medium hover:bg-surface-tertiary"
             >
               Schließen
             </button>
@@ -2458,10 +2458,10 @@ function DisplayDetailInner({ display, onClose }) {
   const statusLabel = getStatusLabel(display.status);
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-start justify-center pt-8 px-4 overflow-y-auto">
-      <div className="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-2xl shadow-black/10 w-full max-w-4xl mb-12 animate-fade-in">
+    <div className="fixed inset-0 bg-black/20 z-50 flex items-start justify-center pt-8 px-4 overflow-y-auto">
+      <div className="bg-surface-primary2xl border border-white/60 rounded-2xl shadow-2xl shadow-black/10 w-full max-w-4xl mb-12 animate-fade-in">
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-slate-200/60">
+        <div className="flex items-start justify-between p-5 border-b border-border-secondary">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span
@@ -2487,31 +2487,31 @@ function DisplayDetailInner({ display, onClose }) {
               )}
             </div>
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-mono font-bold text-slate-900">
+              <h2 className="text-lg font-mono font-bold text-text-primary">
                 {display.displayId}
               </h2>
               {stammdaten?.['JET ID'] && (
-                <span className="text-xs font-mono bg-[#3b82f6]/15 text-[#3b82f6] px-2.5 py-1 rounded-full border border-[#3b82f6]/25 font-bold">
+                <span className="text-xs font-mono bg-[#007AFF]/15 text-[#007AFF] px-2.5 py-1 rounded-full border border-[#007AFF]/25 font-bold">
                   JET {stammdaten['JET ID']}
                 </span>
               )}
             </div>
-            <p className="text-sm text-slate-600 mt-0.5">
+            <p className="text-sm text-text-secondary mt-0.5">
               {stammdaten?.['Location Name'] || display.displayName || display.locationName || 'Unbekannter Standort'}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors"
+            className="p-1.5 rounded-md hover:bg-surface-secondary/60 text-text-muted hover:text-text-primary transition-colors"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Top section: Info + Summary stats side by side */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 border-b border-slate-200/60">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 border-b border-border-secondary">
           {/* Info Grid */}
-          <div className="lg:col-span-2 p-5 border-b lg:border-b-0 lg:border-r border-slate-200/60">
+          <div className="lg:col-span-2 p-5 border-b lg:border-b-0 lg:border-r border-border-secondary">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
               <div>
                 <InfoRow icon={Monitor} label="Display ID" value={display.displayId} mono />
@@ -2525,13 +2525,13 @@ function DisplayDetailInner({ display, onClose }) {
                 )}
                 {display.geoLat && display.geoLng && (
                   <div className="flex items-center gap-3 py-1.5">
-                    <MapPin size={14} className="text-slate-500 flex-shrink-0" />
-                    <span className="text-slate-500 text-xs w-32 flex-shrink-0">Koordinaten</span>
+                    <MapPin size={14} className="text-text-muted flex-shrink-0" />
+                    <span className="text-text-muted text-xs w-32 flex-shrink-0">Koordinaten</span>
                     <a
                       href={`https://www.google.com/maps?q=${display.geoLat},${display.geoLng}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 font-mono"
+                      className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent font-mono"
                     >
                       <ExternalLink size={10} />
                       {display.geoLat.toFixed(4)}, {display.geoLng.toFixed(4)}
@@ -2555,8 +2555,8 @@ function DisplayDetailInner({ display, onClose }) {
             </div>
             {/* ── Screen-Daten & Impressions ── */}
             {(display.venueType || display.floorCpm != null || display.dvacDay != null || display.screenWidthPx) && (
-              <div className="mt-3 pt-3 border-t border-slate-100">
-                <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Screen-Daten</div>
+              <div className="mt-3 pt-3 border-t border-border-secondary">
+                <div className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">Screen-Daten</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-0">
                   {display.venueType && (
                     <InfoRow icon={Monitor} label="Venue Type" value={display.venueType} />
@@ -2594,34 +2594,34 @@ function DisplayDetailInner({ display, onClose }) {
                 </div>
                 {/* dVAC & Impressions */}
                 {(display.dvacDay != null || display.dvacWeek != null || display.dvacMonth != null) && (
-                  <div className="mt-2 pt-2 border-t border-slate-50">
-                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">dVAC & Impressions (dVAC × 6)</div>
+                  <div className="mt-2 pt-2 border-t border-border-secondary">
+                    <div className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">dVAC & Impressions (dVAC × 6)</div>
                     <div className="grid grid-cols-3 gap-3">
                       {display.dvacDay != null && (
-                        <div className="bg-blue-50/60 rounded-lg p-2.5 text-center">
+                        <div className="bg-accent-light/60 rounded-lg p-2.5 text-center">
                           <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsDay?.toLocaleString('de-DE') || '–'}</div>
-                          <div className="text-xs text-slate-500 mt-0.5">Imp./Tag</div>
-                          <div className="text-xs text-slate-500">dVAC: {display.dvacDay.toLocaleString('de-DE')}</div>
+                          <div className="text-xs text-text-muted mt-0.5">Imp./Tag</div>
+                          <div className="text-xs text-text-muted">dVAC: {display.dvacDay.toLocaleString('de-DE')}</div>
                         </div>
                       )}
                       {display.dvacWeek != null && (
-                        <div className="bg-blue-50/60 rounded-lg p-2.5 text-center">
+                        <div className="bg-accent-light/60 rounded-lg p-2.5 text-center">
                           <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsWeek?.toLocaleString('de-DE') || '–'}</div>
-                          <div className="text-xs text-slate-500 mt-0.5">Imp./Woche</div>
-                          <div className="text-xs text-slate-500">dVAC: {display.dvacWeek.toLocaleString('de-DE')}</div>
+                          <div className="text-xs text-text-muted mt-0.5">Imp./Woche</div>
+                          <div className="text-xs text-text-muted">dVAC: {display.dvacWeek.toLocaleString('de-DE')}</div>
                         </div>
                       )}
                       {display.dvacMonth != null && (
-                        <div className="bg-blue-50/60 rounded-lg p-2.5 text-center">
+                        <div className="bg-accent-light/60 rounded-lg p-2.5 text-center">
                           <div className="text-sm font-mono font-bold text-blue-700">{display.impressionsMonth?.toLocaleString('de-DE') || '–'}</div>
-                          <div className="text-xs text-slate-500 mt-0.5">Imp./Monat</div>
-                          <div className="text-xs text-slate-500">dVAC: {display.dvacMonth.toLocaleString('de-DE')}</div>
+                          <div className="text-xs text-text-muted mt-0.5">Imp./Monat</div>
+                          <div className="text-xs text-text-muted">dVAC: {display.dvacMonth.toLocaleString('de-DE')}</div>
                         </div>
                       )}
                     </div>
                     {display.impressionsPerSpot != null && (
-                      <div className="mt-1.5 text-xs text-slate-500 text-center">
-                        Impressions/Spot: <span className="font-mono font-medium text-slate-600">{display.impressionsPerSpot.toLocaleString('de-DE')}</span>
+                      <div className="mt-1.5 text-xs text-text-muted text-center">
+                        Impressions/Spot: <span className="font-mono font-medium text-text-secondary">{display.impressionsPerSpot.toLocaleString('de-DE')}</span>
                       </div>
                     )}
                   </div>
@@ -2632,26 +2632,26 @@ function DisplayDetailInner({ display, onClose }) {
 
           {/* Summary stats */}
           <div className="p-5 flex flex-col justify-center gap-3">
-            <div className="bg-slate-50/80 rounded-lg p-3 text-center">
+            <div className="bg-surface-secondary/80 rounded-lg p-3 text-center">
               <div className="text-2xl font-mono font-bold" style={{ color: statusRateColor(timeline.uptimeRate) }}>
                 {timeline.uptimeRate}%
               </div>
-              <div className="text-xs text-slate-500 mt-1">Uptime-Rate</div>
+              <div className="text-xs text-text-muted mt-1">Uptime-Rate</div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
-                <div className="text-lg font-mono font-bold text-slate-600">
+              <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
+                <div className="text-lg font-mono font-bold text-text-secondary">
                   {timeline.episodes.length}
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">Offline-Episoden</div>
+                <div className="text-xs text-text-muted mt-0.5">Offline-Episoden</div>
               </div>
-              <div className="bg-slate-50/80 rounded-lg p-2.5 text-center">
-                <div className="text-lg font-mono font-bold text-[#ef4444]">
+              <div className="bg-surface-secondary/80 rounded-lg p-2.5 text-center">
+                <div className="text-lg font-mono font-bold text-[#FF3B30]">
                   {timeline.longestEpisode
                     ? formatDuration(timeline.longestEpisode.durationHours)
                     : '–'}
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">Längster Ausfall</div>
+                <div className="text-xs text-text-muted mt-0.5">Längster Ausfall</div>
               </div>
             </div>
           </div>
@@ -2676,21 +2676,21 @@ function DisplayDetailInner({ display, onClose }) {
 
         {/* Airtable: Contact Info */}
         {(stammdatenLoading || stammdaten) && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <ContactInfoPanel stammdaten={stammdaten} loading={stammdatenLoading} airtableDisplay={airtableDisplay} onStimmcheck={() => setShowStimmcheck(true)} />
           </div>
         )}
 
         {/* Airtable: Installation */}
         {(installationLoading || installation) && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <InstallationPanel installation={installation} loading={installationLoading} />
           </div>
         )}
 
         {/* Hardware Set (OPS + SIM + Display) */}
         {(hardwareLoading || hardwareSet || leaseData) && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <HardwareSetPanel
               hardware={hardwareSet}
               loading={hardwareLoading}
@@ -2707,14 +2707,14 @@ function DisplayDetailInner({ display, onClose }) {
 
         {/* Leasing (CHG + Bank TESMA) — nur mit Berechtigung */}
         {hasPermission('view_leasing') && (leaseLoading || leaseData) && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <LeasingPanel leaseData={leaseData} loading={leaseLoading} canViewFinancial={hasPermission('view_financial')} />
           </div>
         )}
 
         {/* Hardware-Historie (Tausch + Deinstall) + Action Buttons */}
         {(hwHistoryLoading || swapHistory.length > 0 || deinstallHistory.length > 0 || hardwareSet) && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <SwapHistoryPanel swaps={swapHistory} deinstalls={deinstallHistory} loading={hwHistoryLoading} />
             {/* Hardware Action Buttons — nur mit Berechtigung */}
             {!hwHistoryLoading && airtableDisplay && (
@@ -2722,7 +2722,7 @@ function DisplayDetailInner({ display, onClose }) {
                 {hasPermission('initiate_swap') && (
                   <button
                     onClick={() => setShowSwapModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs font-medium text-amber-700 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-status-warning/10 hover:bg-status-warning/10 border border-status-warning/20 text-xs font-medium text-amber-700 transition-colors"
                   >
                     <ArrowLeftRight size={12} />
                     Tausch initiieren
@@ -2731,7 +2731,7 @@ function DisplayDetailInner({ display, onClose }) {
                 {hasPermission('initiate_deinstall') && (
                   <button
                     onClick={() => setShowDeinstallModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-medium text-red-600 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-status-offline/10 hover:bg-status-offline/10 border border-status-offline/20 text-xs font-medium text-status-offline transition-colors"
                   >
                     <Package size={12} />
                     Deinstallation
@@ -2743,38 +2743,38 @@ function DisplayDetailInner({ display, onClose }) {
         )}
 
         {/* Vistar: Programmatic Performance (always shown) */}
-        <div className="p-5 border-b border-slate-200/60">
+        <div className="p-5 border-b border-border-secondary">
           <VistarPanel data={vistarData} loading={vistarLoading} />
         </div>
 
         {/* Airtable: Tasks */}
         {(tasksLoading || tasks.length > 0) && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <TasksPanel tasks={tasks} loading={tasksLoading} />
           </div>
         )}
 
         {/* Communications History */}
         {(communicationsLoading || communications.length > 0) && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <CommunicationsPanel communications={communications} loading={communicationsLoading} />
           </div>
         )}
 
         {/* ★ Day-by-day detail chart — the main visual */}
         {timeline.segments.length > 0 && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <DayDetailChart segments={timeline.segments} />
           </div>
         )}
 
         {/* Compact overview timeline */}
-        <div className="px-5 pt-4 pb-2 border-b border-slate-200/60">
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-2">
+        <div className="px-5 pt-4 pb-2 border-b border-border-secondary">
+          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-2">
             Gesamtverlauf (kompakt)
           </h3>
           <TimelineBar segments={timeline.segments} />
-          <div className="flex justify-between mt-1.5 text-xs font-mono text-slate-500">
+          <div className="flex justify-between mt-1.5 text-xs font-mono text-text-muted">
             <span>{formatDate(timeline.segments[0]?.timestamp)}</span>
             <span>
               {formatDate(timeline.segments[timeline.segments.length - 1]?.timestamp)}
@@ -2784,7 +2784,7 @@ function DisplayDetailInner({ display, onClose }) {
 
         {/* Weekday + Time-of-day analysis */}
         {timeline.segments.length > 0 && (
-          <div className="p-5 border-b border-slate-200/60">
+          <div className="p-5 border-b border-border-secondary">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <WeekdayChart segments={timeline.segments} />
               <HourChart segments={timeline.segments} />
@@ -2795,7 +2795,7 @@ function DisplayDetailInner({ display, onClose }) {
         {/* Offline episodes */}
         {timeline.episodes.length > 0 && (
           <div className="p-5">
-            <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">
               Offline-Episoden
             </h3>
             <div className="space-y-1.5 max-h-48 overflow-y-auto">
@@ -2810,22 +2810,22 @@ function DisplayDetailInner({ display, onClose }) {
                       key={i}
                       className={`flex items-center justify-between px-3 py-2 rounded text-xs font-mono ${
                         isLongest
-                          ? 'bg-red-50/60 border border-red-900/40'
-                          : 'bg-slate-50/80'
+                          ? 'bg-status-offline/10/60 border border-red-900/40'
+                          : 'bg-surface-secondary/80'
                       }`}
                     >
-                      <div className="text-slate-600">
+                      <div className="text-text-secondary">
                         {formatDateTime(ep.start)}
-                        <span className="text-slate-500 mx-2">&rarr;</span>
+                        <span className="text-text-muted mx-2">&rarr;</span>
                         {formatDateTime(ep.end)}
                       </div>
                       <div
                         className="font-bold"
-                        style={{ color: isLongest ? '#ef4444' : '#64748b' }}
+                        style={{ color: isLongest ? '#FF3B30' : '#64748b' }}
                       >
                         {formatDuration(ep.durationHours)}
                         {isLongest && (
-                          <span className="text-xs ml-1.5 text-red-400 font-normal">
+                          <span className="text-xs ml-1.5 text-status-offline font-normal">
                             längster
                           </span>
                         )}
@@ -2839,7 +2839,7 @@ function DisplayDetailInner({ display, onClose }) {
 
         {/* Data point count */}
         <div className="px-5 pb-4">
-          <div className="text-xs text-slate-500 font-mono">
+          <div className="text-xs text-text-muted font-mono">
             {display.totalSnapshots} Datenpunkte &bull; Erste Erfassung{' '}
             {formatDate(display.firstSeen)} &bull; Letzte Erfassung{' '}
             {formatDate(display.lastSeen)}

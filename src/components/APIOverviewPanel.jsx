@@ -43,11 +43,11 @@ import {
 
 const CATEGORIES = {
   all: { label: 'Alle', color: null },
-  database: { label: 'Datenbank', color: '#3b82f6' },
+  database: { label: 'Datenbank', color: '#007AFF' },
   messaging: { label: 'Messaging', color: '#10b981' },
   dooh: { label: 'DOOH', color: '#ec4899' },
-  ai: { label: 'AI', color: '#8b5cf6' },
-  automation: { label: 'Automation', color: '#f59e0b' },
+  ai: { label: 'AI', color: '#AF52DE' },
+  automation: { label: 'Automation', color: '#FF9500' },
   data: { label: 'Datenquelle', color: '#06b6d4' },
 };
 
@@ -996,7 +996,7 @@ const API_DATA = [
     name: 'Anthropic Claude API',
     subtitle: 'AI Assistant',
     icon: Sparkles,
-    color: '#8b5cf6',
+    color: '#AF52DE',
     category: 'ai',
     status: 'connected',
     statusLabel: 'Aktiv',
@@ -1192,12 +1192,12 @@ const API_DATA = [
 // ─── Stats ────────────────────────────────────────────────────────
 
 const STATS = [
-  { label: 'APIs Gesamt', value: '7', icon: Globe, color: '#3b82f6', sub: 'Integrierte Services' },
-  { label: 'Aktive Endpunkte', value: '~25', icon: Server, color: '#8b5cf6', sub: 'GET, POST, PATCH, DELETE' },
+  { label: 'APIs Gesamt', value: '7', icon: Globe, color: '#007AFF', sub: 'Integrierte Services' },
+  { label: 'Aktive Endpunkte', value: '~25', icon: Server, color: '#AF52DE', sub: 'GET, POST, PATCH, DELETE' },
   { label: 'Read-Only', value: '2', icon: Eye, color: '#06b6d4', sub: 'Vistar, Google Sheets' },
   { label: 'Read + Write', value: '4', icon: Edit3, color: '#10b981', sub: 'Airtable, Supabase, Superchat, Claude' },
-  { label: 'Scheduled Syncs', value: '3', icon: RefreshCw, color: '#f59e0b', sub: 'Airtable, Vistar, Heartbeats' },
-  { label: 'Env Variables', value: '9', icon: Key, color: '#ef4444', sub: 'In Netlify Environment' },
+  { label: 'Scheduled Syncs', value: '3', icon: RefreshCw, color: '#FF9500', sub: 'Airtable, Vistar, Heartbeats' },
+  { label: 'Env Variables', value: '9', icon: Key, color: '#FF3B30', sub: 'In Netlify Environment' },
   { label: 'Rate Limits', value: '6', icon: Shield, color: '#6d28d9', sub: 'Aktiv ueberwacht' },
 ];
 
@@ -1325,12 +1325,12 @@ export default function APIOverviewPanel() {
     <div className="space-y-5">
       {/* ── Header ── */}
       <div className="flex items-center gap-3 mb-1">
-        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-          <Globe size={20} className="text-blue-500" />
+        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+          <Globe size={20} className="text-accent" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-slate-900">API & Service Overview</h2>
-          <p className="text-xs text-slate-500">Alle integrierten APIs, Rechte und verfuegbare Funktionen</p>
+          <h2 className="text-lg font-bold text-text-primary">API & Service Overview</h2>
+          <p className="text-xs text-text-muted">Alle integrierten APIs, Rechte und verfuegbare Funktionen</p>
         </div>
       </div>
 
@@ -1344,16 +1344,16 @@ export default function APIOverviewPanel() {
       {/* ── Search & Filter Bar ── */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Suche nach API, Endpoint, Funktion, Datei..."
-            className="w-full bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400/60 transition-colors"
+            className="w-full bg-surface-primary border border-border-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-blue-400/60 transition-colors"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary">
               <XCircle size={14} />
             </button>
           )}
@@ -1381,12 +1381,12 @@ export default function APIOverviewPanel() {
           return (
             <div
               key={api.id}
-              className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm shadow-black/[0.03] transition-all"
+              className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden shadow-card transition-all"
             >
               {/* API Header (clickable) */}
               <button
                 onClick={() => setExpandedApi(isExpanded ? null : api.id)}
-                className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-50/50 transition-colors"
+                className="w-full flex items-center gap-3 p-4 text-left hover:bg-surface-secondary/50 transition-colors"
               >
                 {/* Color dot */}
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: api.color }} />
@@ -1399,12 +1399,12 @@ export default function APIOverviewPanel() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-900 truncate">{api.name}</span>
+                    <span className="text-sm font-semibold text-text-primary truncate">{api.name}</span>
                     {api.subtitle && (
-                      <span className="text-xs text-slate-400 hidden sm:inline">({api.subtitle})</span>
+                      <span className="text-xs text-text-muted hidden sm:inline">({api.subtitle})</span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5 truncate">{api.description}</p>
+                  <p className="text-xs text-text-muted mt-0.5 truncate">{api.description}</p>
                 </div>
 
                 {/* Badges */}
@@ -1413,14 +1413,14 @@ export default function APIOverviewPanel() {
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
                     api.status === 'connected'
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
-                      : 'bg-slate-100 text-slate-500 border border-slate-200/60'
+                      : 'bg-surface-secondary text-text-muted border border-border-secondary'
                   }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${api.status === 'connected' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${api.status === 'connected' ? 'bg-emerald-500' : 'bg-text-muted'}`} />
                     {api.statusLabel}
                   </span>
 
                   {/* Auth Method Tag */}
-                  <span className="text-xs font-mono bg-slate-100/80 text-slate-500 px-2 py-1 rounded-lg flex items-center gap-1">
+                  <span className="text-xs font-mono bg-surface-secondary/80 text-text-muted px-2 py-1 rounded-lg flex items-center gap-1">
                     <Lock size={10} />
                     {api.authMethod}
                   </span>
@@ -1431,7 +1431,7 @@ export default function APIOverviewPanel() {
 
                 {/* Expand */}
                 <div className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
-                  <ChevronRight size={16} className="text-slate-400" />
+                  <ChevronRight size={16} className="text-text-muted" />
                 </div>
               </button>
 
@@ -1440,13 +1440,13 @@ export default function APIOverviewPanel() {
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${
                   api.status === 'connected'
                     ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-slate-100 text-slate-500'
+                    : 'bg-surface-secondary text-text-muted'
                 }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${api.status === 'connected' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full ${api.status === 'connected' ? 'bg-emerald-500' : 'bg-text-muted'}`} />
                   {api.statusLabel}
                 </span>
                 <RightsBadge rights={api.rights} color={api.rightsColor} />
-                <span className="text-xs font-mono bg-slate-100/80 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1">
+                <span className="text-xs font-mono bg-surface-secondary/80 text-text-muted px-1.5 py-0.5 rounded flex items-center gap-1">
                   <Lock size={9} />
                   {api.authMethod}
                 </span>
@@ -1454,7 +1454,7 @@ export default function APIOverviewPanel() {
 
               {/* ── Expanded Detail ── */}
               {isExpanded && (
-                <div className="border-t border-slate-200/60 bg-slate-50/30 p-4 space-y-4">
+                <div className="border-t border-border-secondary bg-surface-secondary/30 p-4 space-y-4">
                   {/* Meta Row */}
                   <div className="flex flex-wrap gap-2 text-xs">
                     <MetaChip label="Base URL" value={api.baseUrl} onCopy={handleCopy} copied={copiedText === api.baseUrl} />
@@ -1463,20 +1463,20 @@ export default function APIOverviewPanel() {
                     )}
                     <MetaChip label="Rate Limit" value={api.rateLimit} />
                     <MetaChip label="Rechte" value={api.rights} />
-                    <span className="inline-flex items-center gap-1 bg-slate-100/80 text-slate-600 px-2 py-1 rounded-lg text-xs">
-                      <Code size={10} className="text-slate-400" />
+                    <span className="inline-flex items-center gap-1 bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg text-xs">
+                      <Code size={10} className="text-text-muted" />
                       {api.usedBy.length} Dateien
                     </span>
                   </div>
 
                   {/* API-level Fields FIRST (for non-Airtable APIs) */}
                   {api.fields && api.fields.length > 0 && (
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
-                      <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
-                        <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
+                      <div className="px-3 py-2 border-b border-border-secondary/40 flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
                           <Database size={12} />
                           Verfuegbare Felder & Parameter ({api.fields.length})
-                          <span className="text-[10px] text-slate-400 font-normal normal-case tracking-normal ml-2">
+                          <span className="text-[10px] text-text-muted font-normal normal-case tracking-normal ml-2">
                             {api.fields.filter(f => f.used).length} genutzt / {api.fields.filter(f => !f.used).length} verfuegbar
                           </span>
                         </h4>
@@ -1484,45 +1484,45 @@ export default function APIOverviewPanel() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="border-b border-slate-200/40 bg-slate-50/50">
+                            <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
                               <th className="text-center px-2 py-1.5 w-6"></th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Feld / Parameter</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Typ</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Quelle</th>
-                              <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Beschreibung</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Feld / Parameter</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Typ</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Quelle</th>
+                              <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Beschreibung</th>
                             </tr>
                           </thead>
                           <tbody>
                             {api.fields.map((field, k) => (
-                              <tr key={k} className={`border-b border-slate-100/40 ${!field.used ? 'opacity-50' : ''}`}>
+                              <tr key={k} className={`border-b border-border-secondary/40 ${!field.used ? 'opacity-50' : ''}`}>
                                 <td className="text-center px-2 py-1.5">
                                   {field.used ? (
                                     <CheckCircle2 size={11} className="text-emerald-500 mx-auto" />
                                   ) : (
-                                    <div className="w-2.5 h-2.5 rounded-full border border-slate-300 mx-auto" />
+                                    <div className="w-2.5 h-2.5 rounded-full border border-border-primary mx-auto" />
                                   )}
                                 </td>
-                                <td className="px-2 py-1.5 font-mono text-slate-700 text-[11px]">{field.name}</td>
+                                <td className="px-2 py-1.5 font-mono text-text-primary text-[11px]">{field.name}</td>
                                 <td className="px-2 py-1.5">
                                   <span className={`px-1.5 py-0.5 rounded font-mono text-[10px] ${
-                                    field.type === 'text' ? 'bg-blue-50 text-blue-700' :
-                                    field.type === 'date' || field.type === 'datetime' ? 'bg-purple-50 text-purple-700' :
-                                    field.type === 'number' ? 'bg-green-50 text-green-700' :
+                                    field.type === 'text' ? 'bg-accent-light text-blue-700' :
+                                    field.type === 'date' || field.type === 'datetime' ? 'bg-brand-purple/10 text-purple-700' :
+                                    field.type === 'number' ? 'bg-status-online/10 text-green-700' :
                                     field.type === 'currency' ? 'bg-emerald-50 text-emerald-700' :
                                     field.type === 'percent' ? 'bg-teal-50 text-teal-700' :
-                                    field.type === 'array' || field.type === 'object' ? 'bg-orange-50 text-orange-700' :
-                                    field.type === 'boolean' ? 'bg-yellow-50 text-yellow-700' :
-                                    field.type === 'binary' ? 'bg-red-50 text-red-700' :
+                                    field.type === 'array' || field.type === 'object' ? 'bg-status-warning/10 text-orange-700' :
+                                    field.type === 'boolean' ? 'bg-status-warning/10 text-yellow-700' :
+                                    field.type === 'binary' ? 'bg-status-offline/10 text-red-700' :
                                     field.type === 'uuid' ? 'bg-indigo-50 text-indigo-700' :
                                     field.type === 'query' || field.type === 'header' ? 'bg-cyan-50 text-cyan-700' :
                                     field.type === 'function' ? 'bg-violet-50 text-violet-700' :
-                                    field.type === 'event' ? 'bg-amber-50 text-amber-700' :
-                                    field.type === 'void' ? 'bg-slate-100 text-slate-500' :
-                                    'bg-slate-50 text-slate-600'
+                                    field.type === 'event' ? 'bg-status-warning/10 text-amber-700' :
+                                    field.type === 'void' ? 'bg-surface-secondary text-text-muted' :
+                                    'bg-surface-secondary text-text-secondary'
                                   }`}>{field.type}</span>
                                 </td>
-                                <td className="px-2 py-1.5 text-[11px] text-slate-500">{field.source}</td>
-                                <td className="px-2 py-1.5 text-[11px] text-slate-500 max-w-sm">{field.description}</td>
+                                <td className="px-2 py-1.5 text-[11px] text-text-muted">{field.source}</td>
+                                <td className="px-2 py-1.5 text-[11px] text-text-muted max-w-sm">{field.description}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -1533,19 +1533,19 @@ export default function APIOverviewPanel() {
 
                   {/* Tables FIRST (if any) — expandable rows */}
                   {api.tables.length > 0 && (
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
-                      <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
-                        <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
+                      <div className="px-3 py-2 border-b border-border-secondary/40 flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
                           <Database size={12} />
                           Tabellen / Collections ({api.tables.length})
                           {api.tables.some(t => t.fields) && (
-                            <span className="text-[10px] text-slate-400 font-normal normal-case tracking-normal ml-2">Klicken zum Aufklappen</span>
+                            <span className="text-[10px] text-text-muted font-normal normal-case tracking-normal ml-2">Klicken zum Aufklappen</span>
                           )}
                         </h4>
                         {api.tables.some(t => t.fields && t.fields.length > 0) && (
                           <button
                             onClick={(e) => { e.stopPropagation(); exportAllTablesCSV(api); }}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/60 border border-slate-200/60 text-slate-600 hover:border-blue-400/60 hover:text-blue-600 transition-colors"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-surface-primary border border-border-secondary text-text-secondary hover:border-blue-400/60 hover:text-accent transition-colors"
                             title="Alle Tabellen als CSV exportieren"
                           >
                             <Download size={11} />
@@ -1556,11 +1556,11 @@ export default function APIOverviewPanel() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="border-b border-slate-200/40 bg-slate-50/50">
-                              <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider w-6"></th>
-                              <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Table ID</th>
-                              <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                              <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Verwendung</th>
+                            <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider w-6"></th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Table ID</th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Name</th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Verwendung</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1570,41 +1570,41 @@ export default function APIOverviewPanel() {
                               return (
                                 <React.Fragment key={i}>
                                   <tr
-                                    className="border-b border-slate-100/60 hover:bg-blue-50/30 cursor-pointer transition-colors"
+                                    className="border-b border-border-secondary/60 hover:bg-accent-light/30 cursor-pointer transition-colors"
                                     onClick={() => setExpandedTableId(isTableExpanded ? null : tableKey)}
                                   >
-                                    <td className="px-3 py-2 text-slate-400">
+                                    <td className="px-3 py-2 text-text-muted">
                                       <div className={`transition-transform ${isTableExpanded ? 'rotate-90' : ''}`}>
                                         <ChevronRight size={12} />
                                       </div>
                                     </td>
-                                    <td className="px-3 py-2 font-mono text-slate-500 text-[11px]">
+                                    <td className="px-3 py-2 font-mono text-text-muted text-[11px]">
                                       <span
-                                        className="cursor-pointer hover:text-slate-700"
+                                        className="cursor-pointer hover:text-text-primary"
                                         onClick={(e) => { e.stopPropagation(); handleCopy(table.id); }}
                                       >
                                         {table.id}
                                         {copiedText === table.id && <CheckCircle2 size={10} className="inline ml-1 text-emerald-500" />}
                                       </span>
                                     </td>
-                                    <td className="px-3 py-2 font-medium text-slate-700">{table.name}</td>
-                                    <td className="px-3 py-2 text-slate-500">{table.usage}</td>
+                                    <td className="px-3 py-2 font-medium text-text-primary">{table.name}</td>
+                                    <td className="px-3 py-2 text-text-muted">{table.usage}</td>
                                   </tr>
 
                                   {/* Expanded table detail */}
                                   {isTableExpanded && (
                                     <tr>
                                       <td colSpan={4} className="p-0">
-                                        <div className="bg-slate-50/50 border-t border-slate-200/40 p-4 space-y-3">
+                                        <div className="bg-surface-secondary/50 border-t border-border-secondary/40 p-4 space-y-3">
                                           {/* Sync Info + Usage chips */}
                                           <div className="flex flex-wrap gap-3 text-xs">
                                             {table.syncFrequency && (
-                                              <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-lg font-mono">
+                                              <span className="inline-flex items-center gap-1 bg-accent-light text-blue-700 px-2 py-1 rounded-lg font-mono">
                                                 <RefreshCw size={10} /> {table.syncFrequency}
                                               </span>
                                             )}
                                             {table.syncMethod && (
-                                              <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-2 py-1 rounded-lg font-mono">
+                                              <span className="inline-flex items-center gap-1 bg-brand-purple/10 text-purple-700 px-2 py-1 rounded-lg font-mono">
                                                 {table.syncMethod}
                                               </span>
                                             )}
@@ -1618,9 +1618,9 @@ export default function APIOverviewPanel() {
                                           {/* Used in components */}
                                           {table.usedIn && table.usedIn.length > 0 && (
                                             <div className="flex flex-wrap gap-1.5">
-                                              <span className="text-xs text-slate-400 mr-1">Verwendet in:</span>
+                                              <span className="text-xs text-text-muted mr-1">Verwendet in:</span>
                                               {table.usedIn.map((comp, j) => (
-                                                <span key={j} className="text-xs font-mono bg-blue-50/80 text-blue-700 px-2 py-0.5 rounded">
+                                                <span key={j} className="text-xs font-mono bg-accent-light/80 text-blue-700 px-2 py-0.5 rounded">
                                                   {comp}
                                                 </span>
                                               ))}
@@ -1629,18 +1629,18 @@ export default function APIOverviewPanel() {
 
                                           {/* Fields table */}
                                           {table.fields && table.fields.length > 0 && (
-                                            <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
-                                              <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
-                                                <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                                            <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
+                                              <div className="px-3 py-2 border-b border-border-secondary/40 flex items-center justify-between">
+                                                <span className="text-xs font-semibold text-text-primary uppercase tracking-wider">
                                                   Felder ({table.fields.length})
                                                 </span>
                                                 <div className="flex items-center gap-2">
-                                                  <span className="text-[10px] text-slate-400">
+                                                  <span className="text-[10px] text-text-muted">
                                                     {table.fields.filter(f => f.synced).length} synced / {table.fields.filter(f => !f.synced).length} verfuegbar
                                                   </span>
                                                   <button
                                                     onClick={(e) => { e.stopPropagation(); exportTableCSV(table, api.name); }}
-                                                    className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100/80 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                                    className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-surface-secondary/80 text-text-muted hover:bg-accent-light hover:text-accent transition-colors"
                                                     title={`${table.name} als CSV exportieren`}
                                                   >
                                                     <Download size={10} />
@@ -1650,40 +1650,40 @@ export default function APIOverviewPanel() {
                                               </div>
                                               <table className="w-full text-xs">
                                                 <thead>
-                                                  <tr className="border-b border-slate-200/40 bg-slate-50/50">
+                                                  <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
                                                     <th className="text-center px-2 py-1.5 w-6"></th>
-                                                    <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Airtable</th>
-                                                    <th className="text-center px-1 py-1.5 text-slate-300 w-6">{'\u2192'}</th>
-                                                    <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Supabase</th>
-                                                    <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Typ</th>
-                                                    <th className="text-left px-2 py-1.5 font-semibold text-slate-500 uppercase tracking-wider">Bedeutung</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Airtable</th>
+                                                    <th className="text-center px-1 py-1.5 text-text-muted w-6">{'\u2192'}</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Supabase</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Typ</th>
+                                                    <th className="text-left px-2 py-1.5 font-semibold text-text-muted uppercase tracking-wider">Bedeutung</th>
                                                   </tr>
                                                 </thead>
                                                 <tbody>
                                                   {table.fields.map((field, k) => (
-                                                    <tr key={k} className={`border-b border-slate-100/40 ${!field.synced ? 'opacity-50' : ''}`}>
+                                                    <tr key={k} className={`border-b border-border-secondary/40 ${!field.synced ? 'opacity-50' : ''}`}>
                                                       <td className="text-center px-2 py-1.5">
                                                         {field.synced ? (
                                                           <CheckCircle2 size={11} className="text-emerald-500 mx-auto" />
                                                         ) : (
-                                                          <div className="w-2.5 h-2.5 rounded-full border border-slate-300 mx-auto" />
+                                                          <div className="w-2.5 h-2.5 rounded-full border border-border-primary mx-auto" />
                                                         )}
                                                       </td>
-                                                      <td className="px-2 py-1.5 font-mono text-slate-700 text-[11px]">
+                                                      <td className="px-2 py-1.5 font-mono text-text-primary text-[11px]">
                                                         <span className="inline-flex items-center gap-1">
                                                           {field.airtable}
                                                           {field.airtable !== field.airtable.trim() && (
                                                             <span className="relative group cursor-help">
-                                                              <AlertCircle size={10} className="text-amber-500" />
-                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                                              <AlertCircle size={10} className="text-status-warning" />
+                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-surface-primary text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                                                 Feldname hat Leerzeichen am Ende (Trailing Space) — Bug in Airtable
                                                               </span>
                                                             </span>
                                                           )}
                                                           {/[Ll]enth|[Mm]aximun|visiblity|weekdend|Longt?itude/.test(field.airtable) && (
                                                             <span className="relative group cursor-help">
-                                                              <AlertCircle size={10} className="text-red-400" />
-                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                                              <AlertCircle size={10} className="text-status-offline" />
+                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-surface-primary text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                                                 Tippfehler im Airtable-Feldnamen — kann nicht umbenannt werden ohne Sync-Bruch
                                                               </span>
                                                             </span>
@@ -1691,27 +1691,27 @@ export default function APIOverviewPanel() {
                                                           {/  /.test(field.airtable) && (
                                                             <span className="relative group cursor-help">
                                                               <AlertCircle size={10} className="text-orange-400" />
-                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-surface-primary text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                                                 Doppeltes Leerzeichen im Feldnamen — Bug in Airtable
                                                               </span>
                                                             </span>
                                                           )}
                                                         </span>
                                                       </td>
-                                                      <td className="text-center px-1 py-1.5 text-slate-300">{'\u2192'}</td>
+                                                      <td className="text-center px-1 py-1.5 text-text-muted">{'\u2192'}</td>
                                                       <td className="px-2 py-1.5 font-mono text-blue-700 text-[11px]">{field.supabase}</td>
                                                       <td className="px-2 py-1.5">
                                                         <span className={`px-1.5 py-0.5 rounded font-mono text-[10px] ${
-                                                          field.type === 'text' ? 'bg-blue-50 text-blue-700' :
-                                                          field.type === 'date' ? 'bg-purple-50 text-purple-700' :
-                                                          field.type === 'number' ? 'bg-green-50 text-green-700' :
-                                                          field.type === 'array' ? 'bg-orange-50 text-orange-700' :
+                                                          field.type === 'text' ? 'bg-accent-light text-blue-700' :
+                                                          field.type === 'date' ? 'bg-brand-purple/10 text-purple-700' :
+                                                          field.type === 'number' ? 'bg-status-online/10 text-green-700' :
+                                                          field.type === 'array' ? 'bg-status-warning/10 text-orange-700' :
                                                           field.type === 'attachment' ? 'bg-pink-50 text-pink-700' :
                                                           field.type === 'link' ? 'bg-cyan-50 text-cyan-700' :
-                                                          'bg-slate-50 text-slate-600'
+                                                          'bg-surface-secondary text-text-secondary'
                                                         }`}>{field.type}</span>
                                                       </td>
-                                                      <td className="px-2 py-1.5 text-[11px] text-slate-500 max-w-xs">{field.interpretation || ''}</td>
+                                                      <td className="px-2 py-1.5 text-[11px] text-text-muted max-w-xs">{field.interpretation || ''}</td>
                                                     </tr>
                                                   ))}
                                                 </tbody>
@@ -1732,9 +1732,9 @@ export default function APIOverviewPanel() {
                   )}
 
                   {/* Endpoints Table */}
-                  <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
-                    <div className="px-3 py-2 border-b border-slate-200/40">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
+                    <div className="px-3 py-2 border-b border-border-secondary/40">
+                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
                         <Link size={12} />
                         Genutzte Endpoints ({api.endpoints.length})
                       </h4>
@@ -1742,21 +1742,21 @@ export default function APIOverviewPanel() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="border-b border-slate-200/40 bg-slate-50/50">
-                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider w-20">Method</th>
-                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Endpoint</th>
-                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Beschreibung</th>
+                          <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider w-20">Method</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Endpoint</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Beschreibung</th>
                           </tr>
                         </thead>
                         <tbody>
                           {api.endpoints.map((ep, i) => (
-                            <tr key={i} className="border-b border-slate-100/60 hover:bg-slate-50/50">
+                            <tr key={i} className="border-b border-border-secondary/60 hover:bg-surface-secondary/50">
                               <td className="px-3 py-2">
                                 <MethodBadge method={ep.method} />
                               </td>
-                              <td className="px-3 py-2 font-mono text-slate-700 text-[11px]">{ep.path}</td>
-                              <td className="px-3 py-2 text-slate-500 flex items-center gap-1.5">
-                                <ep.icon size={11} className="text-slate-400 shrink-0" />
+                              <td className="px-3 py-2 font-mono text-text-primary text-[11px]">{ep.path}</td>
+                              <td className="px-3 py-2 text-text-muted flex items-center gap-1.5">
+                                <ep.icon size={11} className="text-text-muted shrink-0" />
                                 {ep.description}
                               </td>
                             </tr>
@@ -1769,43 +1769,43 @@ export default function APIOverviewPanel() {
                   {/* API Details (Auth, Rights, Used By) — below fields */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Auth Details */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
+                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <Key size={12} />
                         Authentifizierung
                       </h4>
                       <div className="space-y-1.5 text-xs">
                         {api.authDetails.map((detail, i) => (
                           <div key={i} className="flex justify-between gap-2">
-                            <span className="text-slate-400 shrink-0">{detail.label}</span>
-                            <span className="font-mono text-slate-700 text-right truncate">{detail.value}</span>
+                            <span className="text-text-muted shrink-0">{detail.label}</span>
+                            <span className="font-mono text-text-primary text-right truncate">{detail.value}</span>
                           </div>
                         ))}
                       </div>
                       {api.envVars.length > 0 && (
-                        <div className="mt-3 pt-2 border-t border-slate-200/40">
-                          <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">Environment Variables</div>
+                        <div className="mt-3 pt-2 border-t border-border-secondary/40">
+                          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1.5">Environment Variables</div>
                           <div className="flex flex-wrap gap-1">
                             {api.envVars.map((v, i) => (
-                              <span key={i} className="inline-flex items-center gap-1 text-xs font-mono bg-red-50/80 text-red-700 px-1.5 py-0.5 rounded cursor-pointer hover:bg-red-100/80" onClick={() => handleCopy(v)}>
+                              <span key={i} className="inline-flex items-center gap-1 text-xs font-mono bg-status-offline/10/80 text-red-700 px-1.5 py-0.5 rounded cursor-pointer hover:bg-status-offline/10/80" onClick={() => handleCopy(v)}>
                                 <Key size={9} />
                                 {v}
-                                {copiedText === v ? <CheckCircle2 size={9} className="text-emerald-500" /> : <Copy size={9} className="text-red-400" />}
+                                {copiedText === v ? <CheckCircle2 size={9} className="text-emerald-500" /> : <Copy size={9} className="text-status-offline" />}
                               </span>
                             ))}
                           </div>
                         </div>
                       )}
                       {api.envVars.length === 0 && (
-                        <div className="mt-3 pt-2 border-t border-slate-200/40">
-                          <div className="text-[10px] text-slate-400 italic">Keine Env Variables noetig (Public Access)</div>
+                        <div className="mt-3 pt-2 border-t border-border-secondary/40">
+                          <div className="text-[10px] text-text-muted italic">Keine Env Variables noetig (Public Access)</div>
                         </div>
                       )}
                     </div>
 
                     {/* Rights & Access */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
+                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <Shield size={12} />
                         Rechte & Zugriff
                       </h4>
@@ -1821,26 +1821,26 @@ export default function APIOverviewPanel() {
                              <Edit3 size={14} />}
                             {api.rights}
                           </div>
-                          <p className="text-slate-500 mt-1">{api.rightsDetail}</p>
+                          <p className="text-text-muted mt-1">{api.rightsDetail}</p>
                         </div>
-                        <div className="mt-2 pt-2 border-t border-slate-200/40">
-                          <div className="flex items-center gap-1.5 text-slate-400 mb-1">
+                        <div className="mt-2 pt-2 border-t border-border-secondary/40">
+                          <div className="flex items-center gap-1.5 text-text-muted mb-1">
                             <Clock size={11} />
                             <span className="uppercase tracking-wider text-[10px]">Rate Limit</span>
                           </div>
-                          <span className="font-mono text-slate-600 text-xs">{api.rateLimit}</span>
+                          <span className="font-mono text-text-secondary text-xs">{api.rateLimit}</span>
                         </div>
                       </div>
                       {api.modes && (
-                        <div className="mt-3 pt-2 border-t border-slate-200/40">
-                          <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">Modi</div>
+                        <div className="mt-3 pt-2 border-t border-border-secondary/40">
+                          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1.5">Modi</div>
                           <div className="space-y-1">
                             {api.modes.map((mode, i) => (
                               <div key={i} className="flex items-start gap-1.5 text-xs">
-                                <span className="text-purple-500 mt-0.5"><Sparkles size={10} /></span>
+                                <span className="text-brand-purple mt-0.5"><Sparkles size={10} /></span>
                                 <div>
-                                  <span className="font-medium text-slate-700">{mode.name}</span>
-                                  <span className="text-slate-400 ml-1">— {mode.description}</span>
+                                  <span className="font-medium text-text-primary">{mode.name}</span>
+                                  <span className="text-text-muted ml-1">— {mode.description}</span>
                                 </div>
                               </div>
                             ))}
@@ -1850,19 +1850,19 @@ export default function APIOverviewPanel() {
                     </div>
 
                     {/* Used By */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
+                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <Code size={12} />
                         Verwendet in
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
                         {api.usedBy.map((file, i) => (
-                          <span key={i} className="inline-flex items-center text-xs font-mono bg-blue-50/80 text-blue-700 px-2 py-1 rounded-lg">
+                          <span key={i} className="inline-flex items-center text-xs font-mono bg-accent-light/80 text-blue-700 px-2 py-1 rounded-lg">
                             {file}
                           </span>
                         ))}
                       </div>
-                      <div className="mt-3 pt-2 border-t border-slate-200/40 text-xs text-slate-500">
+                      <div className="mt-3 pt-2 border-t border-border-secondary/40 text-xs text-text-muted">
                         <span className="font-mono">{api.endpoints.length}</span> Endpoints
                         {api.tables.length > 0 && (
                           <span> | <span className="font-mono">{api.tables.length}</span> Tabellen</span>
@@ -1875,18 +1875,18 @@ export default function APIOverviewPanel() {
                   </div>
 
                   {/* Unused Features */}
-                  <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                    <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <AlertCircle size={12} className="text-amber-500" />
+                  <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
+                    <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <AlertCircle size={12} className="text-status-warning" />
                       Verfuegbar aber nicht genutzt
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       {api.unusedFeatures.map((feature, i) => (
                         <div key={i} className="flex items-start gap-2 text-xs">
-                          <span className="text-slate-300 mt-0.5 shrink-0">
+                          <span className="text-text-muted mt-0.5 shrink-0">
                             <Unlock size={11} />
                           </span>
-                          <span className="text-slate-500">{feature}</span>
+                          <span className="text-text-muted">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -1898,19 +1898,19 @@ export default function APIOverviewPanel() {
         })}
 
         {filteredApis.length === 0 && (
-          <div className="text-center py-12 text-slate-400 text-sm">
+          <div className="text-center py-12 text-text-muted text-sm">
             Keine APIs gefunden fuer &quot;{searchQuery}&quot;
           </div>
         )}
       </div>
 
       {/* ── Architecture Overview ── */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm shadow-black/[0.03]">
-        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-4">
-          <Server size={16} className="text-blue-500" />
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-4">
+          <Server size={16} className="text-accent" />
           Architektur & Datenfluss
         </h3>
-        <div className="font-mono text-xs text-slate-600 leading-relaxed bg-slate-50/80 rounded-xl p-4 border border-slate-200/40 overflow-x-auto">
+        <div className="font-mono text-xs text-text-secondary leading-relaxed bg-surface-secondary/80 rounded-xl p-4 border border-border-secondary/40 overflow-x-auto">
           <pre className="whitespace-pre">{`
   EXTERNE DATENQUELLEN                    NETLIFY FUNCTIONS                     DATENBANK & FRONTEND
   ========================               ========================              ========================
@@ -1985,7 +1985,7 @@ export default function APIOverviewPanel() {
         </div>
 
         {/* Environment Variables Summary */}
-        <div className="mt-4 bg-red-50/30 rounded-xl p-3 border border-red-200/30">
+        <div className="mt-4 bg-status-offline/10/30 rounded-xl p-3 border border-status-offline/20/30">
           <h4 className="text-xs font-semibold text-red-800 flex items-center gap-1.5 mb-2">
             <Key size={12} />
             Alle Environment Variables (Netlify)
@@ -2004,7 +2004,7 @@ export default function APIOverviewPanel() {
             ].map((v, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1 text-xs font-mono bg-red-100/60 text-red-800 px-2 py-1 rounded-lg cursor-pointer hover:bg-red-100"
+                className="inline-flex items-center gap-1 text-xs font-mono bg-status-offline/10/60 text-red-800 px-2 py-1 rounded-lg cursor-pointer hover:bg-status-offline/10"
                 onClick={() => handleCopy(v)}
               >
                 <Lock size={9} />
@@ -2015,8 +2015,8 @@ export default function APIOverviewPanel() {
           </div>
         </div>
 
-        <div className="mt-3 flex items-start gap-2 text-xs text-slate-500">
-          <Info size={12} className="text-blue-400 mt-0.5 shrink-0" />
+        <div className="mt-3 flex items-start gap-2 text-xs text-text-muted">
+          <Info size={12} className="text-accent mt-0.5 shrink-0" />
           <span>
             <strong>Architektur-Prinzip:</strong> Alle externen API-Calls laufen ueber Netlify Functions (Server-side Proxy).
             Das Frontend spricht NUR mit Supabase (Anon Key + RLS). API-Keys sind nie im Browser sichtbar.
@@ -2025,20 +2025,20 @@ export default function APIOverviewPanel() {
       </div>
 
       {/* ── Sync Schedule Overview ── */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm shadow-black/[0.03]">
-        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
-          <RefreshCw size={16} className="text-amber-500" />
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
+          <RefreshCw size={16} className="text-status-warning" />
           Sync-Schedule & Cron Jobs
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200/60">
-                <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Job</th>
-                <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Quelle</th>
-                <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Ziel</th>
-                <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Frequenz</th>
-                <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Methode</th>
+              <tr className="border-b border-border-secondary">
+                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Job</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Quelle</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Ziel</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Frequenz</th>
+                <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Methode</th>
               </tr>
             </thead>
             <tbody>
@@ -2048,14 +2048,14 @@ export default function APIOverviewPanel() {
                 { job: 'vistar-sync-scheduled.js', source: 'Vistar SSP', target: 'vistar_venue_health', freq: 'Alle 4 Stunden', method: 'Upsert (venue_id + date)' },
                 { job: 'sync-attachments-scheduled.js', source: 'Airtable Attachments', target: 'Supabase Storage', freq: 'Alle 30 Minuten', method: 'Differential (URL hash check)' },
               ].map((row, i) => (
-                <tr key={i} className="border-b border-slate-100/60 hover:bg-slate-50/30">
+                <tr key={i} className="border-b border-border-secondary/60 hover:bg-surface-secondary/30">
                   <td className="px-3 py-2 font-mono text-blue-700">{row.job}</td>
-                  <td className="px-3 py-2 text-slate-700">{row.source}</td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{row.target}</td>
+                  <td className="px-3 py-2 text-text-primary">{row.source}</td>
+                  <td className="px-3 py-2 font-mono text-text-secondary">{row.target}</td>
                   <td className="px-3 py-2">
-                    <span className="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-mono">{row.freq}</span>
+                    <span className="bg-status-warning/10 text-amber-700 px-1.5 py-0.5 rounded font-mono">{row.freq}</span>
                   </td>
-                  <td className="px-3 py-2 text-slate-500">{row.method}</td>
+                  <td className="px-3 py-2 text-text-muted">{row.method}</td>
                 </tr>
               ))}
             </tbody>
@@ -2070,15 +2070,15 @@ export default function APIOverviewPanel() {
 
 function StatCard({ label, value, sub, icon: Icon, color }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-3.5 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-3.5 shadow-card">
       <div className="flex items-center gap-2 mb-2">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '12' }}>
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-xl font-bold font-mono text-slate-900">{value}</div>
-      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
-      <div className="text-[10px] text-slate-400 font-mono mt-0.5">{sub}</div>
+      <div className="text-xl font-bold font-mono text-text-primary">{value}</div>
+      <div className="text-xs text-text-muted mt-0.5">{label}</div>
+      <div className="text-[10px] text-text-muted font-mono mt-0.5">{sub}</div>
     </div>
   );
 }
@@ -2089,15 +2089,15 @@ function FilterChip({ active, onClick, label, count, color }) {
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
         active
-          ? 'bg-white/80 text-slate-900 shadow-sm border border-slate-200/60'
-          : 'bg-white/30 text-slate-500 hover:text-slate-600 border border-transparent'
+          ? 'bg-surface-primary text-text-primary shadow-sm border border-border-secondary'
+          : 'bg-surface-primary/40 text-text-muted hover:text-text-secondary border border-transparent'
       }`}
     >
       {color && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />}
       {label}
       {count != null && (
         <span className={`font-mono px-1 py-0.5 rounded text-xs ${
-          active ? 'bg-blue-50 text-blue-600' : 'bg-slate-100/60 text-slate-400'
+          active ? 'bg-accent-light text-accent' : 'bg-surface-secondary/60 text-text-muted'
         }`}>
           {count}
         </span>
@@ -2108,11 +2108,11 @@ function FilterChip({ active, onClick, label, count, color }) {
 
 function MetaChip({ label, value, onCopy, copied }) {
   return (
-    <span className="inline-flex items-center gap-1 bg-slate-100/80 text-slate-600 px-2 py-1 rounded-lg font-mono text-xs max-w-full">
-      <span className="text-slate-400 font-sans shrink-0">{label}:</span>
-      <span className="text-slate-700 truncate">{value}</span>
+    <span className="inline-flex items-center gap-1 bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg font-mono text-xs max-w-full">
+      <span className="text-text-muted font-sans shrink-0">{label}:</span>
+      <span className="text-text-primary truncate">{value}</span>
       {onCopy && (
-        <button onClick={() => onCopy(value)} className="text-slate-300 hover:text-slate-500 ml-0.5 shrink-0">
+        <button onClick={() => onCopy(value)} className="text-text-muted hover:text-text-muted ml-0.5 shrink-0">
           {copied ? <CheckCircle2 size={10} className="text-emerald-500" /> : <Copy size={10} />}
         </button>
       )}
@@ -2123,8 +2123,8 @@ function MetaChip({ label, value, onCopy, copied }) {
 function RightsBadge({ rights, color }) {
   const colorClasses = {
     emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
-    blue: 'bg-blue-50 text-blue-700 border-blue-200/60',
-    amber: 'bg-amber-50 text-amber-700 border-amber-200/60',
+    blue: 'bg-accent-light text-blue-700 border-accent/20/60',
+    amber: 'bg-status-warning/10 text-amber-700 border-status-warning/20/60',
   };
 
   const iconMap = {
@@ -2147,15 +2147,15 @@ function RightsBadge({ rights, color }) {
 
 function MethodBadge({ method }) {
   const colors = {
-    GET: 'bg-blue-50 text-blue-700',
+    GET: 'bg-accent-light text-blue-700',
     POST: 'bg-emerald-50 text-emerald-700',
-    PATCH: 'bg-amber-50 text-amber-700',
-    PUT: 'bg-orange-50 text-orange-700',
-    DELETE: 'bg-red-50 text-red-700',
+    PATCH: 'bg-status-warning/10 text-amber-700',
+    PUT: 'bg-status-warning/10 text-orange-700',
+    DELETE: 'bg-status-offline/10 text-red-700',
   };
 
   return (
-    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${colors[method] || 'bg-slate-50 text-slate-600'}`}>
+    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${colors[method] || 'bg-surface-secondary text-text-secondary'}`}>
       {method}
     </span>
   );
@@ -2163,10 +2163,10 @@ function MethodBadge({ method }) {
 
 function RightsSummaryCard({ icon: Icon, title, color, items }) {
   const colorClasses = {
-    blue: 'bg-blue-50/50 border-blue-200/30 text-blue-800',
+    blue: 'bg-accent-light/50 border-accent/20/30 text-blue-800',
     emerald: 'bg-emerald-50/50 border-emerald-200/30 text-emerald-800',
-    amber: 'bg-amber-50/50 border-amber-200/30 text-amber-800',
-    purple: 'bg-purple-50/50 border-purple-200/30 text-purple-800',
+    amber: 'bg-status-warning/10/50 border-status-warning/20/30 text-amber-800',
+    purple: 'bg-brand-purple/10/50 border-brand-purple/20/30 text-purple-800',
   };
   const itemColor = {
     blue: 'text-blue-700',

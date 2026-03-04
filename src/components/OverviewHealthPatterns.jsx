@@ -5,18 +5,18 @@ const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
 function rateColor(rate) {
   if (rate == null) return '#cbd5e1';
-  if (rate >= 80) return '#22c55e';
-  if (rate >= 60) return '#f59e0b';
+  if (rate >= 80) return '#34C759';
+  if (rate >= 60) return '#FF9500';
   if (rate >= 40) return '#f97316';
-  return '#ef4444';
+  return '#FF3B30';
 }
 
 function rateBg(rate) {
   if (rate == null) return '#94a3b820';
-  if (rate >= 80) return '#22c55e15';
-  if (rate >= 60) return '#f59e0b15';
+  if (rate >= 80) return '#34C75915';
+  if (rate >= 60) return '#FF950015';
   if (rate >= 40) return '#f9731615';
-  return '#ef444415';
+  return '#FF3B3015';
 }
 
 /**
@@ -97,22 +97,22 @@ function HeatmapTooltip({ data, position }) {
       className="fixed z-50 pointer-events-none"
       style={{ left: position.x + 12, top: position.y - 10 }}
     >
-      <div className="bg-white/90 backdrop-blur-xl border border-white/60 rounded-lg px-3 py-2 text-xs font-mono shadow-lg">
-        <div className="text-slate-600 font-medium mb-1">{data.label}</div>
+      <div className="bg-surface-primary border border-white/60 rounded-lg px-3 py-2 text-xs font-mono shadow-lg">
+        <div className="text-text-secondary font-medium mb-1">{data.label}</div>
         {data.rate != null ? (
           <>
             <div className="font-bold mb-0.5" style={{ color: rateColor(data.rate) }}>
               {data.rate}% Health Rate
             </div>
-            <div className="text-slate-400">
+            <div className="text-text-muted">
               Ø {data.avgOnline} / {data.avgDisplays} Displays online
             </div>
-            <div className="text-slate-400">
+            <div className="text-text-muted">
               {data.realSnapshots != null ? data.realSnapshots : data.snapshots} Datenpunkte{data.interpolatedCount > 0 ? ` (+${data.interpolatedCount} interpoliert)` : ''}
             </div>
           </>
         ) : (
-          <div className="text-slate-400">Keine Daten</div>
+          <div className="text-text-muted">Keine Daten</div>
         )}
       </div>
     </div>
@@ -266,11 +266,11 @@ function WeekdayBar({ stats, rangeLabel }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <CalendarDays size={14} className="text-slate-400" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <CalendarDays size={14} className="text-text-muted" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Health Rate nach Wochentag
           {rangeLabel && (
-            <span className="text-slate-400 normal-case ml-1">({rangeLabel})</span>
+            <span className="text-text-muted normal-case ml-1">({rangeLabel})</span>
           )}
         </h3>
       </div>
@@ -289,7 +289,7 @@ function WeekdayBar({ stats, rangeLabel }) {
                   }}
                 />
               </div>
-              <div className="text-[11px] font-mono text-slate-400 mt-1.5 font-medium">
+              <div className="text-[11px] font-mono text-text-muted mt-1.5 font-medium">
                 {day.label}
               </div>
               <div
@@ -298,7 +298,7 @@ function WeekdayBar({ stats, rangeLabel }) {
               >
                 {day.rate != null ? `${day.rate}%` : '\u2013'}
               </div>
-              <div className="text-[9px] font-mono text-slate-400">
+              <div className="text-[9px] font-mono text-text-muted">
                 {day.snapshots > 0
                   ? `~${day.avgOnline}/${day.avgDisplays}`
                   : ''}
@@ -308,8 +308,8 @@ function WeekdayBar({ stats, rangeLabel }) {
         })}
       </div>
       {worstDay && worstDay.rate != null && worstDay.rate < 85 && (
-        <div className="mt-3 px-3 py-2 rounded bg-slate-50/60 border border-slate-200/60">
-          <span className="text-[10px] text-slate-400">
+        <div className="mt-3 px-3 py-2 rounded bg-surface-secondary/60 border border-border-secondary">
+          <span className="text-[10px] text-text-muted">
             Schwächster Tag:{' '}
             <span
               className="font-bold"
@@ -332,11 +332,11 @@ function HourBar({ stats, rangeLabel }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <Sun size={14} className="text-slate-400" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <Sun size={14} className="text-text-muted" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Health Rate nach Tageszeit
           {rangeLabel && (
-            <span className="text-slate-400 normal-case ml-1">({rangeLabel})</span>
+            <span className="text-text-muted normal-case ml-1">({rangeLabel})</span>
           )}
         </h3>
       </div>
@@ -356,7 +356,7 @@ function HourBar({ stats, rangeLabel }) {
             >
               {hour.rate != null ? `${Math.round(hour.rate)}` : '\u2013'}
             </div>
-            <div className="text-[9px] font-mono text-slate-400">
+            <div className="text-[9px] font-mono text-text-muted">
               {hour.label}h
             </div>
           </div>
@@ -365,25 +365,25 @@ function HourBar({ stats, rangeLabel }) {
       {/* Legend */}
       <div className="flex items-center gap-3 mt-2">
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#22c55e]" />
-          <span className="text-[9px] text-slate-400">&ge;80%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#34C759]" />
+          <span className="text-[9px] text-text-muted">&ge;80%</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]" />
-          <span className="text-[9px] text-slate-400">60–80%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#FF9500]" />
+          <span className="text-[9px] text-text-muted">60–80%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#f97316]" />
-          <span className="text-[9px] text-slate-400">40–60%</span>
+          <span className="text-[9px] text-text-muted">40–60%</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#ef4444]" />
-          <span className="text-[9px] text-slate-400">&lt;40%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#FF3B30]" />
+          <span className="text-[9px] text-text-muted">&lt;40%</span>
         </div>
       </div>
       {problemHours.length > 0 && (
-        <div className="mt-3 px-3 py-2 rounded bg-slate-50/60 border border-slate-200/60">
-          <span className="text-[10px] text-slate-400">
+        <div className="mt-3 px-3 py-2 rounded bg-surface-secondary/60 border border-border-secondary">
+          <span className="text-[10px] text-text-muted">
             Schwache Zeiten:{' '}
             {problemHours.map((h, i) => (
               <span key={h.label}>
@@ -427,11 +427,11 @@ function Heatmap({ grid, rangeLabel }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <BarChart3 size={14} className="text-slate-400" />
-        <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+        <BarChart3 size={14} className="text-text-muted" />
+        <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
           Wochentag × Tageszeit Heatmap
           {rangeLabel && (
-            <span className="text-slate-400 normal-case ml-1">({rangeLabel})</span>
+            <span className="text-text-muted normal-case ml-1">({rangeLabel})</span>
           )}
         </h3>
       </div>
@@ -439,11 +439,11 @@ function Heatmap({ grid, rangeLabel }) {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="text-[9px] font-mono text-slate-400 w-8" />
+              <th className="text-[9px] font-mono text-text-muted w-8" />
               {visibleHours.map((h) => (
                 <th
                   key={h}
-                  className="text-[8px] font-mono text-slate-400 px-0 py-1 text-center"
+                  className="text-[8px] font-mono text-text-muted px-0 py-1 text-center"
                 >
                   {String(h).padStart(2, '0')}
                 </th>
@@ -453,7 +453,7 @@ function Heatmap({ grid, rangeLabel }) {
           <tbody>
             {grid.map((dayRow, dayIdx) => (
               <tr key={dayIdx}>
-                <td className="text-[10px] font-mono text-slate-400 font-medium pr-1 py-0.5 text-right">
+                <td className="text-[10px] font-mono text-text-muted font-medium pr-1 py-0.5 text-right">
                   {WEEKDAY_LABELS[dayIdx]}
                 </td>
                 {visibleHours.map((hourIdx) => {
@@ -486,24 +486,24 @@ function Heatmap({ grid, rangeLabel }) {
       {/* Legend */}
       <div className="flex items-center gap-3 mt-2">
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#22c55e]" />
-          <span className="text-[9px] text-slate-400">&ge;80%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#34C759]" />
+          <span className="text-[9px] text-text-muted">&ge;80%</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]" />
-          <span className="text-[9px] text-slate-400">60–80%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#FF9500]" />
+          <span className="text-[9px] text-text-muted">60–80%</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-[#f97316]" />
-          <span className="text-[9px] text-slate-400">40–60%</span>
+          <span className="text-[9px] text-text-muted">40–60%</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#ef4444]" />
-          <span className="text-[9px] text-slate-400">&lt;40%</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-[#FF3B30]" />
+          <span className="text-[9px] text-text-muted">&lt;40%</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-slate-300 opacity-30" />
-          <span className="text-[9px] text-slate-400">keine Daten</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-surface-tertiary opacity-30" />
+          <span className="text-[9px] text-text-muted">keine Daten</span>
         </div>
       </div>
 
@@ -534,7 +534,7 @@ export default function OverviewHealthPatterns({ trendData, rangeLabel }) {
   if (!trendData || trendData.length === 0) return null;
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 space-y-6">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WeekdayBar stats={weekdayStats} rangeLabel={rangeLabel} />
         <HourBar stats={hourStats} rangeLabel={rangeLabel} />

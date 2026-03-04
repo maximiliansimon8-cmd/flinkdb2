@@ -138,11 +138,11 @@ function addrKey(row) {
 function Badge({ color, children }) {
   const colors = {
     green: 'bg-emerald-100 text-emerald-700',
-    red: 'bg-red-100 text-red-700',
-    amber: 'bg-amber-100 text-amber-700',
-    blue: 'bg-blue-100 text-blue-700',
-    purple: 'bg-purple-100 text-purple-700',
-    gray: 'bg-gray-100 text-gray-600',
+    red: 'bg-status-offline/10 text-red-700',
+    amber: 'bg-status-warning/10 text-amber-700',
+    blue: 'bg-accent-light text-blue-700',
+    purple: 'bg-brand-purple/10 text-purple-700',
+    gray: 'bg-surface-secondary text-text-secondary',
   };
   return <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${colors[color] || colors.gray}`}>{children}</span>;
 }
@@ -763,22 +763,22 @@ export default function StammdatenImport() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Stammdaten Import / Abgleich</h2>
-          <p className="text-xs text-gray-500 mt-0.5">JET Restaurant-Export mit Airtable Stammdaten abgleichen</p>
+          <h2 className="text-lg font-bold text-text-primary">Stammdaten Import / Abgleich</h2>
+          <p className="text-xs text-text-muted mt-0.5">JET Restaurant-Export mit Airtable Stammdaten abgleichen</p>
         </div>
       </div>
 
       {/* Upload + Airtable Load */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* CSV Upload */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Upload size={16} className="text-blue-600" />
-            <h3 className="text-sm font-semibold text-gray-900">1. JET Export CSV hochladen</h3>
+            <Upload size={16} className="text-accent" />
+            <h3 className="text-sm font-semibold text-text-primary">1. JET Export CSV hochladen</h3>
           </div>
-          <label className="flex flex-col items-center gap-2 border-2 border-dashed border-slate-300 rounded-xl p-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all">
-            <FileText size={24} className="text-slate-400" />
-            <span className="text-sm text-slate-500">
+          <label className="flex flex-col items-center gap-2 border-2 border-dashed border-border-primary rounded-xl p-6 cursor-pointer hover:border-blue-400 hover:bg-accent-light/30 transition-all">
+            <FileText size={24} className="text-text-muted" />
+            <span className="text-sm text-text-muted">
               {fileName ? fileName : 'CSV-Datei auswaehlen...'}
             </span>
             {csvData && <span className="text-xs text-emerald-600 font-medium">{csvData.length} Eintraege geladen</span>}
@@ -787,28 +787,28 @@ export default function StammdatenImport() {
         </div>
 
         {/* Supabase Load */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Database size={16} className="text-orange-600" />
-            <h3 className="text-sm font-semibold text-gray-900">2. Stammdaten laden</h3>
-            <span className="text-[10px] text-gray-400 ml-auto">via Supabase (Airtable-Sync alle 5 Min)</span>
+            <Database size={16} className="text-status-warning" />
+            <h3 className="text-sm font-semibold text-text-primary">2. Stammdaten laden</h3>
+            <span className="text-[10px] text-text-muted ml-auto">via Supabase (Airtable-Sync alle 5 Min)</span>
           </div>
           <button
             onClick={fetchStammdaten}
             disabled={loadingAirtable}
-            className="w-full flex flex-col items-center gap-2 border-2 border-dashed border-slate-300 rounded-xl p-6 cursor-pointer hover:border-orange-400 hover:bg-orange-50/30 transition-all disabled:opacity-50"
+            className="w-full flex flex-col items-center gap-2 border-2 border-dashed border-border-primary rounded-xl p-6 cursor-pointer hover:border-orange-400 hover:bg-status-warning/10/30 transition-all disabled:opacity-50"
           >
             {loadingAirtable ? (
-              <Loader2 size={24} className="text-orange-500 animate-spin" />
+              <Loader2 size={24} className="text-status-warning animate-spin" />
             ) : (
-              <Database size={24} className="text-slate-400" />
+              <Database size={24} className="text-text-muted" />
             )}
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-text-muted">
               {loadingAirtable ? 'Lade Stammdaten...' : airtableData ? `${airtableData.size} Stammdaten geladen` : 'Klicken zum Laden'}
             </span>
             {airtableData && <span className="text-xs text-emerald-600 font-medium">Bereit zum Abgleich</span>}
             {syncInfo && (
-              <span className={`text-[10px] flex items-center gap-1 ${syncInfo.fresh ? 'text-emerald-600' : 'text-amber-600'}`}>
+              <span className={`text-[10px] flex items-center gap-1 ${syncInfo.fresh ? 'text-emerald-600' : 'text-status-warning'}`}>
                 <Clock size={10} />
                 Letzter Sync: vor {syncInfo.minAgo} Min {!syncInfo.fresh && '(moeglicherweise veraltet)'}
               </span>
@@ -819,8 +819,8 @@ export default function StammdatenImport() {
 
       {/* Field Overview — shows all columns after loading */}
       {syncInfo?.allColumns && (
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-text-primary mb-3">
             Supabase Spalten ({syncInfo.allColumns.length}) — {syncInfo.totalRecords} Records
           </h3>
           <div className="flex flex-wrap gap-1">
@@ -833,14 +833,14 @@ export default function StammdatenImport() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2 text-sm text-red-700">
+        <div className="bg-status-offline/10 border border-status-offline/20 rounded-xl p-3 flex items-center gap-2 text-sm text-red-700">
           <AlertTriangle size={14} /> {error}
         </div>
       )}
 
       {/* Run comparison button */}
       {csvData && airtableData && !comparison && (
-        <div className="text-center text-sm text-gray-500">Abgleich wird berechnet...</div>
+        <div className="text-center text-sm text-text-muted">Abgleich wird berechnet...</div>
       )}
 
       {/* Results */}
@@ -848,7 +848,7 @@ export default function StammdatenImport() {
         <>
           {/* CSV-detected fields info */}
           {csvFields.size > 0 && (
-            <div className="bg-blue-50/60 border border-blue-200/40 rounded-xl px-4 py-2 flex items-center gap-2 text-xs text-blue-700">
+            <div className="bg-accent-light/60 border border-accent/20/40 rounded-xl px-4 py-2 flex items-center gap-2 text-xs text-blue-700">
               <Eye size={12} />
               <span>Vergleiche {csvFields.size} Felder aus CSV: {[...csvFields].map(f => FIELD_LABELS[f] || f).join(', ')}</span>
             </div>
@@ -856,7 +856,7 @@ export default function StammdatenImport() {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            <button onClick={() => setActiveTab('summary')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'summary' ? 'bg-gray-900 text-white' : 'bg-white/60 border border-slate-200/60'}`}>
+            <button onClick={() => setActiveTab('summary')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'summary' ? 'bg-gray-900 text-white' : 'bg-surface-primary border border-border-secondary'}`}>
               <p className="text-[11px] font-medium opacity-70">Gesamt CSV</p>
               <p className="text-2xl font-bold">{csvData.length}</p>
             </button>
@@ -864,29 +864,29 @@ export default function StammdatenImport() {
               <p className="text-[11px] font-medium opacity-70">Unveraendert</p>
               <p className={`text-2xl font-bold ${activeTab === 'unchanged' ? '' : 'text-emerald-700'}`}>{comparison.unchanged.length}</p>
             </button>
-            <button onClick={() => setActiveTab('noncritical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'noncritical' ? 'bg-amber-600 text-white' : 'bg-amber-50/80 border border-amber-200/60'}`}>
+            <button onClick={() => setActiveTab('noncritical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'noncritical' ? 'bg-amber-600 text-white' : 'bg-status-warning/10/80 border border-status-warning/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Unkritisch</p>
               <p className={`text-2xl font-bold ${activeTab === 'noncritical' ? '' : 'text-amber-700'}`}>{comparison.onlyNonCritical.length}</p>
               <p className="text-[9px] opacity-60">Tel, Email, Geo...</p>
             </button>
-            <button onClick={() => setActiveTab('critical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'critical' ? 'bg-red-600 text-white' : 'bg-red-50/80 border border-red-200/60'}`}>
+            <button onClick={() => setActiveTab('critical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'critical' ? 'bg-status-offline text-white' : 'bg-status-offline/10/80 border border-status-offline/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Kritisch</p>
               <p className={`text-2xl font-bold ${activeTab === 'critical' ? '' : 'text-red-700'}`}>{comparison.withCritical.length}</p>
               <p className="text-[9px] opacity-60">Name, Firma, Chain</p>
             </button>
-            <button onClick={() => setActiveTab('new')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'new' ? 'bg-blue-600 text-white' : 'bg-blue-50/80 border border-blue-200/60'}`}>
+            <button onClick={() => setActiveTab('new')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'new' ? 'bg-accent text-white' : 'bg-accent-light/80 border border-accent/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Neu (nur CSV)</p>
               <p className={`text-2xl font-bold ${activeTab === 'new' ? '' : 'text-blue-700'}`}>{comparison.newEntries.length}</p>
               {comparison.newWithConflicts.length > 0 && (
                 <p className="text-[9px] opacity-60">{comparison.newWithConflicts.length} mit Konflikten</p>
               )}
             </button>
-            <button onClick={() => setActiveTab('missing')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'missing' ? 'bg-gray-700 text-white' : 'bg-gray-50/80 border border-gray-200/60'}`}>
+            <button onClick={() => setActiveTab('missing')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'missing' ? 'bg-gray-700 text-white' : 'bg-surface-secondary/80 border border-border-secondary/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Nur in DB</p>
-              <p className={`text-2xl font-bold ${activeTab === 'missing' ? '' : 'text-gray-700'}`}>{comparison.missing.length}</p>
+              <p className={`text-2xl font-bold ${activeTab === 'missing' ? '' : 'text-text-primary'}`}>{comparison.missing.length}</p>
               <p className="text-[9px] opacity-60">Ohne Aenderungen</p>
             </button>
-            <button onClick={() => setActiveTab('conflicts')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'conflicts' ? 'bg-purple-600 text-white' : 'bg-purple-50/80 border border-purple-200/60'}`}>
+            <button onClick={() => setActiveTab('conflicts')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'conflicts' ? 'bg-brand-purple text-white' : 'bg-brand-purple/10/80 border border-brand-purple/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Adress-Konflikte</p>
               <p className={`text-2xl font-bold ${activeTab === 'conflicts' ? '' : 'text-purple-700'}`}>{comparison.addrConflicts.length}</p>
             </button>
@@ -895,32 +895,32 @@ export default function StammdatenImport() {
           {/* Search + Export */}
           <div className="flex gap-3 items-center">
             <div className="relative flex-1">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Suche nach Name, ID, Stadt, Strasse..."
-                className="w-full pl-10 pr-4 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400/30 text-sm"
+                className="w-full pl-10 pr-4 py-2 bg-surface-primary border border-border-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400/30 text-sm"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary">
                   <X size={14} />
                 </button>
               )}
             </div>
-            <button onClick={exportDiff} className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-xs font-medium text-gray-700 transition-colors">
+            <button onClick={exportDiff} className="flex items-center gap-1.5 px-3 py-2 bg-surface-secondary hover:bg-surface-tertiary rounded-xl text-xs font-medium text-text-primary transition-colors">
               <Download size={14} /> Diff exportieren
             </button>
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
             {/* Summary */}
             {activeTab === 'summary' && (
               <div className="p-5 space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900">Zusammenfassung</h3>
-                <div className="text-sm text-gray-600 space-y-1.5">
+                <h3 className="text-sm font-semibold text-text-primary">Zusammenfassung</h3>
+                <div className="text-sm text-text-secondary space-y-1.5">
                   <p><Badge color="gray">{csvData.length}</Badge> Eintraege im JET-Export</p>
                   <p><Badge color="gray">{airtableData.size}</Badge> Eintraege in Supabase (Airtable-Sync)</p>
                   <p><Badge color="green">{comparison.unchanged.length}</Badge> unveraendert (ID match, alle Felder identisch)</p>
@@ -931,14 +931,14 @@ export default function StammdatenImport() {
                   <p><Badge color="purple">{comparison.addrConflicts.length}</Badge> Adress-Konflikte (gleiche Anschrift, andere ID)</p>
                 </div>
                 {comparison.withChanges.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-slate-200">
-                    <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Haeufigste Aenderungen</h4>
+                  <div className="mt-4 pt-4 border-t border-border-secondary">
+                    <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2">Haeufigste Aenderungen</h4>
                     <div className="flex flex-wrap gap-2">
                       {(() => {
                         const counts = {};
                         comparison.withChanges.forEach(m => m.changes.forEach(c => { counts[c.label] = (counts[c.label] || 0) + 1; }));
                         return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([label, count]) => (
-                          <span key={label} className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-lg font-mono">
+                          <span key={label} className="text-xs bg-status-warning/10 text-amber-700 px-2 py-1 rounded-lg font-mono">
                             {label}: {count}x
                           </span>
                         ));
@@ -953,12 +953,12 @@ export default function StammdatenImport() {
             {activeTab === 'noncritical' && (
               <div>
                 {/* Bulk approve header */}
-                <div className="px-4 py-3 bg-amber-50/80 border-b border-amber-200/40 flex items-center justify-between">
+                <div className="px-4 py-3 bg-status-warning/10/80 border-b border-status-warning/20/40 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-amber-800">
                       {comparison.onlyNonCritical.length} Standorte mit unkritischen Aenderungen
                     </p>
-                    <p className="text-[10px] text-amber-600">
+                    <p className="text-[10px] text-status-warning">
                       Telefon, E-Mail, Kontakt, Geo, Oeffnungszeiten, Website — gesammelt freigeben
                     </p>
                   </div>
@@ -979,25 +979,25 @@ export default function StammdatenImport() {
                 </div>
                 <div className="divide-y divide-slate-100">
                   {comparison.onlyNonCritical.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-gray-400">Keine unkritischen Aenderungen</div>
+                    <div className="p-8 text-center text-sm text-text-muted">Keine unkritischen Aenderungen</div>
                   ) : comparison.onlyNonCritical.slice(0, 200).map(m => (
-                    <div key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                    <div key={m.id} className="hover:bg-surface-secondary/50 transition-colors">
                       <button
                         onClick={() => setExpandedId(expandedId === m.id ? null : m.id)}
                         className="w-full px-4 py-3 flex items-center gap-3 text-left"
                       >
                         <Badge color="amber">{m.changes.length}</Badge>
-                        <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{m.id}</span>
-                        <span className="text-sm font-medium text-gray-900 flex-1 truncate">{m.csv.name}</span>
-                        <span className="text-xs text-gray-400">{m.csv.city}</span>
+                        <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{m.id}</span>
+                        <span className="text-sm font-medium text-text-primary flex-1 truncate">{m.csv.name}</span>
+                        <span className="text-xs text-text-muted">{m.csv.city}</span>
                         {approvedNonCritical && <CheckCircle2 size={14} className="text-emerald-500" />}
-                        <ChevronDown size={14} className={`text-gray-400 transition-transform ${expandedId === m.id ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={14} className={`text-text-muted transition-transform ${expandedId === m.id ? 'rotate-180' : ''}`} />
                       </button>
                       {expandedId === m.id && (
                         <div className="px-4 pb-3">
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="text-gray-500 uppercase">
+                              <tr className="text-text-muted uppercase">
                                 <th className="text-left py-1 px-2 font-medium">Feld</th>
                                 <th className="text-left py-1 px-2 font-medium">JET Export (neu)</th>
                                 <th className="text-left py-1 px-2 font-medium">Airtable (aktuell)</th>
@@ -1005,10 +1005,10 @@ export default function StammdatenImport() {
                             </thead>
                             <tbody>
                               {m.changes.map(c => (
-                                <tr key={c.field} className="border-t border-slate-100">
-                                  <td className="py-1.5 px-2 font-medium text-gray-700">{c.label}</td>
-                                  <td className="py-1.5 px-2 text-blue-700 bg-blue-50/50 font-mono">{c.csvVal || <span className="text-gray-300 italic">leer</span>}</td>
-                                  <td className="py-1.5 px-2 text-gray-500 font-mono">{c.atVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                <tr key={c.field} className="border-t border-border-secondary">
+                                  <td className="py-1.5 px-2 font-medium text-text-primary">{c.label}</td>
+                                  <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50 font-mono">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 text-text-muted font-mono">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1018,7 +1018,7 @@ export default function StammdatenImport() {
                     </div>
                   ))}
                   {comparison.onlyNonCritical.length > 200 && (
-                    <div className="p-3 text-center text-xs text-gray-400">... und {comparison.onlyNonCritical.length - 200} weitere</div>
+                    <div className="p-3 text-center text-xs text-text-muted">... und {comparison.onlyNonCritical.length - 200} weitere</div>
                   )}
                 </div>
               </div>
@@ -1027,35 +1027,35 @@ export default function StammdatenImport() {
             {/* Critical changes — individual approval */}
             {activeTab === 'critical' && (
               <div>
-                <div className="px-4 py-3 bg-red-50/80 border-b border-red-200/40">
+                <div className="px-4 py-3 bg-status-offline/10/80 border-b border-status-offline/20/40">
                   <p className="text-sm font-semibold text-red-800">
                     {comparison.withCritical.length} Standorte mit kritischen Aenderungen
                   </p>
-                  <p className="text-[10px] text-red-600">
+                  <p className="text-[10px] text-status-offline">
                     Name, Firma/Entity, JET Chain — einzeln pruefen und freigeben
                   </p>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {comparison.withCritical.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-gray-400">Keine kritischen Aenderungen</div>
+                    <div className="p-8 text-center text-sm text-text-muted">Keine kritischen Aenderungen</div>
                   ) : comparison.withCritical.map(m => (
-                    <div key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                    <div key={m.id} className="hover:bg-surface-secondary/50 transition-colors">
                       <button
                         onClick={() => setExpandedId(expandedId === `crit-${m.id}` ? null : `crit-${m.id}`)}
                         className="w-full px-4 py-3 flex items-center gap-3 text-left"
                       >
                         <Badge color="red">{m.criticalChanges.length}</Badge>
                         {m.nonCriticalChanges.length > 0 && <Badge color="amber">+{m.nonCriticalChanges.length}</Badge>}
-                        <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{m.id}</span>
-                        <span className="text-sm font-medium text-gray-900 flex-1 truncate">{m.csv.name}</span>
-                        <span className="text-xs text-gray-400">{m.csv.city}</span>
-                        <ChevronDown size={14} className={`text-gray-400 transition-transform ${expandedId === `crit-${m.id}` ? 'rotate-180' : ''}`} />
+                        <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{m.id}</span>
+                        <span className="text-sm font-medium text-text-primary flex-1 truncate">{m.csv.name}</span>
+                        <span className="text-xs text-text-muted">{m.csv.city}</span>
+                        <ChevronDown size={14} className={`text-text-muted transition-transform ${expandedId === `crit-${m.id}` ? 'rotate-180' : ''}`} />
                       </button>
                       {expandedId === `crit-${m.id}` && (
                         <div className="px-4 pb-3 space-y-2">
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="text-gray-500 uppercase">
+                              <tr className="text-text-muted uppercase">
                                 <th className="text-left py-1 px-2 font-medium w-8"></th>
                                 <th className="text-left py-1 px-2 font-medium">Feld</th>
                                 <th className="text-left py-1 px-2 font-medium">JET Export (neu)</th>
@@ -1067,7 +1067,7 @@ export default function StammdatenImport() {
                                 const approvalKey = `${m.id}:${c.field}`;
                                 const isApproved = approvedCriticalIds.has(approvalKey);
                                 return (
-                                  <tr key={c.field} className="border-t border-red-100 bg-red-50/30">
+                                  <tr key={c.field} className="border-t border-red-100 bg-status-offline/10/30">
                                     <td className="py-1.5 px-2">
                                       <button
                                         onClick={() => {
@@ -1077,26 +1077,26 @@ export default function StammdatenImport() {
                                           setApprovedCriticalIds(next);
                                         }}
                                         className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                                          isApproved ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-red-300 hover:border-red-500'
+                                          isApproved ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-red-300 hover:border-status-offline'
                                         }`}
                                       >
                                         {isApproved && <CheckCircle2 size={12} />}
                                       </button>
                                     </td>
                                     <td className="py-1.5 px-2 font-semibold text-red-700">{c.label}</td>
-                                    <td className="py-1.5 px-2 text-blue-700 bg-blue-50/50 font-mono">{c.csvVal || <span className="text-gray-300 italic">leer</span>}</td>
-                                    <td className="py-1.5 px-2 text-gray-500 font-mono">{c.atVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                    <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50 font-mono">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
+                                    <td className="py-1.5 px-2 text-text-muted font-mono">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
                                   </tr>
                                 );
                               })}
                               {m.nonCriticalChanges.map(c => (
-                                <tr key={c.field} className="border-t border-slate-100">
+                                <tr key={c.field} className="border-t border-border-secondary">
                                   <td className="py-1.5 px-2">
-                                    {approvedNonCritical ? <CheckCircle2 size={12} className="text-emerald-500" /> : <span className="text-[10px] text-gray-400">auto</span>}
+                                    {approvedNonCritical ? <CheckCircle2 size={12} className="text-emerald-500" /> : <span className="text-[10px] text-text-muted">auto</span>}
                                   </td>
-                                  <td className="py-1.5 px-2 font-medium text-gray-700">{c.label}</td>
-                                  <td className="py-1.5 px-2 text-blue-700 bg-blue-50/50 font-mono">{c.csvVal || <span className="text-gray-300 italic">leer</span>}</td>
-                                  <td className="py-1.5 px-2 text-gray-500 font-mono">{c.atVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 font-medium text-text-primary">{c.label}</td>
+                                  <td className="py-1.5 px-2 text-blue-700 bg-accent-light/50 font-mono">{c.csvVal || <span className="text-text-muted italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 text-text-muted font-mono">{c.atVal || <span className="text-text-muted italic">leer</span>}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1113,53 +1113,53 @@ export default function StammdatenImport() {
             {activeTab === 'new' && (
               <div>
                 {filteredResults.newEntries.length === 0 ? (
-                  <div className="p-8 text-center text-sm text-gray-400">Keine neuen Eintraege</div>
+                  <div className="p-8 text-center text-sm text-text-muted">Keine neuen Eintraege</div>
                 ) : (
                   <>
                     {/* New entries WITH potential conflicts */}
                     {comparison.newWithConflicts.length > 0 && (
                       <div>
-                        <div className="px-4 py-3 bg-amber-50/80 border-b border-amber-200/40">
+                        <div className="px-4 py-3 bg-status-warning/10/80 border-b border-status-warning/20/40">
                           <p className="text-sm font-semibold text-amber-800">
                             {comparison.newWithConflicts.length} mit moeglichen Konflikten
                           </p>
-                          <p className="text-[10px] text-amber-600">
+                          <p className="text-[10px] text-status-warning">
                             Gleiche Adresse, Email oder Inhaber in Airtable gefunden — ID geaendert? Verkauft? Bitte pruefen.
                           </p>
                         </div>
                         <div className="divide-y divide-slate-100">
                           {comparison.newWithConflicts.map(row => (
-                            <div key={row.id} className="hover:bg-amber-50/30 transition-colors">
+                            <div key={row.id} className="hover:bg-status-warning/10/30 transition-colors">
                               <button
                                 onClick={() => setExpandedId(expandedId === `new-${row.id}` ? null : `new-${row.id}`)}
                                 className="w-full px-4 py-3 flex items-center gap-3 text-left"
                               >
-                                <AlertTriangle size={14} className="text-amber-500 flex-shrink-0" />
-                                <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{row.id}</span>
-                                <span className="text-sm font-medium text-gray-900 flex-1 truncate">{row.name}</span>
-                                <span className="text-xs text-gray-500">{row.street} {row.street_number}</span>
-                                <span className="text-xs text-gray-400">{row.postcode} {row.city}</span>
+                                <AlertTriangle size={14} className="text-status-warning flex-shrink-0" />
+                                <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{row.id}</span>
+                                <span className="text-sm font-medium text-text-primary flex-1 truncate">{row.name}</span>
+                                <span className="text-xs text-text-muted">{row.street} {row.street_number}</span>
+                                <span className="text-xs text-text-muted">{row.postcode} {row.city}</span>
                                 <Badge color="amber">{row._conflictHints.length}</Badge>
-                                <ChevronDown size={14} className={`text-gray-400 transition-transform ${expandedId === `new-${row.id}` ? 'rotate-180' : ''}`} />
+                                <ChevronDown size={14} className={`text-text-muted transition-transform ${expandedId === `new-${row.id}` ? 'rotate-180' : ''}`} />
                               </button>
                               {expandedId === `new-${row.id}` && (
                                 <div className="px-4 pb-3 space-y-1.5">
                                   {row._conflictHints.map((h, i) => (
-                                    <div key={i} className="flex items-center gap-2 text-xs px-3 py-2 bg-amber-50 rounded-lg border border-amber-200/50">
+                                    <div key={i} className="flex items-center gap-2 text-xs px-3 py-2 bg-status-warning/10 rounded-lg border border-status-warning/20/50">
                                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                        h.type === 'address' ? 'bg-purple-100 text-purple-700' :
-                                        h.type === 'email' ? 'bg-blue-100 text-blue-700' :
-                                        'bg-orange-100 text-orange-700'
+                                        h.type === 'address' ? 'bg-brand-purple/10 text-purple-700' :
+                                        h.type === 'email' ? 'bg-accent-light text-blue-700' :
+                                        'bg-status-warning/10 text-orange-700'
                                       }`}>
                                         {h.type === 'address' ? 'Adresse' : h.type === 'email' ? 'Email' : 'Inhaber'}
                                       </span>
-                                      <ArrowRight size={10} className="text-gray-400" />
-                                      <span className="font-mono text-gray-500">{h.atId}</span>
-                                      <span className="text-gray-700 font-medium">{h.atName}</span>
-                                      <span className="text-gray-400 ml-auto">{h.detail}</span>
+                                      <ArrowRight size={10} className="text-text-muted" />
+                                      <span className="font-mono text-text-muted">{h.atId}</span>
+                                      <span className="text-text-primary font-medium">{h.atName}</span>
+                                      <span className="text-text-muted ml-auto">{h.detail}</span>
                                     </div>
                                   ))}
-                                  <p className="text-[10px] text-gray-500 pt-1">
+                                  <p className="text-[10px] text-text-muted pt-1">
                                     Moeglich: JET ID geaendert, Standort verkauft/neuer Vertragspartner, oder tatsaechlich neu.
                                   </p>
                                 </div>
@@ -1174,18 +1174,18 @@ export default function StammdatenImport() {
                     {comparison.newClean.length > 0 && (
                       <div>
                         {comparison.newWithConflicts.length > 0 && (
-                          <div className="px-4 py-2 bg-emerald-50/80 border-b border-emerald-200/40 border-t border-slate-200/40">
+                          <div className="px-4 py-2 bg-emerald-50/80 border-b border-emerald-200/40 border-t border-border-secondary/40">
                             <p className="text-xs font-semibold text-emerald-700">{comparison.newClean.length} ohne Konflikte — bereit zum Anlegen</p>
                           </div>
                         )}
                         <div className="divide-y divide-slate-100">
                           {comparison.newClean.map(row => (
-                            <div key={row.id} className="px-4 py-3 flex items-center gap-3 hover:bg-blue-50/30 transition-colors">
-                              <Plus size={14} className="text-blue-500 flex-shrink-0" />
-                              <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{row.id}</span>
-                              <span className="text-sm font-medium text-gray-900 flex-1 truncate">{row.name}</span>
-                              <span className="text-xs text-gray-500">{row.street} {row.street_number}</span>
-                              <span className="text-xs text-gray-400">{row.postcode} {row.city}</span>
+                            <div key={row.id} className="px-4 py-3 flex items-center gap-3 hover:bg-accent-light/30 transition-colors">
+                              <Plus size={14} className="text-accent flex-shrink-0" />
+                              <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{row.id}</span>
+                              <span className="text-sm font-medium text-text-primary flex-1 truncate">{row.name}</span>
+                              <span className="text-xs text-text-muted">{row.street} {row.street_number}</span>
+                              <span className="text-xs text-text-muted">{row.postcode} {row.city}</span>
                             </div>
                           ))}
                         </div>
@@ -1200,14 +1200,14 @@ export default function StammdatenImport() {
             {activeTab === 'missing' && (
               <div className="divide-y divide-slate-100">
                 {filteredResults.missing.length === 0 ? (
-                  <div className="p-8 text-center text-sm text-gray-400">Alle Airtable-Eintraege sind im CSV vorhanden</div>
+                  <div className="p-8 text-center text-sm text-text-muted">Alle Airtable-Eintraege sind im CSV vorhanden</div>
                 ) : filteredResults.missing.map(rec => (
-                  <div key={rec.id} className="px-4 py-3 flex items-center gap-3 hover:bg-red-50/30 transition-colors">
-                    <Minus size={14} className="text-red-500 flex-shrink-0" />
-                    <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{rec.id}</span>
-                    <span className="text-sm font-medium text-gray-900 flex-1 truncate">{rec.name}</span>
-                    <span className="text-xs text-gray-500">{rec.street} {rec.street_number}</span>
-                    <span className="text-xs text-gray-400">{rec.postcode} {rec.city}</span>
+                  <div key={rec.id} className="px-4 py-3 flex items-center gap-3 hover:bg-status-offline/10/30 transition-colors">
+                    <Minus size={14} className="text-status-offline flex-shrink-0" />
+                    <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{rec.id}</span>
+                    <span className="text-sm font-medium text-text-primary flex-1 truncate">{rec.name}</span>
+                    <span className="text-xs text-text-muted">{rec.street} {rec.street_number}</span>
+                    <span className="text-xs text-text-muted">{rec.postcode} {rec.city}</span>
                   </div>
                 ))}
               </div>
@@ -1217,17 +1217,17 @@ export default function StammdatenImport() {
             {activeTab === 'unchanged' && (
               <div className="divide-y divide-slate-100">
                 {comparison.unchanged.length === 0 ? (
-                  <div className="p-8 text-center text-sm text-gray-400">Keine unveraenderten Eintraege</div>
+                  <div className="p-8 text-center text-sm text-text-muted">Keine unveraenderten Eintraege</div>
                 ) : comparison.unchanged.slice(0, 100).map(m => (
                   <div key={m.id} className="px-4 py-2.5 flex items-center gap-3">
                     <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
-                    <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{m.id}</span>
-                    <span className="text-sm text-gray-700 flex-1 truncate">{m.csv.name}</span>
-                    <span className="text-xs text-gray-400">{m.csv.city}</span>
+                    <span className="text-xs font-mono text-text-muted w-20 flex-shrink-0">{m.id}</span>
+                    <span className="text-sm text-text-primary flex-1 truncate">{m.csv.name}</span>
+                    <span className="text-xs text-text-muted">{m.csv.city}</span>
                   </div>
                 ))}
                 {comparison.unchanged.length > 100 && (
-                  <div className="p-3 text-center text-xs text-gray-400">... und {comparison.unchanged.length - 100} weitere</div>
+                  <div className="p-3 text-center text-xs text-text-muted">... und {comparison.unchanged.length - 100} weitere</div>
                 )}
               </div>
             )}
@@ -1236,24 +1236,24 @@ export default function StammdatenImport() {
             {activeTab === 'conflicts' && (
               <div className="divide-y divide-slate-100">
                 {filteredResults.addrConflicts.length === 0 ? (
-                  <div className="p-8 text-center text-sm text-gray-400">Keine Adress-Konflikte gefunden</div>
+                  <div className="p-8 text-center text-sm text-text-muted">Keine Adress-Konflikte gefunden</div>
                 ) : filteredResults.addrConflicts.map((c, i) => (
-                  <div key={i} className="px-4 py-3 hover:bg-purple-50/30 transition-colors">
+                  <div key={i} className="px-4 py-3 hover:bg-brand-purple/10/30 transition-colors">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <MapPin size={14} className="text-purple-500" />
-                      <span className="text-xs font-medium text-gray-500">{c.address}</span>
+                      <MapPin size={14} className="text-brand-purple" />
+                      <span className="text-xs font-medium text-text-muted">{c.address}</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs">
                       <div className="flex items-center gap-1.5">
                         <Badge color="blue">CSV</Badge>
-                        <span className="font-mono text-gray-500">{c.csvId}</span>
-                        <span className="text-gray-700">{c.csvName}</span>
+                        <span className="font-mono text-text-muted">{c.csvId}</span>
+                        <span className="text-text-primary">{c.csvName}</span>
                       </div>
-                      <ArrowRight size={12} className="text-gray-300" />
+                      <ArrowRight size={12} className="text-text-muted" />
                       <div className="flex items-center gap-1.5">
                         <Badge color="amber">Airtable</Badge>
-                        <span className="font-mono text-gray-500">{c.airtableId}</span>
-                        <span className="text-gray-700">{c.airtableName}</span>
+                        <span className="font-mono text-text-muted">{c.airtableId}</span>
+                        <span className="text-text-primary">{c.airtableName}</span>
                       </div>
                     </div>
                   </div>
@@ -1264,21 +1264,21 @@ export default function StammdatenImport() {
 
           {/* ── Akquise-Freigabe Panel ── */}
           {airtableData && freigabeEligible.length > 0 && (
-            <div className="bg-white/60 backdrop-blur-xl border border-orange-200/60 rounded-2xl p-5 space-y-4">
+            <div className="bg-surface-primary border border-status-warning/20/60 rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-orange-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">Akquise-Freigabe: Non-Chain + Top-5-Grossstaedte</h3>
+                  <CheckCircle2 size={16} className="text-status-warning" />
+                  <h3 className="text-sm font-semibold text-text-primary">Akquise-Freigabe: Non-Chain + Top-5-Grossstaedte</h3>
                 </div>
                 {freigabeStep && freigabeStep !== 'done' && (
-                  <button onClick={() => { setFreigabeStep(null); setFreigabeResult(null); }} className="text-xs text-gray-500 hover:text-gray-700">Abbrechen</button>
+                  <button onClick={() => { setFreigabeStep(null); setFreigabeResult(null); }} className="text-xs text-text-muted hover:text-text-primary">Abbrechen</button>
                 )}
               </div>
 
               {/* Pre-confirm: show eligible records */}
               {!freigabeStep && (
                 <div className="space-y-3">
-                  <div className="bg-orange-50/80 rounded-xl px-4 py-3">
+                  <div className="bg-status-warning/10/80 rounded-xl px-4 py-3">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-semibold text-orange-800">{freigabeEligible.length} Standorte bereit zur Freigabe</p>
                       <div className="flex gap-1">
@@ -1286,23 +1286,23 @@ export default function StammdatenImport() {
                         <Badge color="blue">Top 5 City</Badge>
                       </div>
                     </div>
-                    <p className="text-[10px] text-orange-600">
+                    <p className="text-[10px] text-status-warning">
                       Filter: Kein JET Chain + Stadt in Berlin/Hamburg/Muenchen/Koeln/Frankfurt + noch nicht freigegeben
                     </p>
                   </div>
 
                   {/* Preview list (max 20) */}
-                  <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 rounded-xl border border-slate-200/60">
+                  <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 rounded-xl border border-border-secondary">
                     {freigabeEligible.slice(0, 20).map(rec => (
                       <div key={rec.id} className="px-3 py-2 flex items-center gap-3 text-xs">
-                        <span className="font-mono text-gray-400 w-16 flex-shrink-0">{rec.id}</span>
-                        <span className="font-medium text-gray-900 flex-1 truncate">{rec.name}</span>
-                        <span className="text-gray-500">{rec.city}</span>
-                        <span className="text-gray-400">{rec.street} {rec.street_number}</span>
+                        <span className="font-mono text-text-muted w-16 flex-shrink-0">{rec.id}</span>
+                        <span className="font-medium text-text-primary flex-1 truncate">{rec.name}</span>
+                        <span className="text-text-muted">{rec.city}</span>
+                        <span className="text-text-muted">{rec.street} {rec.street_number}</span>
                       </div>
                     ))}
                     {freigabeEligible.length > 20 && (
-                      <div className="px-3 py-2 text-center text-[10px] text-gray-400">
+                      <div className="px-3 py-2 text-center text-[10px] text-text-muted">
                         ... und {freigabeEligible.length - 20} weitere
                       </div>
                     )}
@@ -1319,16 +1319,16 @@ export default function StammdatenImport() {
 
               {/* Confirm step (double verify) */}
               {freigabeStep === 'confirm' && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+                <div className="bg-status-offline/10 border border-status-offline/20 rounded-xl p-4 space-y-3">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                    <AlertTriangle size={16} className="text-status-offline mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-semibold text-red-800">Double-Verify Bestaetigung</p>
                       <p className="text-xs text-red-700 mt-1">
                         {freigabeEligible.length} Standorte werden in Airtable als "Zur Akquise freigegeben" markiert.
                         Jeder Record wird vor dem Schreiben nochmal gegen Airtable geprueft (Double-Verify):
                       </p>
-                      <ul className="text-[10px] text-red-600 mt-1.5 space-y-0.5 list-disc list-inside">
+                      <ul className="text-[10px] text-status-offline mt-1.5 space-y-0.5 list-disc list-inside">
                         <li>Nicht bereits freigegeben?</li>
                         <li>Wirklich kein Chain?</li>
                         <li>Record existiert in Airtable?</li>
@@ -1338,13 +1338,13 @@ export default function StammdatenImport() {
                   <div className="flex gap-2">
                     <button
                       onClick={runAkquiseFreigabe}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-status-offline hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
                     >
                       <Zap size={14} /> Ja, {freigabeEligible.length} freigeben (Double-Verify)
                     </button>
                     <button
                       onClick={() => setFreigabeStep(null)}
-                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
+                      className="px-4 py-2.5 bg-surface-secondary hover:bg-surface-tertiary rounded-lg text-sm font-medium text-text-primary transition-colors"
                     >
                       Abbrechen
                     </button>
@@ -1355,8 +1355,8 @@ export default function StammdatenImport() {
               {/* Running */}
               {freigabeStep === 'running' && (
                 <div className="flex items-center justify-center gap-3 py-6">
-                  <Loader2 size={20} className="text-orange-500 animate-spin" />
-                  <span className="text-sm text-gray-600">
+                  <Loader2 size={20} className="text-status-warning animate-spin" />
+                  <span className="text-sm text-text-secondary">
                     Double-Verify + Freigabe fuer {freigabeEligible.length} Records...
                   </span>
                 </div>
@@ -1371,17 +1371,17 @@ export default function StammdatenImport() {
                       <span className="text-sm font-semibold text-emerald-800">Akquise-Freigabe abgeschlossen</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                      <div className="bg-surface-primary rounded-lg px-3 py-2 text-center">
                         <p className="font-bold text-emerald-700">{freigabeResult.summary.success}</p>
                         <p className="text-emerald-600">Freigegeben</p>
                       </div>
-                      <div className={`bg-white/70 rounded-lg px-3 py-2 text-center ${freigabeResult.summary.failed > 0 ? 'border border-red-200' : ''}`}>
-                        <p className={`font-bold ${freigabeResult.summary.failed > 0 ? 'text-red-700' : 'text-gray-400'}`}>{freigabeResult.summary.failed}</p>
-                        <p className="text-gray-600">Fehlgeschlagen</p>
+                      <div className={`bg-surface-primary rounded-lg px-3 py-2 text-center ${freigabeResult.summary.failed > 0 ? 'border border-status-offline/20' : ''}`}>
+                        <p className={`font-bold ${freigabeResult.summary.failed > 0 ? 'text-red-700' : 'text-text-muted'}`}>{freigabeResult.summary.failed}</p>
+                        <p className="text-text-secondary">Fehlgeschlagen</p>
                       </div>
-                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                      <div className="bg-surface-primary rounded-lg px-3 py-2 text-center">
                         <p className="font-bold text-amber-700">{freigabeResult.summary.skipped}</p>
-                        <p className="text-gray-600">Double-Verify Skipped</p>
+                        <p className="text-text-secondary">Double-Verify Skipped</p>
                       </div>
                     </div>
                     <p className="text-[10px] text-emerald-600 mt-2">
@@ -1394,9 +1394,9 @@ export default function StammdatenImport() {
                     <div className="max-h-36 overflow-y-auto space-y-1">
                       <p className="text-xs font-semibold text-amber-700">Double-Verify uebersprungen:</p>
                       {freigabeResult.skipped.map((s, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs px-3 py-1.5 bg-amber-50 rounded-lg">
-                          <AlertTriangle size={12} className="text-amber-500" />
-                          <span className="font-mono text-gray-600">{s.jet_id}</span>
+                        <div key={i} className="flex items-center gap-2 text-xs px-3 py-1.5 bg-status-warning/10 rounded-lg">
+                          <AlertTriangle size={12} className="text-status-warning" />
+                          <span className="font-mono text-text-secondary">{s.jet_id}</span>
                           <span className="text-amber-700">{s.reason}</span>
                         </div>
                       ))}
@@ -1405,7 +1405,7 @@ export default function StammdatenImport() {
 
                   <button
                     onClick={() => { setFreigabeStep(null); setFreigabeResult(null); }}
-                    className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors"
+                    className="w-full px-4 py-2 bg-surface-secondary hover:bg-surface-tertiary rounded-xl text-sm font-medium text-text-primary transition-colors"
                   >
                     Fertig
                   </button>
@@ -1416,15 +1416,15 @@ export default function StammdatenImport() {
 
           {/* Show count when no eligible records */}
           {airtableData && freigabeEligible.length === 0 && !comparison && (
-            <div className="bg-gray-50/60 border border-slate-200/60 rounded-2xl p-4 text-center">
-              <p className="text-xs text-gray-500">Keine Standorte fuer Akquise-Freigabe gefunden (Non-Chain + Top-5-Stadt + noch nicht freigegeben)</p>
+            <div className="bg-surface-secondary/60 border border-border-secondary rounded-2xl p-4 text-center">
+              <p className="text-xs text-text-muted">Keine Standorte fuer Akquise-Freigabe gefunden (Non-Chain + Top-5-Stadt + noch nicht freigegeben)</p>
             </div>
           )}
 
           {/* Approval hint when nothing approved yet */}
           {comparison && comparison.withChanges.length > 0 && !importableCount.hasApproval && !importStep && (
-            <div className="bg-amber-50/80 border border-amber-200/60 rounded-2xl p-4 flex items-start gap-3">
-              <Shield size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="bg-status-warning/10/80 border border-status-warning/20/60 rounded-2xl p-4 flex items-start gap-3">
+              <Shield size={16} className="text-status-warning mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-amber-800">Aenderungen muessen freigegeben werden</p>
                 <p className="text-xs text-amber-700 mt-1">
@@ -1437,14 +1437,14 @@ export default function StammdatenImport() {
 
           {/* ── Import Panel ── */}
           {importableCount.total > 0 && (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 space-y-4">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Zap size={16} className="text-orange-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">3. Aenderungen nach Airtable schreiben</h3>
+                  <Zap size={16} className="text-status-warning" />
+                  <h3 className="text-sm font-semibold text-text-primary">3. Aenderungen nach Airtable schreiben</h3>
                 </div>
                 {importStep && importStep !== 'done' && (
-                  <button onClick={resetImport} className="text-xs text-gray-500 hover:text-gray-700">Abbrechen</button>
+                  <button onClick={resetImport} className="text-xs text-text-muted hover:text-text-primary">Abbrechen</button>
                 )}
               </div>
 
@@ -1452,27 +1452,27 @@ export default function StammdatenImport() {
               {!importStep && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-amber-50/80 rounded-xl px-3 py-2">
-                      <p className="text-[10px] text-amber-600 font-medium uppercase">Updates</p>
+                    <div className="bg-status-warning/10/80 rounded-xl px-3 py-2">
+                      <p className="text-[10px] text-status-warning font-medium uppercase">Updates</p>
                       <p className="text-lg font-bold text-amber-700">{importableCount.updates}</p>
-                      <p className="text-[10px] text-amber-500">Bestehende Records aktualisieren</p>
+                      <p className="text-[10px] text-status-warning">Bestehende Records aktualisieren</p>
                     </div>
-                    <div className="bg-blue-50/80 rounded-xl px-3 py-2">
-                      <p className="text-[10px] text-blue-600 font-medium uppercase">Neue Records</p>
+                    <div className="bg-accent-light/80 rounded-xl px-3 py-2">
+                      <p className="text-[10px] text-accent font-medium uppercase">Neue Records</p>
                       <p className="text-lg font-bold text-blue-700">{importableCount.creates}</p>
-                      <p className="text-[10px] text-blue-500">Neu in Airtable anlegen</p>
+                      <p className="text-[10px] text-accent">Neu in Airtable anlegen</p>
                     </div>
-                    <div className="bg-gray-50/80 rounded-xl px-3 py-2">
-                      <p className="text-[10px] text-gray-600 font-medium uppercase">Gesamt</p>
-                      <p className="text-lg font-bold text-gray-900">{importableCount.total}</p>
-                      <p className="text-[10px] text-gray-500">Batches: ~{Math.ceil(importableCount.total / 10)}</p>
+                    <div className="bg-surface-secondary/80 rounded-xl px-3 py-2">
+                      <p className="text-[10px] text-text-secondary font-medium uppercase">Gesamt</p>
+                      <p className="text-lg font-bold text-text-primary">{importableCount.total}</p>
+                      <p className="text-[10px] text-text-muted">Batches: ~{Math.ceil(importableCount.total / 10)}</p>
                     </div>
                   </div>
 
                   {/* Warnings */}
                   {comparison.addrConflicts.length > 0 && (
-                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2">
-                      <AlertTriangle size={14} className="text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div className="bg-brand-purple/10 border border-brand-purple/20 rounded-xl p-3 flex items-start gap-2">
+                      <AlertTriangle size={14} className="text-brand-purple mt-0.5 flex-shrink-0" />
                       <div className="text-xs text-purple-700">
                         <p className="font-semibold">{comparison.addrConflicts.length} Adress-Konflikte erkannt</p>
                         <p>Neue Eintraege mit identischer Adresse koennten Duplikate sein. Bitte im Tab "Adress-Konflikte" pruefen.</p>
@@ -1492,8 +1492,8 @@ export default function StammdatenImport() {
               {/* Validating spinner */}
               {importStep === 'validating' && (
                 <div className="flex items-center justify-center gap-3 py-6">
-                  <Loader2 size={20} className="text-orange-500 animate-spin" />
-                  <span className="text-sm text-gray-600">Validiere {importableCount.total} Records...</span>
+                  <Loader2 size={20} className="text-status-warning animate-spin" />
+                  <span className="text-sm text-text-secondary">Validiere {importableCount.total} Records...</span>
                 </div>
               )}
 
@@ -1506,13 +1506,13 @@ export default function StammdatenImport() {
                       <p className="text-lg font-bold text-emerald-700">{validationResult.summary.valid}</p>
                       <p className="text-[10px] text-emerald-600">Gueltig</p>
                     </div>
-                    <div className={`rounded-xl px-3 py-2 text-center ${validationResult.summary.invalid > 0 ? 'bg-red-50/80' : 'bg-gray-50/80'}`}>
-                      <p className={`text-lg font-bold ${validationResult.summary.invalid > 0 ? 'text-red-700' : 'text-gray-400'}`}>{validationResult.summary.invalid}</p>
-                      <p className={`text-[10px] ${validationResult.summary.invalid > 0 ? 'text-red-600' : 'text-gray-500'}`}>Ungueltig (werden uebersprungen)</p>
+                    <div className={`rounded-xl px-3 py-2 text-center ${validationResult.summary.invalid > 0 ? 'bg-status-offline/10/80' : 'bg-surface-secondary/80'}`}>
+                      <p className={`text-lg font-bold ${validationResult.summary.invalid > 0 ? 'text-red-700' : 'text-text-muted'}`}>{validationResult.summary.invalid}</p>
+                      <p className={`text-[10px] ${validationResult.summary.invalid > 0 ? 'text-status-offline' : 'text-text-muted'}`}>Ungueltig (werden uebersprungen)</p>
                     </div>
-                    <div className={`rounded-xl px-3 py-2 text-center ${validationResult.summary.withWarnings > 0 ? 'bg-amber-50/80' : 'bg-gray-50/80'}`}>
-                      <p className={`text-lg font-bold ${validationResult.summary.withWarnings > 0 ? 'text-amber-700' : 'text-gray-400'}`}>{validationResult.summary.withWarnings}</p>
-                      <p className={`text-[10px] ${validationResult.summary.withWarnings > 0 ? 'text-amber-600' : 'text-gray-500'}`}>Mit Warnungen</p>
+                    <div className={`rounded-xl px-3 py-2 text-center ${validationResult.summary.withWarnings > 0 ? 'bg-status-warning/10/80' : 'bg-surface-secondary/80'}`}>
+                      <p className={`text-lg font-bold ${validationResult.summary.withWarnings > 0 ? 'text-amber-700' : 'text-text-muted'}`}>{validationResult.summary.withWarnings}</p>
+                      <p className={`text-[10px] ${validationResult.summary.withWarnings > 0 ? 'text-status-warning' : 'text-text-muted'}`}>Mit Warnungen</p>
                     </div>
                   </div>
 
@@ -1520,12 +1520,12 @@ export default function StammdatenImport() {
                   {validationResult.results.filter(r => !r.valid || r.warnings.length > 0).length > 0 && (
                     <div className="max-h-48 overflow-y-auto space-y-1">
                       {validationResult.results.filter(r => !r.valid || r.warnings.length > 0).map(r => (
-                        <div key={r.index} className="flex items-start gap-2 text-xs px-3 py-1.5 rounded-lg bg-gray-50">
-                          {!r.valid ? <XCircle size={12} className="text-red-500 mt-0.5 flex-shrink-0" /> : <AlertTriangle size={12} className="text-amber-500 mt-0.5 flex-shrink-0" />}
+                        <div key={r.index} className="flex items-start gap-2 text-xs px-3 py-1.5 rounded-lg bg-surface-secondary">
+                          {!r.valid ? <XCircle size={12} className="text-status-offline mt-0.5 flex-shrink-0" /> : <AlertTriangle size={12} className="text-status-warning mt-0.5 flex-shrink-0" />}
                           <div>
-                            <span className="font-mono text-gray-500">{r.jet_id}</span>
-                            {r.errors.map((e, i) => <span key={i} className="text-red-600 ml-2">{e}</span>)}
-                            {r.warnings.map((w, i) => <span key={i} className="text-amber-600 ml-2">{w}</span>)}
+                            <span className="font-mono text-text-muted">{r.jet_id}</span>
+                            {r.errors.map((e, i) => <span key={i} className="text-status-offline ml-2">{e}</span>)}
+                            {r.warnings.map((w, i) => <span key={i} className="text-status-warning ml-2">{w}</span>)}
                           </div>
                         </div>
                       ))}
@@ -1534,23 +1534,23 @@ export default function StammdatenImport() {
 
                   {/* Import button */}
                   {validationResult.summary.valid > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                    <div className="bg-status-offline/10 border border-status-offline/20 rounded-xl p-3">
                       <p className="text-xs text-red-700 font-semibold mb-2">
                         Achtung: {validationResult.summary.valid} Records werden direkt in Airtable geschrieben!
                       </p>
-                      <p className="text-[10px] text-red-600 mb-3">
+                      <p className="text-[10px] text-status-offline mb-3">
                         Dieser Vorgang kann nicht rueckgaengig gemacht werden. Supabase wird beim naechsten Sync (alle 5 Min) aktualisiert.
                       </p>
                       <div className="flex gap-2">
                         <button
                           onClick={runImport}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-status-offline hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
                         >
                           <Zap size={14} /> {validationResult.summary.valid} Records importieren
                         </button>
                         <button
                           onClick={resetImport}
-                          className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
+                          className="px-4 py-2.5 bg-surface-secondary hover:bg-surface-tertiary rounded-lg text-sm font-medium text-text-primary transition-colors"
                         >
                           Abbrechen
                         </button>
@@ -1564,15 +1564,15 @@ export default function StammdatenImport() {
               {importStep === 'importing' && (
                 <div className="py-6 space-y-3">
                   <div className="flex items-center justify-center gap-3">
-                    <Loader2 size={20} className="text-orange-500 animate-spin" />
-                    <span className="text-sm text-gray-600">Importiere nach Airtable...</span>
+                    <Loader2 size={20} className="text-status-warning animate-spin" />
+                    <span className="text-sm text-text-secondary">Importiere nach Airtable...</span>
                   </div>
                   {importProgress && (
                     <div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-orange-500 h-2 rounded-full transition-all animate-pulse" style={{ width: '50%' }} />
+                      <div className="w-full bg-surface-tertiary rounded-full h-2">
+                        <div className="bg-status-warning h-2 rounded-full transition-all animate-pulse" style={{ width: '50%' }} />
                       </div>
-                      <p className="text-[10px] text-gray-500 text-center mt-1">
+                      <p className="text-[10px] text-text-muted text-center mt-1">
                         ~{importProgress.batches} Batches a 10 Records ({importProgress.total} gesamt)
                       </p>
                     </div>
@@ -1589,23 +1589,23 @@ export default function StammdatenImport() {
                       <span className="text-sm font-semibold text-emerald-800">Import abgeschlossen</span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                      <div className="bg-surface-primary rounded-lg px-3 py-2 text-center">
                         <p className="font-bold text-emerald-700">{importResult.summary.updates.success}</p>
                         <p className="text-emerald-600">Updates OK</p>
                       </div>
-                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                      <div className="bg-surface-primary rounded-lg px-3 py-2 text-center">
                         <p className="font-bold text-emerald-700">{importResult.summary.creates.success}</p>
                         <p className="text-emerald-600">Neu angelegt</p>
                       </div>
-                      <div className={`bg-white/70 rounded-lg px-3 py-2 text-center ${(importResult.summary.updates.failed + importResult.summary.creates.failed) > 0 ? 'border border-red-200' : ''}`}>
-                        <p className={`font-bold ${(importResult.summary.updates.failed + importResult.summary.creates.failed) > 0 ? 'text-red-700' : 'text-gray-400'}`}>
+                      <div className={`bg-surface-primary rounded-lg px-3 py-2 text-center ${(importResult.summary.updates.failed + importResult.summary.creates.failed) > 0 ? 'border border-status-offline/20' : ''}`}>
+                        <p className={`font-bold ${(importResult.summary.updates.failed + importResult.summary.creates.failed) > 0 ? 'text-red-700' : 'text-text-muted'}`}>
                           {importResult.summary.updates.failed + importResult.summary.creates.failed}
                         </p>
-                        <p className="text-gray-600">Fehlgeschlagen</p>
+                        <p className="text-text-secondary">Fehlgeschlagen</p>
                       </div>
-                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
-                        <p className="font-bold text-gray-500">{importResult.summary.skipped}</p>
-                        <p className="text-gray-600">Uebersprungen</p>
+                      <div className="bg-surface-primary rounded-lg px-3 py-2 text-center">
+                        <p className="font-bold text-text-muted">{importResult.summary.skipped}</p>
+                        <p className="text-text-secondary">Uebersprungen</p>
                       </div>
                     </div>
                     <p className="text-[10px] text-emerald-600 mt-2">
@@ -1618,10 +1618,10 @@ export default function StammdatenImport() {
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-red-700">Fehlgeschlagene Records:</p>
                       {[...(importResult.updateResults || []), ...(importResult.createResults || [])].filter(r => !r.ok).map((r, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs px-3 py-1.5 bg-red-50 rounded-lg">
-                          <XCircle size={12} className="text-red-500" />
-                          <span className="font-mono text-gray-600">{r.jet_id}</span>
-                          <span className="text-red-600">{r.error}</span>
+                        <div key={i} className="flex items-center gap-2 text-xs px-3 py-1.5 bg-status-offline/10 rounded-lg">
+                          <XCircle size={12} className="text-status-offline" />
+                          <span className="font-mono text-text-secondary">{r.jet_id}</span>
+                          <span className="text-status-offline">{r.error}</span>
                         </div>
                       ))}
                     </div>
@@ -1629,7 +1629,7 @@ export default function StammdatenImport() {
 
                   <button
                     onClick={resetImport}
-                    className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors"
+                    className="w-full px-4 py-2 bg-surface-secondary hover:bg-surface-tertiary rounded-xl text-sm font-medium text-text-primary transition-colors"
                   >
                     Fertig
                   </button>

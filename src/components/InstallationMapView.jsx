@@ -22,9 +22,9 @@ const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org/search';
 
 // Pin colors by status
 const PIN_COLORS = {
-  ready:     { bg: '#3b82f6', border: '#2563eb', label: 'Bereit',     icon: CheckCircle },
-  invited:   { bg: '#f59e0b', border: '#d97706', label: 'Eingeladen', icon: Send },
-  booked:    { bg: '#22c55e', border: '#16a34a', label: 'Bestätigt',  icon: CheckCircle },
+  ready:     { bg: '#007AFF', border: '#2563eb', label: 'Bereit',     icon: CheckCircle },
+  invited:   { bg: '#FF9500', border: '#FF9500', label: 'Eingeladen', icon: Send },
+  booked:    { bg: '#34C759', border: '#34C759', label: 'Bestätigt',  icon: CheckCircle },
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -296,7 +296,7 @@ function FullscreenControl({ isFullscreen, onToggle }) {
       <div className="leaflet-control">
         <button
           onClick={onToggle}
-          className="bg-white hover:bg-gray-50 border border-gray-300 rounded-lg p-2 shadow-md transition-colors"
+          className="bg-surface-primary hover:bg-surface-secondary border border-border-primary rounded-lg p-2 shadow-md transition-colors"
           title={isFullscreen ? 'Vollbild beenden' : 'Vollbild'}
         >
           {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
@@ -312,13 +312,13 @@ function FullscreenControl({ isFullscreen, onToggle }) {
 
 function MapLegend({ counts }) {
   return (
-    <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm border border-slate-200/60 rounded-xl p-3 shadow-lg">
-      <div className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-2">Legende</div>
+    <div className="absolute bottom-4 left-4 z-[1000] bg-surface-primary border border-border-secondary rounded-xl p-3 shadow-lg">
+      <div className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-2">Legende</div>
       {Object.entries(PIN_COLORS).map(([key, cfg]) => (
         <div key={key} className="flex items-center gap-2 mb-1">
           <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cfg.bg }} />
-          <span className="text-[11px] text-slate-600">{cfg.label}</span>
-          <span className="text-[10px] text-slate-400 font-mono ml-auto">{counts[key] || 0}</span>
+          <span className="text-[11px] text-text-secondary">{cfg.label}</span>
+          <span className="text-[10px] text-text-muted font-mono ml-auto">{counts[key] || 0}</span>
         </div>
       ))}
     </div>
@@ -336,20 +336,20 @@ function GeocodingProgress({ progress }) {
     : 0;
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] bg-white/95 backdrop-blur-sm border border-slate-200/60 rounded-xl px-4 py-3 shadow-lg flex items-center gap-3 min-w-[280px]">
-      <Loader2 size={16} className="animate-spin text-orange-500 shrink-0" />
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] bg-surface-primary border border-border-secondary rounded-xl px-4 py-3 shadow-lg flex items-center gap-3 min-w-[280px]">
+      <Loader2 size={16} className="animate-spin text-status-warning shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-medium text-slate-700 mb-1">
+        <div className="text-xs font-medium text-text-primary mb-1">
           Adressen werden geocodiert... ({progress.done}/{progress.remaining + progress.done})
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
+        <div className="w-full bg-surface-tertiary rounded-full h-1.5">
           <div
-            className="bg-orange-500 h-1.5 rounded-full transition-all duration-300"
+            className="bg-status-warning h-1.5 rounded-full transition-all duration-300"
             style={{ width: `${pct}%` }}
           />
         </div>
       </div>
-      <span className="text-[10px] font-mono text-slate-400">{pct}%</span>
+      <span className="text-[10px] font-mono text-text-muted">{pct}%</span>
     </div>
   );
 }
@@ -367,7 +367,7 @@ function AssignRouteDropdown({ standort, routes, onAssign }) {
 
   if (cityRoutes.length === 0) {
     return (
-      <div className="text-[10px] text-gray-400 mt-2 italic">
+      <div className="text-[10px] text-text-muted mt-2 italic">
         Keine offenen Routen fuer {city || 'diese Stadt'}
       </div>
     );
@@ -378,7 +378,7 @@ function AssignRouteDropdown({ standort, routes, onAssign }) {
       <select
         value={selectedRoute}
         onChange={e => setSelectedRoute(e.target.value)}
-        className="w-full text-[11px] border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-orange-300 focus:border-orange-300"
+        className="w-full text-[11px] border border-border-secondary rounded-lg px-2 py-1.5 bg-surface-primary focus:ring-1 focus:ring-orange-300 focus:border-orange-300"
       >
         <option value="">Route waehlen...</option>
         {cityRoutes.map(r => (
@@ -391,7 +391,7 @@ function AssignRouteDropdown({ standort, routes, onAssign }) {
       {selectedRoute && (
         <button
           onClick={() => onAssign(standort, selectedRoute)}
-          className="w-full text-[11px] font-medium px-2 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-1"
+          className="w-full text-[11px] font-medium px-2 py-1.5 bg-status-warning hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-1"
         >
           <Route size={10} /> Zur Route zuweisen
         </button>
@@ -430,16 +430,16 @@ function StandortDetailDrawer({ standort, booking, onClose, onInvite, inviting }
 
   return (
     <div className="fixed inset-0 bg-black/40 z-[2000] flex justify-end animate-fade-in" onClick={onClose}>
-      <div className="bg-white w-full max-w-lg h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-surface-primary w-full max-w-lg h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-surface-primary border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
           <div className="min-w-0">
-            <h3 className="font-bold text-gray-900 text-lg truncate">{standort.locationName || 'Unbekannt'}</h3>
-            <p className="text-sm text-gray-500 flex items-center gap-1">
+            <h3 className="font-bold text-text-primary text-lg truncate">{standort.locationName || 'Unbekannt'}</h3>
+            <p className="text-sm text-text-muted flex items-center gap-1">
               <MapPin size={13} /> {city || '--'} | {standort.postalCode || ''} {standort.street} {standort.streetNumber}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-surface-secondary rounded-xl text-text-muted transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -448,12 +448,12 @@ function StandortDetailDrawer({ standort, booking, onClose, onInvite, inviting }
           {/* Images */}
           {loadingDetail ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 size={20} className="animate-spin text-orange-500" />
-              <span className="text-sm text-gray-400 ml-2">Bilder laden...</span>
+              <Loader2 size={20} className="animate-spin text-status-warning" />
+              <span className="text-sm text-text-muted ml-2">Bilder laden...</span>
             </div>
           ) : images.length > 0 ? (
             <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+              <h4 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
                 <Image size={14} /> Bilder ({images.length})
               </h4>
               <div className="grid grid-cols-2 gap-2">
@@ -474,51 +474,51 @@ function StandortDetailDrawer({ standort, booking, onClose, onInvite, inviting }
           <div className="flex items-center gap-2 flex-wrap">
             {mapsUrl && (
               <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-accent bg-accent-light border border-accent/20 rounded-lg hover:bg-accent-light transition-colors">
                 <MapPin size={11} /> Google Maps
               </a>
             )}
             {standort.contactPhone && (
               <a href={`tel:${standort.contactPhone}`}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-status-online bg-status-online/10 border border-status-online/20 rounded-lg hover:bg-status-online/10 transition-colors">
                 <Phone size={11} /> {standort.contactPhone}
               </a>
             )}
           </div>
 
           {/* Contact */}
-          <div className="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+          <div className="bg-surface-secondary rounded-2xl p-4 space-y-2 border border-gray-100">
+            <h4 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
               <User size={14} /> Kontakt
             </h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><div className="text-gray-400 text-xs">Name</div><div className="text-gray-900 font-medium">{standort.contactPerson || '--'}</div></div>
-              <div><div className="text-gray-400 text-xs">JET ID</div><div className="text-gray-900 font-mono text-sm">{standort.jetId || '--'}</div></div>
-              <div><div className="text-gray-400 text-xs">E-Mail</div><div className="text-gray-900 truncate text-sm">{standort.contactEmail || '--'}</div></div>
-              <div><div className="text-gray-400 text-xs">Montage</div><div className="text-gray-900 text-sm">{standort.mountType || '--'}</div></div>
+              <div><div className="text-text-muted text-xs">Name</div><div className="text-text-primary font-medium">{standort.contactPerson || '--'}</div></div>
+              <div><div className="text-text-muted text-xs">JET ID</div><div className="text-text-primary font-mono text-sm">{standort.jetId || '--'}</div></div>
+              <div><div className="text-text-muted text-xs">E-Mail</div><div className="text-text-primary truncate text-sm">{standort.contactEmail || '--'}</div></div>
+              <div><div className="text-text-muted text-xs">Montage</div><div className="text-text-primary text-sm">{standort.mountType || '--'}</div></div>
             </div>
           </div>
 
           {/* Akquise Details */}
-          <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
+          <div className="bg-status-warning/10/50 rounded-2xl p-4 space-y-2 border border-orange-100">
             <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
               <Building size={14} /> Akquise-Daten
             </h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><div className="text-orange-400 text-xs">Lead Status</div><div className="text-gray-900 font-medium">{standort.leadStatus || '--'}</div></div>
-              <div><div className="text-orange-400 text-xs">Approval Status</div><div className="text-gray-900">{standort.approvalStatus || '--'}</div></div>
-              <div><div className="text-orange-400 text-xs">Vertrag</div><div className="text-gray-900">{standort.vertragVorhanden === true || standort.vertragVorhanden === 'true' ? 'Ja' : 'Nein'}</div></div>
-              <div><div className="text-orange-400 text-xs">Akquise-Partner</div><div className="text-gray-900">{standort.acquisitionPartner || '--'}</div></div>
+              <div><div className="text-orange-400 text-xs">Lead Status</div><div className="text-text-primary font-medium">{standort.leadStatus || '--'}</div></div>
+              <div><div className="text-orange-400 text-xs">Approval Status</div><div className="text-text-primary">{standort.approvalStatus || '--'}</div></div>
+              <div><div className="text-orange-400 text-xs">Vertrag</div><div className="text-text-primary">{standort.vertragVorhanden === true || standort.vertragVorhanden === 'true' ? 'Ja' : 'Nein'}</div></div>
+              <div><div className="text-orange-400 text-xs">Akquise-Partner</div><div className="text-text-primary">{standort.acquisitionPartner || '--'}</div></div>
             </div>
           </div>
 
           {/* Hindernisse */}
           {standort.hindernisse && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <div className="p-3 bg-status-warning/10 border border-status-warning/20 rounded-xl">
               <div className="text-xs font-medium text-amber-700 flex items-center gap-1">
                 <AlertCircle size={12} /> Hindernisse / Hinweise
               </div>
-              <div className="text-xs text-amber-600 mt-0.5 whitespace-pre-wrap">{standort.hindernisse}</div>
+              <div className="text-xs text-status-warning mt-0.5 whitespace-pre-wrap">{standort.hindernisse}</div>
             </div>
           )}
 
@@ -529,20 +529,20 @@ function StandortDetailDrawer({ standort, booking, onClose, onInvite, inviting }
                 <CalendarCheck size={14} /> Buchung
               </h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                {booking.booked_date && <div><div className="text-blue-400 text-xs">Termin</div><div className="text-blue-900 font-semibold">{new Date(booking.booked_date + 'T00:00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}</div></div>}
-                {booking.booked_time && <div><div className="text-blue-400 text-xs">Uhrzeit</div><div className="text-blue-900">{booking.booked_time} - {booking.booked_end_time || '--'}</div></div>}
-                <div><div className="text-blue-400 text-xs">Status</div><div className="text-blue-900 font-medium capitalize">{booking.status}</div></div>
+                {booking.booked_date && <div><div className="text-accent text-xs">Termin</div><div className="text-blue-900 font-semibold">{new Date(booking.booked_date + 'T00:00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}</div></div>}
+                {booking.booked_time && <div><div className="text-accent text-xs">Uhrzeit</div><div className="text-blue-900">{booking.booked_time} - {booking.booked_end_time || '--'}</div></div>}
+                <div><div className="text-accent text-xs">Status</div><div className="text-blue-900 font-medium capitalize">{booking.status}</div></div>
               </div>
             </div>
           )}
 
           {/* Detail from API */}
           {detail?.kommentare && (
-            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+            <div className="bg-surface-secondary rounded-2xl p-4 border border-gray-100">
+              <h4 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
                 <Info size={14} /> Kommentare
               </h4>
-              <p className="text-xs text-gray-600 mt-1 whitespace-pre-wrap">{detail.kommentare}</p>
+              <p className="text-xs text-text-secondary mt-1 whitespace-pre-wrap">{detail.kommentare}</p>
             </div>
           )}
 
@@ -552,14 +552,14 @@ function StandortDetailDrawer({ standort, booking, onClose, onInvite, inviting }
               <button
                 onClick={() => onInvite(standort)}
                 disabled={inviting}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-status-warning text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium transition-colors"
               >
                 {inviting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                 {inviting ? 'Wird gesendet...' : 'Einladung senden'}
               </button>
             )}
             {!standort.contactPhone && (
-              <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2.5 rounded-xl w-full border border-amber-200">
+              <div className="flex items-center gap-2 text-sm text-status-warning bg-status-warning/10 px-4 py-2.5 rounded-xl w-full border border-status-warning/20">
                 <AlertCircle size={16} /> Keine Telefonnummer hinterlegt
               </div>
             )}
@@ -580,44 +580,44 @@ function MapBatchInviteModal({ standorte, onConfirm, onCancel, inviting, progres
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[2001] p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+      <div className="bg-surface-primary rounded-2xl shadow-xl w-full max-w-md">
         <div className="p-5 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900">Kampagne: Einladungen senden</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-lg font-bold text-text-primary">Kampagne: Einladungen senden</h3>
+          <p className="text-sm text-text-muted mt-1">
             {withPhone.length} von {standorte.length} Standorte koennen eingeladen werden.
           </p>
         </div>
         <div className="p-5 space-y-2 max-h-60 overflow-y-auto">
           {withPhone.map(s => (
             <div key={s.id} className="flex items-center gap-2 text-sm">
-              <CheckCircle size={14} className="text-green-500 shrink-0" />
-              <span className="text-gray-900 font-medium truncate">{s.locationName}</span>
-              <span className="text-gray-400 text-xs ml-auto">{(s.city || [])[0]}</span>
+              <CheckCircle size={14} className="text-status-online shrink-0" />
+              <span className="text-text-primary font-medium truncate">{s.locationName}</span>
+              <span className="text-text-muted text-xs ml-auto">{(s.city || [])[0]}</span>
             </div>
           ))}
           {withoutPhone.map(s => (
             <div key={s.id} className="flex items-center gap-2 text-sm">
-              <AlertCircle size={14} className="text-amber-500 shrink-0" />
-              <span className="text-gray-400 truncate">{s.locationName}</span>
-              <span className="text-xs text-amber-500 ml-auto">Keine Tel.</span>
+              <AlertCircle size={14} className="text-status-warning shrink-0" />
+              <span className="text-text-muted truncate">{s.locationName}</span>
+              <span className="text-xs text-status-warning ml-auto">Keine Tel.</span>
             </div>
           ))}
         </div>
         {inviting && progress && (
           <div className="px-5 pb-3">
-            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+            <div className="flex items-center justify-between text-xs text-text-muted mb-1">
               <span>Sende Einladungen...</span>
               <span className="font-mono">{progress.sent}/{progress.total}</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full bg-orange-500 rounded-full transition-all duration-300" style={{ width: `${progress.total > 0 ? (progress.sent / progress.total) * 100 : 0}%` }} />
+            <div className="h-2 bg-surface-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-status-warning rounded-full transition-all duration-300" style={{ width: `${progress.total > 0 ? (progress.sent / progress.total) * 100 : 0}%` }} />
             </div>
           </div>
         )}
         <div className="flex gap-3 p-5 border-t border-gray-100">
-          <button onClick={onCancel} disabled={inviting} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 disabled:opacity-50">Abbrechen</button>
+          <button onClick={onCancel} disabled={inviting} className="flex-1 px-4 py-2.5 border border-border-secondary rounded-xl text-text-primary hover:bg-surface-secondary disabled:opacity-50">Abbrechen</button>
           <button onClick={() => onConfirm(withPhone)} disabled={inviting || withPhone.length === 0}
-            className="flex-1 px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium flex items-center justify-center gap-2">
+            className="flex-1 px-4 py-2.5 bg-status-warning text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium flex items-center justify-center gap-2">
             {inviting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
             {inviting ? `${progress?.sent || 0}/${progress?.total || 0}` : `${withPhone.length} einladen`}
           </button>
@@ -1022,8 +1022,8 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-        <span className="text-sm text-slate-500">Karte wird geladen...</span>
+        <Loader2 className="w-8 h-8 animate-spin text-status-warning" />
+        <span className="text-sm text-text-muted">Karte wird geladen...</span>
       </div>
     );
   }
@@ -1033,26 +1033,26 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
   return (
     <div
       ref={containerRef}
-      className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-white p-4 overflow-hidden' : ''}`}
+      className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-surface-primary p-4 overflow-hidden' : ''}`}
     >
       {/* Header + Filters */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="Standort, Name, JET-ID..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-border-secondary rounded-xl bg-surface-primary focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-secondary rounded-full"
             >
-              <X size={12} className="text-gray-400" />
+              <X size={12} className="text-text-muted" />
             </button>
           )}
         </div>
@@ -1062,18 +1062,18 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
           <select
             value={filterCity}
             onChange={e => setFilterCity(e.target.value)}
-            className="appearance-none pl-3 pr-8 py-2 text-sm border border-gray-200 rounded-xl bg-white cursor-pointer hover:bg-gray-50 focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all"
+            className="appearance-none pl-3 pr-8 py-2 text-sm border border-border-secondary rounded-xl bg-surface-primary cursor-pointer hover:bg-surface-secondary focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all"
           >
             <option value="">Alle Staedte</option>
             {cities.map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+        <div className="flex items-center gap-1 bg-surface-secondary rounded-lg p-0.5">
           {[
             { id: 'all', label: 'Alle' },
             { id: 'ready', label: 'Bereit' },
@@ -1085,8 +1085,8 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
               onClick={() => setFilterStatus(f.id)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                 filterStatus === f.id
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface-primary text-text-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-primary'
               }`}
             >
               {f.label}
@@ -1097,16 +1097,16 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
         {/* Refresh + Stats */}
         <div className="flex items-center gap-2 ml-auto">
           {noAddressCount > 0 && (
-            <span className="flex items-center gap-1 text-[10px] text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">
+            <span className="flex items-center gap-1 text-[10px] text-status-warning bg-status-warning/10 border border-status-warning/20 px-2 py-1 rounded-lg">
               <AlertTriangle size={10} /> {noAddressCount} ohne Koordinaten
             </span>
           )}
-          <span className="text-[10px] font-mono text-slate-400">
+          <span className="text-[10px] font-mono text-text-muted">
             {filteredMarkers.length} / {allMarkers.length} Standorte
           </span>
           <button
             onClick={loadData}
-            className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-2 hover:bg-surface-secondary rounded-lg text-text-muted hover:text-text-secondary transition-colors"
             title="Daten neu laden"
           >
             <RefreshCw size={14} />
@@ -1122,17 +1122,17 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
             <button
               key={key}
               onClick={() => setFilterStatus(filterStatus === key ? 'all' : key)}
-              className={`bg-white/60 backdrop-blur-xl border rounded-2xl p-3 shadow-sm text-left transition-all hover:shadow-md ${
-                filterStatus === key ? 'border-orange-300 ring-1 ring-orange-200' : 'border-slate-200/60'
+              className={`bg-surface-primary border rounded-2xl p-3 shadow-sm text-left transition-all hover:shadow-md ${
+                filterStatus === key ? 'border-orange-300 ring-1 ring-orange-200' : 'border-border-secondary'
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{cfg.label}</span>
+                <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{cfg.label}</span>
                 <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${cfg.bg}18` }}>
                   <Icon size={12} style={{ color: cfg.bg }} />
                 </div>
               </div>
-              <div className="text-xl font-bold text-slate-800 font-mono">{statusCounts[key] || 0}</div>
+              <div className="text-xl font-bold text-text-primary font-mono">{statusCounts[key] || 0}</div>
             </button>
           );
         })}
@@ -1170,7 +1170,7 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                   <Popup>
                     <div className="min-w-[180px]">
                       <div className="font-bold text-sm mb-0.5">{m.cityLabel || `${m.count} Standorte`}</div>
-                      <div className="text-xs text-gray-500 mb-2">{m.count} Standorte</div>
+                      <div className="text-xs text-text-muted mb-2">{m.count} Standorte</div>
                       <div className="space-y-0.5">
                         {Object.entries(
                           m.items.reduce((acc, item) => {
@@ -1180,8 +1180,8 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                         ).map(([status, count]) => (
                           <div key={status} className="flex items-center gap-2 text-xs">
                             <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIN_COLORS[status]?.bg }} />
-                            <span className="text-gray-600">{PIN_COLORS[status]?.label}</span>
-                            <span className="font-mono font-bold text-gray-900 ml-auto">{count}</span>
+                            <span className="text-text-secondary">{PIN_COLORS[status]?.label}</span>
+                            <span className="font-mono font-bold text-text-primary ml-auto">{count}</span>
                           </div>
                         ))}
                       </div>
@@ -1190,8 +1190,8 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                         onClick={(e) => { e.stopPropagation(); handleSelectCluster(m.items); }}
                         className={`w-full mt-2 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium rounded-lg border transition-colors ${
                           m.items.every(item => selectedIds.has(item.id))
-                            ? 'bg-orange-50 text-orange-700 border-orange-300 hover:bg-orange-100'
-                            : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200'
+                            ? 'bg-status-warning/10 text-orange-700 border-orange-300 hover:bg-status-warning/10'
+                            : 'bg-surface-secondary hover:bg-surface-secondary text-text-primary border-border-secondary'
                         }`}
                       >
                         {m.items.every(item => selectedIds.has(item.id))
@@ -1220,8 +1220,8 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                 <Popup maxWidth={300} minWidth={220}>
                   <div className="min-w-[200px] text-left">
                     {/* Header */}
-                    <div className="font-bold text-sm text-gray-900 mb-0.5">{s.locationName || 'Unbekannt'}</div>
-                    <div className="text-xs text-gray-500 mb-2">
+                    <div className="font-bold text-sm text-text-primary mb-0.5">{s.locationName || 'Unbekannt'}</div>
+                    <div className="text-xs text-text-muted mb-2">
                       {s.street} {s.streetNumber}, {s.postalCode} {city}
                     </div>
 
@@ -1234,7 +1234,7 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                         {PIN_COLORS[m.pinStatus]?.label}
                       </span>
                       {terminDate && (
-                        <span className="text-[10px] text-gray-400 font-mono">
+                        <span className="text-[10px] text-text-muted font-mono">
                           {new Date(terminDate + 'T00:00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
                         </span>
                       )}
@@ -1242,17 +1242,17 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
 
                     {/* Details Grid */}
                     <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] mb-2">
-                      <div className="flex items-center gap-1 text-gray-500">
-                        <Building size={10} /> <span className="font-medium text-gray-700">{s.jetId || '--'}</span>
+                      <div className="flex items-center gap-1 text-text-muted">
+                        <Building size={10} /> <span className="font-medium text-text-primary">{s.jetId || '--'}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-500">
-                        <User size={10} /> <span className="font-medium text-gray-700 truncate">{s.contactPerson || '--'}</span>
+                      <div className="flex items-center gap-1 text-text-muted">
+                        <User size={10} /> <span className="font-medium text-text-primary truncate">{s.contactPerson || '--'}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-500">
-                        <Phone size={10} /> <span className="font-medium text-gray-700 font-mono">{s.contactPhone || '--'}</span>
+                      <div className="flex items-center gap-1 text-text-muted">
+                        <Phone size={10} /> <span className="font-medium text-text-primary font-mono">{s.contactPhone || '--'}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-500">
-                        <Wrench size={10} /> <span className="font-medium text-gray-700">{s.mountType || '--'}</span>
+                      <div className="flex items-center gap-1 text-text-muted">
+                        <Wrench size={10} /> <span className="font-medium text-text-primary">{s.mountType || '--'}</span>
                       </div>
                     </div>
 
@@ -1260,7 +1260,7 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                     <div className="flex gap-1.5 mt-2 pt-2 border-t border-gray-100">
                       <button
                         onClick={(e) => { e.stopPropagation(); handleOpenDrawer(s, booking); }}
-                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium bg-surface-secondary hover:bg-surface-secondary text-text-primary rounded-lg border border-border-secondary transition-colors"
                       >
                         <Eye size={11} /> Details
                       </button>
@@ -1268,8 +1268,8 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
                         onClick={(e) => { e.stopPropagation(); handleToggleSelect(s.id); }}
                         className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium rounded-lg border transition-colors ${
                           selectedIds.has(s.id)
-                            ? 'bg-orange-50 text-orange-700 border-orange-300 hover:bg-orange-100'
-                            : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200'
+                            ? 'bg-status-warning/10 text-orange-700 border-orange-300 hover:bg-status-warning/10'
+                            : 'bg-surface-secondary hover:bg-surface-secondary text-text-primary border-border-secondary'
                         }`}
                       >
                         {selectedIds.has(s.id)
@@ -1304,7 +1304,7 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
         <div className="absolute top-4 right-4 z-[1000]">
           <button
             onClick={toggleFullscreen}
-            className="bg-white/95 hover:bg-white border border-gray-200 rounded-lg p-2 shadow-md transition-colors"
+            className="bg-surface-primary hover:bg-surface-primary border border-border-secondary rounded-lg p-2 shadow-md transition-colors"
             title={isFullscreen ? 'Vollbild beenden' : 'Vollbild'}
           >
             {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
@@ -1313,25 +1313,25 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
 
         {/* ── Floating Selection Toolbar ── */}
         {selectedIds.size > 0 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1001] bg-white/95 backdrop-blur-xl border border-orange-200 rounded-2xl px-5 py-3 shadow-xl flex items-center gap-4 animate-slide-up">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1001] bg-surface-primary border border-status-warning/20 rounded-2xl px-5 py-3 shadow-xl flex items-center gap-4 animate-slide-up">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center">
-                <CheckSquare size={16} className="text-orange-600" />
+              <div className="w-8 h-8 rounded-xl bg-status-warning/10 flex items-center justify-center">
+                <CheckSquare size={16} className="text-status-warning" />
               </div>
               <div>
-                <div className="text-sm font-bold text-gray-900">{selectedIds.size} ausgewaehlt</div>
-                <div className="text-[10px] text-gray-500">
+                <div className="text-sm font-bold text-text-primary">{selectedIds.size} ausgewaehlt</div>
+                <div className="text-[10px] text-text-muted">
                   {selectedStandorte.filter(s => s.contactPhone).length} mit Telefon
                 </div>
               </div>
             </div>
 
-            <div className="h-8 w-px bg-gray-200" />
+            <div className="h-8 w-px bg-surface-tertiary" />
 
             <button
               onClick={() => setShowBatchModal(true)}
               disabled={selectedStandorte.filter(s => s.contactPhone).length === 0}
-              className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 disabled:opacity-50 disabled:hover:bg-orange-500 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-4 py-2 bg-status-warning text-white text-sm font-medium rounded-xl hover:bg-orange-600 disabled:opacity-50 disabled:hover:bg-status-warning transition-colors shadow-sm"
             >
               <Send size={14} /> Kampagne starten
             </button>
@@ -1348,7 +1348,7 @@ export default function InstallationMapView({ filterCity: filterCityProp, onSend
 
             <button
               onClick={handleClearSelection}
-              className="flex items-center gap-1 px-3 py-2 text-gray-500 hover:text-gray-700 text-sm hover:bg-gray-100 rounded-xl transition-colors"
+              className="flex items-center gap-1 px-3 py-2 text-text-muted hover:text-text-primary text-sm hover:bg-surface-secondary rounded-xl transition-colors"
             >
               <X size={14} /> Aufheben
             </button>

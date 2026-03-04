@@ -31,12 +31,12 @@ function buildAddress(akquise) {
 
 function EmptyState({ icon: Icon, iconBg, title, subtitle }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl flex flex-col items-center justify-center h-64 text-text-muted gap-3">
       <div className={`w-16 h-16 rounded-2xl ${iconBg} flex items-center justify-center`}>
-        <Icon size={32} className={iconBg.includes('orange') ? 'text-orange-300' : 'text-gray-300'} />
+        <Icon size={32} className={iconBg.includes('orange') ? 'text-orange-300' : 'text-text-muted'} />
       </div>
-      <p className="font-medium text-gray-600">{title}</p>
-      {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+      <p className="font-medium text-text-secondary">{title}</p>
+      {subtitle && <p className="text-xs text-text-muted">{subtitle}</p>}
     </div>
   );
 }
@@ -475,7 +475,7 @@ export default function InstallationTeamDashboard() {
           .print-table .pt-mount { font-size: 9px; }
           .print-table .pt-notes {
             font-size: 8.5px; color: #92400e; background: #fffbeb;
-            padding: 2px 4px; border-radius: 2px; border-left: 2px solid #f59e0b;
+            padding: 2px 4px; border-radius: 2px; border-left: 2px solid #FF9500;
             max-width: 200px;
           }
           .print-table .pt-status {
@@ -624,8 +624,8 @@ export default function InstallationTeamDashboard() {
         {/* ── Screen Header ── */}
         <div className="no-print flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Team-Tagesplan</h2>
-            <p className="text-gray-500 mt-1">Tagesroute, Termine und Druckansicht fuer Installationsteams.</p>
+            <h2 className="text-2xl font-bold text-text-primary">Team-Tagesplan</h2>
+            <p className="text-text-muted mt-1">Tagesroute, Termine und Druckansicht fuer Installationsteams.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -636,14 +636,14 @@ export default function InstallationTeamDashboard() {
             </button>
             <button
               onClick={() => window.print()}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl hover:bg-white/80 text-gray-700 text-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-secondary text-text-primary text-sm transition-colors"
             >
               <FileDown size={16} /> PDF speichern
             </button>
             <button
               onClick={refreshAll}
               disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl hover:bg-white/80 text-gray-700 text-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-secondary text-text-primary text-sm transition-colors"
             >
               {isLoading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             </button>
@@ -652,8 +652,8 @@ export default function InstallationTeamDashboard() {
                 onClick={copyMonteurLink}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-colors shadow-sm ${
                   monteurLinkCopied
-                    ? 'bg-green-500 text-white'
-                    : 'bg-white/60 backdrop-blur-xl border border-slate-200/60 hover:bg-white/80 text-gray-700'
+                    ? 'bg-status-online text-white'
+                    : 'bg-surface-primary border border-border-secondary hover:bg-surface-secondary text-text-primary'
                 }`}
                 title="Monteur-Link fuer diesen Tag generieren und kopieren"
               >
@@ -672,7 +672,7 @@ export default function InstallationTeamDashboard() {
             <select
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
-              className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all min-w-[180px]"
+              className="bg-surface-primary border border-border-secondary rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all min-w-[180px]"
             >
               <option value="">Team waehlen...</option>
               <option value="__alle__">Alle Teams</option>
@@ -683,30 +683,30 @@ export default function InstallationTeamDashboard() {
           </div>
 
           {/* Date Quick Navigation */}
-          <div className="flex items-center gap-1 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-surface-primary border border-border-secondary rounded-xl p-1">
             <button
               onClick={() => navigateDate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-surface-secondary rounded-lg transition-colors"
               title="Vorheriger Tag"
             >
-              <ChevronLeft size={18} className="text-gray-600" />
+              <ChevronLeft size={18} className="text-text-secondary" />
             </button>
-            <span className="px-3 py-1.5 text-sm font-semibold text-gray-900 min-w-[120px] text-center">
+            <span className="px-3 py-1.5 text-sm font-semibold text-text-primary min-w-[120px] text-center">
               {formatDateShortDE(selectedDate)}
             </span>
             <button
               onClick={() => navigateDate(1)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-surface-secondary rounded-lg transition-colors"
               title="Naechster Tag"
             >
-              <ChevronRight size={18} className="text-gray-600" />
+              <ChevronRight size={18} className="text-text-secondary" />
             </button>
           </div>
 
           {!isToday && (
             <button
               onClick={goToToday}
-              className="px-3 py-2 text-xs font-medium text-[#FF8000] bg-orange-50 border border-orange-200 rounded-xl hover:bg-orange-100 transition-colors"
+              className="px-3 py-2 text-xs font-medium text-[#FF8000] bg-status-warning/10 border border-status-warning/20 rounded-xl hover:bg-status-warning/10 transition-colors"
             >
               Heute
             </button>
@@ -717,7 +717,7 @@ export default function InstallationTeamDashboard() {
             className={`px-3 py-2 text-xs font-medium rounded-xl transition-colors ${
               selectedDate === tomorrowStr
                 ? 'bg-[#FF8000] text-white'
-                : 'text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100'
+                : 'text-text-secondary bg-surface-secondary border border-border-secondary hover:bg-surface-secondary'
             }`}
           >
             Morgen
@@ -728,28 +728,28 @@ export default function InstallationTeamDashboard() {
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-2 py-1.5 text-xs bg-white/60 border border-slate-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400/30"
+            className="px-2 py-1.5 text-xs bg-surface-primary border border-border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400/30"
           />
         </div>
 
         {/* ── Week Overview (click to jump to day) ── */}
         {selectedTeam && (
-          <div className="no-print bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4">
+          <div className="no-print bg-surface-primary border border-border-secondary rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <button onClick={() => navigateDate(-7)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-                  <ChevronLeft size={16} className="text-gray-500" />
+                <button onClick={() => navigateDate(-7)} className="p-1 hover:bg-surface-secondary rounded-lg transition-colors">
+                  <ChevronLeft size={16} className="text-text-muted" />
                 </button>
-                <h3 className="text-sm font-semibold text-gray-700">
+                <h3 className="text-sm font-semibold text-text-primary">
                   Woche {formatDateShortDE(weekInfo.monday)} — {formatDateShortDE(weekInfo.sunday)}
                 </h3>
-                <button onClick={() => navigateDate(7)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-                  <ChevronRight size={16} className="text-gray-500" />
+                <button onClick={() => navigateDate(7)} className="p-1 hover:bg-surface-secondary rounded-lg transition-colors">
+                  <ChevronRight size={16} className="text-text-muted" />
                 </button>
               </div>
               <button
                 onClick={exportWeekOverview}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#FF8000] bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#FF8000] bg-status-warning/10 border border-status-warning/20 rounded-lg hover:bg-status-warning/10 transition-colors"
                 title="Wochenplan als CSV exportieren"
               >
                 <FileDown size={13} /> Woche exportieren
@@ -769,10 +769,10 @@ export default function InstallationTeamDashboard() {
                       isSelected
                         ? 'bg-[#FF8000] text-white border-[#e67300] shadow-md ring-2 ring-orange-300'
                         : hasRoutes
-                        ? 'bg-orange-50 border-orange-200 hover:bg-orange-100 text-gray-900'
+                        ? 'bg-status-warning/10 border-status-warning/20 hover:bg-status-warning/10 text-text-primary'
                         : isWeekend
-                        ? 'bg-gray-50 border-gray-100 text-gray-300'
-                        : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-400'
+                        ? 'bg-surface-secondary border-gray-100 text-text-muted'
+                        : 'bg-surface-primary border-border-secondary hover:bg-surface-secondary text-text-muted'
                     }`}
                   >
                     {/* Day label */}
@@ -792,7 +792,7 @@ export default function InstallationTeamDashboard() {
                           </div>
                         ))}
                         {day.bookingCount > 0 && (
-                          <div className={`text-[9px] font-bold ${isSelected ? 'text-white' : 'text-blue-600'}`}>
+                          <div className={`text-[9px] font-bold ${isSelected ? 'text-white' : 'text-accent'}`}>
                             {day.bookingCount} Termine
                           </div>
                         )}
@@ -812,58 +812,58 @@ export default function InstallationTeamDashboard() {
         {/* ── Summary Cards ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {/* Total Appointments */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-[#FFF0E0] flex items-center justify-center">
                 <ClipboardList size={16} className="text-[#FF8000]" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900">{summary.total}</div>
-            <div className="text-xs text-gray-500 font-medium">Termine gesamt</div>
+            <div className="text-2xl font-bold text-text-primary">{summary.total}</div>
+            <div className="text-xs text-text-muted font-medium">Termine gesamt</div>
           </div>
 
           {/* Installiert (completed) */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                 <CheckCircle size={16} className="text-emerald-600" />
               </div>
             </div>
             <div className="text-2xl font-bold text-emerald-700">{summary.completed}</div>
-            <div className="text-xs text-gray-500 font-medium">Installiert</div>
+            <div className="text-xs text-text-muted font-medium">Installiert</div>
           </div>
 
           {/* Confirmed */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                <CheckCircle size={16} className="text-green-600" />
+              <div className="w-8 h-8 rounded-lg bg-status-online/10 flex items-center justify-center">
+                <CheckCircle size={16} className="text-status-online" />
               </div>
             </div>
             <div className="text-2xl font-bold text-green-700">{summary.confirmed}</div>
-            <div className="text-xs text-gray-500 font-medium">Bestaetigt</div>
+            <div className="text-xs text-text-muted font-medium">Bestaetigt</div>
           </div>
 
           {/* Pending */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center">
-                <Clock size={16} className="text-yellow-600" />
+              <div className="w-8 h-8 rounded-lg bg-status-warning/10 flex items-center justify-center">
+                <Clock size={16} className="text-status-warning" />
               </div>
             </div>
             <div className="text-2xl font-bold text-yellow-700">{summary.pending}</div>
-            <div className="text-xs text-gray-500 font-medium">Ausstehend</div>
+            <div className="text-xs text-text-muted font-medium">Ausstehend</div>
           </div>
 
           {/* Cities */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                <MapPin size={16} className="text-blue-600" />
+              <div className="w-8 h-8 rounded-lg bg-accent-light flex items-center justify-center">
+                <MapPin size={16} className="text-accent" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900">{summary.cities.length}</div>
-            <div className="text-xs text-gray-500 font-medium truncate" title={summary.cities.join(', ')}>
+            <div className="text-2xl font-bold text-text-primary">{summary.cities.length}</div>
+            <div className="text-xs text-text-muted font-medium truncate" title={summary.cities.join(', ')}>
               {summary.cities.length > 0 ? summary.cities.join(', ') : 'Keine Staedte'}
             </div>
           </div>
@@ -872,18 +872,18 @@ export default function InstallationTeamDashboard() {
         {/* ── Route Overview Cards ── */}
         {teamRoutes.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider no-print">Routen</h3>
+            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider no-print">Routen</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {teamRoutes.map(route => {
                 const slots = parseTimeSlots(route.time_slots);
                 const routeBookingCount = enrichedBookings.filter(b => b.route_id === route.id || (!b.route_id && b.city === route.city)).length;
                 return (
-                  <div key={route.id} className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 hover:bg-white/80 transition-colors">
+                  <div key={route.id} className="bg-surface-primary border border-border-secondary rounded-2xl p-4 hover:bg-surface-secondary transition-colors">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <MapPin size={16} className="text-[#FF8000]" />
                         <div>
-                          <span className="font-semibold text-gray-900">{route.city}</span>
+                          <span className="font-semibold text-text-primary">{route.city}</span>
                           {route.installer_team && (
                             <div className="text-[10px] text-[#FF8000] font-semibold flex items-center gap-0.5">
                               <Users size={9} /> {route.installer_team}
@@ -893,22 +893,22 @@ export default function InstallationTeamDashboard() {
                       </div>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                         route.status === 'open'
-                          ? 'bg-green-100 text-green-700 border border-green-200'
+                          ? 'bg-status-online/10 text-green-700 border border-status-online/20'
                           : route.status === 'full'
-                          ? 'bg-red-100 text-red-700 border border-red-200'
-                          : 'bg-gray-100 text-gray-600 border border-gray-200'
+                          ? 'bg-status-offline/10 text-red-700 border border-status-offline/20'
+                          : 'bg-surface-secondary text-text-secondary border border-border-secondary'
                       }`}>
                         {route.status === 'open' ? 'Offen' : route.status === 'full' ? 'Voll' : route.status}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary">
                       <div className="flex items-center gap-1">
-                        <Clock size={12} className="text-gray-400" />
+                        <Clock size={12} className="text-text-muted" />
                         {slots.length > 0 ? `${slots[0]} - ${slots[slots.length - 1]} Uhr` : 'Keine Zeitfenster'}
                       </div>
                       <div className="flex items-center gap-1">
-                        <Users size={12} className="text-gray-400" />
+                        <Users size={12} className="text-text-muted" />
                         {routeBookingCount} / {route.max_capacity || '--'} Termine
                       </div>
                     </div>
@@ -916,7 +916,7 @@ export default function InstallationTeamDashboard() {
                     {slots.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {slots.map(s => (
-                          <span key={s} className="px-1.5 py-0.5 bg-orange-50 text-orange-700 rounded text-[10px] font-mono border border-orange-200">
+                          <span key={s} className="px-1.5 py-0.5 bg-status-warning/10 text-orange-700 rounded text-[10px] font-mono border border-status-warning/20">
                             {s}
                           </span>
                         ))}
@@ -924,8 +924,8 @@ export default function InstallationTeamDashboard() {
                     )}
 
                     {route.notes && (
-                      <div className="mt-2 text-xs text-gray-500 flex items-start gap-1">
-                        <Info size={11} className="mt-0.5 shrink-0 text-gray-400" />
+                      <div className="mt-2 text-xs text-text-muted flex items-start gap-1">
+                        <Info size={11} className="mt-0.5 shrink-0 text-text-muted" />
                         <span>{route.notes}</span>
                       </div>
                     )}
@@ -941,8 +941,8 @@ export default function InstallationTeamDashboard() {
         {/* ── Timeline View ── */}
         {enrichedBookings.length > 0 && (
           <div className="no-print space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Tagesablauf</h3>
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 overflow-x-auto">
+            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Tagesablauf</h3>
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 overflow-x-auto">
               <div className="flex gap-3 min-w-[600px]">
                 {enrichedBookings.map((b, idx) => {
                   const statusCfg = STATUS_COLORS[b.status] || STATUS_COLORS.pending;
@@ -953,12 +953,12 @@ export default function InstallationTeamDashboard() {
                       {/* Time indicator */}
                       <div className="flex items-center gap-2 mb-2">
                         <div className={`w-3 h-3 rounded-full ${statusCfg.dot}`} />
-                        <span className="text-sm font-bold text-gray-900 font-mono">{time}{endTime ? ` - ${endTime}` : ''}</span>
+                        <span className="text-sm font-bold text-text-primary font-mono">{time}{endTime ? ` - ${endTime}` : ''}</span>
                       </div>
                       {/* Card */}
                       <div className={`border rounded-xl p-3 ${statusCfg.border} ${statusCfg.bg} bg-opacity-30`}>
-                        <div className="text-sm font-semibold text-gray-900 truncate">{b.location_name || 'Unbekannt'}</div>
-                        <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                        <div className="text-sm font-semibold text-text-primary truncate">{b.location_name || 'Unbekannt'}</div>
+                        <div className="text-xs text-text-muted mt-0.5 flex items-center gap-1">
                           <MapPin size={10} /> {b.city}
                         </div>
                         {b.installer_team && (
@@ -967,7 +967,7 @@ export default function InstallationTeamDashboard() {
                           </div>
                         )}
                         {b.contact_name && (
-                          <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                          <div className="text-xs text-text-muted mt-0.5 flex items-center gap-1">
                             <User size={10} /> {b.contact_name}
                           </div>
                         )}
@@ -978,8 +978,8 @@ export default function InstallationTeamDashboard() {
                               /installiert|live|erfolgreich/i.test(b._statusInstallation)
                                 ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                                 : /abgebrochen|fehlgeschlagen/i.test(b._statusInstallation)
-                                ? 'bg-red-100 text-red-700 border border-red-200'
-                                : 'bg-blue-100 text-blue-700 border border-blue-200'
+                                ? 'bg-status-offline/10 text-red-700 border border-status-offline/20'
+                                : 'bg-accent-light text-blue-700 border border-accent/20'
                             }`}>
                               {/installiert|live|erfolgreich/i.test(b._statusInstallation) ? '\u2713' : '\u2139'} {b._statusInstallation}
                             </span>
@@ -990,12 +990,12 @@ export default function InstallationTeamDashboard() {
                             </span>
                           )}
                           {b.status === 'no_show' && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-surface-secondary text-text-secondary border border-border-secondary">
                               &#10007; No-Show
                             </span>
                           )}
                           {b.status === 'cancelled' && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 border border-red-200">
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-offline/10 text-red-700 border border-status-offline/20">
                               &#10007; Storniert
                             </span>
                           )}
@@ -1011,50 +1011,50 @@ export default function InstallationTeamDashboard() {
 
         {/* ── Appointments Table ── */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider no-print">Terminliste</h3>
+          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider no-print">Terminliste</h3>
 
           {isLoading ? (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl flex flex-col items-center justify-center h-64 text-text-muted gap-3">
               <Loader2 size={24} className="animate-spin text-[#FF8000]" />
               <p className="text-sm">Daten werden geladen...</p>
             </div>
           ) : !selectedTeam ? (
             <EmptyState
               icon={Users}
-              iconBg="bg-orange-50"
+              iconBg="bg-status-warning/10"
               title="Bitte ein Team auswaehlen"
               subtitle="Waehle oben ein Team, um den Tagesplan zu sehen."
             />
           ) : teamRoutes.length === 0 ? (
             <EmptyState
               icon={Calendar}
-              iconBg="bg-gray-100"
+              iconBg="bg-surface-secondary"
               title="Keine Routen fuer diesen Tag"
               subtitle={`${selectedTeam === '__alle__' ? 'Alle Teams' : selectedTeam} hat am ${formatDateShortDE(selectedDate)} keine zugewiesenen Routen.`}
             />
           ) : enrichedBookings.length === 0 ? (
             <EmptyState
               icon={ClipboardList}
-              iconBg="bg-orange-50"
+              iconBg="bg-status-warning/10"
               title="Keine Termine fuer diesen Tag"
               subtitle={`Es gibt noch keine Buchungen fuer die Routen von ${selectedTeam === '__alle__' ? 'Alle Teams' : selectedTeam} am ${formatDateShortDE(selectedDate)}.`}
             />
           ) : (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full print-table">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50/50">
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Zeit</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Standort</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">JET-ID</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Team / Tour</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Adresse</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kontakt</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Telefon</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Montage</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hinweise</th>
+                    <tr className="border-b border-gray-100 bg-surface-secondary/50">
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Zeit</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Standort</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">JET-ID</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Team / Tour</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Adresse</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Kontakt</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Telefon</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Montage</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Hinweise</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1068,18 +1068,18 @@ export default function InstallationTeamDashboard() {
                       const notes = b.notes || '';
 
                       return (
-                        <tr key={b.id || idx} className="hover:bg-white/80 transition-colors">
+                        <tr key={b.id || idx} className="hover:bg-surface-secondary transition-colors">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1.5">
-                              <Clock size={13} className="text-gray-400 shrink-0" />
-                              <span className="font-mono text-sm font-semibold text-gray-900">
+                              <Clock size={13} className="text-text-muted shrink-0" />
+                              <span className="font-mono text-sm font-semibold text-text-primary">
                                 {time}{endTime ? ` - ${endTime}` : ''}
                               </span>
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="font-medium text-gray-900 text-sm">{b.location_name || akq?.locationName || '--'}</div>
-                            <div className="text-xs text-gray-400 flex items-center gap-1">
+                            <div className="font-medium text-text-primary text-sm">{b.location_name || akq?.locationName || '--'}</div>
+                            <div className="text-xs text-text-muted flex items-center gap-1">
                               <MapPin size={10} /> {b.city}
                             </div>
                             {b._statusInstallation && (
@@ -1087,8 +1087,8 @@ export default function InstallationTeamDashboard() {
                                 /installiert|live|erfolgreich/i.test(b._statusInstallation)
                                   ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                                   : /abgebrochen|fehlgeschlagen/i.test(b._statusInstallation)
-                                  ? 'bg-red-100 text-red-700 border border-red-200'
-                                  : 'bg-blue-100 text-blue-700 border border-blue-200'
+                                  ? 'bg-status-offline/10 text-red-700 border border-status-offline/20'
+                                  : 'bg-accent-light text-blue-700 border border-accent/20'
                               }`}>
                                 {/installiert|live|erfolgreich/i.test(b._statusInstallation) ? '\u2713' : '\u2139'} {b._statusInstallation}
                               </span>
@@ -1099,24 +1099,24 @@ export default function InstallationTeamDashboard() {
                               </span>
                             )}
                             {b.status === 'no_show' && (
-                              <span className="inline-flex items-center gap-0.5 mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                              <span className="inline-flex items-center gap-0.5 mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-surface-secondary text-text-secondary border border-border-secondary">
                                 &#10007; No-Show
                               </span>
                             )}
                             {b.status === 'cancelled' && (
-                              <span className="inline-flex items-center gap-0.5 mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 border border-red-200">
+                              <span className="inline-flex items-center gap-0.5 mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-offline/10 text-red-700 border border-status-offline/20">
                                 &#10007; Storniert
                               </span>
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-xs text-gray-600 font-mono">
+                            <div className="text-xs text-text-secondary font-mono">
                               {getJetId(b, akq)}
                             </div>
                           </td>
                           <td className="px-4 py-3">
                             {b.installer_team && (
-                              <div className="text-xs font-semibold text-gray-800 flex items-center gap-1">
+                              <div className="text-xs font-semibold text-text-primary flex items-center gap-1">
                                 <Users size={11} className="text-[#FF8000] shrink-0" />
                                 {b.installer_team}
                               </div>
@@ -1124,33 +1124,33 @@ export default function InstallationTeamDashboard() {
                             {(() => {
                               const matchedRoute = teamRoutes.find(r => r.id === b.route_id) || teamRoutes.find(r => r.city === b.city);
                               return matchedRoute ? (
-                                <div className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
-                                  <MapPin size={9} className="text-gray-400 shrink-0" />
+                                <div className="text-[10px] text-text-muted mt-0.5 flex items-center gap-1">
+                                  <MapPin size={9} className="text-text-muted shrink-0" />
                                   {matchedRoute.city} Tour
                                 </div>
                               ) : b.city ? (
-                                <div className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
-                                  <MapPin size={9} className="text-gray-400 shrink-0" />
+                                <div className="text-[10px] text-text-muted mt-0.5 flex items-center gap-1">
+                                  <MapPin size={9} className="text-text-muted shrink-0" />
                                   {b.city}
                                 </div>
                               ) : null;
                             })()}
                             {!b.installer_team && (
-                              <div className="text-[10px] text-gray-400 italic">Kein Team</div>
+                              <div className="text-[10px] text-text-muted italic">Kein Team</div>
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-gray-700">{buildAddress(akq) || '--'}</div>
+                            <div className="text-sm text-text-primary">{buildAddress(akq) || '--'}</div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-gray-900 flex items-center gap-1">
-                              <User size={12} className="text-gray-400 shrink-0" />
+                            <div className="text-sm text-text-primary flex items-center gap-1">
+                              <User size={12} className="text-text-muted shrink-0" />
                               {contact}
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-gray-700 font-mono flex items-center gap-1">
-                              <Phone size={12} className="text-gray-400 shrink-0" />
+                            <div className="text-sm text-text-primary font-mono flex items-center gap-1">
+                              <Phone size={12} className="text-text-muted shrink-0" />
                               {phone}
                             </div>
                           </td>
@@ -1158,8 +1158,8 @@ export default function InstallationTeamDashboard() {
                             <StatusBadge status={b.status} />
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-gray-700 flex items-center gap-1">
-                              <Wrench size={12} className="text-gray-400 shrink-0" />
+                            <div className="text-sm text-text-primary flex items-center gap-1">
+                              <Wrench size={12} className="text-text-muted shrink-0" />
                               {akq?.mountType || '--'}
                             </div>
                             {(() => {
@@ -1170,7 +1170,7 @@ export default function InstallationTeamDashboard() {
                                   href={protoUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                                  className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 bg-accent-light border border-accent/20 rounded hover:bg-accent-light transition-colors"
                                 >
                                   <FileText size={10} /> Protokoll
                                 </a>
@@ -1179,9 +1179,9 @@ export default function InstallationTeamDashboard() {
                           </td>
                           <td className="px-4 py-3">
                             {(hindernisse || notes) ? (
-                              <div className="text-xs text-gray-500 max-w-[200px]">
+                              <div className="text-xs text-text-muted max-w-[200px]">
                                 {hindernisse && (
-                                  <span className="inline-flex items-center gap-0.5 text-amber-600 mr-1">
+                                  <span className="inline-flex items-center gap-0.5 text-status-warning mr-1">
                                     <AlertTriangle size={10} /> {hindernisse}
                                   </span>
                                 )}
@@ -1189,7 +1189,7 @@ export default function InstallationTeamDashboard() {
                                 {notes && <span>{notes}</span>}
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-300">--</span>
+                              <span className="text-xs text-text-muted">--</span>
                             )}
                           </td>
                         </tr>

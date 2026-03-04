@@ -15,8 +15,8 @@ function CustomTooltip({ active, payload }) {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
   return (
-    <div className="bg-white/90 backdrop-blur-xl border border-slate-300/40 rounded-lg px-3 py-2 text-xs font-mono shadow-sm shadow-black/[0.03]">
-      <div className="text-slate-600 mb-1">{data.label}</div>
+    <div className="bg-surface-primary border border-border-primary/40 rounded-lg px-3 py-2 text-xs font-mono shadow-card">
+      <div className="text-text-secondary mb-1">{data.label}</div>
       <div style={{ color: data.color }} className="font-bold">
         {data.count} Displays
       </div>
@@ -26,8 +26,8 @@ function CustomTooltip({ active, payload }) {
 
 export default function OfflineDistributionChart({ distribution }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
-      <h3 className="text-sm font-medium text-slate-600 mb-4 uppercase tracking-wider">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
+      <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">
         Offline-Verteilung
       </h3>
       <div className="h-56">

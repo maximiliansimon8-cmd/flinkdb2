@@ -36,10 +36,10 @@ export const STATUS_THRESHOLDS = {
  */
 export const BOOKING_STATUS_CONFIG = {
   pending:   { color: '#eab308', label: 'Eingeladen' },
-  booked:    { color: '#22c55e', label: 'Eingebucht' },
-  confirmed: { color: '#22c55e', label: 'Eingebucht' },
+  booked:    { color: '#34C759', label: 'Eingebucht' },
+  confirmed: { color: '#34C759', label: 'Eingebucht' },
   completed: { color: '#10b981', label: 'Abgeschlossen' },
-  cancelled: { color: '#ef4444', label: 'Storniert' },
+  cancelled: { color: '#FF3B30', label: 'Storniert' },
   no_show:   { color: '#6b7280', label: 'No-Show' },
 };
 

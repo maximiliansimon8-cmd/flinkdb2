@@ -178,26 +178,26 @@ function LoginScreen({ onLogin }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: BRAND.bg }}>
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md" style={{ borderColor: BRAND.orangeLight, borderWidth: 1 }}>
+      <div className="bg-surface-primary rounded-2xl shadow-xl p-8 w-full max-w-md" style={{ borderColor: BRAND.orangeLight, borderWidth: 1 }}>
         {/* Header — Lieferando Logo */}
         <div className="text-center mb-8">
           <LieferandoLogo className="h-16 mx-auto mb-4" />
           <div className="flex items-center justify-center gap-2 mt-2">
             <Wrench size={16} style={{ color: BRAND.orange }} />
-            <span className="text-sm font-semibold text-gray-700">Installations-Tool</span>
+            <span className="text-sm font-semibold text-text-primary">Installations-Tool</span>
           </div>
-          <p className="text-xs text-gray-400 mt-1">Routenplanung & Terminvereinbarung</p>
+          <p className="text-xs text-text-muted mt-1">Routenplanung & Terminvereinbarung</p>
         </div>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">E-Mail</label>
+            <label className="block text-sm font-medium text-text-primary mb-1">E-Mail</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none transition-all"
+              className="w-full px-4 py-2.5 border border-border-secondary rounded-xl text-sm outline-none transition-all"
               style={{ '--tw-ring-color': BRAND.orange }}
               onFocus={(e) => { e.target.style.borderColor = BRAND.orange; e.target.style.boxShadow = `0 0 0 2px ${BRAND.orange}33`; }}
               onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -207,12 +207,12 @@ function LoginScreen({ onLogin }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Passwort</label>
+            <label className="block text-sm font-medium text-text-primary mb-1">Passwort</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none transition-all"
+              className="w-full px-4 py-2.5 border border-border-secondary rounded-xl text-sm outline-none transition-all"
               onFocus={(e) => { e.target.style.borderColor = BRAND.orange; e.target.style.boxShadow = `0 0 0 2px ${BRAND.orange}33`; }}
               onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
               placeholder="••••••••"
@@ -221,7 +221,7 @@ function LoginScreen({ onLogin }) {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded-lg text-sm">
+            <div className="flex items-center gap-2 text-status-offline bg-status-offline/10 px-3 py-2 rounded-lg text-sm">
               <AlertTriangle size={14} />
               {error}
             </div>
@@ -240,7 +240,7 @@ function LoginScreen({ onLogin }) {
           </button>
         </form>
 
-        <p className="text-xs text-gray-400 text-center mt-6">
+        <p className="text-xs text-text-muted text-center mt-6">
           Gleiche Zugangsdaten wie beim JET Dashboard
         </p>
       </div>
@@ -269,8 +269,8 @@ function WhatsAppToggle({ enabled, loading, onToggle }) {
         disabled={loading}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
           enabled
-            ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-            : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+            ? 'bg-status-online/10 text-green-700 border-status-online/20 hover:bg-status-online/10'
+            : 'bg-status-offline/10 text-status-offline border-status-offline/20 hover:bg-status-offline/10'
         } ${loading ? 'opacity-50' : ''}`}
         title={enabled ? 'WhatsApp aktiv — Klicken zum Deaktivieren' : 'WhatsApp deaktiviert — Klicken zum Aktivieren'}
       >
@@ -287,18 +287,18 @@ function WhatsAppToggle({ enabled, loading, onToggle }) {
 
       {/* Confirmation Dialog */}
       {confirmOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-surface-primary rounded-2xl shadow-2xl p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-full bg-status-warning/10 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-status-warning" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">WhatsApp aktivieren?</h3>
-                <p className="text-xs text-gray-500">Diese Aktion hat Konsequenzen</p>
+                <h3 className="font-semibold text-text-primary">WhatsApp aktivieren?</h3>
+                <p className="text-xs text-text-muted">Diese Aktion hat Konsequenzen</p>
               </div>
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+            <div className="bg-status-warning/10 border border-status-warning/20 rounded-lg p-3 mb-4">
               <p className="text-sm text-amber-800">
                 <strong>Achtung:</strong> Wenn du WhatsApp aktivierst, werden <strong>echte Nachrichten</strong> an echte Kunden gesendet.
                 Einladungen und Buchungsbestätigungen gehen direkt über SuperChat raus.
@@ -307,13 +307,13 @@ function WhatsAppToggle({ enabled, loading, onToggle }) {
             <div className="flex gap-2">
               <button
                 onClick={() => setConfirmOpen(false)}
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="flex-1 px-4 py-2 border border-border-secondary rounded-lg text-sm font-medium text-text-primary hover:bg-surface-secondary"
               >
                 Abbrechen
               </button>
               <button
                 onClick={() => { setConfirmOpen(false); onToggle(true); }}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+                className="flex-1 px-4 py-2 bg-status-online text-white rounded-lg text-sm font-medium hover:bg-green-700"
               >
                 Ja, aktivieren
               </button>
@@ -416,7 +416,7 @@ export default function InstallApp() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: BRAND.bg }}>
         <div className="text-center">
           <LieferandoLogo compact className="w-12 h-12 mx-auto mb-3 animate-pulse" />
-          <p className="text-sm text-gray-500">Session wird wiederhergestellt…</p>
+          <p className="text-sm text-text-muted">Session wird wiederhergestellt…</p>
         </div>
       </div>
     );
@@ -429,18 +429,18 @@ export default function InstallApp() {
 
   // Logged in → Show app
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-secondary">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <header className="bg-surface-primary border-b border-border-secondary sticky top-0 z-50 shadow-sm">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           {/* Left: Lieferando Branding */}
           <div className="flex items-center gap-3">
             <LieferandoLogo compact className="w-8 h-8" />
             <div>
-              <h1 className="text-sm font-bold text-gray-900 leading-tight">
+              <h1 className="text-sm font-bold text-text-primary leading-tight">
                 <span style={{ color: BRAND.orange }}>Lieferando</span> Installations-Tool
               </h1>
-              <p className="text-[10px] text-gray-400 leading-tight">Routenplanung & Terminvereinbarung</p>
+              <p className="text-[10px] text-text-muted leading-tight">Routenplanung & Terminvereinbarung</p>
             </div>
           </div>
 
@@ -455,7 +455,7 @@ export default function InstallApp() {
               />
             )}
             {!flagsLoaded && (
-              <div className="flex items-center gap-1 text-xs text-gray-400">
+              <div className="flex items-center gap-1 text-xs text-text-muted">
                 <Loader2 size={12} className="animate-spin" />
                 Flags...
               </div>
@@ -464,22 +464,22 @@ export default function InstallApp() {
             {/* Refresh flags */}
             <button
               onClick={loadFlags}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="p-1.5 rounded-lg text-text-muted hover:text-text-secondary hover:bg-surface-secondary transition-colors"
               title="Feature Flags aktualisieren"
             >
               <RefreshCw size={14} />
             </button>
 
             {/* Divider */}
-            <div className="h-6 w-px bg-gray-200" />
+            <div className="h-6 w-px bg-surface-tertiary" />
 
             {/* User info */}
-            <span className="text-xs text-gray-500 hidden sm:inline">{user.name}</span>
+            <span className="text-xs text-text-muted hidden sm:inline">{user.name}</span>
 
             {/* Logout */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-text-muted hover:text-status-offline hover:bg-status-offline/10 transition-colors"
             >
               <LogOut size={14} />
               <span className="hidden sm:inline">Abmelden</span>
@@ -492,8 +492,8 @@ export default function InstallApp() {
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Suspense fallback={
           <div className="flex flex-col items-center justify-center py-20 gap-2">
-            <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
-            <span className="text-sm text-gray-500">Installations-Dashboard wird geladen...</span>
+            <Loader2 className="w-8 h-8 animate-spin text-status-warning" />
+            <span className="text-sm text-text-muted">Installations-Dashboard wird geladen...</span>
           </div>
         }>
           <InstallationsDashboard standalone isAdmin={user?.groupId === 'grp_admin' || checkIsAdmin()} />

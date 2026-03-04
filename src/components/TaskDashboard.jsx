@@ -39,24 +39,24 @@ import StimmcheckModal from './StimmcheckModal';
 /* ──────────────────────── constants ──────────────────────── */
 
 const STATUS_CONFIG = {
-  'New':         { color: '#3b82f6', bg: '#3b82f6/15', label: 'New', icon: CircleDot },
-  'In Progress': { color: '#f59e0b', bg: '#f59e0b/15', label: 'In Progress', icon: Clock },
+  'New':         { color: '#007AFF', bg: '#007AFF/15', label: 'New', icon: CircleDot },
+  'In Progress': { color: '#FF9500', bg: '#FF9500/15', label: 'In Progress', icon: Clock },
   'Follow Up':   { color: '#a855f7', bg: '#a855f7/15', label: 'Follow Up', icon: ArrowUpRight },
   'On Hold':     { color: '#64748b', bg: '#64748b/15', label: 'On Hold', icon: Pause },
   'In Review':   { color: '#06b6d4', bg: '#06b6d4/15', label: 'In Review', icon: Search },
-  'Completed':   { color: '#22c55e', bg: '#22c55e/15', label: 'Completed', icon: CheckCircle2 },
+  'Completed':   { color: '#34C759', bg: '#34C759/15', label: 'Completed', icon: CheckCircle2 },
 };
 
 const STATUS_ORDER = ['New', 'In Progress', 'Follow Up', 'On Hold', 'In Review', 'Completed'];
 
 const PRIORITY_COLORS = {
-  'Urgent': '#dc2626',
-  'High': '#ef4444',
-  'Medium': '#f59e0b',
-  'Low': '#22c55e',
+  'Urgent': '#FF3B30',
+  'High': '#FF3B30',
+  'Medium': '#FF9500',
+  'Low': '#34C759',
 };
 
-const PIE_COLORS = ['#3b82f6', '#f59e0b', '#a855f7', '#64748b', '#06b6d4', '#22c55e'];
+const PIE_COLORS = ['#007AFF', '#FF9500', '#a855f7', '#64748b', '#06b6d4', '#34C759'];
 
 /* ──────────────────────── helper ──────────────────────── */
 
@@ -481,13 +481,13 @@ export default function TaskDashboard() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
     return (
-      <div className="bg-white/90 backdrop-blur-xl border border-white/60 rounded-xl px-3 py-2 text-xs shadow-lg shadow-black/5">
-        <div className="text-slate-900 font-medium mb-1">{label}</div>
+      <div className="bg-surface-primary border border-white/60 rounded-xl px-3 py-2 text-xs shadow-lg shadow-black/5">
+        <div className="text-text-primary font-medium mb-1">{label}</div>
         {payload.map((p, i) => (
           <div key={i} className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.fill }} />
-            <span className="text-slate-600">{p.name}:</span>
-            <span className="text-slate-900 font-mono">{p.value}</span>
+            <span className="text-text-secondary">{p.name}:</span>
+            <span className="text-text-primary font-mono">{p.value}</span>
           </div>
         ))}
       </div>
@@ -500,9 +500,9 @@ export default function TaskDashboard() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <Loader2 size={32} className="text-[#3b82f6] animate-spin mx-auto mb-3" />
-          <div className="text-slate-600 text-sm">Tasks werden geladen...</div>
-          <div className="text-slate-500 text-xs mt-1">Airtable API Abfrage</div>
+          <Loader2 size={32} className="text-[#007AFF] animate-spin mx-auto mb-3" />
+          <div className="text-text-secondary text-sm">Tasks werden geladen...</div>
+          <div className="text-text-muted text-xs mt-1">Airtable API Abfrage</div>
         </div>
       </div>
     );
@@ -512,10 +512,10 @@ export default function TaskDashboard() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <AlertCircle size={32} className="text-[#ef4444] mx-auto mb-3" />
-          <div className="text-slate-900 text-sm mb-2">Fehler beim Laden der Tasks</div>
-          <div className="text-slate-500 text-xs mb-4">{error}</div>
-          <button onClick={loadTasks} className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg text-xs text-slate-600 hover:border-[#3b82f6]">
+          <AlertCircle size={32} className="text-[#FF3B30] mx-auto mb-3" />
+          <div className="text-text-primary text-sm mb-2">Fehler beim Laden der Tasks</div>
+          <div className="text-text-muted text-xs mb-4">{error}</div>
+          <button onClick={loadTasks} className="inline-flex items-center gap-2 px-4 py-2 bg-surface-primary border border-border-secondary rounded-lg text-xs text-text-secondary hover:border-[#007AFF]">
             <RefreshCw size={14} /> Erneut versuchen
           </button>
         </div>
@@ -528,24 +528,24 @@ export default function TaskDashboard() {
       {/* Title & Refresh */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <ClipboardList size={20} className="text-[#3b82f6]" />
+          <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+            <ClipboardList size={20} className="text-[#007AFF]" />
             Task Dashboard
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-text-muted mt-0.5">
             Zentrale Übersicht aller Aufgaben im Rahmen des JET DooH Projekts
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#3b82f6] text-white rounded-lg text-xs font-medium hover:bg-[#2563eb] transition-colors shadow-sm"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#007AFF] text-white rounded-lg text-xs font-medium hover:bg-[#2563eb] transition-colors shadow-sm"
           >
             <Plus size={12} /> Neuer Task
           </button>
           <button
             onClick={loadTasks}
-            className="flex items-center gap-2 px-3 py-1.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg text-xs text-slate-600 hover:border-[#3b82f6] transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 bg-surface-primary border border-border-secondary rounded-lg text-xs text-text-secondary hover:border-[#007AFF] transition-colors"
           >
             <RefreshCw size={12} /> Aktualisieren
           </button>
@@ -554,12 +554,12 @@ export default function TaskDashboard() {
 
       {/* ═══════ SUCCESS TOAST ═══════ */}
       {successMsg && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-[#22c55e]/10 border border-[#22c55e]/30 rounded-xl animate-fade-in">
-          <CheckCircle2 size={16} className="text-[#22c55e] shrink-0" />
-          <span className="text-xs font-medium text-[#22c55e]">{successMsg}</span>
+        <div className="flex items-center gap-3 px-4 py-3 bg-[#34C759]/10 border border-[#34C759]/30 rounded-xl animate-fade-in">
+          <CheckCircle2 size={16} className="text-[#34C759] shrink-0" />
+          <span className="text-xs font-medium text-[#34C759]">{successMsg}</span>
           <button
             onClick={() => setSuccessMsg(null)}
-            className="ml-auto text-[#22c55e]/60 hover:text-[#22c55e] transition-colors"
+            className="ml-auto text-[#34C759]/60 hover:text-[#34C759] transition-colors"
           >
             <X size={14} />
           </button>
@@ -567,36 +567,36 @@ export default function TaskDashboard() {
       )}
 
       {/* ═══════ HERO SUMMARY ═══════ */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-5">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-5">
         <div className="flex flex-col lg:flex-row lg:items-center gap-5">
           {/* Left: Total + Progress */}
           <div className="flex-1">
             <div className="flex items-baseline gap-3 mb-2">
-              <span className="text-3xl font-bold font-mono text-slate-900">{kpis.total.toLocaleString('de-DE')}</span>
-              <span className="text-sm text-slate-500">Tasks gesamt</span>
+              <span className="text-3xl font-bold font-mono text-text-primary">{kpis.total.toLocaleString('de-DE')}</span>
+              <span className="text-sm text-text-muted">Tasks gesamt</span>
             </div>
             {/* Stacked progress bar */}
-            <div className="w-full h-3 bg-slate-200/60 rounded-full overflow-hidden flex mb-2">
+            <div className="w-full h-3 bg-surface-tertiary/60 rounded-full overflow-hidden flex mb-2">
               {kpis.total > 0 && <>
-                <div style={{ width: `${(kpis.completed / kpis.total) * 100}%`, backgroundColor: '#22c55e' }} title={`Completed: ${kpis.completed}`} />
-                <div style={{ width: `${(kpis.inProgress / kpis.total) * 100}%`, backgroundColor: '#f59e0b' }} title={`In Progress: ${kpis.inProgress}`} />
+                <div style={{ width: `${(kpis.completed / kpis.total) * 100}%`, backgroundColor: '#34C759' }} title={`Completed: ${kpis.completed}`} />
+                <div style={{ width: `${(kpis.inProgress / kpis.total) * 100}%`, backgroundColor: '#FF9500' }} title={`In Progress: ${kpis.inProgress}`} />
                 <div style={{ width: `${(kpis.followUp / kpis.total) * 100}%`, backgroundColor: '#a855f7' }} title={`Follow Up: ${kpis.followUp}`} />
-                <div style={{ width: `${(kpis.open / kpis.total) * 100}%`, backgroundColor: '#3b82f6' }} title={`New: ${kpis.open}`} />
+                <div style={{ width: `${(kpis.open / kpis.total) * 100}%`, backgroundColor: '#007AFF' }} title={`New: ${kpis.open}`} />
                 <div style={{ width: `${(kpis.onHold / kpis.total) * 100}%`, backgroundColor: '#64748b' }} title={`On Hold: ${kpis.onHold}`} />
               </>}
             </div>
             {/* Legend under bar */}
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {[
-                { label: 'Completed', value: kpis.completed, color: '#22c55e' },
-                { label: 'In Progress', value: kpis.inProgress, color: '#f59e0b' },
+                { label: 'Completed', value: kpis.completed, color: '#34C759' },
+                { label: 'In Progress', value: kpis.inProgress, color: '#FF9500' },
                 { label: 'Follow Up', value: kpis.followUp, color: '#a855f7' },
-                { label: 'New', value: kpis.open, color: '#3b82f6' },
+                { label: 'New', value: kpis.open, color: '#007AFF' },
                 { label: 'On Hold', value: kpis.onHold, color: '#64748b' },
               ].filter(s => s.value > 0).map(s => (
                 <div key={s.label} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
-                  <span className="text-xs text-slate-600">{s.label}</span>
+                  <span className="text-xs text-text-secondary">{s.label}</span>
                   <span className="text-xs font-mono font-medium" style={{ color: s.color }}>
                     {s.value} ({kpis.total > 0 ? ((s.value / kpis.total) * 100).toFixed(1) : 0}%)
                   </span>
@@ -608,20 +608,20 @@ export default function TaskDashboard() {
           {/* Right: Quick stats */}
           <div className="flex gap-4 lg:gap-6">
             <div className="text-center">
-              <div className="text-2xl font-bold font-mono text-[#22c55e]">{kpis.completionRate}%</div>
-              <div className="text-xs text-slate-500">Abgeschlossen</div>
+              <div className="text-2xl font-bold font-mono text-[#34C759]">{kpis.completionRate}%</div>
+              <div className="text-xs text-text-muted">Abgeschlossen</div>
             </div>
-            <div className="w-px bg-slate-200" />
+            <div className="w-px bg-surface-tertiary" />
             <div className="text-center">
-              <div className={`text-2xl font-bold font-mono ${Number(kpis.velocity30) >= 100 ? 'text-[#22c55e]' : Number(kpis.velocity30) >= 70 ? 'text-[#f59e0b]' : 'text-[#ef4444]'}`}>
+              <div className={`text-2xl font-bold font-mono ${Number(kpis.velocity30) >= 100 ? 'text-[#34C759]' : Number(kpis.velocity30) >= 70 ? 'text-[#FF9500]' : 'text-[#FF3B30]'}`}>
                 {kpis.velocity30}{kpis.velocity30 !== '–' ? '%' : ''}
               </div>
-              <div className="text-xs text-slate-500">Velocity 30T</div>
+              <div className="text-xs text-text-muted">Velocity 30T</div>
             </div>
-            <div className="w-px bg-slate-200" />
+            <div className="w-px bg-surface-tertiary" />
             <div className="text-center">
-              <div className="text-2xl font-bold font-mono text-slate-900">{kpis.avgCompletionDays ? `${kpis.avgCompletionDays}d` : '–'}</div>
-              <div className="text-xs text-slate-500">⌀ Durchlaufzeit</div>
+              <div className="text-2xl font-bold font-mono text-text-primary">{kpis.avgCompletionDays ? `${kpis.avgCompletionDays}d` : '–'}</div>
+              <div className="text-xs text-text-muted">⌀ Durchlaufzeit</div>
             </div>
           </div>
         </div>
@@ -630,13 +630,13 @@ export default function TaskDashboard() {
       {/* ═══════ STATUS CARDS (clickable, with % share) ═══════ */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {[
-          { key: 'New', label: 'Open', value: kpis.open, color: '#3b82f6', icon: CircleDot },
-          { key: 'In Progress', label: 'In Progress', value: kpis.inProgress, color: '#f59e0b', icon: Clock },
+          { key: 'New', label: 'Open', value: kpis.open, color: '#007AFF', icon: CircleDot },
+          { key: 'In Progress', label: 'In Progress', value: kpis.inProgress, color: '#FF9500', icon: Clock },
           { key: 'Follow Up', label: 'Follow Up', value: kpis.followUp, color: '#a855f7', icon: ArrowUpRight },
           { key: 'On Hold', label: 'On Hold', value: kpis.onHold, color: '#64748b', icon: Pause },
-          { key: 'overdue', label: 'Überfällig', value: kpis.overdue, color: '#ef4444', icon: AlertCircle },
+          { key: 'overdue', label: 'Überfällig', value: kpis.overdue, color: '#FF3B30', icon: AlertCircle },
           { key: 'dueThisWeek', label: 'Fällig 7 Tage', value: kpis.dueThisWeek, color: '#06b6d4', icon: Calendar },
-          { key: 'unassigned', label: 'Nicht zugewiesen', value: kpis.unassigned, color: '#f59e0b', icon: Users },
+          { key: 'unassigned', label: 'Nicht zugewiesen', value: kpis.unassigned, color: '#FF9500', icon: Users },
         ].map(card => {
           const CardIcon = card.icon;
           const pct = kpis.total > 0 ? ((card.value / kpis.total) * 100).toFixed(1) : '0';
@@ -646,15 +646,15 @@ export default function TaskDashboard() {
             <div
               key={card.key}
               onClick={isStatus ? () => setStatusFilter(statusFilter === card.key ? 'all' : card.key) : undefined}
-              className={`bg-white/60 backdrop-blur-xl border rounded-lg p-3 shadow-sm shadow-black/[0.03] transition-all ${
-                isActive ? 'ring-1' : 'border-slate-200/60'
-              } ${isStatus ? 'cursor-pointer hover:bg-white/80' : ''}`}
+              className={`bg-surface-primary border rounded-lg p-3 shadow-card transition-all ${
+                isActive ? 'ring-1' : 'border-border-secondary'
+              } ${isStatus ? 'cursor-pointer hover:bg-surface-secondary' : ''}`}
               style={isActive ? { borderColor: card.color, boxShadow: `0 0 0 1px ${card.color}30` } : {}}
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1.5">
                   <CardIcon size={12} style={{ color: card.color }} />
-                  <span className="text-xs text-slate-500">{card.label}</span>
+                  <span className="text-xs text-text-muted">{card.label}</span>
                 </div>
                 <span className="text-xs font-mono px-1.5 py-0.5 rounded" style={{ backgroundColor: `${card.color}15`, color: card.color }}>
                   {pct}%
@@ -664,7 +664,7 @@ export default function TaskDashboard() {
                 {card.value.toLocaleString('de-DE')}
               </div>
               {/* Mini bar showing proportion */}
-              <div className="w-full h-1 bg-slate-200/60 rounded-full mt-1.5 overflow-hidden">
+              <div className="w-full h-1 bg-surface-tertiary/60 rounded-full mt-1.5 overflow-hidden">
                 <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, Number(pct))}%`, backgroundColor: card.color }} />
               </div>
             </div>
@@ -674,47 +674,47 @@ export default function TaskDashboard() {
 
       {/* ═══════ PERFORMANCE METRICS ═══════ */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <MetricCard icon={TrendingUp} iconColor="#3b82f6" label="⌀ Erstellt / Woche" value={kpis.avgCreatedPerWeek} sub="Letzte 30 Tage" />
-        <MetricCard icon={CheckCircle2} iconColor="#22c55e" label="⌀ Erledigt / Woche" value={kpis.avgCompletedPerWeek} sub="Letzte 30 Tage" />
+        <MetricCard icon={TrendingUp} iconColor="#007AFF" label="⌀ Erstellt / Woche" value={kpis.avgCreatedPerWeek} sub="Letzte 30 Tage" />
+        <MetricCard icon={CheckCircle2} iconColor="#34C759" label="⌀ Erledigt / Woche" value={kpis.avgCompletedPerWeek} sub="Letzte 30 Tage" />
         <MetricCard
           icon={ArrowUpRight}
-          iconColor={Number(kpis.velocity30) >= 100 ? '#22c55e' : Number(kpis.velocity30) >= 70 ? '#f59e0b' : '#ef4444'}
+          iconColor={Number(kpis.velocity30) >= 100 ? '#34C759' : Number(kpis.velocity30) >= 70 ? '#FF9500' : '#FF3B30'}
           label="Velocity (30T)"
           value={`${kpis.velocity30}${kpis.velocity30 !== '–' ? '%' : ''}`}
-          valueColor={Number(kpis.velocity30) >= 100 ? '#22c55e' : Number(kpis.velocity30) >= 70 ? '#f59e0b' : '#ef4444'}
+          valueColor={Number(kpis.velocity30) >= 100 ? '#34C759' : Number(kpis.velocity30) >= 70 ? '#FF9500' : '#FF3B30'}
           sub="Erledigt vs. Erstellt"
         />
         <MetricCard icon={Clock} iconColor="#a855f7" label="⌀ Bearbeitungszeit" value={kpis.avgCompletionDays ? `${kpis.avgCompletionDays}d` : '–'} sub="Tage bis erledigt" />
         <MetricCard
           icon={kpis.backlogTrend <= 0 ? ArrowDownRight : ArrowUpRight}
-          iconColor={kpis.backlogTrend <= 0 ? '#22c55e' : '#ef4444'}
+          iconColor={kpis.backlogTrend <= 0 ? '#34C759' : '#FF3B30'}
           label="Backlog Trend"
           value={`${kpis.backlogTrend > 0 ? '+' : ''}${kpis.backlogTrend}`}
-          valueColor={kpis.backlogTrend <= 0 ? '#22c55e' : '#ef4444'}
+          valueColor={kpis.backlogTrend <= 0 ? '#34C759' : '#FF3B30'}
           sub={`Woche: ${kpis.netThisWeek > 0 ? '+' : ''}${kpis.netThisWeek} netto`}
         />
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg p-3 shadow-sm shadow-black/[0.03]">
+        <div className="bg-surface-primary border border-border-secondary rounded-lg p-3 shadow-card">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-6 h-6 rounded bg-[#06b6d4]/10 flex items-center justify-center">
               <BarChart3 size={12} className="text-[#06b6d4]" />
             </div>
-            <div className="text-xs text-slate-500">30 Tage Bilanz</div>
+            <div className="text-xs text-text-muted">30 Tage Bilanz</div>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm font-bold font-mono text-[#3b82f6]">+{kpis.created30}</span>
-            <span className="text-xs text-slate-500">/</span>
-            <span className="text-sm font-bold font-mono text-[#22c55e]">-{kpis.completed30}</span>
+            <span className="text-sm font-bold font-mono text-[#007AFF]">+{kpis.created30}</span>
+            <span className="text-xs text-text-muted">/</span>
+            <span className="text-sm font-bold font-mono text-[#34C759]">-{kpis.completed30}</span>
           </div>
-          <div className="text-xs text-slate-500">Erstellt / Erledigt</div>
+          <div className="text-xs text-text-muted">Erstellt / Erledigt</div>
         </div>
       </div>
 
       {/* ───── Charts Row ───── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Status Distribution Pie */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
-          <h3 className="text-sm font-medium text-slate-900 mb-3 flex items-center gap-2">
-            <BarChart3 size={14} className="text-[#3b82f6]" />
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
+          <h3 className="text-sm font-medium text-text-primary mb-3 flex items-center gap-2">
+            <BarChart3 size={14} className="text-[#007AFF]" />
             Status Verteilung
           </h3>
           <div className="h-[280px]">
@@ -735,7 +735,7 @@ export default function TaskDashboard() {
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
-                  formatter={(value) => <span className="text-xs text-slate-600">{value}</span>}
+                  formatter={(value) => <span className="text-xs text-text-secondary">{value}</span>}
                   iconSize={8}
                 />
               </PieChart>
@@ -744,12 +744,12 @@ export default function TaskDashboard() {
         </div>
 
         {/* Tasks by Assignee (Stacked Bar) */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
-          <h3 className="text-sm font-medium text-slate-900 mb-3 flex items-center gap-2">
-            <Users size={14} className="text-[#3b82f6]" />
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
+          <h3 className="text-sm font-medium text-text-primary mb-3 flex items-center gap-2">
+            <Users size={14} className="text-[#007AFF]" />
             Aufgaben nach Verantwortlichen
           </h3>
-          <p className="text-xs text-slate-500 mb-3">
+          <p className="text-xs text-text-muted mb-3">
             Wie viele Aufgaben pro Teammitglied aktiv sind – inkl. offener, laufender und erledigter Tasks
           </p>
           <div className="h-[280px]">
@@ -775,13 +775,13 @@ export default function TaskDashboard() {
 
       {/* ───── Weekly Velocity Chart ───── */}
       {weeklyVelocity.length > 0 && (
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
-          <h3 className="text-sm font-medium text-slate-900 mb-1 flex items-center gap-2">
-            <TrendingUp size={14} className="text-[#3b82f6]" />
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
+          <h3 className="text-sm font-medium text-text-primary mb-1 flex items-center gap-2">
+            <TrendingUp size={14} className="text-[#007AFF]" />
             Wöchentliche Velocity
-            <span className="text-xs text-slate-500 font-normal">(Erstellt vs. Erledigt pro Kalenderwoche)</span>
+            <span className="text-xs text-text-muted font-normal">(Erstellt vs. Erledigt pro Kalenderwoche)</span>
           </h3>
-          <p className="text-xs text-slate-500 mb-3">
+          <p className="text-xs text-text-muted mb-3">
             Grüne Balken = mehr erledigt als erstellt (Backlog schrumpft) · Rote Balken = Backlog wächst
           </p>
           <div className="h-[240px]">
@@ -792,11 +792,11 @@ export default function TaskDashboard() {
                 <YAxis tick={{ fill: '#64748b', fontSize: 11 }} width={35} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
-                  formatter={(value) => <span className="text-xs text-slate-600">{value}</span>}
+                  formatter={(value) => <span className="text-xs text-text-secondary">{value}</span>}
                   iconSize={8}
                 />
-                <Bar dataKey="created" fill="#3b82f6" radius={[3, 3, 0, 0]} name="Erstellt" />
-                <Bar dataKey="completed" fill="#22c55e" radius={[3, 3, 0, 0]} name="Erledigt" />
+                <Bar dataKey="created" fill="#007AFF" radius={[3, 3, 0, 0]} name="Erstellt" />
+                <Bar dataKey="completed" fill="#34C759" radius={[3, 3, 0, 0]} name="Erledigt" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -807,11 +807,11 @@ export default function TaskDashboard() {
       {tasksTimeline.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* New Tasks per Day */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
-            <h3 className="text-sm font-medium text-slate-900 mb-3 flex items-center gap-2">
-              <TrendingUp size={14} className="text-[#3b82f6]" />
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
+            <h3 className="text-sm font-medium text-text-primary mb-3 flex items-center gap-2">
+              <TrendingUp size={14} className="text-[#007AFF]" />
               Neue Tasks pro Tag
-              <span className="text-xs text-slate-500 font-normal">(90 Tage)</span>
+              <span className="text-xs text-text-muted font-normal">(90 Tage)</span>
             </h3>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -828,18 +828,18 @@ export default function TaskDashboard() {
                   />
                   <YAxis tick={{ fill: '#64748b', fontSize: 11 }} width={30} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="created" fill="#3b82f6" radius={[2, 2, 0, 0]} name="Erstellt" />
+                  <Bar dataKey="created" fill="#007AFF" radius={[2, 2, 0, 0]} name="Erstellt" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Completed Tasks per Day */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
-            <h3 className="text-sm font-medium text-slate-900 mb-3 flex items-center gap-2">
-              <CheckCircle2 size={14} className="text-[#22c55e]" />
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
+            <h3 className="text-sm font-medium text-text-primary mb-3 flex items-center gap-2">
+              <CheckCircle2 size={14} className="text-[#34C759]" />
               Erledigte Tasks pro Tag
-              <span className="text-xs text-slate-500 font-normal">(90 Tage)</span>
+              <span className="text-xs text-text-muted font-normal">(90 Tage)</span>
             </h3>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -856,7 +856,7 @@ export default function TaskDashboard() {
                   />
                   <YAxis tick={{ fill: '#64748b', fontSize: 11 }} width={30} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="completed" fill="#22c55e" radius={[2, 2, 0, 0]} name="Erledigt" />
+                  <Bar dataKey="completed" fill="#34C759" radius={[2, 2, 0, 0]} name="Erledigt" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -865,11 +865,11 @@ export default function TaskDashboard() {
       )}
 
       {/* ───── Filters ───── */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Filter size={14} className="text-[#3b82f6]" />
-          <h3 className="text-sm font-medium text-slate-900">Task-Liste</h3>
-          <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+          <Filter size={14} className="text-[#007AFF]" />
+          <h3 className="text-sm font-medium text-text-primary">Task-Liste</h3>
+          <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
             {filteredTasks.length} von {tasks.length}
           </span>
         </div>
@@ -877,13 +877,13 @@ export default function TaskDashboard() {
         <div className="flex flex-wrap gap-3 mb-4">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
               placeholder="Suche nach Task, Display ID, Location..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6]"
+              className="w-full pl-9 pr-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
             />
           </div>
 
@@ -891,7 +891,7 @@ export default function TaskDashboard() {
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
-            className="px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6]"
+            className="px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF]"
           >
             <option value="all">Alle Status</option>
             {STATUS_ORDER.map(s => (
@@ -903,7 +903,7 @@ export default function TaskDashboard() {
           <select
             value={partnerFilter}
             onChange={(e) => { setPartnerFilter(e.target.value); setPage(0); }}
-            className="px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6]"
+            className="px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF]"
           >
             <option value="all">Alle Partner</option>
             {allPartners.map(p => (
@@ -915,7 +915,7 @@ export default function TaskDashboard() {
           <select
             value={assigneeFilter}
             onChange={(e) => { setAssigneeFilter(e.target.value); setPage(0); }}
-            className="px-3 py-2 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6]"
+            className="px-3 py-2 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF]"
           >
             <option value="all">Alle Verantwortlichen</option>
             {allAssignees.map(a => (
@@ -926,7 +926,7 @@ export default function TaskDashboard() {
           {(statusFilter !== 'all' || partnerFilter !== 'all' || assigneeFilter !== 'all' || searchQuery) && (
             <button
               onClick={() => { setStatusFilter('all'); setPartnerFilter('all'); setAssigneeFilter('all'); setSearchQuery(''); setPage(0); }}
-              className="px-3 py-2 text-xs text-[#ef4444] hover:text-[#f87171] transition-colors"
+              className="px-3 py-2 text-xs text-[#FF3B30] hover:text-[#f87171] transition-colors"
             >
               Filter zurücksetzen
             </button>
@@ -937,22 +937,22 @@ export default function TaskDashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200/60">
-                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('status')}>
+              <tr className="border-b border-border-secondary">
+                <th className="text-left py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-secondary" onClick={() => handleSort('status')}>
                   <div className="flex items-center gap-1">Status <SortIcon field="status" /></div>
                 </th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('title')}>
+                <th className="text-left py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-secondary" onClick={() => handleSort('title')}>
                   <div className="flex items-center gap-1">Task <SortIcon field="title" /></div>
                 </th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('priority')}>
+                <th className="text-left py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-secondary" onClick={() => handleSort('priority')}>
                   <div className="flex items-center gap-1">Priorität <SortIcon field="priority" /></div>
                 </th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Verantwortlich</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Display / Location</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('dueDate')}>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Verantwortlich</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Display / Location</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-secondary" onClick={() => handleSort('dueDate')}>
                   <div className="flex items-center gap-1">Fällig <SortIcon field="dueDate" /></div>
                 </th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium cursor-pointer hover:text-slate-600" onClick={() => handleSort('createdTime')}>
+                <th className="text-left py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-secondary" onClick={() => handleSort('createdTime')}>
                   <div className="flex items-center gap-1">Erstellt <SortIcon field="createdTime" /></div>
                 </th>
               </tr>
@@ -966,7 +966,7 @@ export default function TaskDashboard() {
                 return (
                   <React.Fragment key={task.id}>
                   <tr
-                      className="border-b border-slate-200/40 hover:bg-slate-50/80 cursor-pointer transition-colors"
+                      className="border-b border-border-secondary/40 hover:bg-surface-secondary/80 cursor-pointer transition-colors"
                       onClick={() => setExpandedTask(isExpanded ? null : task.id)}
                     >
                       <td className="py-2.5 px-3">
@@ -978,10 +978,10 @@ export default function TaskDashboard() {
                         </span>
                       </td>
                       <td className="py-2.5 px-3">
-                        <div className="text-slate-900 font-medium max-w-[300px] truncate">{task.title}</div>
+                        <div className="text-text-primary font-medium max-w-[300px] truncate">{task.title}</div>
                         {task.partner && (
                           <div className="mt-0.5">
-                            <span className="text-xs text-[#3b82f6] bg-[#3b82f6]/5 px-1.5 py-0.5 rounded">
+                            <span className="text-xs text-[#007AFF] bg-[#007AFF]/5 px-1.5 py-0.5 rounded">
                               {task.partner}
                             </span>
                           </div>
@@ -1001,79 +1001,79 @@ export default function TaskDashboard() {
                         )}
                       </td>
                       <td className="py-2.5 px-3">
-                        <div className="text-slate-600">
+                        <div className="text-text-secondary">
                           {task.assigned.length > 0 ? task.assigned.join(', ') : task.createdBy || '–'}
                         </div>
                       </td>
                       <td className="py-2.5 px-3">
                         <div className="max-w-[200px]">
                           {(task.displayIds || []).length > 0 ? (
-                            <div className="text-slate-600 truncate text-xs font-mono">
+                            <div className="text-text-secondary truncate text-xs font-mono">
                               {task.displayIds.slice(0, 2).join(', ')}
                               {task.displayIds.length > 2 && ` +${task.displayIds.length - 2}`}
                             </div>
                           ) : (
-                            <span className="text-slate-500">–</span>
+                            <span className="text-text-muted">–</span>
                           )}
                           {(task.locationNames || []).length > 0 && (
-                            <div className="text-xs text-slate-500 truncate">
+                            <div className="text-xs text-text-muted truncate">
                               {task.locationNames[0]}
                             </div>
                           )}
                         </div>
                       </td>
                       <td className="py-2.5 px-3">
-                        <span className={isOverdue ? 'text-[#ef4444] font-medium' : 'text-slate-600'}>
+                        <span className={isOverdue ? 'text-[#FF3B30] font-medium' : 'text-text-secondary'}>
                           {formatDate(task.dueDate)}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-slate-600 font-mono">
+                      <td className="py-2.5 px-3 text-text-secondary font-mono">
                         {formatDate(task.createdTime)}
                       </td>
                     </tr>
                     {/* Expanded details */}
                     {isExpanded && (
-                      <tr className="bg-slate-50/40">
+                      <tr className="bg-surface-secondary/40">
                         <td colSpan={7} className="px-4 py-3">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <div className="text-xs text-slate-500 uppercase mb-1">Beschreibung</div>
-                              <div className="text-xs text-slate-600 whitespace-pre-wrap">
+                              <div className="text-xs text-text-muted uppercase mb-1">Beschreibung</div>
+                              <div className="text-xs text-text-secondary whitespace-pre-wrap">
                                 {task.description || '– Keine Beschreibung –'}
                               </div>
                             </div>
                             <div className="space-y-2">
                               {task.createdBy && (
                                 <div>
-                                  <span className="text-xs text-slate-500">Erstellt von: </span>
-                                  <span className="text-xs text-slate-600">{task.createdBy}</span>
+                                  <span className="text-xs text-text-muted">Erstellt von: </span>
+                                  <span className="text-xs text-text-secondary">{task.createdBy}</span>
                                 </div>
                               )}
                               {task.completedDate && (
                                 <div>
-                                  <span className="text-xs text-slate-500">Erledigt am: </span>
-                                  <span className="text-xs text-slate-600">{formatDate(task.completedDate)}</span>
+                                  <span className="text-xs text-text-muted">Erledigt am: </span>
+                                  <span className="text-xs text-text-secondary">{formatDate(task.completedDate)}</span>
                                 </div>
                               )}
                               {task.assigned.length > 0 && (
                                 <div>
-                                  <span className="text-xs text-slate-500">Zugewiesen: </span>
-                                  <span className="text-xs text-slate-600">{task.assigned.join(', ')}</span>
+                                  <span className="text-xs text-text-muted">Zugewiesen: </span>
+                                  <span className="text-xs text-text-secondary">{task.assigned.join(', ')}</span>
                                 </div>
                               )}
                               {task.displayIds?.length > 0 && (
                                 <div>
-                                  <span className="text-xs text-slate-500">Displays: </span>
-                                  <span className="text-xs text-slate-600 font-mono">{task.displayIds.join(', ')}</span>
+                                  <span className="text-xs text-text-muted">Displays: </span>
+                                  <span className="text-xs text-text-secondary font-mono">{task.displayIds.join(', ')}</span>
                                 </div>
                               )}
 
                               {/* ─── Extended Fields ─── */}
                               {/* Audit Trail */}
                               {(task.statusChangedBy || task.statusChangedDate) && (
-                                <div className="pt-1 border-t border-slate-200/40">
-                                  <span className="text-xs text-slate-500">Status geändert: </span>
-                                  <span className="text-xs text-slate-600">
+                                <div className="pt-1 border-t border-border-secondary/40">
+                                  <span className="text-xs text-text-muted">Status geändert: </span>
+                                  <span className="text-xs text-text-secondary">
                                     {task.statusChangedBy || '–'}
                                     {task.statusChangedDate && ` am ${formatDate(task.statusChangedDate)}`}
                                   </span>
@@ -1082,16 +1082,16 @@ export default function TaskDashboard() {
 
                               {/* Installation Info */}
                               {(task.integrator || task.installDate) && (
-                                <div className="pt-1 border-t border-slate-200/40">
-                                  <div className="text-xs text-slate-500 uppercase mb-0.5">Installation</div>
+                                <div className="pt-1 border-t border-border-secondary/40">
+                                  <div className="text-xs text-text-muted uppercase mb-0.5">Installation</div>
                                   {task.integrator && (
-                                    <div><span className="text-xs text-slate-500">Integrator: </span><span className="text-xs text-slate-600">{task.integrator}</span></div>
+                                    <div><span className="text-xs text-text-muted">Integrator: </span><span className="text-xs text-text-secondary">{task.integrator}</span></div>
                                   )}
                                   {task.installDate && (
-                                    <div><span className="text-xs text-slate-500">Aufbau: </span><span className="text-xs text-slate-600 font-mono">{formatDate(task.installDate)}</span></div>
+                                    <div><span className="text-xs text-text-muted">Aufbau: </span><span className="text-xs text-text-secondary font-mono">{formatDate(task.installDate)}</span></div>
                                   )}
                                   {task.installRemarks && (
-                                    <div><span className="text-xs text-slate-500">Bemerkungen: </span><span className="text-xs text-slate-600">{task.installRemarks}</span></div>
+                                    <div><span className="text-xs text-text-muted">Bemerkungen: </span><span className="text-xs text-text-secondary">{task.installRemarks}</span></div>
                                   )}
                                 </div>
                               )}
@@ -1099,14 +1099,14 @@ export default function TaskDashboard() {
                               {/* Visibility + Superchat */}
                               <div className="flex flex-wrap items-center gap-2 pt-1">
                                 {task.externalVisibility && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-status-warning/10 text-status-warning border border-status-warning/20">
                                     👁 Extern sichtbar
                                   </span>
                                 )}
                                 {task.superchat && (
                                   <a href={typeof task.superchat === 'string' ? task.superchat : '#'} target="_blank" rel="noopener noreferrer"
                                     onClick={e => e.stopPropagation()}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors">
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-status-online/10 text-status-online border border-status-online/20 hover:bg-status-online/10 transition-colors">
                                     💬 Superchat
                                   </a>
                                 )}
@@ -1115,9 +1115,9 @@ export default function TaskDashboard() {
 
                           {/* Nacharbeit Kommentar */}
                           {task.nacharbeitKommentar && (
-                            <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-slate-200/40">
-                              <div className="text-xs text-slate-500 uppercase mb-1">Nacharbeit / Follow-Up</div>
-                              <div className="text-xs text-slate-600 whitespace-pre-wrap bg-amber-50/50 rounded-lg p-2 border border-amber-100">
+                            <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-border-secondary/40">
+                              <div className="text-xs text-text-muted uppercase mb-1">Nacharbeit / Follow-Up</div>
+                              <div className="text-xs text-text-secondary whitespace-pre-wrap bg-status-warning/10/50 rounded-lg p-2 border border-amber-100">
                                 {task.nacharbeitKommentar}
                               </div>
                             </div>
@@ -1125,8 +1125,8 @@ export default function TaskDashboard() {
                           </div>
 
                           {/* Quick Actions */}
-                          <div className="mt-3 pt-3 border-t border-slate-200/40 flex flex-wrap items-center gap-2">
-                            <span className="text-xs text-slate-500 mr-1">Status ändern:</span>
+                          <div className="mt-3 pt-3 border-t border-border-secondary/40 flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-text-muted mr-1">Status ändern:</span>
                             {STATUS_ORDER.filter(s => s !== task.status).map(status => {
                               const sc2 = STATUS_CONFIG[status];
                               return (
@@ -1152,7 +1152,7 @@ export default function TaskDashboard() {
                               </button>
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingTask(task); }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#3b82f6]/10 text-[#3b82f6] rounded-lg text-xs font-medium hover:bg-[#3b82f6]/20 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#007AFF]/10 text-[#007AFF] rounded-lg text-xs font-medium hover:bg-[#007AFF]/20 transition-colors"
                               >
                                 <Edit3 size={10} /> Bearbeiten
                               </button>
@@ -1170,25 +1170,25 @@ export default function TaskDashboard() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200/60">
-            <div className="text-xs text-slate-500 font-mono">
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-secondary">
+            <div className="text-xs text-text-muted font-mono">
               {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, sortedTasks.length)} von {sortedTasks.length}
             </div>
             <div className="flex gap-1">
               <button
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="px-2 py-1 text-xs rounded bg-slate-50/80 border border-slate-200/60 text-slate-600 disabled:opacity-30 hover:border-[#3b82f6]"
+                className="px-2 py-1 text-xs rounded bg-surface-secondary/80 border border-border-secondary text-text-secondary disabled:opacity-30 hover:border-[#007AFF]"
               >
                 ← Zurück
               </button>
-              <span className="px-2 py-1 text-xs text-slate-500 font-mono">
+              <span className="px-2 py-1 text-xs text-text-muted font-mono">
                 {page + 1} / {totalPages}
               </span>
               <button
                 onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-2 py-1 text-xs rounded bg-slate-50/80 border border-slate-200/60 text-slate-600 disabled:opacity-30 hover:border-[#3b82f6]"
+                className="px-2 py-1 text-xs rounded bg-surface-secondary/80 border border-border-secondary text-text-secondary disabled:opacity-30 hover:border-[#007AFF]"
               >
                 Weiter →
               </button>
@@ -1242,15 +1242,15 @@ export default function TaskDashboard() {
 
 function MetricCard({ icon: Icon, iconColor, label, value, valueColor, sub }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg p-3 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-lg p-3 shadow-card">
       <div className="flex items-center gap-2 mb-1">
         <div className="w-6 h-6 rounded flex items-center justify-center" style={{ backgroundColor: `${iconColor}15` }}>
           <Icon size={12} style={{ color: iconColor }} />
         </div>
-        <div className="text-xs text-slate-500">{label}</div>
+        <div className="text-xs text-text-muted">{label}</div>
       </div>
       <div className="text-lg font-bold font-mono" style={{ color: valueColor || '#0f172a' }}>{value}</div>
-      {sub && <div className="text-xs text-slate-500">{sub}</div>}
+      {sub && <div className="text-xs text-text-muted">{sub}</div>}
     </div>
   );
 }

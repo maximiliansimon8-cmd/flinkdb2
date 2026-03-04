@@ -20,18 +20,18 @@ class ChunkErrorBoundary extends Component {
                            this.state.error?.message?.includes('dynamically imported module');
       return (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-          <AlertTriangle className="w-8 h-8 text-amber-500" />
-          <h3 className="text-sm font-semibold text-gray-900">
+          <AlertTriangle className="w-8 h-8 text-status-warning" />
+          <h3 className="text-sm font-semibold text-text-primary">
             {isChunkError ? 'Modul konnte nicht geladen werden' : 'Ein Fehler ist aufgetreten'}
           </h3>
-          <p className="text-xs text-gray-500 max-w-md">
+          <p className="text-xs text-text-muted max-w-md">
             {isChunkError
               ? 'Moeglicherweise liegt ein Netzwerkproblem vor. Bitte versuche es erneut.'
               : (this.state.error?.message || 'Unbekannter Fehler')}
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 bg-status-warning text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition-colors"
           >
             <RefreshCw size={13} />
             Seite neu laden
@@ -190,7 +190,7 @@ export default function InstallationsDashboard({ initialSection, onSectionChange
       <div className="space-y-2">
         {/* Main Category Bar + City Filter */}
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit" ref={menuRef}>
+          <div className="flex gap-1 bg-surface-secondary rounded-xl p-1 w-fit" ref={menuRef}>
             {visibleCategories.map(cat => {
               const CatIcon = cat.icon;
               const isCatActive = activeCategoryId === cat.id;
@@ -208,8 +208,8 @@ export default function InstallationsDashboard({ initialSection, onSectionChange
                   }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                     isCatActive
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-surface-primary text-text-primary shadow-sm'
+                      : 'text-text-muted hover:text-text-primary'
                   }`}
                 >
                   <CatIcon size={16} />
@@ -222,11 +222,11 @@ export default function InstallationsDashboard({ initialSection, onSectionChange
 
           {/* Global City Filter */}
           <div className="flex items-center gap-1.5">
-            <MapPin size={14} className="text-gray-400 shrink-0" />
+            <MapPin size={14} className="text-text-muted shrink-0" />
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
+              className="bg-surface-primary border border-border-secondary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
             >
               <option value="">Alle Staedte</option>
               {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -234,7 +234,7 @@ export default function InstallationsDashboard({ initialSection, onSectionChange
             {selectedCity && (
               <button
                 onClick={() => setSelectedCity('')}
-                className="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-1 hover:bg-surface-secondary rounded-lg text-text-muted hover:text-text-secondary transition-colors"
                 title="Filter zuruecksetzen"
               >
                 <span className="text-xs font-medium">&times;</span>
@@ -261,11 +261,11 @@ export default function InstallationsDashboard({ initialSection, onSectionChange
                     }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                       isActive
-                        ? 'bg-orange-50 text-orange-700 border border-orange-200 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-transparent'
+                        ? 'bg-status-warning/10 text-orange-700 border border-status-warning/20 shadow-sm'
+                        : 'text-text-muted hover:text-text-primary hover:bg-surface-secondary border border-transparent'
                     }`}
                   >
-                    <Icon size={13} className={isActive ? 'text-orange-500' : 'text-gray-400'} />
+                    <Icon size={13} className={isActive ? 'text-status-warning' : 'text-text-muted'} />
                     {item.label}
                   </button>
                 );
@@ -279,8 +279,8 @@ export default function InstallationsDashboard({ initialSection, onSectionChange
       <ChunkErrorBoundary resetKey={activeSubTab}>
         <Suspense fallback={
           <div className="flex flex-col items-center justify-center py-20 gap-2">
-            <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
-            <span className="text-sm text-slate-500">Wird geladen...</span>
+            <Loader2 className="w-6 h-6 animate-spin text-status-warning" />
+            <span className="text-sm text-text-muted">Wird geladen...</span>
           </div>
         }>
           {activeSubTab === 'executive' && <InstallationExecutiveDashboard filterCity={selectedCity} />}

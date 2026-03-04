@@ -14,13 +14,13 @@ import InstallationLiveticker from './InstallationLiveticker';
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white/95 backdrop-blur-xl border border-gray-200 rounded-xl p-3 shadow-lg">
-      <div className="text-xs font-semibold text-gray-700 mb-1.5">{label}</div>
+    <div className="bg-surface-primary border border-border-secondary rounded-xl p-3 shadow-lg">
+      <div className="text-xs font-semibold text-text-primary mb-1.5">{label}</div>
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-2 text-xs">
           <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-          <span className="text-gray-600">{entry.name}:</span>
-          <span className="font-bold text-gray-900">{entry.value}</span>
+          <span className="text-text-secondary">{entry.name}:</span>
+          <span className="font-bold text-text-primary">{entry.value}</span>
         </div>
       ))}
     </div>
@@ -30,23 +30,23 @@ function CustomTooltip({ active, payload, label }) {
 /* ── KPI Card ── */
 function KPICard({ label, value, subtitle, icon: Icon, color, bgColor, trend }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 text-left transition-all hover:bg-white/80 hover:shadow-md">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 text-left transition-all hover:bg-surface-secondary hover:shadow-md">
       <div className="flex items-center justify-between mb-3">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bgColor}`}>
           <Icon size={20} className={color} />
         </div>
         {trend !== undefined && trend !== null && (
           <span className={`text-xs font-mono flex items-center gap-0.5 ${
-            trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-500' : 'text-gray-400'
+            trend > 0 ? 'text-status-online' : trend < 0 ? 'text-status-offline' : 'text-text-muted'
           }`}>
             {trend > 0 ? '+' : ''}{trend}%
             {trend >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
           </span>
         )}
       </div>
-      <div className="text-3xl font-bold text-gray-900">{value}</div>
-      <div className="text-sm text-gray-500 font-medium mt-0.5">{label}</div>
-      {subtitle && <div className="text-xs text-gray-400 mt-1">{subtitle}</div>}
+      <div className="text-3xl font-bold text-text-primary">{value}</div>
+      <div className="text-sm text-text-muted font-medium mt-0.5">{label}</div>
+      {subtitle && <div className="text-xs text-text-muted mt-1">{subtitle}</div>}
     </div>
   );
 }
@@ -565,8 +565,8 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
-        <Loader2 size={24} className="animate-spin text-orange-500" />
+      <div className="flex flex-col items-center justify-center py-20 gap-3 text-text-muted">
+        <Loader2 size={24} className="animate-spin text-status-warning" />
         <p className="text-sm">Dashboard wird geladen...</p>
       </div>
     );
@@ -575,18 +575,18 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
   // Show dashboard even without bookings — use acquisition/historical data
   if (bookings.length === 0 && routes.length === 0 && acquisitionData.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4 text-gray-400">
-        <div className="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center">
-          <BarChart3 size={40} className="text-gray-300" />
+      <div className="flex flex-col items-center justify-center py-20 gap-4 text-text-muted">
+        <div className="w-20 h-20 rounded-2xl bg-surface-secondary flex items-center justify-center">
+          <BarChart3 size={40} className="text-text-muted" />
         </div>
         <div className="text-center">
-          <p className="text-lg font-medium text-gray-600">Noch keine Installationsdaten</p>
-          <p className="text-sm text-gray-400 mt-1">Erstelle Routen und sende Einladungen, um hier Kennzahlen zu sehen.</p>
+          <p className="text-lg font-medium text-text-secondary">Noch keine Installationsdaten</p>
+          <p className="text-sm text-text-muted mt-1">Erstelle Routen und sende Einladungen, um hier Kennzahlen zu sehen.</p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={syncing}
-          className="px-4 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-xl hover:bg-orange-100 flex items-center gap-2 transition-colors disabled:opacity-50"
+          className="px-4 py-2 text-sm font-medium text-status-warning bg-status-warning/10 rounded-xl hover:bg-status-warning/10 flex items-center gap-2 transition-colors disabled:opacity-50"
         >
           {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Daten laden
         </button>
@@ -599,18 +599,18 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <BarChart3 className="text-orange-500" size={24} /> Installations-Dashboard
-            {filterCity && <span className="text-base font-medium text-orange-500 ml-1">({filterCity})</span>}
+          <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+            <BarChart3 className="text-status-warning" size={24} /> Installations-Dashboard
+            {filterCity && <span className="text-base font-medium text-status-warning ml-1">({filterCity})</span>}
           </h2>
-          <p className="text-gray-500 mt-1">
+          <p className="text-text-muted mt-1">
             {filterCity ? `KPI fuer ${filterCity}` : 'Gesamtuebersicht aller Installationstermine und Buchungen.'}
           </p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={syncing}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl hover:bg-white/80 text-gray-700 text-sm transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2.5 bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-secondary text-text-primary text-sm transition-colors disabled:opacity-50"
         >
           {syncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />} Aktualisieren
         </button>
@@ -618,30 +618,30 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
 
       {/* Historical Overview (from Airtable data) */}
       {historicalStats.totalAcquisition > 0 && (
-        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-5 shadow-sm">
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-status-warning/20 rounded-2xl p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-orange-800 mb-3 flex items-center gap-2">
             <Building size={16} /> Gesamtbestand
           </h3>
           <div className="flex items-end gap-2 flex-wrap">
             {/* Pipeline — Offene Prüfungen */}
-            <div className="bg-amber-100/70 border border-amber-300 rounded-xl px-3 py-2 text-center min-w-[60px]">
+            <div className="bg-status-warning/10/70 border border-amber-300 rounded-xl px-3 py-2 text-center min-w-[60px]">
               <div className="text-lg font-bold text-amber-700">{historicalStats.totalInReview}</div>
-              <div className="text-[9px] text-amber-600 font-medium leading-tight">Pipeline</div>
-              <div className="text-[8px] text-amber-500 leading-tight">Offene Prüfungen</div>
+              <div className="text-[9px] text-status-warning font-medium leading-tight">Pipeline</div>
+              <div className="text-[8px] text-status-warning leading-tight">Offene Prüfungen</div>
             </div>
             {/* Main KPIs */}
             {[
               { label: 'Aufbaubereit', sub: `${historicalStats.totalReadyOhneTermin} ohne Termin`, value: historicalStats.totalReady, color: 'text-blue-700' },
               { label: 'Terminiert', sub: 'zukuenftig', value: historicalStats.totalTerminiert, color: 'text-indigo-700' },
-              { label: 'Geplant 7T', value: historicalStats.next7, color: 'text-orange-600' },
-              { label: 'Geplant 30T', value: historicalStats.next30, color: 'text-orange-500' },
+              { label: 'Geplant 7T', value: historicalStats.next7, color: 'text-status-warning' },
+              { label: 'Geplant 30T', value: historicalStats.next30, color: 'text-status-warning' },
               { label: 'Installiert', value: historicalStats.totalInstalled, color: 'text-emerald-700' },
               { label: 'Live', value: historicalStats.totalLive, color: 'text-green-700' },
             ].map(k => (
               <div key={k.label} className="text-center flex-1 min-w-[70px]">
                 <div className={`text-2xl font-bold ${k.color}`}>{k.value}</div>
-                <div className="text-[10px] text-gray-500 font-medium">{k.label}</div>
-                {k.sub && <div className="text-[8px] text-gray-400">{k.sub}</div>}
+                <div className="text-[10px] text-text-muted font-medium">{k.label}</div>
+                {k.sub && <div className="text-[8px] text-text-muted">{k.sub}</div>}
               </div>
             ))}
           </div>
@@ -671,7 +671,7 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
                     <RC.XAxis dataKey="city" tick={{ fontSize: 10 }} />
                     <RC.YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                     <RC.Tooltip content={<CustomTooltip />} />
-                    <RC.Bar dataKey="terminiert" name="Gebucht / Terminiert" fill="#22c55e" stackId="ready" radius={[0, 0, 0, 0]} />
+                    <RC.Bar dataKey="terminiert" name="Gebucht / Terminiert" fill="#34C759" stackId="ready" radius={[0, 0, 0, 0]} />
                     <RC.Bar dataKey="offen" name="Noch offen" fill="#06b6d4" stackId="ready" radius={[4, 4, 0, 0]} />
                     <RC.Legend wrapperStyle={{ fontSize: '11px' }} />
                   </RC.BarChart>
@@ -697,24 +697,24 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
           value={`${kpis.conversionInviteToBook}%`}
           subtitle={`${kpis.totalBooked} von ${kpis.totalInvited} gebucht`}
           icon={TrendingUp}
-          color="text-green-600"
-          bgColor="bg-green-100"
+          color="text-status-online"
+          bgColor="bg-status-online/10"
         />
         <KPICard
           label="No-Show Rate"
           value={`${kpis.noShowRate}%`}
           subtitle={`${kpis.noShow} No-Shows`}
           icon={AlertTriangle}
-          color="text-amber-600"
-          bgColor="bg-amber-100"
+          color="text-status-warning"
+          bgColor="bg-status-warning/10"
         />
         <KPICard
           label="Avg. Buchungszeit"
           value={kpis.avgTimeToBook > 0 ? `${kpis.avgTimeToBook}h` : '--'}
           subtitle="Einladung bis Buchung"
           icon={Timer}
-          color="text-purple-600"
-          bgColor="bg-purple-100"
+          color="text-brand-purple"
+          bgColor="bg-brand-purple/10"
         />
         <KPICard
           label="Auslastung"
@@ -735,9 +735,9 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
       </div>
 
       {/* Conversion Funnel */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-          <TrendingUp size={16} className="text-gray-400" /> Installations-Funnel
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <TrendingUp size={16} className="text-text-muted" /> Installations-Funnel
         </h3>
         <div className="flex items-center gap-1">
           {funnelData.map((stage, i) => {
@@ -761,10 +761,10 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
                   >
                     <span className="text-white font-bold text-sm">{stage.value}</span>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1.5 font-medium">{stage.stage}</div>
+                  <div className="text-xs text-text-muted mt-1.5 font-medium">{stage.stage}</div>
                 </div>
                 {i < funnelData.length - 1 && (
-                  <ArrowRight size={14} className="text-gray-300 shrink-0" />
+                  <ArrowRight size={14} className="text-text-muted shrink-0" />
                 )}
               </React.Fragment>
             );
@@ -775,9 +775,9 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Timeline Chart */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-            <Calendar size={16} className="text-gray-400" /> Verlauf (letzte 14 Tage)
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <Calendar size={16} className="text-text-muted" /> Verlauf (letzte 14 Tage)
           </h3>
           <div className="h-64">
             {RC ? (
@@ -788,12 +788,12 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
                   <RC.YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                   <RC.Tooltip content={<CustomTooltip />} />
                   <RC.Area type="monotone" dataKey="einladungen" name="Einladungen" stroke="#eab308" fill="#eab308" fillOpacity={0.15} strokeWidth={2} />
-                  <RC.Area type="monotone" dataKey="buchungen" name="Buchungen" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={2} />
+                  <RC.Area type="monotone" dataKey="buchungen" name="Buchungen" stroke="#007AFF" fill="#007AFF" fillOpacity={0.15} strokeWidth={2} />
                   <RC.Legend wrapperStyle={{ fontSize: '11px' }} />
                 </RC.AreaChart>
               </RC.ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-gray-300">
+              <div className="h-full flex items-center justify-center text-text-muted">
                 <Loader2 size={20} className="animate-spin" />
               </div>
             )}
@@ -801,9 +801,9 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
         </div>
 
         {/* Status Pie */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-            <BarChart3 size={16} className="text-gray-400" /> Status-Verteilung
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <BarChart3 size={16} className="text-text-muted" /> Status-Verteilung
           </h3>
           <div className="h-64 flex items-center">
             {RC ? (
@@ -826,7 +826,7 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
                 </RC.PieChart>
               </RC.ResponsiveContainer>
             ) : (
-              <div className="w-[60%] h-full flex items-center justify-center text-gray-300">
+              <div className="w-[60%] h-full flex items-center justify-center text-text-muted">
                 <Loader2 size={20} className="animate-spin" />
               </div>
             )}
@@ -834,8 +834,8 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
               {statusPieData.map(d => (
                 <div key={d.name} className="flex items-center gap-2 text-sm">
                   <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                  <span className="text-gray-600 text-xs">{d.name}</span>
-                  <span className="font-bold text-gray-900 ml-auto">{d.value}</span>
+                  <span className="text-text-secondary text-xs">{d.name}</span>
+                  <span className="font-bold text-text-primary ml-auto">{d.value}</span>
                 </div>
               ))}
             </div>
@@ -847,9 +847,9 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* City Comparison */}
         {cityChartData.length > 0 && (
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <MapPin size={16} className="text-gray-400" /> Buchungen nach Stadt
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+              <MapPin size={16} className="text-text-muted" /> Buchungen nach Stadt
             </h3>
             <div className="h-64">
               {RC ? (
@@ -866,7 +866,7 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
                   </RC.BarChart>
                 </RC.ResponsiveContainer>
               ) : (
-                <div className="h-full flex items-center justify-center text-gray-300">
+                <div className="h-full flex items-center justify-center text-text-muted">
                   <Loader2 size={20} className="animate-spin" />
                 </div>
               )}
@@ -876,9 +876,9 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
 
         {/* Route Capacity */}
         {capacityData.length > 0 && (
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <Building size={16} className="text-gray-400" /> Routen-Auslastung
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+              <Building size={16} className="text-text-muted" /> Routen-Auslastung
             </h3>
             <div className="h-64">
               {RC ? (
@@ -888,13 +888,13 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
                     <RC.XAxis dataKey="name" tick={{ fontSize: 9 }} interval={0} angle={-30} textAnchor="end" height={50} />
                     <RC.YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                     <RC.Tooltip content={<CustomTooltip />} />
-                    <RC.Bar dataKey="belegt" name="Belegt" fill="#3b82f6" stackId="cap" />
+                    <RC.Bar dataKey="belegt" name="Belegt" fill="#007AFF" stackId="cap" />
                     <RC.Bar dataKey="frei" name="Frei" fill="#e2e8f0" stackId="cap" />
                     <RC.Legend wrapperStyle={{ fontSize: '11px' }} />
                   </RC.BarChart>
                 </RC.ResponsiveContainer>
               ) : (
-                <div className="h-full flex items-center justify-center text-gray-300">
+                <div className="h-full flex items-center justify-center text-text-muted">
                   <Loader2 size={20} className="animate-spin" />
                 </div>
               )}
@@ -906,24 +906,24 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
       {/* Bottom: Upcoming + Follow-ups */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Upcoming Installations */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Calendar size={16} className="text-green-500" /> Anstehende Installationen (7 Tage)
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+            <Calendar size={16} className="text-status-online" /> Anstehende Installationen (7 Tage)
           </h3>
           {upcoming.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-2">
-              <Inbox size={28} className="text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-8 text-text-muted gap-2">
+              <Inbox size={28} className="text-text-muted" />
               <p className="text-sm">Keine Termine in den naechsten 7 Tagen</p>
             </div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {upcoming.map(item => (
-                <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-secondary transition-colors">
                   <div className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center shrink-0 border ${
-                    item.source === 'airtable' ? 'bg-purple-50 border-purple-100' : 'bg-green-50 border-green-100'
+                    item.source === 'airtable' ? 'bg-brand-purple/10 border-purple-100' : 'bg-status-online/10 border-green-100'
                   }`}>
                     <div className={`text-[9px] font-medium leading-none ${
-                      item.source === 'airtable' ? 'text-purple-600' : 'text-green-600'
+                      item.source === 'airtable' ? 'text-brand-purple' : 'text-status-online'
                     }`}>
                       {new Date(item.date + 'T00:00:00').toLocaleDateString('de-DE', { weekday: 'short' })}
                     </div>
@@ -934,15 +934,15 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-sm font-medium text-text-primary truncate">{item.name}</div>
+                    <div className="text-xs text-text-muted">
                       {item.city}{item.time ? ` | ${item.time}${item.endTime ? `-${item.endTime}` : ''} Uhr` : ''}
                     </div>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                     item.source === 'airtable'
-                      ? 'bg-purple-100 text-purple-700 border-purple-200'
-                      : 'bg-green-100 text-green-700 border-green-200'
+                      ? 'bg-brand-purple/10 text-purple-700 border-brand-purple/20'
+                      : 'bg-status-online/10 text-green-700 border-status-online/20'
                   }`}>
                     {item.source === 'airtable' ? 'Airtable' : 'Eingebucht'}
                   </span>
@@ -953,19 +953,19 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
         </div>
 
         {/* Follow-ups */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <AlertTriangle size={16} className="text-amber-500" /> Follow-ups noetig
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+            <AlertTriangle size={16} className="text-status-warning" /> Follow-ups noetig
             {pendingFollowups.length > 0 && (
-              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">
+              <span className="px-2 py-0.5 bg-status-warning/10 text-amber-700 rounded-full text-xs font-bold">
                 {pendingFollowups.length}
               </span>
             )}
           </h3>
-          <p className="text-xs text-gray-400 mb-3">Eingeladen vor &gt;48h, noch nicht gebucht</p>
+          <p className="text-xs text-text-muted mb-3">Eingeladen vor &gt;48h, noch nicht gebucht</p>
           {pendingFollowups.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-2">
-              <CheckCircle size={28} className="text-green-400" />
+            <div className="flex flex-col items-center justify-center py-8 text-text-muted gap-2">
+              <CheckCircle size={28} className="text-status-online" />
               <p className="text-sm">Alle Einladungen aktuell</p>
             </div>
           ) : (
@@ -973,17 +973,17 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
               {pendingFollowups.map(b => {
                 const hoursSince = Math.round((Date.now() - new Date(b.whatsapp_sent_at).getTime()) / (1000 * 60 * 60));
                 return (
-                  <div key={b.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-amber-50/50 transition-colors">
-                    <div className="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center shrink-0 border border-amber-100">
-                      <Clock size={16} className="text-amber-500" />
+                  <div key={b.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-status-warning/10/50 transition-colors">
+                    <div className="w-11 h-11 bg-status-warning/10 rounded-xl flex items-center justify-center shrink-0 border border-amber-100">
+                      <Clock size={16} className="text-status-warning" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-gray-900 truncate">{b.location_name || 'Unbekannt'}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-sm font-medium text-text-primary truncate">{b.location_name || 'Unbekannt'}</div>
+                      <div className="text-xs text-text-muted">
                         {String(b.city || '')} | {String(b.contact_name || '')} | {String(b.contact_phone || '')}
                       </div>
                     </div>
-                    <span className="text-xs text-amber-600 font-mono whitespace-nowrap">
+                    <span className="text-xs text-status-warning font-mono whitespace-nowrap">
                       vor {hoursSince}h
                     </span>
                   </div>
@@ -1006,10 +1006,10 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
           { key: 'cancelled', label: 'Storniert', value: kpis.cancelled },
           { key: 'no_show', label: 'No-Show', value: kpis.noShow },
         ].map(item => (
-          <div key={item.key} className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-3 text-center">
+          <div key={item.key} className="bg-surface-primary border border-border-secondary rounded-xl p-3 text-center">
             <div className="w-3 h-3 rounded-full mx-auto mb-1.5" style={{ backgroundColor: STATUS_COLORS[item.key] }} />
-            <div className="text-xl font-bold text-gray-900">{item.value}</div>
-            <div className="text-[10px] text-gray-500 font-medium">{item.label}</div>
+            <div className="text-xl font-bold text-text-primary">{item.value}</div>
+            <div className="text-[10px] text-text-muted font-medium">{item.label}</div>
           </div>
         ))}
       </div>
@@ -1018,9 +1018,9 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
           <div className={`px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 ${
-            toast.type === 'error' ? 'bg-red-600 text-white' :
-            toast.type === 'info' ? 'bg-blue-600 text-white' :
-            'bg-green-600 text-white'
+            toast.type === 'error' ? 'bg-status-offline text-white' :
+            toast.type === 'info' ? 'bg-accent text-white' :
+            'bg-status-online text-white'
           }`}>
             {toast.type === 'info' && <Loader2 size={14} className="animate-spin" />}
             {toast.message}

@@ -95,7 +95,7 @@ function BottomTabBar({ activeTab, onTabChange }) {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[10002] bg-white/95 backdrop-blur-xl border-t border-gray-200/60 safe-bottom">
+    <div className="fixed bottom-0 left-0 right-0 z-[10002] bg-surface-primary border-t border-border-secondary/60 safe-bottom">
       <div className="flex items-center justify-around h-[50px]">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -108,10 +108,10 @@ function BottomTabBar({ activeTab, onTabChange }) {
             >
               <Icon
                 size={22}
-                className={isActive ? 'text-[#007AFF]' : 'text-gray-400'}
+                className={isActive ? 'text-[#007AFF]' : 'text-text-muted'}
                 strokeWidth={isActive ? 2.2 : 1.8}
               />
-              <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-[#007AFF]' : 'text-gray-400'}`}>
+              <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-[#007AFF]' : 'text-text-muted'}`}>
                 {tab.label}
               </span>
             </button>
@@ -135,11 +135,11 @@ function IOSToggle({ checked, onChange, disabled }) {
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-[31px] w-[51px] shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
-        checked ? 'bg-[#34C759]' : 'bg-gray-200'
+        checked ? 'bg-[#34C759]' : 'bg-surface-tertiary'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <span
-        className={`pointer-events-none inline-block h-[27px] w-[27px] transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out ${
+        className={`pointer-events-none inline-block h-[27px] w-[27px] transform rounded-full bg-surface-primary shadow-lg ring-0 transition-transform duration-200 ease-in-out ${
           checked ? 'translate-x-[22px]' : 'translate-x-[2px]'
         } mt-[2px]`}
       />
@@ -153,7 +153,7 @@ function IOSToggle({ checked, onChange, disabled }) {
 
 function NavBar({ title, onBack, rightAction }) {
   return (
-    <div className="fixed top-0 left-0 right-0 z-[10003] bg-white/80 backdrop-blur-xl border-b border-gray-200/60 safe-top">
+    <div className="fixed top-0 left-0 right-0 z-[10003] bg-surface-primary border-b border-border-secondary/60 safe-top">
       <div className="flex items-center justify-between h-[44px] px-4">
         <div className="w-20">
           {onBack && (
@@ -185,7 +185,7 @@ function StepIndicator({ currentStep, totalSteps }) {
           className={`h-1.5 rounded-full transition-all duration-300 ${
             i < currentStep ? 'w-6 bg-[#007AFF]' :
             i === currentStep ? 'w-8 bg-[#007AFF]' :
-            'w-6 bg-gray-200'
+            'w-6 bg-surface-tertiary'
           }`}
         />
       ))}
@@ -234,16 +234,16 @@ function StepSearch({ newLeads, onSelectLead }) {
       {/* Search + City Filter */}
       <div className="px-4 pb-3 space-y-3">
         <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="Standort, Straße, PLZ oder Kontakt suchen..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-gray-100 rounded-xl pl-10 pr-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+            className="w-full bg-surface-secondary rounded-xl pl-10 pr-4 py-3 text-[15px] text-text-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted">
               <X size={16} />
             </button>
           )}
@@ -254,7 +254,7 @@ function StepSearch({ newLeads, onSelectLead }) {
           <button
             onClick={() => setCityFilter('')}
             className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
-              !cityFilter ? 'bg-[#007AFF] text-white' : 'bg-gray-100 text-gray-600'
+              !cityFilter ? 'bg-[#007AFF] text-white' : 'bg-surface-secondary text-text-secondary'
             }`}
           >
             Alle ({newLeads?.length || 0})
@@ -267,7 +267,7 @@ function StepSearch({ newLeads, onSelectLead }) {
                 key={city}
                 onClick={() => setCityFilter(cityFilter === city ? '' : city)}
                 className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
-                  cityFilter === city ? 'bg-[#007AFF] text-white' : 'bg-gray-100 text-gray-600'
+                  cityFilter === city ? 'bg-[#007AFF] text-white' : 'bg-surface-secondary text-text-secondary'
                 }`}
               >
                 {city} ({count})
@@ -279,7 +279,7 @@ function StepSearch({ newLeads, onSelectLead }) {
 
       {/* Lead List */}
       <div className="flex-1 overflow-y-auto px-4 pb-24">
-        <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide px-1 mb-2">
+        <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide px-1 mb-2">
           {filtered.length} neue Leads {cityFilter ? `in ${cityFilter}` : ''}
         </div>
 
@@ -288,32 +288,32 @@ function StepSearch({ newLeads, onSelectLead }) {
             <button
               key={lead.id}
               onClick={() => onSelectLead(lead)}
-              className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3.5 flex items-center gap-3 text-left active:bg-gray-50 transition-colors"
+              className="w-full bg-surface-primary rounded-2xl shadow-sm border border-gray-100 px-4 py-3.5 flex items-center gap-3 text-left active:bg-surface-secondary transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                <Building2 size={18} className="text-blue-500" />
+              <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center shrink-0">
+                <Building2 size={18} className="text-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-medium text-gray-900 truncate">{lead.locationName || 'Unbekannt'}</div>
-                <div className="text-[12px] text-gray-500 truncate">
+                <div className="text-[15px] font-medium text-text-primary truncate">{lead.locationName || 'Unbekannt'}</div>
+                <div className="text-[12px] text-text-muted truncate">
                   {[lead.street, lead.streetNumber].filter(Boolean).join(' ')}
                   {lead.postalCode ? ` · ${lead.postalCode}` : ''}
                   {lead.city?.length > 0 ? ` · ${lead.city[0]}` : ''}
                 </div>
                 {lead.contactPerson && (
-                  <div className="text-[11px] text-gray-400 mt-0.5">{lead.contactPerson}</div>
+                  <div className="text-[11px] text-text-muted mt-0.5">{lead.contactPerson}</div>
                 )}
               </div>
-              <ChevronRight size={16} className="text-gray-300 shrink-0" />
+              <ChevronRight size={16} className="text-text-muted shrink-0" />
             </button>
           ))}
         </div>
 
         {filtered.length === 0 && (
           <div className="text-center py-12">
-            <MapPin size={32} className="text-gray-300 mx-auto mb-3" />
-            <div className="text-[15px] text-gray-500">Keine neuen Leads gefunden</div>
-            <div className="text-[13px] text-gray-400 mt-1">
+            <MapPin size={32} className="text-text-muted mx-auto mb-3" />
+            <div className="text-[15px] text-text-muted">Keine neuen Leads gefunden</div>
+            <div className="text-[13px] text-text-muted mt-1">
               {search ? 'Versuche einen anderen Suchbegriff' : 'Aktuell keine Leads mit Status "New Lead"'}
             </div>
           </div>
@@ -340,26 +340,26 @@ function StepDetails({ lead, formData, onFormChange, onNext, onBack }) {
       <div className="px-4 space-y-5">
         {/* Location Info (read-only from DB) */}
         <div>
-          <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">Standort-Information</div>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-            <div className="px-4 py-3.5 border-b border-gray-50">
-              <div className="text-[12px] text-gray-400 mb-0.5">Restaurant / Standort</div>
-              <div className="text-[16px] font-semibold text-gray-900">{lead.locationName || '–'}</div>
+          <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Standort-Information</div>
+          <div className="bg-surface-primary rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <div className="px-4 py-3.5 border-b border-border-secondary">
+              <div className="text-[12px] text-text-muted mb-0.5">Restaurant / Standort</div>
+              <div className="text-[16px] font-semibold text-text-primary">{lead.locationName || '–'}</div>
             </div>
-            <div className="px-4 py-3 border-b border-gray-50">
-              <div className="text-[12px] text-gray-400 mb-0.5">Adresse</div>
-              <div className="text-[15px] text-gray-900">{fullAddress || '–'}</div>
+            <div className="px-4 py-3 border-b border-border-secondary">
+              <div className="text-[12px] text-text-muted mb-0.5">Adresse</div>
+              <div className="text-[15px] text-text-primary">{fullAddress || '–'}</div>
             </div>
             {lead.jetId && (
-              <div className="px-4 py-3 border-b border-gray-50">
-                <div className="text-[12px] text-gray-400 mb-0.5">JET-ID</div>
-                <div className="text-[14px] font-mono text-gray-700">{lead.jetId}</div>
+              <div className="px-4 py-3 border-b border-border-secondary">
+                <div className="text-[12px] text-text-muted mb-0.5">JET-ID</div>
+                <div className="text-[14px] font-mono text-text-primary">{lead.jetId}</div>
               </div>
             )}
             {lead.acquisitionPartner && (
               <div className="px-4 py-3">
-                <div className="text-[12px] text-gray-400 mb-0.5">Akquise Partner</div>
-                <div className="text-[14px] text-gray-700">{lead.acquisitionPartner}</div>
+                <div className="text-[12px] text-text-muted mb-0.5">Akquise Partner</div>
+                <div className="text-[14px] text-text-primary">{lead.acquisitionPartner}</div>
               </div>
             )}
           </div>
@@ -368,22 +368,22 @@ function StepDetails({ lead, formData, onFormChange, onNext, onBack }) {
         {/* Contact Info (read-only from DB) */}
         {(lead.contactPerson || lead.contactEmail || lead.contactPhone) && (
           <div>
-            <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">Kontaktdaten</div>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Kontaktdaten</div>
+            <div className="bg-surface-primary rounded-2xl shadow-sm overflow-hidden border border-gray-100">
               {lead.contactPerson && (
-                <div className="px-4 py-3 border-b border-gray-50">
-                  <div className="text-[12px] text-gray-400 mb-0.5">Ansprechpartner</div>
-                  <div className="text-[15px] text-gray-900">{lead.contactPerson}</div>
+                <div className="px-4 py-3 border-b border-border-secondary">
+                  <div className="text-[12px] text-text-muted mb-0.5">Ansprechpartner</div>
+                  <div className="text-[15px] text-text-primary">{lead.contactPerson}</div>
                 </div>
               )}
               {lead.contactEmail && (
-                <a href={`mailto:${lead.contactEmail}`} className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50">
+                <a href={`mailto:${lead.contactEmail}`} className="flex items-center gap-3 px-4 py-3 border-b border-border-secondary active:bg-surface-secondary">
                   <Mail size={16} className="text-[#007AFF] shrink-0" />
                   <div className="text-[15px] text-[#007AFF]">{lead.contactEmail}</div>
                 </a>
               )}
               {lead.contactPhone && (
-                <a href={`tel:${lead.contactPhone}`} className="flex items-center gap-3 px-4 py-3 active:bg-gray-50">
+                <a href={`tel:${lead.contactPhone}`} className="flex items-center gap-3 px-4 py-3 active:bg-surface-secondary">
                   <Phone size={16} className="text-[#007AFF] shrink-0" />
                   <div className="text-[15px] text-[#007AFF]">{lead.contactPhone}</div>
                 </a>
@@ -394,51 +394,51 @@ function StepDetails({ lead, formData, onFormChange, onNext, onBack }) {
 
         {/* Google Street View Check */}
         <div>
-          <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">
+          <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">
             Schaufenster prüfen
           </div>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+          <div className="bg-surface-primary rounded-2xl shadow-sm overflow-hidden border border-gray-100">
             {streetViewUrl && (
               <a
                 href={streetViewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 active:bg-blue-50 transition-colors"
+                className="flex items-center gap-3 px-4 py-3.5 border-b border-border-secondary active:bg-accent-light transition-colors"
               >
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center shrink-0">
                   <Eye size={18} className="text-[#007AFF]" />
                 </div>
                 <div className="flex-1">
                   <div className="text-[15px] font-medium text-[#007AFF]">Google Street View öffnen</div>
-                  <div className="text-[12px] text-gray-400">Schaufenster auf Eignung prüfen</div>
+                  <div className="text-[12px] text-text-muted">Schaufenster auf Eignung prüfen</div>
                 </div>
-                <ExternalLink size={16} className="text-gray-300" />
+                <ExternalLink size={16} className="text-text-muted" />
               </a>
             )}
             <a
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-3.5 active:bg-blue-50 transition-colors"
+              className="flex items-center gap-3 px-4 py-3.5 active:bg-accent-light transition-colors"
             >
               <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
                 <MapPin size={18} className="text-emerald-600" />
               </div>
               <div className="flex-1">
                 <div className="text-[15px] font-medium text-emerald-700">Google Maps öffnen</div>
-                <div className="text-[12px] text-gray-400">Standort & Umgebung ansehen</div>
+                <div className="text-[12px] text-text-muted">Standort & Umgebung ansehen</div>
               </div>
-              <ExternalLink size={16} className="text-gray-300" />
+              <ExternalLink size={16} className="text-text-muted" />
             </a>
           </div>
         </div>
 
         {/* Schaufenster-Bewertung (editable) */}
         <div>
-          <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">Vor-Ort Bewertung</div>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-            <div className="px-4 py-3 border-b border-gray-50">
-              <div className="text-[12px] text-gray-400 mb-1.5">Schaufenster geeignet?</div>
+          <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Vor-Ort Bewertung</div>
+          <div className="bg-surface-primary rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <div className="px-4 py-3 border-b border-border-secondary">
+              <div className="text-[12px] text-text-muted mb-1.5">Schaufenster geeignet?</div>
               <div className="flex gap-2">
                 {['Ja, gut geeignet', 'Bedingt geeignet', 'Nicht geeignet'].map(opt => (
                   <button
@@ -446,8 +446,8 @@ function StepDetails({ lead, formData, onFormChange, onNext, onBack }) {
                     onClick={() => onFormChange({ ...formData, windowAssessment: opt })}
                     className={`flex-1 py-2 rounded-xl text-[12px] font-medium transition-colors ${
                       formData.windowAssessment === opt
-                        ? opt.includes('Nicht') ? 'bg-red-500 text-white' : opt.includes('Bedingt') ? 'bg-amber-500 text-white' : 'bg-[#34C759] text-white'
-                        : 'bg-gray-100 text-gray-600'
+                        ? opt.includes('Nicht') ? 'bg-status-offline text-white' : opt.includes('Bedingt') ? 'bg-status-warning text-white' : 'bg-[#34C759] text-white'
+                        : 'bg-surface-secondary text-text-secondary'
                     }`}
                   >
                     {opt}
@@ -456,13 +456,13 @@ function StepDetails({ lead, formData, onFormChange, onNext, onBack }) {
               </div>
             </div>
             <div className="px-4 py-3">
-              <div className="text-[12px] text-gray-400 mb-1.5">Bemerkung zur Eignung</div>
+              <div className="text-[12px] text-text-muted mb-1.5">Bemerkung zur Eignung</div>
               <textarea
                 value={formData.windowNotes || ''}
                 onChange={e => onFormChange({ ...formData, windowNotes: e.target.value })}
                 placeholder="z.B. Großes Schaufenster, gute Passantenfrequenz..."
                 rows={2}
-                className="w-full text-[14px] text-gray-900 placeholder-gray-300 focus:outline-none resize-none"
+                className="w-full text-[14px] text-text-primary placeholder-gray-300 focus:outline-none resize-none"
               />
             </div>
           </div>
@@ -475,7 +475,7 @@ function StepDetails({ lead, formData, onFormChange, onNext, onBack }) {
           className={`w-full py-3.5 rounded-2xl text-[16px] font-semibold transition-all ${
             formData.windowAssessment
               ? 'bg-[#007AFF] text-white active:bg-[#0066DD]'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-surface-tertiary text-text-muted cursor-not-allowed'
           }`}
         >
           {formData.windowAssessment?.includes('Nicht')
@@ -504,12 +504,12 @@ function StepChecklist({ checkedItems, onToggle, onNext, onBack, formData, onFor
         {/* Progress */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[15px] font-semibold text-gray-900">Pre-Installation Checklist</span>
-            <span className={`text-[13px] font-medium ${allChecked ? 'text-[#34C759]' : 'text-gray-500'}`}>
+            <span className="text-[15px] font-semibold text-text-primary">Pre-Installation Checklist</span>
+            <span className={`text-[13px] font-medium ${allChecked ? 'text-[#34C759]' : 'text-text-muted'}`}>
               {checkedCount}/{CHECKLIST_ITEMS.length}
             </span>
           </div>
-          <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-surface-tertiary rounded-full overflow-hidden">
             <div
               className="h-full bg-[#34C759] rounded-full transition-all duration-500"
               style={{ width: `${(checkedCount / CHECKLIST_ITEMS.length) * 100}%` }}
@@ -519,7 +519,7 @@ function StepChecklist({ checkedItems, onToggle, onNext, onBack, formData, onFor
 
         {/* Display size selection */}
         <div className="mb-4">
-          <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">Display-Größe</div>
+          <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Display-Größe</div>
           <div className="flex gap-2">
             {DISPLAY_SIZES.map(size => (
               <button
@@ -528,7 +528,7 @@ function StepChecklist({ checkedItems, onToggle, onNext, onBack, formData, onFor
                 className={`flex-1 py-2.5 rounded-xl text-[14px] font-medium transition-colors ${
                   formData.displaySize === size
                     ? 'bg-[#007AFF] text-white'
-                    : 'bg-white text-gray-700 border border-gray-200'
+                    : 'bg-surface-primary text-text-primary border border-border-secondary'
                 }`}
               >
                 {size}
@@ -539,7 +539,7 @@ function StepChecklist({ checkedItems, onToggle, onNext, onBack, formData, onFor
 
         {/* Mount type selection */}
         <div className="mb-4">
-          <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">Montage-Typ</div>
+          <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Montage-Typ</div>
           <div className="flex gap-2">
             {MOUNT_TYPES.map(type => (
               <button
@@ -548,7 +548,7 @@ function StepChecklist({ checkedItems, onToggle, onNext, onBack, formData, onFor
                 className={`flex-1 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${
                   formData.mountType === type
                     ? 'bg-[#007AFF] text-white'
-                    : 'bg-white text-gray-700 border border-gray-200'
+                    : 'bg-surface-primary text-text-primary border border-border-secondary'
                 }`}
               >
                 {type}
@@ -558,20 +558,20 @@ function StepChecklist({ checkedItems, onToggle, onNext, onBack, formData, onFor
         </div>
 
         {/* Checklist Items */}
-        <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2 mt-6">
+        <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2 mt-6">
           Alle Punkte bestätigen
         </div>
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface-primary rounded-2xl shadow-sm overflow-hidden">
           {CHECKLIST_ITEMS.map((item, idx) => (
             <div
               key={item.id}
               className={`flex items-center gap-3 px-4 py-3.5 ${idx < CHECKLIST_ITEMS.length - 1 ? 'border-b border-gray-100' : ''}`}
             >
               <div className="flex-1 min-w-0">
-                <div className={`text-[15px] font-medium ${checkedItems[item.id] ? 'text-gray-900' : 'text-gray-700'}`}>
+                <div className={`text-[15px] font-medium ${checkedItems[item.id] ? 'text-text-primary' : 'text-text-primary'}`}>
                   {item.label}
                 </div>
-                <div className="text-[12px] text-gray-400 mt-0.5">{item.detail}</div>
+                <div className="text-[12px] text-text-muted mt-0.5">{item.detail}</div>
               </div>
               <IOSToggle
                 checked={!!checkedItems[item.id]}
@@ -588,7 +588,7 @@ function StepChecklist({ checkedItems, onToggle, onNext, onBack, formData, onFor
           className={`w-full py-3.5 rounded-2xl text-[16px] font-semibold mt-6 transition-all ${
             allChecked
               ? 'bg-[#007AFF] text-white active:bg-[#0066DD]'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-surface-tertiary text-text-muted cursor-not-allowed'
           }`}
         >
           {allChecked ? 'Weiter zum Vertrag' : `Noch ${CHECKLIST_ITEMS.length - checkedCount} Punkte offen`}
@@ -612,56 +612,56 @@ function StepContract({ lead, formData, signature, onSignatureChange, onSign, on
       <div className="px-4 space-y-5">
         {/* Contract Preview */}
         <div>
-          <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">Vertragsvorschau</div>
-          <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+          <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Vertragsvorschau</div>
+          <div className="bg-surface-primary rounded-2xl shadow-sm p-5 border border-gray-100">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center">
                 <FileText size={20} className="text-[#007AFF]" />
               </div>
               <div>
-                <div className="text-[16px] font-semibold text-gray-900">Standort-Vertrag</div>
-                <div className="text-[12px] text-gray-500">JET Germany DOOH Netzwerk</div>
+                <div className="text-[16px] font-semibold text-text-primary">Standort-Vertrag</div>
+                <div className="text-[12px] text-text-muted">JET Germany DOOH Netzwerk</div>
               </div>
             </div>
 
-            <div className="space-y-3 text-[13px] text-gray-600">
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-500">Standort</span>
-                <span className="font-medium text-gray-900">{lead.locationName || '–'}</span>
+            <div className="space-y-3 text-[13px] text-text-secondary">
+              <div className="flex justify-between py-2 border-b border-border-secondary">
+                <span className="text-text-muted">Standort</span>
+                <span className="font-medium text-text-primary">{lead.locationName || '–'}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-500">Adresse</span>
-                <span className="font-medium text-gray-900">{address || '–'}</span>
+              <div className="flex justify-between py-2 border-b border-border-secondary">
+                <span className="text-text-muted">Adresse</span>
+                <span className="font-medium text-text-primary">{address || '–'}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-500">PLZ / Stadt</span>
-                <span className="font-medium text-gray-900">{[lead.postalCode, lead.city?.[0]].filter(Boolean).join(' ') || '–'}</span>
+              <div className="flex justify-between py-2 border-b border-border-secondary">
+                <span className="text-text-muted">PLZ / Stadt</span>
+                <span className="font-medium text-text-primary">{[lead.postalCode, lead.city?.[0]].filter(Boolean).join(' ') || '–'}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-500">Display</span>
-                <span className="font-medium text-gray-900">{formData.displaySize || '–'}</span>
+              <div className="flex justify-between py-2 border-b border-border-secondary">
+                <span className="text-text-muted">Display</span>
+                <span className="font-medium text-text-primary">{formData.displaySize || '–'}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-500">Montage</span>
-                <span className="font-medium text-gray-900">{formData.mountType || '–'}</span>
+              <div className="flex justify-between py-2 border-b border-border-secondary">
+                <span className="text-text-muted">Montage</span>
+                <span className="font-medium text-text-primary">{formData.mountType || '–'}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-500">Ansprechpartner</span>
-                <span className="font-medium text-gray-900">{lead.contactPerson || '–'}</span>
+              <div className="flex justify-between py-2 border-b border-border-secondary">
+                <span className="text-text-muted">Ansprechpartner</span>
+                <span className="font-medium text-text-primary">{lead.contactPerson || '–'}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-500">Schaufenster</span>
-                <span className="font-medium text-gray-900">{formData.windowAssessment || '–'}</span>
+              <div className="flex justify-between py-2 border-b border-border-secondary">
+                <span className="text-text-muted">Schaufenster</span>
+                <span className="font-medium text-text-primary">{formData.windowAssessment || '–'}</span>
               </div>
               <div className="flex justify-between py-2">
-                <span className="text-gray-500">Datum</span>
-                <span className="font-medium text-gray-900">
+                <span className="text-text-muted">Datum</span>
+                <span className="font-medium text-text-primary">
                   {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </span>
               </div>
             </div>
 
-            <div className="mt-4 p-3 bg-gray-50 rounded-xl text-[11px] text-gray-400 leading-relaxed">
+            <div className="mt-4 p-3 bg-surface-secondary rounded-xl text-[11px] text-text-muted leading-relaxed">
               Hiermit bestätigt der Standortinhaber die Bereitstellung der Fläche für die Installation eines JET Germany DOOH-Displays gemäß den vereinbarten Konditionen. Der Standort erfüllt alle technischen Voraussetzungen laut Pre-Installation Checklist.
             </div>
           </div>
@@ -669,7 +669,7 @@ function StepContract({ lead, formData, signature, onSignatureChange, onSign, on
 
         {/* Signature */}
         <div>
-          <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">Unterschrift</div>
+          <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Unterschrift</div>
           <SignaturePad
             onChange={onSignatureChange}
             height={160}
@@ -683,7 +683,7 @@ function StepContract({ lead, formData, signature, onSignatureChange, onSign, on
           className={`w-full py-3.5 rounded-2xl text-[16px] font-semibold flex items-center justify-center gap-2 transition-all ${
             signature
               ? 'bg-[#34C759] text-white active:bg-[#2EB050]'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-surface-tertiary text-text-muted cursor-not-allowed'
           }`}
         >
           <PenTool size={18} />
@@ -714,41 +714,41 @@ function StepConfirmation({ lead, formData, signatureHash, onReset }) {
         </div>
       </div>
 
-      <h2 className="text-[22px] font-bold text-gray-900 mb-2">Vertrag unterschrieben!</h2>
-      <p className="text-[15px] text-gray-500 text-center mb-8">
+      <h2 className="text-[22px] font-bold text-text-primary mb-2">Vertrag unterschrieben!</h2>
+      <p className="text-[15px] text-text-muted text-center mb-8">
         {lead.locationName} wurde erfolgreich erfasst und wird an das System übermittelt.
       </p>
 
       {/* Summary card */}
-      <div className="w-full bg-white rounded-2xl shadow-sm p-5 mb-6 border border-gray-100">
-        <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-3">Zusammenfassung</div>
+      <div className="w-full bg-surface-primary rounded-2xl shadow-sm p-5 mb-6 border border-gray-100">
+        <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-3">Zusammenfassung</div>
         <div className="space-y-2.5 text-[14px]">
           <div className="flex justify-between">
-            <span className="text-gray-500">Standort</span>
-            <span className="font-medium text-gray-900">{lead.locationName}</span>
+            <span className="text-text-muted">Standort</span>
+            <span className="font-medium text-text-primary">{lead.locationName}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Stadt</span>
-            <span className="font-medium text-gray-900">{lead.city?.[0] || '–'}</span>
+            <span className="text-text-muted">Stadt</span>
+            <span className="font-medium text-text-primary">{lead.city?.[0] || '–'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Display</span>
-            <span className="font-medium text-gray-900">{formData.displaySize || '–'}</span>
+            <span className="text-text-muted">Display</span>
+            <span className="font-medium text-text-primary">{formData.displaySize || '–'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Schaufenster</span>
-            <span className="font-medium text-gray-900">{formData.windowAssessment || '–'}</span>
+            <span className="text-text-muted">Schaufenster</span>
+            <span className="font-medium text-text-primary">{formData.windowAssessment || '–'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Zeitstempel</span>
-            <span className="font-mono text-[12px] text-gray-600">
+            <span className="text-text-muted">Zeitstempel</span>
+            <span className="font-mono text-[12px] text-text-secondary">
               {new Date().toLocaleString('de-DE')}
             </span>
           </div>
           {signatureHash && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Signatur-Hash</span>
-              <span className="font-mono text-[11px] text-gray-400">{signatureHash}</span>
+              <span className="text-text-muted">Signatur-Hash</span>
+              <span className="font-mono text-[11px] text-text-muted">{signatureHash}</span>
             </div>
           )}
         </div>
@@ -836,7 +836,7 @@ function MapTab({ newLeads, onSelectLead }) {
             center={[m.lat, m.lng]}
             radius={7}
             pathOptions={{
-              fillColor: '#3b82f6',
+              fillColor: '#007AFF',
               color: '#fff',
               weight: 2,
               fillOpacity: 0.8,
@@ -847,17 +847,17 @@ function MapTab({ newLeads, onSelectLead }) {
           >
             <Popup>
               <div className="text-[13px] min-w-[180px]">
-                <div className="font-semibold text-gray-900">{m.locationName || 'Unbekannt'}</div>
-                <div className="text-gray-500 text-[11px] mt-0.5">
+                <div className="font-semibold text-text-primary">{m.locationName || 'Unbekannt'}</div>
+                <div className="text-text-muted text-[11px] mt-0.5">
                   {[m.street, m.streetNumber].filter(Boolean).join(' ')}
                   {m.postalCode ? ` · ${m.postalCode}` : ''}
                   {m.city?.[0] ? ` · ${m.city[0]}` : ''}
                 </div>
                 {m.contactPerson && (
-                  <div className="text-[11px] text-gray-500 mt-1">Kontakt: {m.contactPerson}</div>
+                  <div className="text-[11px] text-text-muted mt-1">Kontakt: {m.contactPerson}</div>
                 )}
                 {m.schaufenster && (
-                  <div className="text-[11px] text-gray-500 mt-0.5">Schaufenster: {m.schaufenster}</div>
+                  <div className="text-[11px] text-text-muted mt-0.5">Schaufenster: {m.schaufenster}</div>
                 )}
               </div>
             </Popup>
@@ -867,8 +867,8 @@ function MapTab({ newLeads, onSelectLead }) {
 
       {/* Stats overlay */}
       <div className="absolute top-3 left-3 right-3 z-[1000]">
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2.5 shadow-lg border border-gray-100 flex items-center justify-between">
-          <div className="text-[13px] font-semibold text-gray-900">{markers.length} neue Leads auf Karte</div>
+        <div className="bg-surface-primary rounded-xl px-4 py-2.5 shadow-lg border border-gray-100 flex items-center justify-between">
+          <div className="text-[13px] font-semibold text-text-primary">{markers.length} neue Leads auf Karte</div>
         </div>
       </div>
     </div>
@@ -903,8 +903,8 @@ function RouteTab({ newLeads }) {
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-[20px] font-bold text-gray-900">Tagesroute</h2>
-            <p className="text-[13px] text-gray-500">{routeStops.length} Stopps</p>
+            <h2 className="text-[20px] font-bold text-text-primary">Tagesroute</h2>
+            <p className="text-[13px] text-text-muted">{routeStops.length} Stopps</p>
           </div>
           {routeStops.length > 0 && (
             <button
@@ -922,7 +922,7 @@ function RouteTab({ newLeads }) {
         {routeStops.map((stop, idx) => (
           <div key={stop.id} className="relative">
             {idx < routeStops.length - 1 && (
-              <div className="absolute left-5 top-14 bottom-0 w-0.5 bg-gray-200 z-0" />
+              <div className="absolute left-5 top-14 bottom-0 w-0.5 bg-surface-tertiary z-0" />
             )}
 
             <div className="relative z-10 flex gap-3 pb-4">
@@ -930,16 +930,16 @@ function RouteTab({ newLeads }) {
                 {stop.order}
               </div>
 
-              <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                <div className="text-[15px] font-semibold text-gray-900 truncate">{stop.locationName}</div>
-                <div className="text-[12px] text-gray-500 mt-0.5">
+              <div className="flex-1 bg-surface-primary rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="text-[15px] font-semibold text-text-primary truncate">{stop.locationName}</div>
+                <div className="text-[12px] text-text-muted mt-0.5">
                   {[stop.street, stop.streetNumber].filter(Boolean).join(' ')}
                   {stop.postalCode ? `, ${stop.postalCode}` : ''}
                   {stop.city?.[0] ? ` ${stop.city[0]}` : ''}
                 </div>
                 {stop.contactPerson && (
-                  <div className="text-[12px] text-gray-400 mt-1">
-                    <span className="text-gray-500">Kontakt:</span> {stop.contactPerson}
+                  <div className="text-[12px] text-text-muted mt-1">
+                    <span className="text-text-muted">Kontakt:</span> {stop.contactPerson}
                   </div>
                 )}
               </div>
@@ -949,8 +949,8 @@ function RouteTab({ newLeads }) {
 
         {routeStops.length === 0 && (
           <div className="text-center py-16">
-            <Navigation size={32} className="text-gray-300 mx-auto mb-3" />
-            <div className="text-[15px] text-gray-500">Keine Leads mit Adresse</div>
+            <Navigation size={32} className="text-text-muted mx-auto mb-3" />
+            <div className="text-[15px] text-text-muted">Keine Leads mit Adresse</div>
           </div>
         )}
       </div>
@@ -965,23 +965,23 @@ function RouteTab({ newLeads }) {
 function ProfileTab({ totalLeads, newLeads }) {
   return (
     <div className="h-full overflow-y-auto pb-24 px-4 pt-4">
-      <div className="bg-white rounded-2xl shadow-sm p-5 mb-5 text-center border border-gray-100">
+      <div className="bg-surface-primary rounded-2xl shadow-sm p-5 mb-5 text-center border border-gray-100">
         <div className="w-16 h-16 rounded-full bg-[#007AFF] flex items-center justify-center mx-auto mb-3">
           <span className="text-white text-[22px] font-bold">JG</span>
         </div>
-        <div className="text-[18px] font-bold text-gray-900">JET Germany</div>
-        <div className="text-[13px] text-gray-500">Akquise-Team</div>
+        <div className="text-[18px] font-bold text-text-primary">JET Germany</div>
+        <div className="text-[13px] text-text-muted">Akquise-Team</div>
       </div>
 
-      <div className="text-[13px] font-medium text-gray-500 uppercase tracking-wide mb-2">Akquise-Übersicht</div>
+      <div className="text-[13px] font-medium text-text-muted uppercase tracking-wide mb-2">Akquise-Übersicht</div>
       <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
-          <div className="text-[24px] font-bold font-mono text-blue-500">{newLeads?.length || 0}</div>
-          <div className="text-[12px] text-gray-500">Offene Leads</div>
+        <div className="bg-surface-primary rounded-2xl shadow-sm p-4 border border-gray-100">
+          <div className="text-[24px] font-bold font-mono text-accent">{newLeads?.length || 0}</div>
+          <div className="text-[12px] text-text-muted">Offene Leads</div>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
-          <div className="text-[24px] font-bold font-mono text-slate-600">{totalLeads || 0}</div>
-          <div className="text-[12px] text-gray-500">Gesamt in DB</div>
+        <div className="bg-surface-primary rounded-2xl shadow-sm p-4 border border-gray-100">
+          <div className="text-[24px] font-bold font-mono text-text-secondary">{totalLeads || 0}</div>
+          <div className="text-[12px] text-text-muted">Gesamt in DB</div>
         </div>
       </div>
     </div>
@@ -1136,7 +1136,7 @@ export default function AkquiseApp({ onClose, standalone = false }) {
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <Loader2 size={32} className="animate-spin text-[#007AFF] mx-auto mb-3" />
-              <div className="text-[15px] text-gray-500">Lade Akquise-Daten...</div>
+              <div className="text-[15px] text-text-muted">Lade Akquise-Daten...</div>
             </div>
           </div>
         ) : (

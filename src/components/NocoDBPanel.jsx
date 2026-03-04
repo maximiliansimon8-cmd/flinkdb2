@@ -42,9 +42,9 @@ const PAGE_SIZE = 50;
 
 function KpiCard({ label, value, icon: Icon, color, subtitle }) {
   return (
-    <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl p-4 shadow-sm">
+    <div className="bg-surface-primary border border-border-secondary rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
         <div
           className="w-8 h-8 rounded-xl flex items-center justify-center"
           style={{ backgroundColor: `${color}15` }}
@@ -52,8 +52,8 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }) {
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-slate-800 font-mono">{value}</div>
-      {subtitle && <div className="text-xs text-slate-500 mt-1">{subtitle}</div>}
+      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      {subtitle && <div className="text-xs text-text-muted mt-1">{subtitle}</div>}
     </div>
   );
 }
@@ -82,8 +82,8 @@ function CopyCell({ value, truncate }) {
       <span className="font-mono text-xs">{display}</span>
       {value && (
         copied
-          ? <CheckCircle2 size={12} className="text-green-500" />
-          : <Copy size={12} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+          ? <CheckCircle2 size={12} className="text-status-online" />
+          : <Copy size={12} className="text-text-muted group-hover:text-text-muted transition-colors" />
       )}
     </span>
   );
@@ -93,24 +93,24 @@ function CopyCell({ value, truncate }) {
 
 function BoolBadge({ value }) {
   if (value === true || value === 'true' || value === 1 || value === '1' || value === 'yes' || value === 'ja') {
-    return <CheckCircle2 size={16} className="text-green-500" />;
+    return <CheckCircle2 size={16} className="text-status-online" />;
   }
-  return <XCircle size={16} className="text-slate-300" />;
+  return <XCircle size={16} className="text-text-muted" />;
 }
 
 /* ─── Source Badge ──────────────────────────────────────────────── */
 
 function SourceBadge({ source }) {
   const config = {
-    airtable: { label: 'Airtable', color: 'bg-blue-100 text-blue-700' },
-    nocodb: { label: 'NocoDB', color: 'bg-purple-100 text-purple-700' },
+    airtable: { label: 'Airtable', color: 'bg-accent-light text-blue-700' },
+    nocodb: { label: 'NocoDB', color: 'bg-brand-purple/10 text-purple-700' },
     vorbereitet: { label: 'Vorbereitet', color: 'bg-indigo-100 text-indigo-700' },
     sim: { label: 'SIM', color: 'bg-violet-100 text-violet-700' },
-    vistar: { label: 'Vistar', color: 'bg-amber-100 text-amber-700' },
-    lieferando: { label: 'Lieferando', color: 'bg-red-100 text-red-700' },
-    hardware_ops: { label: 'HW-OPS', color: 'bg-green-100 text-green-700' },
+    vistar: { label: 'Vistar', color: 'bg-status-warning/10 text-amber-700' },
+    lieferando: { label: 'Lieferando', color: 'bg-status-offline/10 text-red-700' },
+    hardware_ops: { label: 'HW-OPS', color: 'bg-status-online/10 text-green-700' },
   };
-  const c = config[source] || { label: source, color: 'bg-slate-100 text-slate-600' };
+  const c = config[source] || { label: source, color: 'bg-surface-secondary text-text-secondary' };
   return (
     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider ${c.color}`}>
       {c.label}
@@ -122,11 +122,11 @@ function SourceBadge({ source }) {
 
 function MatchBadge({ matched, label }) {
   return matched ? (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-status-online/10 text-green-700">
       <CheckCircle2 size={10} /> {label || 'Matched'}
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-status-warning/10 text-amber-700">
       <AlertTriangle size={10} /> {label || 'Unmatched'}
     </span>
   );
@@ -137,13 +137,13 @@ function MatchBadge({ matched, label }) {
 function SearchBar({ value, onChange, placeholder }) {
   return (
     <div className="relative">
-      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-9 pr-3 py-2 rounded-lg text-xs bg-white/60 backdrop-blur-sm border border-slate-200/60 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition"
+        className="w-full pl-9 pr-3 py-2 rounded-lg text-xs bg-surface-primary border border-border-secondary text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-400 transition"
       />
     </div>
   );
@@ -154,11 +154,11 @@ function SearchBar({ value, onChange, placeholder }) {
 function FilterSelect({ value, onChange, options, label }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider whitespace-nowrap">{label}</span>
+      <span className="text-[10px] text-text-muted font-medium uppercase tracking-wider whitespace-nowrap">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="px-2 py-1.5 rounded-lg text-xs bg-white/60 backdrop-blur-sm border border-slate-200/60 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+        className="px-2 py-1.5 rounded-lg text-xs bg-surface-primary border border-border-secondary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
@@ -192,12 +192,12 @@ function useSort(defaultCol) {
 function SortHeader({ col, sortCol, onToggle, children }) {
   return (
     <th
-      className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-700 select-none"
+      className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase tracking-wider cursor-pointer hover:text-text-primary select-none"
       onClick={() => onToggle(col)}
     >
       <span className="inline-flex items-center gap-1">
         {children}
-        <ArrowUpDown size={10} className={sortCol === col ? 'text-blue-500' : 'text-slate-300'} />
+        <ArrowUpDown size={10} className={sortCol === col ? 'text-accent' : 'text-text-muted'} />
       </span>
     </th>
   );
@@ -208,17 +208,17 @@ function SortHeader({ col, sortCol, onToggle, children }) {
 function Pagination({ page, totalPages, total, onPageChange }) {
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center justify-between px-4 py-2 bg-slate-50/80 border-t border-slate-200/60">
-      <span className="text-xs text-slate-500">
+    <div className="flex items-center justify-between px-4 py-2 bg-surface-secondary/80 border-t border-border-secondary">
+      <span className="text-xs text-text-muted">
         Seite {page + 1} von {totalPages} ({total} Einträge)
       </span>
       <div className="flex items-center gap-1">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 0}
-          className="p-1 rounded hover:bg-slate-200/60 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          className="p-1 rounded hover:bg-surface-tertiary/60 disabled:opacity-30 disabled:cursor-not-allowed transition"
         >
-          <ChevronLeft size={16} className="text-slate-600" />
+          <ChevronLeft size={16} className="text-text-secondary" />
         </button>
         {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
           let pageNum;
@@ -232,8 +232,8 @@ function Pagination({ page, totalPages, total, onPageChange }) {
               onClick={() => onPageChange(pageNum)}
               className={`w-7 h-7 rounded text-xs font-medium transition ${
                 pageNum === page
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-600 hover:bg-slate-200/60'
+                  ? 'bg-accent text-white'
+                  : 'text-text-secondary hover:bg-surface-tertiary/60'
               }`}
             >
               {pageNum + 1}
@@ -243,9 +243,9 @@ function Pagination({ page, totalPages, total, onPageChange }) {
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages - 1}
-          className="p-1 rounded hover:bg-slate-200/60 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          className="p-1 rounded hover:bg-surface-tertiary/60 disabled:opacity-30 disabled:cursor-not-allowed transition"
         >
-          <ChevronRight size={16} className="text-slate-600" />
+          <ChevronRight size={16} className="text-text-secondary" />
         </button>
       </div>
     </div>
@@ -295,34 +295,34 @@ function OverviewTab({ vorbereitet, simKunden, vistarNavori, lieferando, syncMet
     <div className="space-y-6">
       {/* KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <KpiCard label="Vorbereitet" value={totalVorbereitet} icon={Layers} color="#3b82f6" />
-        <KpiCard label="Matched OPS" value={matchedOps} icon={CheckCircle2} color="#22c55e" subtitle={`${matchRate}% Match-Rate`} />
-        <KpiCard label="SIM-Karten" value={totalSim} icon={CreditCard} color="#8b5cf6" />
-        <KpiCard label="Vistar Venues" value={totalVistar} icon={Monitor} color="#f59e0b" />
-        <KpiCard label="Lieferando" value={totalLieferando} icon={Store} color="#ef4444" subtitle={`${lieferandoErfolgreich} erfolgreich`} />
+        <KpiCard label="Vorbereitet" value={totalVorbereitet} icon={Layers} color="#007AFF" />
+        <KpiCard label="Matched OPS" value={matchedOps} icon={CheckCircle2} color="#34C759" subtitle={`${matchRate}% Match-Rate`} />
+        <KpiCard label="SIM-Karten" value={totalSim} icon={CreditCard} color="#AF52DE" />
+        <KpiCard label="Vistar Venues" value={totalVistar} icon={Monitor} color="#FF9500" />
+        <KpiCard label="Lieferando" value={totalLieferando} icon={Store} color="#FF3B30" subtitle={`${lieferandoErfolgreich} erfolgreich`} />
         <KpiCard label="Letzter Sync" value={lastSync === 'Nie' ? '–' : ''} icon={Clock} color="#64748b" subtitle={lastSync} />
       </div>
 
       {/* Sync Button */}
-      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl p-4">
+      <div className="bg-surface-primary border border-border-secondary rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">NocoDB Synchronisation</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <h3 className="text-sm font-semibold text-text-primary">NocoDB Synchronisation</h3>
+            <p className="text-xs text-text-muted mt-0.5">
               Daten aus NocoDB werden gecached. Klicke Sync um die neuesten Daten abzurufen.
             </p>
           </div>
           <button
             onClick={onSync}
             disabled={syncing}
-            className="px-3 py-2 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition"
+            className="px-3 py-2 rounded-lg text-xs font-medium bg-accent text-white hover:bg-accent/80 disabled:opacity-50 flex items-center gap-2 transition"
           >
             {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
             {syncing ? 'Synchronisiere...' : 'Sync jetzt'}
           </button>
         </div>
         {syncMeta?.last_sync_status && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+          <div className="mt-3 flex items-center gap-2 text-xs text-text-muted">
             <span className={`w-2 h-2 rounded-full ${syncMeta.last_sync_status === 'success' ? 'bg-green-400' : syncMeta.last_sync_status === 'running' ? 'bg-blue-400 animate-pulse' : 'bg-red-400'}`} />
             Status: {syncMeta.last_sync_status === 'success' ? 'Erfolgreich' : syncMeta.last_sync_status === 'running' ? 'Laufend...' : syncMeta.last_sync_status}
             {syncMeta.records_fetched != null && ` | ${syncMeta.records_fetched} Records`}
@@ -331,50 +331,50 @@ function OverviewTab({ vorbereitet, simKunden, vistarNavori, lieferando, syncMet
       </div>
 
       {/* Matching Quality */}
-      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
-          <BarChart3 size={16} className="text-blue-500" />
+      <div className="bg-surface-primary border border-border-secondary rounded-xl p-4">
+        <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+          <BarChart3 size={16} className="text-accent" />
           Matching-Qualität
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Vorbereitet vs OPS */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-500">Vorbereitet → OPS</span>
-              <span className="font-medium text-slate-800">{matchedOps}/{totalVorbereitet}</span>
+              <span className="text-text-muted">Vorbereitet → OPS</span>
+              <span className="font-medium text-text-primary">{matchedOps}/{totalVorbereitet}</span>
             </div>
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-green-500 rounded-full transition-all duration-500" style={{ width: `${matchRate}%` }} />
+            <div className="w-full h-2 bg-surface-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-status-online rounded-full transition-all duration-500" style={{ width: `${matchRate}%` }} />
             </div>
           </div>
           {/* Lieferando Erfolgreich */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-500">Lieferando erfolgreich</span>
-              <span className="font-medium text-slate-800">{lieferandoErfolgreich}/{totalLieferando}</span>
+              <span className="text-text-muted">Lieferando erfolgreich</span>
+              <span className="font-medium text-text-primary">{lieferandoErfolgreich}/{totalLieferando}</span>
             </div>
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-red-500 rounded-full" style={{ width: `${totalLieferando > 0 ? Math.round((lieferandoErfolgreich / totalLieferando) * 100) : 0}%` }} />
+            <div className="w-full h-2 bg-surface-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-status-offline rounded-full" style={{ width: `${totalLieferando > 0 ? Math.round((lieferandoErfolgreich / totalLieferando) * 100) : 0}%` }} />
             </div>
           </div>
           {/* Lieferando Installiert */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-500">Standorte installiert</span>
-              <span className="font-medium text-slate-800">{lieferandoInstalliert}/{totalLieferando}</span>
+              <span className="text-text-muted">Standorte installiert</span>
+              <span className="font-medium text-text-primary">{lieferandoInstalliert}/{totalLieferando}</span>
             </div>
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-amber-500 rounded-full" style={{ width: `${totalLieferando > 0 ? Math.round((lieferandoInstalliert / totalLieferando) * 100) : 0}%` }} />
+            <div className="w-full h-2 bg-surface-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-status-warning rounded-full" style={{ width: `${totalLieferando > 0 ? Math.round((lieferandoInstalliert / totalLieferando) * 100) : 0}%` }} />
             </div>
           </div>
           {/* Vistar Venues */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-500">Vistar/Navori Venues</span>
-              <span className="font-medium text-slate-800">{totalVistar}</span>
+              <span className="text-text-muted">Vistar/Navori Venues</span>
+              <span className="font-medium text-text-primary">{totalVistar}</span>
             </div>
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-purple-500 rounded-full" style={{ width: '100%' }} />
+            <div className="w-full h-2 bg-surface-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-brand-purple rounded-full" style={{ width: '100%' }} />
             </div>
           </div>
         </div>
@@ -559,10 +559,10 @@ function MatchingTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
     <div className="space-y-4">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Gesamt-Geräte" value={mergedData.length} icon={Layers} color="#3b82f6" />
-        <KpiCard label="Vollständig (4+)" value={completeCount} icon={CheckCircle2} color="#22c55e" subtitle={`${mergedData.length > 0 ? Math.round((completeCount / mergedData.length) * 100) : 0}%`} />
-        <KpiCard label="Teilweise (2-3)" value={partialCount} icon={AlertTriangle} color="#f59e0b" />
-        <KpiCard label="Nur 1 Quelle" value={orphanCount} icon={XCircle} color="#ef4444" />
+        <KpiCard label="Gesamt-Geräte" value={mergedData.length} icon={Layers} color="#007AFF" />
+        <KpiCard label="Vollständig (4+)" value={completeCount} icon={CheckCircle2} color="#34C759" subtitle={`${mergedData.length > 0 ? Math.round((completeCount / mergedData.length) * 100) : 0}%`} />
+        <KpiCard label="Teilweise (2-3)" value={partialCount} icon={AlertTriangle} color="#FF9500" />
+        <KpiCard label="Nur 1 Quelle" value={orphanCount} icon={XCircle} color="#FF3B30" />
       </div>
 
       {/* Filters */}
@@ -580,68 +580,68 @@ function MatchingTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
           ]} />
       </div>
 
-      <div className="text-xs text-slate-500">{filtered.length} Geräte</div>
+      <div className="text-xs text-text-muted">{filtered.length} Geräte</div>
 
       {/* Table */}
-      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200/60">
+            <thead className="bg-surface-secondary/80 border-b border-border-secondary">
               <tr>
                 <SortHeader col="ops_nr" sortCol={sortCol} onToggle={toggle}>OPS Nr.</SortHeader>
                 <SortHeader col="ops_sn" sortCol={sortCol} onToggle={toggle}>Seriennummer</SortHeader>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">JET-ID</th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Venue-ID</th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">SIM (ICCID)</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">JET-ID</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Venue-ID</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">SIM (ICCID)</th>
                 <SortHeader col="restaurant" sortCol={sortCol} onToggle={toggle}>Standort</SortHeader>
                 <SortHeader col="stadt" sortCol={sortCol} onToggle={toggle}>Stadt</SortHeader>
                 <SortHeader col="standort_status" sortCol={sortCol} onToggle={toggle}>Status</SortHeader>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase">Match</th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Quellen</th>
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-text-muted uppercase">Match</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Quellen</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/60">
               {pageRows.length === 0 ? (
-                <tr><td colSpan={10} className="px-4 py-8 text-center text-slate-400">Keine Einträge gefunden</td></tr>
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-text-muted">Keine Einträge gefunden</td></tr>
               ) : pageRows.map((row, i) => (
-                <tr key={`${row.ops_nr}-${i}`} className="hover:bg-blue-50/30 transition-colors">
-                  <td className="px-3 py-2 font-mono font-bold text-slate-800">{row.ops_nr || '–'}</td>
+                <tr key={`${row.ops_nr}-${i}`} className="hover:bg-accent-light/30 transition-colors">
+                  <td className="px-3 py-2 font-mono font-bold text-text-primary">{row.ops_nr || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.ops_sn} truncate={18} /></td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{row.jet_id || '–'}</td>
+                  <td className="px-3 py-2 font-mono text-text-secondary">{row.jet_id || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={12} /></td>
-                  <td className="px-3 py-2 font-mono text-slate-500">{row.sim_id ? '…' + String(row.sim_id).slice(-8) : '–'}</td>
-                  <td className="px-3 py-2 text-slate-800 font-medium max-w-[180px] truncate" title={row.restaurant || row.vistar_name || ''}>
+                  <td className="px-3 py-2 font-mono text-text-muted">{row.sim_id ? '…' + String(row.sim_id).slice(-8) : '–'}</td>
+                  <td className="px-3 py-2 text-text-primary font-medium max-w-[180px] truncate" title={row.restaurant || row.vistar_name || ''}>
                     {row.restaurant || row.vistar_name || '–'}
                   </td>
-                  <td className="px-3 py-2 text-slate-600">{row.stadt || '–'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{row.stadt || '–'}</td>
                   <td className="px-3 py-2">
                     {row.standort_status ? (
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                        row.standort_status.toLowerCase().includes('installiert') ? 'bg-green-100 text-green-700' :
-                        row.standort_status.toLowerCase().includes('klärung') ? 'bg-amber-100 text-amber-700' :
-                        'bg-slate-100 text-slate-600'
+                        row.standort_status.toLowerCase().includes('installiert') ? 'bg-status-online/10 text-green-700' :
+                        row.standort_status.toLowerCase().includes('klärung') ? 'bg-status-warning/10 text-amber-700' :
+                        'bg-surface-secondary text-text-secondary'
                       }`}>
                         {row.standort_status}
                       </span>
                     ) : (row.akquise_status ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-600">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-accent-light text-accent">
                         {row.akquise_status}
                       </span>
                     ) : '–')}
                   </td>
                   <td className="px-3 py-2 text-center">
                     <div className="flex items-center gap-1 justify-center" title={`${row.completeness}/5 Quellen`}>
-                      <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="w-12 h-1.5 bg-surface-secondary rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            row.matchPct >= 80 ? 'bg-green-500' :
-                            row.matchPct >= 40 ? 'bg-amber-500' :
-                            'bg-red-500'
+                            row.matchPct >= 80 ? 'bg-status-online' :
+                            row.matchPct >= 40 ? 'bg-status-warning' :
+                            'bg-status-offline'
                           }`}
                           style={{ width: `${row.matchPct}%` }}
                         />
                       </div>
-                      <span className="text-[10px] font-mono text-slate-500">{row.completeness}/5</span>
+                      <span className="text-[10px] font-mono text-text-muted">{row.completeness}/5</span>
                     </div>
                   </td>
                   <td className="px-3 py-2">
@@ -704,8 +704,8 @@ function VorbereitetTab({ data, opsData }) {
 
   useEffect(() => { setPage(0); }, [search, fertigFilter, vorbereitetFilter]);
 
-  const thStatic = "px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider";
-  const thCenter = "px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider";
+  const thStatic = "px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase tracking-wider";
+  const thCenter = "px-3 py-2 text-center text-[10px] font-semibold text-text-muted uppercase tracking-wider";
 
   return (
     <div className="space-y-4">
@@ -720,11 +720,11 @@ function VorbereitetTab({ data, opsData }) {
             options={[{ value: 'all', label: 'Alle' }, { value: 'yes', label: 'Ja' }, { value: 'no', label: 'Nein' }]} />
         </div>
       </div>
-      <div className="text-xs text-slate-500">{filtered.length} von {data.length} Einträgen</div>
-      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl overflow-hidden">
+      <div className="text-xs text-text-muted">{filtered.length} von {data.length} Einträgen</div>
+      <div className="bg-surface-primary border border-border-secondary rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200/60">
+            <thead className="bg-surface-secondary/80 border-b border-border-secondary">
               <tr>
                 <SortHeader col="ops_nr" sortCol={sortCol} onToggle={toggle}>OPS Nr.</SortHeader>
                 <SortHeader col="ops_sn" sortCol={sortCol} onToggle={toggle}>OPS-SN</SortHeader>
@@ -738,14 +738,14 @@ function VorbereitetTab({ data, opsData }) {
             </thead>
             <tbody className="divide-y divide-slate-100/60">
               {pageRows.length === 0 ? (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">Keine Einträge gefunden</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-text-muted">Keine Einträge gefunden</td></tr>
               ) : pageRows.map((row, i) => (
-                <tr key={row.id || i} className="hover:bg-blue-50/30 transition-colors">
-                  <td className="px-3 py-2 font-mono font-medium text-slate-800">{row.ops_nr || '–'}</td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{row.ops_sn || '–'}</td>
+                <tr key={row.id || i} className="hover:bg-accent-light/30 transition-colors">
+                  <td className="px-3 py-2 font-mono font-medium text-text-primary">{row.ops_nr || '–'}</td>
+                  <td className="px-3 py-2 font-mono text-text-secondary">{row.ops_sn || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={12} /></td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{row.sim_id ? '…' + String(row.sim_id).slice(-6) : '–'}</td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{row.kunden_nr || '–'}</td>
+                  <td className="px-3 py-2 font-mono text-text-secondary">{row.sim_id ? '…' + String(row.sim_id).slice(-6) : '–'}</td>
+                  <td className="px-3 py-2 font-mono text-text-secondary">{row.kunden_nr || '–'}</td>
                   <td className="px-3 py-2 text-center"><BoolBadge value={row.fertig} /></td>
                   <td className="px-3 py-2 text-center"><BoolBadge value={row.vorbereitet} /></td>
                   <td className="px-3 py-2 text-center"><MatchBadge matched={opsSet.has(String(row.ops_nr || ''))} /></td>
@@ -798,29 +798,29 @@ function SimKartenTab({ data, vorbereitet }) {
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} placeholder="Karten Nr. oder KundenID..." />
         </div>
-        <div className="text-xs text-slate-500 flex items-center">
+        <div className="text-xs text-text-muted flex items-center">
           {filtered.length} von {data.length} SIM-Karten
         </div>
       </div>
-      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200/60">
+            <thead className="bg-surface-secondary/80 border-b border-border-secondary">
               <tr>
                 <SortHeader col="karten_nr" sortCol={sortCol} onToggle={toggle}>Karten Nr. (ICCID)</SortHeader>
                 <SortHeader col="kunden_id" sortCol={sortCol} onToggle={toggle}>KundenID (JET-ID)</SortHeader>
                 <SortHeader col="aktivierungsdatum" sortCol={sortCol} onToggle={toggle}>Aktivierungsdatum</SortHeader>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Zugeordnet</th>
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-text-muted uppercase tracking-wider">Zugeordnet</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/60">
               {pageRows.length === 0 ? (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">Keine SIM-Karten gefunden</td></tr>
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-text-muted">Keine SIM-Karten gefunden</td></tr>
               ) : pageRows.map((row, i) => (
-                <tr key={row.id || i} className="hover:bg-blue-50/30 transition-colors">
+                <tr key={row.id || i} className="hover:bg-accent-light/30 transition-colors">
                   <td className="px-3 py-2"><CopyCell value={row.karten_nr} /></td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{clean(row.kunden_id) || '–'}</td>
-                  <td className="px-3 py-2 text-slate-600">
+                  <td className="px-3 py-2 font-mono text-text-secondary">{clean(row.kunden_id) || '–'}</td>
+                  <td className="px-3 py-2 text-text-secondary">
                     {row.aktivierungsdatum ? new Date(row.aktivierungsdatum).toLocaleDateString('de-DE') : '–'}
                   </td>
                   <td className="px-3 py-2 text-center"><MatchBadge matched={simSet.has(row.karten_nr)} label={simSet.has(row.karten_nr) ? 'Zugeordnet' : 'Frei'} /></td>
@@ -869,14 +869,14 @@ function VistarNavoriTab({ data }) {
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} placeholder="Venue ID, Name, Kunden ID, DO-ID..." />
         </div>
-        <div className="text-xs text-slate-500 flex items-center">
+        <div className="text-xs text-text-muted flex items-center">
           {filtered.length} von {data.length} Venues
         </div>
       </div>
-      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200/60">
+            <thead className="bg-surface-secondary/80 border-b border-border-secondary">
               <tr>
                 <SortHeader col="venue_id" sortCol={sortCol} onToggle={toggle}>Venue ID</SortHeader>
                 <SortHeader col="name" sortCol={sortCol} onToggle={toggle}>Name</SortHeader>
@@ -886,12 +886,12 @@ function VistarNavoriTab({ data }) {
             </thead>
             <tbody className="divide-y divide-slate-100/60">
               {pageRows.length === 0 ? (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">Keine Venues gefunden</td></tr>
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-text-muted">Keine Venues gefunden</td></tr>
               ) : pageRows.map((row, i) => (
-                <tr key={row.id || i} className="hover:bg-blue-50/30 transition-colors">
+                <tr key={row.id || i} className="hover:bg-accent-light/30 transition-colors">
                   <td className="px-3 py-2"><CopyCell value={row.venue_id} truncate={16} /></td>
-                  <td className="px-3 py-2 text-slate-800 font-medium">{row.name || '–'}</td>
-                  <td className="px-3 py-2 font-mono text-slate-600">{clean(row.kunden_id) || '–'}</td>
+                  <td className="px-3 py-2 text-text-primary font-medium">{row.name || '–'}</td>
+                  <td className="px-3 py-2 font-mono text-text-secondary">{clean(row.kunden_id) || '–'}</td>
                   <td className="px-3 py-2"><CopyCell value={row.do_id} /></td>
                 </tr>
               ))}
@@ -954,10 +954,10 @@ function LieferandoTab({ data, simKunden }) {
     <div className="space-y-4">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Gesamt" value={data.length} icon={Store} color="#ef4444" />
-        <KpiCard label="Erfolgreich" value={erfolgreichCount} icon={CheckCircle2} color="#22c55e" subtitle={`${data.length > 0 ? Math.round((erfolgreichCount / data.length) * 100) : 0}%`} />
-        <KpiCard label="Installiert" value={installiertCount} icon={MapPin} color="#3b82f6" />
-        <KpiCard label="SIM-Matched" value={matchedCount} icon={Zap} color="#8b5cf6" subtitle={`${data.length > 0 ? Math.round((matchedCount / data.length) * 100) : 0}%`} />
+        <KpiCard label="Gesamt" value={data.length} icon={Store} color="#FF3B30" />
+        <KpiCard label="Erfolgreich" value={erfolgreichCount} icon={CheckCircle2} color="#34C759" subtitle={`${data.length > 0 ? Math.round((erfolgreichCount / data.length) * 100) : 0}%`} />
+        <KpiCard label="Installiert" value={installiertCount} icon={MapPin} color="#007AFF" />
+        <KpiCard label="SIM-Matched" value={matchedCount} icon={Zap} color="#AF52DE" subtitle={`${data.length > 0 ? Math.round((matchedCount / data.length) * 100) : 0}%`} />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -974,46 +974,46 @@ function LieferandoTab({ data, simKunden }) {
             { value: 'unmatched', label: 'Unmatched' },
           ]} />
       </div>
-      <div className="text-xs text-slate-500">{filtered.length} Standorte</div>
+      <div className="text-xs text-text-muted">{filtered.length} Standorte</div>
 
-      <div className="bg-white/60 backdrop-blur-sm border border-slate-200/60 rounded-xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200/60">
+            <thead className="bg-surface-secondary/80 border-b border-border-secondary">
               <tr>
                 <SortHeader col="restaurant" sortCol={sortCol} onToggle={toggle}>Restaurant</SortHeader>
                 <SortHeader col="stadt" sortCol={sortCol} onToggle={toggle}>Stadt</SortHeader>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Adresse</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Adresse</th>
                 <SortHeader col="kunden_id" sortCol={sortCol} onToggle={toggle}>JET-ID</SortHeader>
                 <SortHeader col="akquise_status" sortCol={sortCol} onToggle={toggle}>Akquise</SortHeader>
                 <SortHeader col="standort_status" sortCol={sortCol} onToggle={toggle}>Standort-Status</SortHeader>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Rollout</th>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-slate-500 uppercase">SIM</th>
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Rollout</th>
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-text-muted uppercase">SIM</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/60">
               {pageRows.length === 0 ? (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">Keine Standorte gefunden</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-text-muted">Keine Standorte gefunden</td></tr>
               ) : pageRows.map((row, i) => {
                 const kid = clean(row.kunden_id);
                 const hasSimMatch = kid && kundenIdSet.has(kid);
                 return (
-                  <tr key={row.id || i} className="hover:bg-blue-50/30 transition-colors">
-                    <td className="px-3 py-2 text-slate-800 font-medium max-w-[200px] truncate" title={clean(row.restaurant) || ''}>
+                  <tr key={row.id || i} className="hover:bg-accent-light/30 transition-colors">
+                    <td className="px-3 py-2 text-text-primary font-medium max-w-[200px] truncate" title={clean(row.restaurant) || ''}>
                       {clean(row.restaurant) || '–'}
                     </td>
-                    <td className="px-3 py-2 text-slate-600">{clean(row.stadt) || '–'}</td>
-                    <td className="px-3 py-2 text-slate-500">
+                    <td className="px-3 py-2 text-text-secondary">{clean(row.stadt) || '–'}</td>
+                    <td className="px-3 py-2 text-text-muted">
                       {[clean(row.strasse), clean(row.hausnummer)].filter(Boolean).join(' ') || '–'}
-                      {clean(row.plz) && <span className="text-slate-400 ml-1">{clean(row.plz)}</span>}
+                      {clean(row.plz) && <span className="text-text-muted ml-1">{clean(row.plz)}</span>}
                     </td>
-                    <td className="px-3 py-2 font-mono text-slate-600">{kid || '–'}</td>
+                    <td className="px-3 py-2 font-mono text-text-secondary">{kid || '–'}</td>
                     <td className="px-3 py-2">
                       {clean(row.akquise_status) ? (
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                          clean(row.akquise_status).toLowerCase().includes('erfolgreich') ? 'bg-green-100 text-green-700' :
-                          clean(row.akquise_status).toLowerCase().includes('abgelehnt') ? 'bg-red-100 text-red-700' :
-                          'bg-slate-100 text-slate-600'
+                          clean(row.akquise_status).toLowerCase().includes('erfolgreich') ? 'bg-status-online/10 text-green-700' :
+                          clean(row.akquise_status).toLowerCase().includes('abgelehnt') ? 'bg-status-offline/10 text-red-700' :
+                          'bg-surface-secondary text-text-secondary'
                         }`}>
                           {clean(row.akquise_status)}
                         </span>
@@ -1022,15 +1022,15 @@ function LieferandoTab({ data, simKunden }) {
                     <td className="px-3 py-2">
                       {clean(row.standort_status) ? (
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                          clean(row.standort_status).toLowerCase().includes('installiert') ? 'bg-green-100 text-green-700' :
-                          clean(row.standort_status).toLowerCase().includes('klärung') ? 'bg-amber-100 text-amber-700' :
-                          'bg-blue-100 text-blue-600'
+                          clean(row.standort_status).toLowerCase().includes('installiert') ? 'bg-status-online/10 text-green-700' :
+                          clean(row.standort_status).toLowerCase().includes('klärung') ? 'bg-status-warning/10 text-amber-700' :
+                          'bg-accent-light text-accent'
                         }`}>
                           {clean(row.standort_status)}
                         </span>
                       ) : '–'}
                     </td>
-                    <td className="px-3 py-2 text-slate-500 text-[10px]">{clean(row.rollout_info) || clean(row.einreichdatum) || '–'}</td>
+                    <td className="px-3 py-2 text-text-muted text-[10px]">{clean(row.rollout_info) || clean(row.einreichdatum) || '–'}</td>
                     <td className="px-3 py-2 text-center">
                       <MatchBadge matched={hasSimMatch} label={hasSimMatch ? 'Ja' : 'Nein'} />
                     </td>
@@ -1056,8 +1056,8 @@ function WarningDetailRow({ label, value, mono }) {
   if (value == null || value === '') return null;
   return (
     <div className="flex items-start gap-2 py-1">
-      <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-28 flex-shrink-0 pt-0.5">{label}</span>
-      <span className={`text-xs text-slate-800 ${mono ? 'font-mono' : ''} break-all`}>{String(value)}</span>
+      <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider w-28 flex-shrink-0 pt-0.5">{label}</span>
+      <span className={`text-xs text-text-primary ${mono ? 'font-mono' : ''} break-all`}>{String(value)}</span>
     </div>
   );
 }
@@ -1088,16 +1088,16 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
     : [];
 
   return (
-    <div className="bg-white/80 border border-slate-200/60 rounded-lg p-3 space-y-0.5">
+    <div className="bg-surface-primary border border-border-secondary rounded-lg p-3 space-y-0.5">
       {/* OPS Info */}
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-bold text-slate-800">OPS {record.ops_nr || '–'}</span>
-        {record.ops_sn && <span className="text-[10px] font-mono text-slate-500">{record.ops_sn}</span>}
+        <span className="text-xs font-bold text-text-primary">OPS {record.ops_nr || '–'}</span>
+        {record.ops_sn && <span className="text-[10px] font-mono text-text-muted">{record.ops_sn}</span>}
         {record.status && (
           <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase ${
-            record.status === 'active' ? 'bg-green-100 text-green-700' :
-            record.status === 'defect' ? 'bg-red-100 text-red-700' :
-            'bg-slate-100 text-slate-600'
+            record.status === 'active' ? 'bg-status-online/10 text-green-700' :
+            record.status === 'defect' ? 'bg-status-offline/10 text-red-700' :
+            'bg-surface-secondary text-text-secondary'
           }`}>{record.status}</span>
         )}
         {instMatches.length > 0 && (
@@ -1106,7 +1106,7 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
           </span>
         )}
         {instMatches.length === 0 && (
-          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-500">
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-surface-secondary text-text-muted">
             Keine Installation
           </span>
         )}
@@ -1145,19 +1145,19 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
               {inst.status && (
                 <span className={`ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold ${
                   (inst.status || '').toLowerCase().includes('done') || (inst.status || '').toLowerCase().includes('erledigt') || (inst.status || '').toLowerCase().includes('install')
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-status-online/10 text-green-700'
                     : (inst.status || '').toLowerCase().includes('cancel') || (inst.status || '').toLowerCase().includes('abge')
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-blue-100 text-blue-600'
+                    ? 'bg-status-offline/10 text-red-700'
+                    : 'bg-accent-light text-accent'
                 }`}>{inst.status}</span>
               )}
               {/* Vistar/Navori presence badge */}
               {vistarEntry ? (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-100 text-amber-700">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-status-warning/10 text-amber-700">
                   <Monitor size={9} /> Vistar ✓
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-500">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-surface-secondary text-text-muted">
                   <Monitor size={9} /> Vistar ✗
                 </span>
               )}
@@ -1193,7 +1193,7 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
 
       {/* SIM Data */}
       {simMatch && (
-        <div className="mt-2 pt-2 border-t border-slate-100">
+        <div className="mt-2 pt-2 border-t border-border-secondary">
           <div className="flex items-center gap-1 mb-1">
             <CreditCard size={10} className="text-violet-500" />
             <span className="text-[10px] font-bold text-violet-600 uppercase">SIM-Karte</span>
@@ -1206,10 +1206,10 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
 
       {/* Vistar Data */}
       {vistarMatch && (
-        <div className="mt-2 pt-2 border-t border-slate-100">
+        <div className="mt-2 pt-2 border-t border-border-secondary">
           <div className="flex items-center gap-1 mb-1">
-            <Monitor size={10} className="text-amber-500" />
-            <span className="text-[10px] font-bold text-amber-600 uppercase">Vistar/Navori</span>
+            <Monitor size={10} className="text-status-warning" />
+            <span className="text-[10px] font-bold text-status-warning uppercase">Vistar/Navori</span>
           </div>
           <WarningDetailRow label="Name" value={vistarMatch.name} />
           <WarningDetailRow label="Kunden-ID" value={clean(vistarMatch.kunden_id)} mono />
@@ -1219,10 +1219,10 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
 
       {/* Lieferando Data */}
       {liefMatch && (
-        <div className="mt-2 pt-2 border-t border-slate-100">
+        <div className="mt-2 pt-2 border-t border-border-secondary">
           <div className="flex items-center gap-1 mb-1">
-            <Store size={10} className="text-red-500" />
-            <span className="text-[10px] font-bold text-red-600 uppercase">Lieferando Standort</span>
+            <Store size={10} className="text-status-offline" />
+            <span className="text-[10px] font-bold text-status-offline uppercase">Lieferando Standort</span>
           </div>
           <WarningDetailRow label="Restaurant" value={clean(liefMatch.restaurant)} />
           <WarningDetailRow label="Adresse" value={[clean(liefMatch.strasse), clean(liefMatch.hausnummer)].filter(Boolean).join(' ')} />
@@ -1237,56 +1237,56 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
 
       {/* Tasks linked to same Display IDs */}
       {taskMatches.length > 0 && (
-        <div className="mt-2 pt-2 border-t border-slate-100">
+        <div className="mt-2 pt-2 border-t border-border-secondary">
           <div className="flex items-center gap-1 mb-1">
-            <Calendar size={10} className="text-blue-500" />
-            <span className="text-[10px] font-bold text-blue-600 uppercase">
+            <Calendar size={10} className="text-accent" />
+            <span className="text-[10px] font-bold text-accent uppercase">
               Tasks ({taskMatches.length})
             </span>
           </div>
           <div className="space-y-1.5">
             {taskMatches.slice(0, 5).map((task, ti) => (
-              <div key={ti} className="flex items-start gap-2 py-1 px-2 bg-blue-50/50 rounded-md">
+              <div key={ti} className="flex items-start gap-2 py-1 px-2 bg-accent-light/50 rounded-md">
                 <span className={`flex-shrink-0 mt-0.5 w-2 h-2 rounded-full ${
-                  task.status === 'Completed' ? 'bg-green-500' :
-                  task.status === 'In Progress' ? 'bg-blue-500' :
-                  task.priority === 'Urgent' ? 'bg-red-500' :
-                  task.priority === 'High' ? 'bg-orange-500' :
-                  'bg-slate-400'
+                  task.status === 'Completed' ? 'bg-status-online' :
+                  task.status === 'In Progress' ? 'bg-accent' :
+                  task.priority === 'Urgent' ? 'bg-status-offline' :
+                  task.priority === 'High' ? 'bg-status-warning' :
+                  'bg-text-muted'
                 }`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[11px] font-medium text-slate-800 truncate">{task.title}</span>
+                    <span className="text-[11px] font-medium text-text-primary truncate">{task.title}</span>
                     <span className={`inline-flex items-center px-1 py-0 rounded text-[8px] font-bold uppercase ${
-                      task.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                      task.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                      task.status === 'Follow Up' ? 'bg-amber-100 text-amber-700' :
-                      'bg-slate-100 text-slate-600'
+                      task.status === 'Completed' ? 'bg-status-online/10 text-green-700' :
+                      task.status === 'In Progress' ? 'bg-accent-light text-blue-700' :
+                      task.status === 'Follow Up' ? 'bg-status-warning/10 text-amber-700' :
+                      'bg-surface-secondary text-text-secondary'
                     }`}>{task.status}</span>
                     {task.priority && (
                       <span className={`inline-flex items-center px-1 py-0 rounded text-[8px] font-bold uppercase ${
-                        task.priority === 'Urgent' ? 'bg-red-100 text-red-700' :
-                        task.priority === 'High' ? 'bg-orange-100 text-orange-700' :
-                        'bg-slate-100 text-slate-500'
+                        task.priority === 'Urgent' ? 'bg-status-offline/10 text-red-700' :
+                        task.priority === 'High' ? 'bg-status-warning/10 text-orange-700' :
+                        'bg-surface-secondary text-text-muted'
                       }`}>{task.priority}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 mt-0.5 text-[10px] text-slate-500">
+                  <div className="flex items-center gap-3 mt-0.5 text-[10px] text-text-muted">
                     {task.responsible_user && <span>Verantwortlich: {task.responsible_user}</span>}
                     {task.due_date && <span>Fällig: {new Date(task.due_date).toLocaleDateString('de-DE')}</span>}
                     {task.install_date && <span>Install: {new Date(task.install_date).toLocaleDateString('de-DE')}</span>}
                   </div>
                   {task.nacharbeit_kommentar && (
-                    <p className="text-[10px] text-slate-500 mt-0.5 italic">Nacharbeit: {task.nacharbeit_kommentar}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5 italic">Nacharbeit: {task.nacharbeit_kommentar}</p>
                   )}
                   {task.install_remarks && (
-                    <p className="text-[10px] text-slate-500 mt-0.5 italic">Install-Bemerkung: {task.install_remarks}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5 italic">Install-Bemerkung: {task.install_remarks}</p>
                   )}
                 </div>
               </div>
             ))}
             {taskMatches.length > 5 && (
-              <p className="text-[10px] text-slate-400 italic px-2">+ {taskMatches.length - 5} weitere Tasks</p>
+              <p className="text-[10px] text-text-muted italic px-2">+ {taskMatches.length - 5} weitere Tasks</p>
             )}
           </div>
         </div>
@@ -1294,7 +1294,7 @@ function AffectedRecordCard({ record, type, vistarNavori, lieferando, simKunden,
 
       {/* If no related data found at all */}
       {!simMatch && !vistarMatch && !liefMatch && instMatches.length === 0 && taskMatches.length === 0 && !record.venue_id && !record.sim_id && (
-        <div className="text-[10px] text-slate-400 italic mt-1">Keine verknüpften Daten gefunden</div>
+        <div className="text-[10px] text-text-muted italic mt-1">Keine verknüpften Daten gefunden</div>
       )}
     </div>
   );
@@ -1472,25 +1472,25 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
   const infoCount = warnings.filter(w => w.severity === 'info').length;
 
   const severityConfig = {
-    error: { bg: 'bg-red-50 border-red-200', bgExpanded: 'bg-red-50/50', icon: XCircle, iconColor: 'text-red-500', label: 'Fehler' },
-    warning: { bg: 'bg-amber-50 border-amber-200', bgExpanded: 'bg-amber-50/50', icon: AlertTriangle, iconColor: 'text-amber-500', label: 'Warnung' },
-    info: { bg: 'bg-blue-50 border-blue-200', bgExpanded: 'bg-blue-50/50', icon: Eye, iconColor: 'text-blue-500', label: 'Info' },
+    error: { bg: 'bg-status-offline/10 border-status-offline/20', bgExpanded: 'bg-status-offline/10/50', icon: XCircle, iconColor: 'text-status-offline', label: 'Fehler' },
+    warning: { bg: 'bg-status-warning/10 border-status-warning/20', bgExpanded: 'bg-status-warning/10/50', icon: AlertTriangle, iconColor: 'text-status-warning', label: 'Warnung' },
+    info: { bg: 'bg-accent-light border-accent/20', bgExpanded: 'bg-accent-light/50', icon: Eye, iconColor: 'text-accent', label: 'Info' },
   };
 
   return (
     <div className="space-y-4">
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Fehler" value={errorCount} icon={XCircle} color="#ef4444" />
-        <KpiCard label="Warnungen" value={warnCount} icon={AlertTriangle} color="#f59e0b" />
-        <KpiCard label="Hinweise" value={infoCount} icon={Eye} color="#3b82f6" />
+        <KpiCard label="Fehler" value={errorCount} icon={XCircle} color="#FF3B30" />
+        <KpiCard label="Warnungen" value={warnCount} icon={AlertTriangle} color="#FF9500" />
+        <KpiCard label="Hinweise" value={infoCount} icon={Eye} color="#007AFF" />
       </div>
 
       {warnings.length === 0 ? (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
-          <CheckCircle2 size={32} className="text-green-500 mx-auto mb-2" />
+        <div className="bg-status-online/10 border border-status-online/20 rounded-xl p-6 text-center">
+          <CheckCircle2 size={32} className="text-status-online mx-auto mb-2" />
           <p className="text-sm font-medium text-green-700">Keine Datenqualitätsprobleme gefunden</p>
-          <p className="text-xs text-green-600 mt-1">Alle Zuordnungen sind konsistent.</p>
+          <p className="text-xs text-status-online mt-1">Alle Zuordnungen sind konsistent.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -1513,19 +1513,19 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-[10px] font-bold uppercase tracking-wider ${cfg.iconColor}`}>{cfg.label}</span>
                     </div>
-                    <p className="text-sm font-medium text-slate-800">{w.message}</p>
-                    <p className="text-xs text-slate-500 mt-1">{w.detail}</p>
+                    <p className="text-sm font-medium text-text-primary">{w.message}</p>
+                    <p className="text-xs text-text-muted mt-1">{w.detail}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-[10px] font-mono text-slate-400">{w.affectedCount} betroffen</span>
-                    <ChevronRight size={16} className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                    <span className="text-[10px] font-mono text-text-muted">{w.affectedCount} betroffen</span>
+                    <ChevronRight size={16} className={`text-text-muted transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                   </div>
                 </button>
 
                 {/* Expanded Detail */}
                 {isExpanded && w.records && w.records.length > 0 && (
-                  <div className={`${cfg.bgExpanded} border-t border-slate-200/40 px-4 pb-4 pt-3`}>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-3">
+                  <div className={`${cfg.bgExpanded} border-t border-border-secondary/40 px-4 pb-4 pt-3`}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-3">
                       Betroffene Datensätze {w.affectedCount > w.records.length && `(${w.records.length} von ${w.affectedCount} angezeigt)`}
                     </p>
 
@@ -1549,31 +1549,31 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
 
                     {/* For unmatched HW (Airtable only): simple table */}
                     {w.type === 'unmatched_hw' && (
-                      <div className="bg-white/80 border border-slate-200/60 rounded-lg overflow-hidden">
+                      <div className="bg-surface-primary border border-border-secondary rounded-lg overflow-hidden">
                         <table className="w-full text-xs">
-                          <thead className="bg-slate-50/80 border-b border-slate-200/60">
+                          <thead className="bg-surface-secondary/80 border-b border-border-secondary">
                             <tr>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">OPS Nr.</th>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Seriennummer</th>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Status</th>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Typ</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">OPS Nr.</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Seriennummer</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Status</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Typ</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100/60">
                             {w.records.map((rec, ri) => (
-                              <tr key={ri} className="hover:bg-blue-50/30">
-                                <td className="px-3 py-2 font-mono font-bold text-slate-800">{rec.ops_nr}</td>
-                                <td className="px-3 py-2 font-mono text-slate-600">{rec.ops_sn || '–'}</td>
+                              <tr key={ri} className="hover:bg-accent-light/30">
+                                <td className="px-3 py-2 font-mono font-bold text-text-primary">{rec.ops_nr}</td>
+                                <td className="px-3 py-2 font-mono text-text-secondary">{rec.ops_sn || '–'}</td>
                                 <td className="px-3 py-2">
                                   {rec.status ? (
                                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                                      rec.status === 'active' ? 'bg-green-100 text-green-700' :
-                                      rec.status === 'defect' ? 'bg-red-100 text-red-700' :
-                                      'bg-slate-100 text-slate-600'
+                                      rec.status === 'active' ? 'bg-status-online/10 text-green-700' :
+                                      rec.status === 'defect' ? 'bg-status-offline/10 text-red-700' :
+                                      'bg-surface-secondary text-text-secondary'
                                     }`}>{rec.status}</span>
                                   ) : '–'}
                                 </td>
-                                <td className="px-3 py-2 text-slate-600">{rec.hardware_type || '–'}</td>
+                                <td className="px-3 py-2 text-text-secondary">{rec.hardware_type || '–'}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -1583,25 +1583,25 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
 
                     {/* For dirty KundenIDs: show raw vs clean */}
                     {isDirtyKid && (
-                      <div className="bg-white/80 border border-slate-200/60 rounded-lg overflow-hidden">
+                      <div className="bg-surface-primary border border-border-secondary rounded-lg overflow-hidden">
                         <table className="w-full text-xs">
-                          <thead className="bg-slate-50/80 border-b border-slate-200/60">
+                          <thead className="bg-surface-secondary/80 border-b border-border-secondary">
                             <tr>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Restaurant</th>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Stadt</th>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">KundenID (roh)</th>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">KundenID (bereinigt)</th>
-                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase">Status</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Restaurant</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Stadt</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">KundenID (roh)</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">KundenID (bereinigt)</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase">Status</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100/60">
                             {w.records.map((rec, ri) => (
-                              <tr key={ri} className="hover:bg-blue-50/30">
-                                <td className="px-3 py-2 text-slate-800 font-medium">{rec.restaurant || '–'}</td>
-                                <td className="px-3 py-2 text-slate-600">{rec.stadt || '–'}</td>
-                                <td className="px-3 py-2 font-mono text-red-600 text-[10px]">{rec.kunden_id_raw || '–'}</td>
+                              <tr key={ri} className="hover:bg-accent-light/30">
+                                <td className="px-3 py-2 text-text-primary font-medium">{rec.restaurant || '–'}</td>
+                                <td className="px-3 py-2 text-text-secondary">{rec.stadt || '–'}</td>
+                                <td className="px-3 py-2 font-mono text-status-offline text-[10px]">{rec.kunden_id_raw || '–'}</td>
                                 <td className="px-3 py-2 font-mono text-green-700 text-[10px]">{rec.kunden_id_clean || '–'}</td>
-                                <td className="px-3 py-2 text-slate-500">{rec.standort_status || '–'}</td>
+                                <td className="px-3 py-2 text-text-muted">{rec.standort_status || '–'}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -1626,14 +1626,14 @@ function WarningsTab({ vorbereitet, simKunden, vistarNavori, lieferando, opsData
 function EmptyState({ onSync, syncing }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <Database size={48} className="text-slate-300 mb-4" />
-      <p className="text-slate-500 text-sm mb-4 max-w-md">
+      <Database size={48} className="text-text-muted mb-4" />
+      <p className="text-text-muted text-sm mb-4 max-w-md">
         Noch keine NocoDB-Daten synchronisiert. Klicke &apos;Sync jetzt&apos; um die Daten abzurufen.
       </p>
       <button
         onClick={onSync}
         disabled={syncing}
-        className="px-4 py-2 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+        className="px-4 py-2 rounded-lg text-xs font-medium bg-accent text-white hover:bg-accent/80 disabled:opacity-50 flex items-center gap-2"
       >
         {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
         Sync jetzt
@@ -1744,17 +1744,17 @@ export default function NocoDBPanel() {
   /* ─── Loading State ─────────────────────────────────────────────── */
   if (loading) {
     return (
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm p-8">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm p-8">
         <div className="flex items-center justify-center gap-3 py-12">
-          <Loader2 size={20} className="animate-spin text-blue-500" />
-          <span className="text-sm text-slate-500">NocoDB-Daten werden geladen...</span>
+          <Loader2 size={20} className="animate-spin text-accent" />
+          <span className="text-sm text-text-muted">NocoDB-Daten werden geladen...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm">
       {/* ─── Header ─────────────────────────────────────────────── */}
       <div className="px-5 pt-5 pb-0">
         <div className="flex items-center justify-between mb-4">
@@ -1763,12 +1763,12 @@ export default function NocoDBPanel() {
               <Database size={18} className="text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-slate-800">NocoDB Daten</h2>
-              <p className="text-xs text-slate-500">Vorbereitet, SIM, Vistar/Navori &amp; Lieferando</p>
+              <h2 className="text-base font-semibold text-text-primary">NocoDB Daten</h2>
+              <p className="text-xs text-text-muted">Vorbereitet, SIM, Vistar/Navori &amp; Lieferando</p>
             </div>
           </div>
           {syncError && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-status-offline/10 border border-status-offline/20 text-xs text-status-offline">
               <AlertTriangle size={12} />
               {syncError}
             </div>
@@ -1776,7 +1776,7 @@ export default function NocoDBPanel() {
         </div>
 
         {/* ─── Sub-Tab Navigation ─────────────────────────────────── */}
-        <div className="flex gap-1 border-b border-slate-200/60 -mx-5 px-5 overflow-x-auto">
+        <div className="flex gap-1 border-b border-border-secondary -mx-5 px-5 overflow-x-auto">
           {SUB_TABS.map(({ key, label, icon: TabIcon }) => (
             <button
               key={key}
@@ -1784,8 +1784,8 @@ export default function NocoDBPanel() {
               className={`
                 px-3 py-2 rounded-t-lg text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap
                 ${activeTab === key
-                  ? 'bg-white/80 text-blue-600 border border-slate-200/60 border-b-white -mb-px'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-white/40'
+                  ? 'bg-surface-primary text-accent border border-border-secondary border-b-white -mb-px'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface-primary/60'
                 }
               `}
             >

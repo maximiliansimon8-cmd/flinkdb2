@@ -15,12 +15,12 @@ import { getCurrentUser } from '../utils/authService';
 
 /* ── Status Configuration ── */
 const STATUS_CONFIG = {
-  pending:    { label: 'Eingeladen',    color: 'bg-yellow-100 text-yellow-700 border-yellow-200', dot: 'bg-yellow-500', icon: Send,        order: 1 },
-  booked:     { label: 'Eingebucht',    color: 'bg-green-100 text-green-700 border-green-200',     dot: 'bg-green-500',  icon: CheckCircle, order: 2 },
-  confirmed:  { label: 'Eingebucht',    color: 'bg-green-100 text-green-700 border-green-200',     dot: 'bg-green-500',  icon: CheckCircle, order: 2 },
+  pending:    { label: 'Eingeladen',    color: 'bg-status-warning/10 text-yellow-700 border-status-warning/20', dot: 'bg-status-warning', icon: Send,        order: 1 },
+  booked:     { label: 'Eingebucht',    color: 'bg-status-online/10 text-green-700 border-status-online/20',     dot: 'bg-status-online',  icon: CheckCircle, order: 2 },
+  confirmed:  { label: 'Eingebucht',    color: 'bg-status-online/10 text-green-700 border-status-online/20',     dot: 'bg-status-online',  icon: CheckCircle, order: 2 },
   completed:  { label: 'Abgeschlossen', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', icon: CheckCircle, order: 4 },
-  cancelled:  { label: 'Storniert',     color: 'bg-red-100 text-red-700 border-red-200',           dot: 'bg-red-500',    icon: XCircle,     order: 5 },
-  no_show:    { label: 'No-Show',       color: 'bg-gray-100 text-gray-700 border-gray-200',        dot: 'bg-gray-500',   icon: AlertCircle, order: 6 },
+  cancelled:  { label: 'Storniert',     color: 'bg-status-offline/10 text-red-700 border-status-offline/20',           dot: 'bg-status-offline',    icon: XCircle,     order: 5 },
+  no_show:    { label: 'No-Show',       color: 'bg-surface-secondary text-text-primary border-border-secondary',        dot: 'bg-surface-secondary0',   icon: AlertCircle, order: 6 },
 };
 
 const PIPELINE_STEPS = ['pending', 'booked', 'completed'];
@@ -30,7 +30,7 @@ const WATCH_CATEGORIES = [
   {
     id: 'no_show',
     label: 'No-Show',
-    color: 'bg-red-100 text-red-700 border-red-200',
+    color: 'bg-status-offline/10 text-red-700 border-status-offline/20',
     icon: XCircle,
     prio: 1,
     match: (b) => b.status === 'no_show',
@@ -39,7 +39,7 @@ const WATCH_CATEGORIES = [
     // Standort hat den Termin storniert (detected via Airtable installationsStatus)
     id: 'standort_storniert',
     label: 'Standort storniert',
-    color: 'bg-orange-100 text-orange-800 border-orange-300',
+    color: 'bg-status-warning/10 text-orange-800 border-orange-300',
     icon: XCircle,
     prio: 2,
     // match is always false here — detection happens in useMemo via acqMap
@@ -48,7 +48,7 @@ const WATCH_CATEGORIES = [
   {
     id: 'cancelled',
     label: 'Termin storniert',
-    color: 'bg-orange-100 text-orange-700 border-orange-200',
+    color: 'bg-status-warning/10 text-orange-700 border-status-warning/20',
     icon: AlertCircle,
     prio: 3,
     match: (b) => b.status === 'cancelled',
@@ -56,7 +56,7 @@ const WATCH_CATEGORIES = [
   {
     id: 'install_failed',
     label: 'Installation fehlgeschlagen',
-    color: 'bg-red-100 text-red-700 border-red-200',
+    color: 'bg-status-offline/10 text-red-700 border-status-offline/20',
     icon: ShieldAlert,
     prio: 4,
     // Match from booking enrichment (_statusInstallation) OR acq installationsStatus (handled in useMemo)
@@ -68,7 +68,7 @@ const WATCH_CATEGORIES = [
   {
     id: 'rework',
     label: 'Nacharbeit',
-    color: 'bg-amber-100 text-amber-700 border-amber-200',
+    color: 'bg-status-warning/10 text-amber-700 border-status-warning/20',
     icon: Wrench,
     prio: 5,
     match: (b) => {
@@ -79,7 +79,7 @@ const WATCH_CATEGORIES = [
   {
     id: 'overdue',
     label: 'Ueberfaellig',
-    color: 'bg-purple-100 text-purple-700 border-purple-200',
+    color: 'bg-brand-purple/10 text-purple-700 border-brand-purple/20',
     icon: ClockAlert,
     prio: 6,
     match: (b) => {
@@ -94,7 +94,7 @@ const WATCH_CATEGORIES = [
   {
     id: 'postponed',
     label: 'Verschoben',
-    color: 'bg-slate-100 text-slate-700 border-slate-200',
+    color: 'bg-surface-secondary text-text-primary border-border-secondary',
     icon: CalendarClock,
     prio: 7,
     match: (b) => (b._terminStatus || '').toLowerCase() === 'verschoben',
@@ -122,14 +122,14 @@ function StatusPill({ status, size = 'sm' }) {
 
 function SourceBadge({ source }) {
   const cfg = {
-    whatsapp_agent: { label: 'WhatsApp', color: 'bg-green-50 text-green-600 border-green-200', icon: MessageSquare },
-    self_booking:   { label: 'Selbstbuchung', color: 'bg-blue-50 text-blue-600 border-blue-200', icon: ExternalLink },
-    phone:          { label: 'Telefon', color: 'bg-purple-50 text-purple-600 border-purple-200', icon: PhoneCall },
-    manual:         { label: 'Manuell', color: 'bg-orange-50 text-orange-600 border-orange-200', icon: User },
+    whatsapp_agent: { label: 'WhatsApp', color: 'bg-status-online/10 text-status-online border-status-online/20', icon: MessageSquare },
+    self_booking:   { label: 'Selbstbuchung', color: 'bg-accent-light text-accent border-accent/20', icon: ExternalLink },
+    phone:          { label: 'Telefon', color: 'bg-brand-purple/10 text-brand-purple border-brand-purple/20', icon: PhoneCall },
+    manual:         { label: 'Manuell', color: 'bg-status-warning/10 text-status-warning border-status-warning/20', icon: User },
     airtable:       { label: 'Airtable', color: 'bg-violet-50 text-violet-600 border-violet-200', icon: Calendar },
-    test:           { label: 'Test', color: 'bg-gray-50 text-gray-500 border-gray-200', icon: AlertCircle },
+    test:           { label: 'Test', color: 'bg-surface-secondary text-text-muted border-border-secondary', icon: AlertCircle },
   };
-  const c = cfg[source] || { label: source || '--', color: 'bg-gray-50 text-gray-500 border-gray-200', icon: AlertCircle };
+  const c = cfg[source] || { label: source || '--', color: 'bg-surface-secondary text-text-muted border-border-secondary', icon: AlertCircle };
   const Icon = c.icon;
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${c.color}`}>
@@ -166,8 +166,8 @@ function PipelineCard({ status, count, total, isActive, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`relative bg-white/60 backdrop-blur-xl border rounded-2xl p-4 text-left transition-all hover:bg-white/80 hover:shadow-md ${
-        isActive ? 'ring-2 ring-orange-400 border-orange-200 bg-white/80' : 'border-slate-200/60'
+      className={`relative bg-surface-primary border rounded-2xl p-4 text-left transition-all hover:bg-surface-secondary hover:shadow-md ${
+        isActive ? 'ring-2 ring-orange-400 border-status-warning/20 bg-surface-primary' : 'border-border-secondary'
       }`}
     >
       <div className="flex items-center justify-between mb-2">
@@ -175,14 +175,14 @@ function PipelineCard({ status, count, total, isActive, onClick }) {
           <Icon size={16} className={cfg.color.split(' ')[1]} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-gray-900">{count}</div>
-      <div className="text-xs text-gray-500 font-medium">{cfg.label}</div>
+      <div className="text-2xl font-bold text-text-primary">{count}</div>
+      <div className="text-xs text-text-muted font-medium">{cfg.label}</div>
       {total > 0 && (
         <div className="mt-2">
-          <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1 bg-surface-secondary rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all duration-500 ${cfg.dot}`} style={{ width: `${pct}%` }} />
           </div>
-          <div className="text-[10px] text-gray-400 mt-0.5 font-mono">{pct}%</div>
+          <div className="text-[10px] text-text-muted mt-0.5 font-mono">{pct}%</div>
         </div>
       )}
     </button>
@@ -218,43 +218,43 @@ function WatchListSection({ items, onSelect, onReinvite, actionLoading }) {
   };
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-red-200/60 rounded-2xl overflow-hidden shadow-sm">
+    <div className="bg-surface-primary border border-status-offline/20/60 rounded-2xl overflow-hidden shadow-sm">
       {/* Header */}
       <button
         onClick={() => setIsOpen(prev => !prev)}
-        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-red-50/50 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-status-offline/10/50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center">
-            <ShieldAlert size={18} className="text-red-600" />
+          <div className="w-9 h-9 rounded-xl bg-status-offline/10 flex items-center justify-center">
+            <ShieldAlert size={18} className="text-status-offline" />
           </div>
           <div className="text-left">
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm font-semibold text-text-primary">
               Watch List ({items.length})
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-text-muted">
               Standorte mit fehlgeschlagenen / problematischen Terminen — dringend neu terminieren
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {items.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-600 text-white">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-status-offline text-white">
               {items.length}
             </span>
           )}
-          <ChevronDown size={18} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={18} className={`text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
       {isOpen && (
         <div className="border-t border-red-100">
           {/* Category filter pills */}
-          <div className="px-5 py-2.5 bg-red-50/30 flex items-center gap-2 flex-wrap border-b border-red-100/50">
+          <div className="px-5 py-2.5 bg-status-offline/10/30 flex items-center gap-2 flex-wrap border-b border-red-100/50">
             <button
               onClick={() => setActiveCategory('all')}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                activeCategory === 'all' ? 'bg-red-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                activeCategory === 'all' ? 'bg-status-offline text-white' : 'bg-surface-primary text-text-secondary hover:bg-surface-secondary border border-border-secondary'
               }`}
             >
               Alle ({items.length})
@@ -266,7 +266,7 @@ function WatchListSection({ items, onSelect, onReinvite, actionLoading }) {
                   key={cat.id}
                   onClick={() => setActiveCategory(activeCategory === cat.id ? 'all' : cat.id)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 ${
-                    activeCategory === cat.id ? 'bg-red-600 text-white' : `${cat.color} border`
+                    activeCategory === cat.id ? 'bg-status-offline text-white' : `${cat.color} border`
                   }`}
                 >
                   <CatIcon size={11} /> {cat.label} ({categoryCounts[cat.id]})
@@ -285,38 +285,38 @@ function WatchListSection({ items, onSelect, onReinvite, actionLoading }) {
               return (
                 <div
                   key={item.id}
-                  className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/80 transition-colors cursor-pointer"
+                  className="px-5 py-3 flex items-center gap-3 hover:bg-surface-secondary/80 transition-colors cursor-pointer"
                   onClick={() => onSelect(item)}
                 >
                   {/* Category icon */}
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${cat?.color?.split(' ')[0] || 'bg-gray-100'}`}>
-                    <CatIcon size={15} className={cat?.color?.split(' ')[1] || 'text-gray-600'} />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${cat?.color?.split(' ')[0] || 'bg-surface-secondary'}`}>
+                    <CatIcon size={15} className={cat?.color?.split(' ')[1] || 'text-text-secondary'} />
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-gray-900 truncate">{item.location_name || '--'}</p>
-                      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-semibold border ${cat?.color || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                      <p className="text-sm font-medium text-text-primary truncate">{item.location_name || '--'}</p>
+                      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-semibold border ${cat?.color || 'bg-surface-secondary text-text-secondary border-border-secondary'}`}>
                         {cat?.label || item._watchCategory}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={10} /> {item.city || '--'}</span>
-                      {item.contact_name && <span className="text-xs text-gray-500">{item.contact_name}</span>}
-                      {item.contact_phone && <span className="text-xs text-gray-400 font-mono">{item.contact_phone}</span>}
+                      <span className="text-xs text-text-muted flex items-center gap-1"><MapPin size={10} /> {item.city || '--'}</span>
+                      {item.contact_name && <span className="text-xs text-text-muted">{item.contact_name}</span>}
+                      {item.contact_phone && <span className="text-xs text-text-muted font-mono">{item.contact_phone}</span>}
                     </div>
                   </div>
 
                   {/* Timing */}
                   <div className="text-right shrink-0">
                     {item.booked_date && (
-                      <div className="text-xs text-gray-500 font-medium">
+                      <div className="text-xs text-text-muted font-medium">
                         {formatDateShort(item.booked_date)}
                       </div>
                     )}
                     {days !== null && (
-                      <span className={`text-[10px] font-semibold ${days >= 7 ? 'text-red-600' : days >= 3 ? 'text-orange-500' : 'text-gray-400'}`}>
+                      <span className={`text-[10px] font-semibold ${days >= 7 ? 'text-status-offline' : days >= 3 ? 'text-status-warning' : 'text-text-muted'}`}>
                         vor {days} Tag{days !== 1 ? 'en' : ''}
                       </span>
                     )}
@@ -328,7 +328,7 @@ function WatchListSection({ items, onSelect, onReinvite, actionLoading }) {
                       <>
                         <a
                           href={`tel:${item.contact_phone}`}
-                          className="p-1.5 rounded-lg hover:bg-green-50 text-gray-400 hover:text-green-600 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-status-online/10 text-text-muted hover:text-status-online transition-colors"
                           title="Anrufen"
                         >
                           <PhoneCall size={14} />
@@ -336,14 +336,14 @@ function WatchListSection({ items, onSelect, onReinvite, actionLoading }) {
                         <button
                           onClick={() => onReinvite(item)}
                           disabled={actionLoading === item.id}
-                          className="p-1.5 rounded-lg hover:bg-orange-50 text-gray-400 hover:text-orange-600 transition-colors disabled:opacity-50"
+                          className="p-1.5 rounded-lg hover:bg-status-warning/10 text-text-muted hover:text-status-warning transition-colors disabled:opacity-50"
                           title="Neu einladen"
                         >
                           {actionLoading === item.id ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
                         </button>
                       </>
                     )}
-                    <ChevronRight size={14} className="text-gray-300" />
+                    <ChevronRight size={14} className="text-text-muted" />
                   </div>
                 </div>
               );
@@ -381,26 +381,26 @@ function RescheduleModal({ booking, routes, onClose, onConfirm, loading }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+      <div className="bg-surface-primary rounded-2xl shadow-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
-              <CalendarClock size={18} className="text-blue-600" />
+            <div className="w-9 h-9 rounded-xl bg-accent-light flex items-center justify-center">
+              <CalendarClock size={18} className="text-accent" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Termin umbuchen</h3>
-              <p className="text-xs text-gray-400">
+              <h3 className="text-lg font-bold text-text-primary">Termin umbuchen</h3>
+              <p className="text-xs text-text-muted">
                 Aktuell: {booking.booked_date ? new Date(booking.booked_date + 'T00:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long' }) : '--'} um {booking.booked_time || '--'} Uhr
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl"><X size={20} className="text-gray-400" /></button>
+          <button onClick={onClose} className="p-2 hover:bg-surface-secondary rounded-xl"><X size={20} className="text-text-muted" /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Neues Datum *</label>
+            <label className="block text-sm font-medium text-text-primary mb-1.5">Neues Datum *</label>
             <select value={newDate} onChange={e => { setNewDate(e.target.value); setNewTime(''); }}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400/30">
+              className="w-full border border-border-secondary rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400/30">
               <option value="">Datum waehlen...</option>
               {availableDates.map(r => (
                 <option key={r.schedule_date} value={r.schedule_date}>
@@ -410,17 +410,17 @@ function RescheduleModal({ booking, routes, onClose, onConfirm, loading }) {
               ))}
             </select>
             {availableDates.length === 0 && (
-              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1"><AlertTriangle size={12} /> Keine offenen Routen fuer {booking.city}.</p>
+              <p className="text-xs text-status-warning mt-1 flex items-center gap-1"><AlertTriangle size={12} /> Keine offenen Routen fuer {booking.city}.</p>
             )}
           </div>
           {newDate && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Neue Uhrzeit *</label>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">Neue Uhrzeit *</label>
               <div className="grid grid-cols-4 gap-2">
                 {availableTimes.map(t => (
                   <button key={t} onClick={() => setNewTime(t)}
                     className={`px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                      newTime === t ? 'bg-blue-100 border-blue-400 text-blue-700 ring-2 ring-blue-400/30' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                      newTime === t ? 'bg-accent-light border-blue-400 text-blue-700 ring-2 ring-blue-400/30' : 'bg-surface-primary border-border-secondary text-text-primary hover:bg-surface-secondary'
                     }`}>
                     {t} Uhr
                   </button>
@@ -430,9 +430,9 @@ function RescheduleModal({ booking, routes, onClose, onConfirm, loading }) {
           )}
         </div>
         <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-100 rounded-xl">Abbrechen</button>
+          <button onClick={onClose} className="px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-secondary rounded-xl">Abbrechen</button>
           <button onClick={() => onConfirm(newDate, newTime)} disabled={loading || !newDate || !newTime}
-            className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl disabled:opacity-50 flex items-center gap-2">
+            className="px-5 py-2.5 text-sm font-medium text-white bg-accent hover:bg-accent/80 rounded-xl disabled:opacity-50 flex items-center gap-2">
             {loading ? <Loader2 size={14} className="animate-spin" /> : <CalendarClock size={14} />}
             Umbuchen
           </button>
@@ -456,32 +456,32 @@ function CancelConfirmModal({ booking, onClose, onConfirm, loading }) {
   const [reason, setReason] = useState('');
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+      <div className="bg-surface-primary rounded-2xl shadow-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
         <div className="p-6 text-center space-y-3">
-          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto">
-            <Trash2 size={24} className="text-red-600" />
+          <div className="w-14 h-14 rounded-full bg-status-offline/10 flex items-center justify-center mx-auto">
+            <Trash2 size={24} className="text-status-offline" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">Termin stornieren?</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-lg font-bold text-text-primary">Termin stornieren?</h3>
+          <p className="text-sm text-text-muted">
             {booking.location_name || 'Standort'} — {booking.booked_date ? formatDate(booking.booked_date) : 'kein Datum'} {booking.booked_time ? `um ${booking.booked_time} Uhr` : ''}
           </p>
           <div className="text-left">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Grund (optional)</label>
+            <label className="block text-xs font-medium text-text-secondary mb-1">Grund (optional)</label>
             <select
               value={reason}
               onChange={e => setReason(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-red-200 focus:border-red-400"
+              className="w-full px-3 py-2 border border-border-secondary rounded-lg text-sm text-text-primary focus:ring-2 focus:ring-red-200 focus:border-red-400"
             >
               <option value="">— Bitte Grund waehlen —</option>
               {CANCEL_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
-          <p className="text-xs text-gray-400">Es wird ein automatischer Follow-up-Task erstellt und der Kunde per WhatsApp benachrichtigt.</p>
+          <p className="text-xs text-text-muted">Es wird ein automatischer Follow-up-Task erstellt und der Kunde per WhatsApp benachrichtigt.</p>
         </div>
         <div className="flex gap-3 p-5 border-t border-gray-100">
-          <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50">Abbrechen</button>
+          <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-border-secondary rounded-xl text-text-primary hover:bg-surface-secondary">Abbrechen</button>
           <button onClick={() => onConfirm(reason)} disabled={loading}
-            className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 font-medium flex items-center justify-center gap-2">
+            className="flex-1 px-4 py-2.5 bg-status-offline text-white rounded-xl hover:bg-red-700 disabled:opacity-50 font-medium flex items-center justify-center gap-2">
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
             Stornieren
           </button>
@@ -573,29 +573,29 @@ function PhoneBookingModal({ onClose, onSuccess, routes }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+      <div className="bg-surface-primary rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
-              <PhoneCall size={18} className="text-purple-600" />
+            <div className="w-9 h-9 rounded-xl bg-brand-purple/10 flex items-center justify-center">
+              <PhoneCall size={18} className="text-brand-purple" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Telefonische Buchung</h3>
-              <p className="text-xs text-gray-400">Termin direkt im System erfassen</p>
+              <h3 className="text-lg font-bold text-text-primary">Telefonische Buchung</h3>
+              <p className="text-xs text-text-muted">Termin direkt im System erfassen</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-            <X size={20} className="text-gray-400" />
+          <button onClick={onClose} className="p-2 hover:bg-surface-secondary rounded-xl transition-colors">
+            <X size={20} className="text-text-muted" />
           </button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
           {/* City */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Stadt *</label>
+            <label className="block text-sm font-medium text-text-primary mb-1.5">Stadt *</label>
             <select value={form.city} onChange={e => update('city', e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all">
+              className="w-full border border-border-secondary rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all">
               <option value="">Stadt waehlen...</option>
               {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -604,9 +604,9 @@ function PhoneBookingModal({ onClose, onSuccess, routes }) {
           {/* Date */}
           {form.city && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Datum *</label>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">Datum *</label>
               <select value={form.bookedDate} onChange={e => update('bookedDate', e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all">
+                className="w-full border border-border-secondary rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all">
                 <option value="">Datum waehlen...</option>
                 {availableDates.map(r => (
                   <option key={r.schedule_date} value={r.schedule_date}>
@@ -621,15 +621,15 @@ function PhoneBookingModal({ onClose, onSuccess, routes }) {
           {/* Time */}
           {form.bookedDate && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Uhrzeit *</label>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">Uhrzeit *</label>
               <div className="grid grid-cols-4 gap-2">
                 {availableTimes.map(t => (
                   <button key={t}
                     onClick={() => update('bookedTime', t)}
                     className={`px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                       form.bookedTime === t
-                        ? 'bg-purple-100 border-purple-400 text-purple-700 ring-2 ring-purple-400/30'
-                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                        ? 'bg-brand-purple/10 border-purple-400 text-purple-700 ring-2 ring-purple-400/30'
+                        : 'bg-surface-primary border-border-secondary text-text-primary hover:bg-surface-secondary hover:border-border-primary'
                     }`}>
                     {t} Uhr
                   </button>
@@ -643,58 +643,58 @@ function PhoneBookingModal({ onClose, onSuccess, routes }) {
           {/* Location + Contact info */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Standortname</label>
+              <label className="block text-xs font-medium text-text-muted mb-1">Standortname</label>
               <input type="text" value={form.locationName}
                 onChange={e => update('locationName', e.target.value)}
                 placeholder="z.B. Pizzeria Roma"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all" />
+                className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">JET-ID</label>
+              <label className="block text-xs font-medium text-text-muted mb-1">JET-ID</label>
               <input type="text" value={form.jetId}
                 onChange={e => update('jetId', e.target.value)}
                 placeholder="z.B. FFM-123"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all font-mono" />
+                className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all font-mono" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Kontaktperson</label>
+              <label className="block text-xs font-medium text-text-muted mb-1">Kontaktperson</label>
               <input type="text" value={form.contactName}
                 onChange={e => update('contactName', e.target.value)}
                 placeholder="Name"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all" />
+                className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Telefon</label>
+              <label className="block text-xs font-medium text-text-muted mb-1">Telefon</label>
               <input type="tel" value={form.contactPhone}
                 onChange={e => update('contactPhone', e.target.value)}
                 placeholder="+49..."
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all font-mono" />
+                className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all font-mono" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Anmerkungen</label>
+            <label className="block text-xs font-medium text-text-muted mb-1">Anmerkungen</label>
             <textarea value={form.notes} onChange={e => update('notes', e.target.value)}
               rows={2} placeholder="Besondere Hinweise..."
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all resize-none" />
+              className="w-full border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all resize-none" />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-status-offline/10 border border-status-offline/20 text-sm text-red-700">
               <AlertCircle size={16} className="shrink-0" /> {error}
             </div>
           )}
         </div>
 
         <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+          <button onClick={onClose} className="px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-secondary rounded-xl transition-colors">
             Abbrechen
           </button>
           <button onClick={handleSubmit} disabled={submitting || !form.city || !form.bookedDate || !form.bookedTime}
-            className="px-5 py-2.5 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors">
+            className="px-5 py-2.5 text-sm font-medium text-white bg-brand-purple hover:bg-purple-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors">
             {submitting ? <Loader2 size={14} className="animate-spin" /> : <PhoneCall size={14} />}
             Termin buchen
           </button>
@@ -987,7 +987,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
     const isActive = sortField === field;
     return (
       <th
-        className={`text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 transition-colors ${className}`}
+        className={`text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider cursor-pointer select-none hover:text-text-primary transition-colors ${className}`}
         onClick={() => {
           if (isActive) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
           else { setSortField(field); setSortDir('asc'); }
@@ -1175,12 +1175,12 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
       {toast && (
         <div className={`fixed top-4 right-4 z-[60] flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-fade-in ${
           toast.type === 'error'
-            ? 'bg-red-600 text-white'
+            ? 'bg-status-offline text-white'
             : 'bg-emerald-600 text-white'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
           {toast.message}
-          <button onClick={() => setToast(null)} className="ml-2 p-0.5 hover:bg-white/20 rounded">
+          <button onClick={() => setToast(null)} className="ml-2 p-0.5 hover:bg-surface-primary/20 rounded">
             <X size={14} />
           </button>
         </div>
@@ -1189,20 +1189,20 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Buchungsuebersicht</h2>
-          <p className="text-gray-500 mt-1">Alle Installationstermin-Buchungen verwalten.</p>
+          <h2 className="text-2xl font-bold text-text-primary">Buchungsuebersicht</h2>
+          <p className="text-text-muted mt-1">Alle Installationstermin-Buchungen verwalten.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowPhoneModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium text-sm transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-brand-purple text-white rounded-xl hover:bg-purple-700 font-medium text-sm transition-colors shadow-sm"
           >
             <PhoneCall size={16} /> Telefonische Buchung
           </button>
           <button
             onClick={handleRefresh}
             disabled={loading || syncing}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl hover:bg-white/80 text-gray-700 text-sm transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-secondary text-text-primary text-sm transition-colors disabled:opacity-50"
           >
             {(loading || syncing) ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             Aktualisieren
@@ -1241,17 +1241,17 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
         {kpis.callback > 0 && (
           <button
             onClick={() => setFilterStatus(prev => prev === 'callback' ? '' : 'callback')}
-            className={`relative bg-white/60 backdrop-blur-xl border rounded-2xl p-4 text-left transition-all hover:bg-white/80 hover:shadow-md ${
-              filterStatus === 'callback' ? 'ring-2 ring-green-400 border-green-200 bg-white/80' : 'border-green-200/60'
+            className={`relative bg-surface-primary border rounded-2xl p-4 text-left transition-all hover:bg-surface-secondary hover:shadow-md ${
+              filterStatus === 'callback' ? 'ring-2 ring-green-400 border-status-online/20 bg-surface-primary' : 'border-status-online/20/60'
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-green-100">
-                <PhoneCall size={16} className="text-green-600" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-status-online/10">
+                <PhoneCall size={16} className="text-status-online" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-green-600">{kpis.callback}</div>
-            <div className="text-xs text-green-600 font-medium">Rueckruf noetig</div>
+            <div className="text-2xl font-bold text-status-online">{kpis.callback}</div>
+            <div className="text-xs text-status-online font-medium">Rueckruf noetig</div>
           </button>
         )}
         {/* Watch List KPI card */}
@@ -1261,16 +1261,16 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
               const el = document.getElementById('watch-list-section');
               if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
-            className="relative bg-white/60 backdrop-blur-xl border-2 border-red-300 rounded-2xl p-4 text-left transition-all hover:bg-red-50/50 hover:shadow-md ring-1 ring-red-200"
+            className="relative bg-surface-primary border-2 border-red-300 rounded-2xl p-4 text-left transition-all hover:bg-status-offline/10/50 hover:shadow-md ring-1 ring-red-200"
           >
             <div className="flex items-center justify-between mb-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-100">
-                <ShieldAlert size={16} className="text-red-600" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-status-offline/10">
+                <ShieldAlert size={16} className="text-status-offline" />
               </div>
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-status-offline animate-pulse" />
             </div>
-            <div className="text-2xl font-bold text-red-600">{watchListItems.length}</div>
-            <div className="text-xs text-red-600 font-medium">Watch List</div>
+            <div className="text-2xl font-bold text-status-offline">{watchListItems.length}</div>
+            <div className="text-xs text-status-offline font-medium">Watch List</div>
           </button>
         )}
       </div>
@@ -1289,30 +1289,30 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
 
       {/* Planned WhatsApp Reminders Panel */}
       {plannedReminders.length > 0 && (
-        <div className="bg-white/60 backdrop-blur-xl border border-amber-200/60 rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-surface-primary border border-status-warning/20/60 rounded-2xl overflow-hidden shadow-sm">
           <button
             onClick={() => setShowReminderPanel(prev => !prev)}
-            className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-amber-50/50 transition-colors"
+            className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-status-warning/10/50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
-                <Clock size={18} className="text-amber-600" />
+              <div className="w-9 h-9 rounded-xl bg-status-warning/10 flex items-center justify-center">
+                <Clock size={18} className="text-status-warning" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-text-primary">
                   WhatsApp Reminder ({plannedReminders.length})
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-text-muted">
                   {plannedReminders.filter(r => r.isDue).length} faellig, {plannedReminders.filter(r => !r.isDue).length} geplant
                 </p>
               </div>
             </div>
-            <ChevronDown size={18} className={`text-gray-400 transition-transform ${showReminderPanel ? 'rotate-180' : ''}`} />
+            <ChevronDown size={18} className={`text-text-muted transition-transform ${showReminderPanel ? 'rotate-180' : ''}`} />
           </button>
 
           {showReminderPanel && (
             <div className="border-t border-amber-100">
-              <div className="px-5 py-2 bg-amber-50/50 flex items-center justify-between">
+              <div className="px-5 py-2 bg-status-warning/10/50 flex items-center justify-between">
                 <p className="text-xs text-amber-700 font-medium">
                   Automatischer Versand 22h nach Einladung. Einzelne Reminder koennen entfernt werden.
                 </p>
@@ -1320,34 +1320,34 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
 
               <div className="divide-y divide-gray-100">
                 {plannedReminders.map(r => (
-                  <div key={r.id} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/50 transition-colors">
+                  <div key={r.id} className="px-5 py-3 flex items-center gap-3 hover:bg-surface-secondary/50 transition-colors">
                     {/* Status indicator */}
-                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${r.isDue ? 'bg-green-500 animate-pulse' : 'bg-amber-400'}`} />
+                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${r.isDue ? 'bg-status-online animate-pulse' : 'bg-amber-400'}`} />
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 truncate">{r.location_name}</p>
-                        <span className="text-xs text-gray-400">{r.city}</span>
+                        <p className="text-sm font-medium text-text-primary truncate">{r.location_name}</p>
+                        <span className="text-xs text-text-muted">{r.city}</span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
-                        <span className="text-xs text-gray-500">{r.contact_name}</span>
-                        <span className="text-xs text-gray-400 font-mono">{r.contact_phone}</span>
+                        <span className="text-xs text-text-muted">{r.contact_name}</span>
+                        <span className="text-xs text-text-muted font-mono">{r.contact_phone}</span>
                       </div>
                     </div>
 
                     {/* Timing */}
                     <div className="text-right flex-shrink-0">
                       {r.isDue ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-status-online/10 text-green-700">
                           Faellig
                         </span>
                       ) : (
-                        <span className="text-xs text-amber-600 font-medium">
+                        <span className="text-xs text-status-warning font-medium">
                           in {r.hoursUntilDue < 1 ? `${Math.round(r.hoursUntilDue * 60)}min` : `${r.hoursUntilDue}h`}
                         </span>
                       )}
-                      <p className="text-[10px] text-gray-400 mt-0.5">
+                      <p className="text-[10px] text-text-muted mt-0.5">
                         Eingeladen {r.hoursSince < 24 ? `vor ${r.hoursSince}h` : `vor ${Math.round(r.hoursSince / 24)}d`}
                       </p>
                     </div>
@@ -1356,7 +1356,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                     <button
                       onClick={() => handleSuppressReminder(r.id, r.location_name)}
                       disabled={reminderSuppressing === r.id}
-                      className="flex-shrink-0 p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                      className="flex-shrink-0 p-1.5 rounded-lg hover:bg-status-offline/10 text-text-muted hover:text-status-offline transition-colors disabled:opacity-50"
                       title="Reminder entfernen"
                     >
                       {reminderSuppressing === r.id ? (
@@ -1383,42 +1383,42 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
         const rate = r1.length > 0 ? Math.round((converted.length / r1.length) * 100) : 0;
         const stillPending = allBookings.filter(b => b.status === 'pending' && b.reminder_count > 0).length;
         return (
-          <div className="bg-white/60 backdrop-blur-xl border border-indigo-200/60 rounded-2xl p-4 shadow-sm">
+          <div className="bg-surface-primary border border-indigo-200/60 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center">
                 <BarChart3 size={16} className="text-indigo-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">Reminder-Auswertung</h3>
+              <h3 className="text-sm font-semibold text-text-primary">Reminder-Auswertung</h3>
               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-600">Admin</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-              <div className="bg-slate-50/80 rounded-xl px-3 py-2">
-                <p className="text-[11px] text-gray-500 font-medium">Eingeladen</p>
-                <p className="text-lg font-bold text-gray-900">{invited.length}</p>
+              <div className="bg-surface-secondary/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-text-muted font-medium">Eingeladen</p>
+                <p className="text-lg font-bold text-text-primary">{invited.length}</p>
               </div>
-              <div className="bg-amber-50/80 rounded-xl px-3 py-2">
-                <p className="text-[11px] text-gray-500 font-medium">Stage 1</p>
+              <div className="bg-status-warning/10/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-text-muted font-medium">Stage 1</p>
                 <p className="text-lg font-bold text-amber-700">{r1.length}</p>
               </div>
-              <div className="bg-orange-50/80 rounded-xl px-3 py-2">
-                <p className="text-[11px] text-gray-500 font-medium">Stage 2</p>
+              <div className="bg-status-warning/10/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-text-muted font-medium">Stage 2</p>
                 <p className="text-lg font-bold text-orange-700">{r2.length}</p>
               </div>
-              <div className="bg-red-50/80 rounded-xl px-3 py-2">
-                <p className="text-[11px] text-gray-500 font-medium">Stage 3</p>
+              <div className="bg-status-offline/10/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-text-muted font-medium">Stage 3</p>
                 <p className="text-lg font-bold text-red-700">{r3.length}</p>
               </div>
               <div className="bg-emerald-50/80 rounded-xl px-3 py-2">
-                <p className="text-[11px] text-gray-500 font-medium">Konvertiert</p>
+                <p className="text-[11px] text-text-muted font-medium">Konvertiert</p>
                 <p className="text-lg font-bold text-emerald-700">{converted.length}</p>
               </div>
-              <div className="bg-blue-50/80 rounded-xl px-3 py-2">
-                <p className="text-[11px] text-gray-500 font-medium">Conversion</p>
+              <div className="bg-accent-light/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-text-muted font-medium">Conversion</p>
                 <p className="text-lg font-bold text-blue-700">{rate}%</p>
               </div>
-              <div className="bg-gray-50/80 rounded-xl px-3 py-2">
-                <p className="text-[11px] text-gray-500 font-medium">Noch offen</p>
-                <p className="text-lg font-bold text-gray-600">{stillPending}</p>
+              <div className="bg-surface-secondary/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-text-muted font-medium">Noch offen</p>
+                <p className="text-lg font-bold text-text-secondary">{stillPending}</p>
               </div>
             </div>
           </div>
@@ -1432,7 +1432,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
           <button
             onClick={() => setFilterStatus('')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              !filterStatus ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              !filterStatus ? 'bg-gray-900 text-white' : 'bg-surface-secondary text-text-secondary hover:bg-surface-tertiary'
             }`}
           >
             Alle ({kpis.total})
@@ -1447,7 +1447,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                 key={key}
                 onClick={() => setFilterStatus(prev => prev === key ? '' : key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  filterStatus === key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  filterStatus === key ? 'bg-gray-900 text-white' : 'bg-surface-secondary text-text-secondary hover:bg-surface-tertiary'
                 }`}
               >
                 {cfg.label} ({count})
@@ -1458,16 +1458,16 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
 
         {/* Search */}
         <div className="relative flex-1 min-w-[220px] ml-auto">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Suche nach Standort, Kontakt, Stadt, Telefon..."
-            className="w-full pl-10 pr-4 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 text-sm transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-surface-primary border border-border-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 text-sm transition-all"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary">
               <X size={14} />
             </button>
           )}
@@ -1477,7 +1477,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
         <select
           value={filterCity}
           onChange={(e) => setFilterCity(e.target.value)}
-          className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
+          className="bg-surface-primary border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
         >
           <option value="">Alle Staedte</option>
           {cities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -1485,33 +1485,33 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
       </div>
 
       {/* Results Count */}
-      <div className="text-xs text-gray-400 font-mono">
+      <div className="text-xs text-text-muted font-mono">
         {filtered.length} Buchung{filtered.length !== 1 ? 'en' : ''} angezeigt
         {filterStatus && ` | Filter: ${filterStatus === 'callback' ? 'Rueckruf noetig' : STATUS_CONFIG[filterStatus]?.label || filterStatus}`}
       </div>
 
       {/* Bookings Table */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden shadow-sm">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
-            <Loader2 size={24} className="animate-spin text-orange-500" />
+          <div className="flex flex-col items-center justify-center h-64 text-text-muted gap-3">
+            <Loader2 size={24} className="animate-spin text-status-warning" />
             <p className="text-sm">Buchungen werden geladen...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
-            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
-              <Inbox size={32} className="text-gray-300" />
+          <div className="flex flex-col items-center justify-center h-64 text-text-muted gap-3">
+            <div className="w-16 h-16 rounded-2xl bg-surface-secondary flex items-center justify-center">
+              <Inbox size={32} className="text-text-muted" />
             </div>
             <div className="text-center">
-              <p className="font-medium text-gray-600">Keine Buchungen gefunden</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="font-medium text-text-secondary">Keine Buchungen gefunden</p>
+              <p className="text-xs text-text-muted mt-1">
                 {search ? 'Versuche andere Suchbegriffe.' : filterStatus ? 'Kein Eintrag mit diesem Status.' : 'Noch keine Buchungen vorhanden.'}
               </p>
             </div>
             {(search || filterStatus || filterCity) && (
               <button
                 onClick={() => { setSearch(''); setFilterStatus(''); setFilterCity(''); }}
-                className="px-4 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-status-warning bg-status-warning/10 rounded-xl hover:bg-status-warning/10 transition-colors"
               >
                 Filter zuruecksetzen
               </button>
@@ -1519,7 +1519,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
             {!search && !filterStatus && !filterCity && (
               <button
                 onClick={() => setShowPhoneModal(true)}
-                className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-sm font-medium text-brand-purple bg-brand-purple/10 rounded-xl hover:bg-brand-purple/10 transition-colors flex items-center gap-2"
               >
                 <PhoneCall size={14} /> Erste Buchung anlegen
               </button>
@@ -1529,14 +1529,14 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
+                <tr className="border-b border-gray-100 bg-surface-secondary/50">
                   <SortableHeader field="location_name">Standort</SortableHeader>
                   <SortableHeader field="city">Stadt</SortableHeader>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kontakt</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Kontakt</th>
                   <SortableHeader field="booked_date">Termin</SortableHeader>
                   <SortableHeader field="status">Status</SortableHeader>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quelle</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Aktionen</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Quelle</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Aktionen</th>
                   <th className="w-10" />
                 </tr>
               </thead>
@@ -1544,24 +1544,24 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                 {filtered.map(b => (
                     <tr
                       key={b.id}
-                      className="hover:bg-white/80 transition-colors cursor-pointer"
+                      className="hover:bg-surface-secondary transition-colors cursor-pointer"
                       onClick={() => setSelectedBooking(b)}
                     >
                       <td className="px-4 py-3">
                         <div>
-                          <div className="font-medium text-gray-900 text-sm">{b.location_name || '--'}</div>
-                          {b.jet_id && !b.jet_id.startsWith('rec') && <div className="text-xs text-gray-400 font-mono">{b.jet_id}</div>}
+                          <div className="font-medium text-text-primary text-sm">{b.location_name || '--'}</div>
+                          {b.jet_id && !b.jet_id.startsWith('rec') && <div className="text-xs text-text-muted font-mono">{b.jet_id}</div>}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 text-sm text-gray-700">
-                          <MapPin size={13} className="text-gray-400 shrink-0" /> {b.city || '--'}
+                        <div className="flex items-center gap-1.5 text-sm text-text-primary">
+                          <MapPin size={13} className="text-text-muted shrink-0" /> {b.city || '--'}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm text-gray-900">{b.contact_name || '--'}</div>
+                        <div className="text-sm text-text-primary">{b.contact_name || '--'}</div>
                         {b.contact_phone && (
-                          <div className="text-xs text-gray-400 flex items-center gap-1 font-mono">
+                          <div className="text-xs text-text-muted flex items-center gap-1 font-mono">
                             <Phone size={10} /> {b.contact_phone}
                           </div>
                         )}
@@ -1569,23 +1569,23 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                       <td className="px-4 py-3">
                         {b.booked_date ? (
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{formatDateShort(b.booked_date)}</div>
-                            <div className="text-xs text-gray-500">{normalizeTime(b.booked_time)} - {normalizeTime(b.booked_end_time) || '--'} Uhr</div>
+                            <div className="text-sm font-medium text-text-primary">{formatDateShort(b.booked_date)}</div>
+                            <div className="text-xs text-text-muted">{normalizeTime(b.booked_time)} - {normalizeTime(b.booked_end_time) || '--'} Uhr</div>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400 italic">Noch nicht gebucht</span>
+                          <span className="text-xs text-text-muted italic">Noch nicht gebucht</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <StatusPill status={b.status} />
                           {b.earliest_date && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-[9px] font-bold" title={`Erst ab ${formatDateShort(b.earliest_date)}`}>
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-status-warning/10 text-amber-700 border border-status-warning/20 rounded-md text-[9px] font-bold" title={`Erst ab ${formatDateShort(b.earliest_date)}`}>
                               <CalendarClock size={9} /> ab {formatDateShort(b.earliest_date)}
                             </span>
                           )}
                           {(b.status === 'cancelled' || b.status === 'no_show') && b.contact_phone && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-600 border border-green-200 rounded-md text-[9px] font-bold" title="Rueckruf noetig">
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-status-online/10 text-status-online border border-status-online/20 rounded-md text-[9px] font-bold" title="Rueckruf noetig">
                               <PhoneCall size={9} /> Anrufen
                             </span>
                           )}
@@ -1602,7 +1602,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                           {!b._isAirtable && (b.status === 'confirmed' || b.status === 'booked') && (
                             <button
                               onClick={() => setSelectedBooking(b)}
-                              className="px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1"
+                              className="px-2.5 py-1 text-xs font-medium bg-accent-light text-accent border border-accent/20 rounded-lg hover:bg-accent-light transition-colors flex items-center gap-1"
                               title="Details / Umbuchen / Stornieren"
                             >
                               <Eye size={10} /> Details
@@ -1611,7 +1611,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                           {!b._isAirtable && (b.status === 'cancelled' || b.status === 'no_show') && (
                             <button
                               onClick={() => setSelectedBooking(b)}
-                              className="px-2.5 py-1 text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1"
+                              className="px-2.5 py-1 text-xs font-medium bg-surface-secondary text-text-secondary border border-border-secondary rounded-lg hover:bg-surface-secondary transition-colors flex items-center gap-1"
                               title="Details anzeigen"
                             >
                               <Eye size={10} /> Details
@@ -1621,7 +1621,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                             <>
                               <a
                                 href={`tel:${b.contact_phone}`}
-                                className="px-2.5 py-1 text-xs font-medium bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 flex items-center gap-1 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium bg-status-online/10 text-green-700 border border-status-online/20 rounded-lg hover:bg-status-online/10 flex items-center gap-1 transition-colors"
                                 title="Anrufen"
                               >
                                 <PhoneCall size={10} /> Anrufen
@@ -1629,7 +1629,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                               <button
                                 onClick={() => handleReinvite(b)}
                                 disabled={actionLoading === b.id}
-                                className="px-2.5 py-1 text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-100 disabled:opacity-50 flex items-center gap-1 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium bg-status-warning/10 text-orange-700 border border-status-warning/20 rounded-lg hover:bg-status-warning/10 disabled:opacity-50 flex items-center gap-1 transition-colors"
                               >
                                 <RotateCcw size={10} /> Neu einladen
                               </button>
@@ -1638,7 +1638,7 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
                         </div>
                       </td>
                       <td className="px-2 py-3">
-                        <ChevronRight size={16} className="text-gray-300" />
+                        <ChevronRight size={16} className="text-text-muted" />
                       </td>
                     </tr>
                 ))}

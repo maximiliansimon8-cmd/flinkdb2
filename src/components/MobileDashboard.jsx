@@ -48,8 +48,8 @@ function KPICarousel({ items }) {
               mobile-card-enter
               ${item.onTap ? 'cursor-pointer active:scale-[0.97]' : ''}
               ${item.highlight
-                ? 'bg-gradient-to-br from-blue-500/10 to-indigo-500/8 border-blue-200/50'
-                : 'bg-white/70 border-slate-200/50'
+                ? 'bg-gradient-to-br from-blue-500/10 to-indigo-500/8 border-accent/20/50'
+                : 'bg-surface-primary border-border-secondary'
               }
             `}
             style={{ animationDelay: `${i * 80}ms` }}
@@ -57,7 +57,7 @@ function KPICarousel({ items }) {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <item.icon size={16} style={{ color: item.color }} className="opacity-80" />
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
                   {item.label}
                 </span>
               </div>
@@ -66,7 +66,7 @@ function KPICarousel({ items }) {
               {item.value}
             </div>
             {item.subtitle && (
-              <div className="text-xs text-slate-400 mt-1 font-mono">{item.subtitle}</div>
+              <div className="text-xs text-text-muted mt-1 font-mono">{item.subtitle}</div>
             )}
           </div>
         ))}
@@ -79,7 +79,7 @@ function KPICarousel({ items }) {
             key={i}
             className={`
               h-1 rounded-full transition-all duration-300
-              ${i === activeIndex ? 'w-5 bg-blue-500' : 'w-1.5 bg-slate-300'}
+              ${i === activeIndex ? 'w-5 bg-accent' : 'w-1.5 bg-surface-tertiary'}
             `}
           />
         ))}
@@ -95,8 +95,8 @@ function AttentionCard({ icon: Icon, iconColor, title, subtitle, count, onTap, d
       onClick={() => { if (navigator.vibrate) navigator.vibrate(6); onTap?.(); }}
       className="
         w-full flex items-center gap-3 p-3.5 rounded-xl
-        bg-white/60 backdrop-blur-sm border border-slate-200/50
-        active:scale-[0.97] active:bg-white/80
+        bg-surface-primary border border-border-secondary
+        active:scale-[0.97] active:bg-surface-primary
         transition-all duration-200
         mobile-card-enter text-left
       "
@@ -109,8 +109,8 @@ function AttentionCard({ icon: Icon, iconColor, title, subtitle, count, onTap, d
         <Icon size={20} style={{ color: iconColor }} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold text-slate-800 truncate">{title}</div>
-        <div className="text-xs text-slate-500 truncate">{subtitle}</div>
+        <div className="text-sm font-semibold text-text-primary truncate">{title}</div>
+        <div className="text-xs text-text-muted truncate">{subtitle}</div>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         {count != null && (
@@ -121,7 +121,7 @@ function AttentionCard({ icon: Icon, iconColor, title, subtitle, count, onTap, d
             {count}
           </span>
         )}
-        <ChevronRight size={16} className="text-slate-300" />
+        <ChevronRight size={16} className="text-text-muted" />
       </div>
     </button>
   );
@@ -134,16 +134,16 @@ function QuickChip({ icon: Icon, label, onTap, delay = 0 }) {
       onClick={() => { if (navigator.vibrate) navigator.vibrate(6); onTap?.(); }}
       className="
         flex items-center gap-2 px-4 py-2.5 rounded-xl
-        bg-white/60 border border-slate-200/50
-        active:scale-[0.96] active:bg-white/80
+        bg-surface-primary border border-border-secondary
+        active:scale-[0.96] active:bg-surface-primary
         transition-all duration-200
         mobile-card-enter
         whitespace-nowrap shrink-0
       "
       style={{ animationDelay: `${delay}ms` }}
     >
-      <Icon size={16} className="text-blue-500" />
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <Icon size={16} className="text-accent" />
+      <span className="text-sm font-medium text-text-primary">{label}</span>
     </button>
   );
 }
@@ -214,7 +214,7 @@ export default function MobileDashboard({
     if (offlineCount > 0) {
       items.push({
         icon: WifiOff,
-        iconColor: '#ef4444',
+        iconColor: '#FF3B30',
         title: 'Displays Offline',
         subtitle: `${kpis.criticalCount || 0} kritisch, ${kpis.permanentOfflineCount || 0} dauerhaft`,
         count: offlineCount,
@@ -225,7 +225,7 @@ export default function MobileDashboard({
     if (kpis.warningCount > 0) {
       items.push({
         icon: AlertTriangle,
-        iconColor: '#f59e0b',
+        iconColor: '#FF9500',
         title: 'Warnung',
         subtitle: 'Displays 24-72h ohne Heartbeat',
         count: kpis.warningCount,
@@ -248,7 +248,7 @@ export default function MobileDashboard({
   }, [kpis, onNavigate]);
 
   /* ─── KPI Cards ─── */
-  const healthColor = kpis?.healthRate >= 90 ? '#22c55e' : kpis?.healthRate >= 70 ? '#f59e0b' : '#ef4444';
+  const healthColor = kpis?.healthRate >= 90 ? '#34C759' : kpis?.healthRate >= 70 ? '#FF9500' : '#FF3B30';
 
   const kpiItems = useMemo(() => {
     if (!kpis) return [];
@@ -264,7 +264,7 @@ export default function MobileDashboard({
         label: 'Displays',
         value: kpis.totalActive || 0,
         icon: Monitor,
-        color: '#3b82f6',
+        color: '#007AFF',
         subtitle: `${kpis.onlineCount || 0} online`,
         onTap: () => onNavigate?.('mobile-displays'),
       },
@@ -272,7 +272,7 @@ export default function MobileDashboard({
         label: 'Kritisch',
         value: (kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0),
         icon: AlertTriangle,
-        color: '#ef4444',
+        color: '#FF3B30',
         subtitle: 'Offline > 72h',
         onTap: () => onNavigate?.('mobile-displays', 'critical'),
       },
@@ -280,7 +280,7 @@ export default function MobileDashboard({
         label: 'Neu',
         value: `+${kpis.newlyInstalled || 0}`,
         icon: TrendingUp,
-        color: '#8b5cf6',
+        color: '#AF52DE',
         subtitle: 'Letzte 7 Tage',
       },
     ];
@@ -292,11 +292,11 @@ export default function MobileDashboard({
       <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4">
         <div className="w-full flex gap-3 overflow-hidden">
           {[1,2,3].map(i => (
-            <div key={i} className="w-[72%] shrink-0 h-24 rounded-2xl bg-slate-200/60 animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+            <div key={i} className="w-[72%] shrink-0 h-24 rounded-2xl bg-surface-tertiary/60 animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
           ))}
         </div>
         {[1,2,3].map(i => (
-          <div key={i} className="w-full h-16 rounded-xl bg-slate-200/40 animate-pulse" style={{ animationDelay: `${(i + 3) * 80}ms` }} />
+          <div key={i} className="w-full h-16 rounded-xl bg-surface-tertiary/40 animate-pulse" style={{ animationDelay: `${(i + 3) * 80}ms` }} />
         ))}
       </div>
     );
@@ -317,7 +317,7 @@ export default function MobileDashboard({
       >
         <RefreshCw
           size={20}
-          className={`text-blue-500 transition-transform duration-200 ${
+          className={`text-accent transition-transform duration-200 ${
             pullDistance > 60 ? 'rotate-180' : ''
           } ${isRefreshing ? 'animate-spin' : ''}`}
         />
@@ -325,7 +325,7 @@ export default function MobileDashboard({
 
       {/* ─── Dark Gradient Header ─── */}
       <div className="relative overflow-hidden mx-4 mt-3 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-5 mobile-card-enter">
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/15 rounded-full blur-2xl" />
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-accent/15 rounded-full blur-2xl" />
         <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl" />
 
         <div className="relative">
@@ -375,7 +375,7 @@ export default function MobileDashboard({
           <div className="flex items-center justify-between mt-1.5">
             <span className="text-[10px] text-emerald-400/70 font-mono">{kpis.onlineCount || 0} online</span>
             <span className="text-[10px] text-amber-400/70 font-mono">{kpis.warningCount || 0} warn</span>
-            <span className="text-[10px] text-red-400/70 font-mono">{(kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0)} offline</span>
+            <span className="text-[10px] text-status-offline/70 font-mono">{(kpis.criticalCount || 0) + (kpis.permanentOfflineCount || 0)} offline</span>
           </div>
         </div>
       </div>
@@ -383,11 +383,11 @@ export default function MobileDashboard({
       {/* ─── KPI Carousel ─── */}
       <div className="mt-5">
         <div className="flex items-center justify-between px-4 mb-2">
-          <h2 className="text-sm font-bold text-slate-800">KPI Uebersicht</h2>
+          <h2 className="text-sm font-bold text-text-primary">KPI Uebersicht</h2>
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="p-1.5 rounded-lg text-slate-400 active:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-text-muted active:bg-surface-secondary transition-colors"
           >
             <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
           </button>
@@ -399,9 +399,9 @@ export default function MobileDashboard({
       {attentionItems.length > 0 && (
         <div className="mt-5 px-4">
           <div className="flex items-center gap-2 mb-3">
-            <Zap size={14} className="text-amber-500" />
-            <h2 className="text-sm font-bold text-slate-800">Braucht Aufmerksamkeit</h2>
-            <span className="text-xs font-mono text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-lg">
+            <Zap size={14} className="text-status-warning" />
+            <h2 className="text-sm font-bold text-text-primary">Braucht Aufmerksamkeit</h2>
+            <span className="text-xs font-mono text-status-warning bg-status-warning/10 px-1.5 py-0.5 rounded-lg">
               {attentionItems.length}
             </span>
           </div>
@@ -415,7 +415,7 @@ export default function MobileDashboard({
 
       {/* ─── Quick Actions ─── */}
       <div className="mt-5 px-4">
-        <h2 className="text-sm font-bold text-slate-800 mb-3">Schnellzugriff</h2>
+        <h2 className="text-sm font-bold text-text-primary mb-3">Schnellzugriff</h2>
         <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2">
           <QuickChip icon={Monitor} label="Alle Displays" onTap={() => onNavigate?.('mobile-displays')} delay={500} />
           <QuickChip icon={Target} label="Rollout" onTap={() => onNavigate?.('mobile-rollout')} delay={560} />
@@ -427,10 +427,10 @@ export default function MobileDashboard({
       {topOffline && topOffline.length > 0 && (
         <div className="mt-5 px-4 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-slate-800">Zuletzt Offline</h2>
+            <h2 className="text-sm font-bold text-text-primary">Zuletzt Offline</h2>
             <button
               onClick={() => onNavigate?.('mobile-displays', 'critical')}
-              className="text-xs font-medium text-blue-600 flex items-center gap-0.5 active:text-blue-800"
+              className="text-xs font-medium text-accent flex items-center gap-0.5 active:text-blue-800"
             >
               Alle anzeigen
               <ArrowRight size={12} />
@@ -446,8 +446,8 @@ export default function MobileDashboard({
                 }}
                 className="
                   w-full flex items-center gap-3 p-3 rounded-xl
-                  bg-white/50 border border-slate-200/40
-                  active:scale-[0.98] active:bg-white/70
+                  bg-surface-primary/80 border border-border-secondary/40
+                  active:scale-[0.98] active:bg-surface-primary
                   transition-all duration-200
                   mobile-card-enter text-left
                 "
@@ -455,17 +455,17 @@ export default function MobileDashboard({
               >
                 <div className={`
                   w-2.5 h-2.5 rounded-full shrink-0
-                  ${display.status === 'permanent_offline' ? 'bg-red-700' : 'bg-red-500'}
+                  ${display.status === 'permanent_offline' ? 'bg-red-700' : 'bg-status-offline'}
                 `} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-800 truncate">
+                  <div className="text-sm font-medium text-text-primary truncate">
                     {display.locationName || display.displayId}
                   </div>
-                  <div className="text-xs text-slate-500 font-mono truncate">
+                  <div className="text-xs text-text-muted font-mono truncate">
                     {display.city || ''} {display.offlineHours ? `-- ${formatDuration(display.offlineHours)}` : ''}
                   </div>
                 </div>
-                <ChevronRight size={14} className="text-slate-300 shrink-0" />
+                <ChevronRight size={14} className="text-text-muted shrink-0" />
               </button>
             ))}
           </div>
@@ -475,29 +475,29 @@ export default function MobileDashboard({
       {/* ─── City Overview (from RPC byCity data) ─── */}
       {byCity && Object.keys(byCity).length > 0 && (
         <div className="mt-2 px-4 mb-8">
-          <h2 className="text-sm font-bold text-slate-800 mb-3">Staedte</h2>
+          <h2 className="text-sm font-bold text-text-primary mb-3">Staedte</h2>
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(byCity)
               .sort(([,a], [,b]) => (b.total || 0) - (a.total || 0))
               .slice(0, 6)
               .map(([city, data], i) => {
                 const cityHealth = data.total > 0 ? Math.round((data.online / data.total) * 100) : 0;
-                const cityColor = cityHealth >= 90 ? '#22c55e' : cityHealth >= 70 ? '#f59e0b' : '#ef4444';
+                const cityColor = cityHealth >= 90 ? '#34C759' : cityHealth >= 70 ? '#FF9500' : '#FF3B30';
                 return (
                   <div
                     key={city}
-                    className="bg-white/60 rounded-xl border border-slate-200/50 p-3 mobile-card-enter"
+                    className="bg-surface-primary rounded-xl border border-border-secondary p-3 mobile-card-enter"
                     style={{ animationDelay: `${700 + i * 60}ms` }}
                   >
-                    <div className="text-xs font-semibold text-slate-700 truncate">{city}</div>
+                    <div className="text-xs font-semibold text-text-primary truncate">{city}</div>
                     <div className="flex items-end justify-between mt-1.5">
                       <span className="text-lg font-mono font-bold" style={{ color: cityColor }}>
                         {cityHealth}%
                       </span>
-                      <span className="text-[10px] text-slate-400 font-mono">{data.total} Displays</span>
+                      <span className="text-[10px] text-text-muted font-mono">{data.total} Displays</span>
                     </div>
                     {/* Mini bar */}
-                    <div className="h-1 rounded-full bg-slate-200/80 mt-1.5">
+                    <div className="h-1 rounded-full bg-surface-tertiary/80 mt-1.5">
                       <div
                         className="h-full rounded-full transition-all duration-700"
                         style={{ width: `${cityHealth}%`, backgroundColor: cityColor }}

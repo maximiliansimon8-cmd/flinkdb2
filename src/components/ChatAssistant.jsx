@@ -31,7 +31,7 @@ function renderMarkdown(text) {
         <ul key={`list-${listKey++}`} className="ml-4 space-y-1 my-1">
           {listItems.map((item, i) => (
             <li key={i} className="flex gap-2 items-start">
-              <span className="text-slate-500 mt-0.5 select-none">&#8226;</span>
+              <span className="text-text-muted mt-0.5 select-none">&#8226;</span>
               <span>{inlineFormat(item)}</span>
             </li>
           ))}
@@ -81,7 +81,7 @@ function renderMarkdown(text) {
 
       if (matchType === 'bold') {
         parts.push(
-          <strong key={partKey++} className="font-semibold text-slate-100">
+          <strong key={partKey++} className="font-semibold text-text-primary">
             {firstMatch[1]}
           </strong>
         );
@@ -89,7 +89,7 @@ function renderMarkdown(text) {
         parts.push(
           <code
             key={partKey++}
-            className="bg-slate-700/60 text-violet-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
+            className="bg-surface-tertiary text-violet-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
           >
             {firstMatch[1]}
           </code>
@@ -146,9 +146,9 @@ const QUICK_ACTIONS = [
 function BouncingDots() {
   return (
     <span className="inline-flex items-center gap-1">
-      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:0ms]" />
-      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:150ms]" />
-      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:300ms]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce [animation-delay:0ms]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce [animation-delay:150ms]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce [animation-delay:300ms]" />
     </span>
   );
 }
@@ -159,36 +159,36 @@ function FeedbackCard({ feedback, onConfirm, onDiscard }) {
   const isBug = feedback.type === 'bug';
 
   return (
-    <div className="mx-1 my-2 rounded-xl border border-slate-700/60 bg-slate-800/90 backdrop-blur-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-700/40">
+    <div className="mx-1 my-2 rounded-xl border border-border-secondary bg-surface-primary/90 overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border-secondary">
         {isBug ? (
-          <Bug size={16} className="text-red-400 shrink-0" />
+          <Bug size={16} className="text-status-offline shrink-0" />
         ) : (
           <Lightbulb size={16} className="text-amber-400 shrink-0" />
         )}
-        <span className="text-sm font-medium text-slate-200">
+        <span className="text-sm font-medium text-text-muted">
           {isBug ? 'Bug-Report' : 'Feature-Request'}
         </span>
       </div>
       <div className="px-4 py-3 space-y-1">
-        <p className="text-sm font-medium text-slate-100">{feedback.title}</p>
+        <p className="text-sm font-medium text-text-primary">{feedback.title}</p>
         {feedback.description && (
-          <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+          <p className="text-xs text-text-muted leading-relaxed line-clamp-3">
             {feedback.description}
           </p>
         )}
       </div>
-      <div className="flex border-t border-slate-700/40">
+      <div className="flex border-t border-border-secondary">
         <button
           onClick={onConfirm}
           className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer"
         >
           <span>&#10003;</span> Aufnehmen
         </button>
-        <div className="w-px bg-slate-700/40" />
+        <div className="w-px bg-surface-tertiary" />
         <button
           onClick={onDiscard}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-700/30 transition-colors cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-text-muted hover:bg-surface-tertiary transition-colors cursor-pointer"
         >
           <span>&#10007;</span> Verwerfen
         </button>
@@ -201,48 +201,48 @@ function FeedbackCard({ feedback, onConfirm, onDiscard }) {
 
 function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
   return (
-    <div className="mx-1 my-2 rounded-xl border border-slate-700/60 bg-slate-800/90 backdrop-blur-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-700/40">
-        <span className="text-blue-400 shrink-0 text-base">📋</span>
-        <span className="text-sm font-medium text-slate-200">Neuer Task</span>
+    <div className="mx-1 my-2 rounded-xl border border-border-secondary bg-surface-primary/90 overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border-secondary">
+        <span className="text-accent shrink-0 text-base">📋</span>
+        <span className="text-sm font-medium text-text-muted">Neuer Task</span>
         {task.priority && (
           <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto ${
             task.priority === 'High' || task.priority === 'Urgent'
-              ? 'bg-red-500/20 text-red-300'
+              ? 'bg-status-offline/20 text-red-300'
               : task.priority === 'Medium'
-              ? 'bg-amber-500/20 text-amber-300'
-              : 'bg-slate-600/40 text-slate-500'
+              ? 'bg-status-warning/20 text-amber-300'
+              : 'bg-surface-tertiary text-text-muted'
           }`}>
             {task.priority}
           </span>
         )}
       </div>
       <div className="px-4 py-3 space-y-1.5">
-        <p className="text-sm font-medium text-slate-100">{task.title}</p>
+        <p className="text-sm font-medium text-text-primary">{task.title}</p>
         {task.description && (
-          <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+          <p className="text-xs text-text-muted leading-relaxed line-clamp-3">
             {task.description}
           </p>
         )}
         <div className="flex flex-wrap gap-2 mt-1">
           {task.partner && (
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-500">
+            <span className="text-xs px-2 py-0.5 rounded bg-surface-tertiary text-text-muted">
               Partner: {task.partner}
             </span>
           )}
           {task.status && (
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-500">
+            <span className="text-xs px-2 py-0.5 rounded bg-surface-tertiary text-text-muted">
               Status: {task.status}
             </span>
           )}
           {task.dueDate && (
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-500">
+            <span className="text-xs px-2 py-0.5 rounded bg-surface-tertiary text-text-muted">
               Fällig: {task.dueDate}
             </span>
           )}
         </div>
       </div>
-      <div className="flex border-t border-slate-700/40">
+      <div className="flex border-t border-border-secondary">
         <button
           onClick={onConfirm}
           disabled={isCreating}
@@ -254,11 +254,11 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
             <><span>&#10003;</span> Task erstellen</>
           )}
         </button>
-        <div className="w-px bg-slate-700/40" />
+        <div className="w-px bg-surface-tertiary" />
         <button
           onClick={onDiscard}
           disabled={isCreating}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-700/30 transition-colors cursor-pointer disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium text-text-muted hover:bg-surface-tertiary transition-colors cursor-pointer disabled:opacity-50"
         >
           <span>&#10007;</span> Verwerfen
         </button>
@@ -353,8 +353,8 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
           className={`
             fixed bottom-6 right-6 z-50
             w-[420px] max-h-[80vh] h-[640px]
-            bg-slate-900/95 backdrop-blur-xl
-            border border-slate-700/60 rounded-2xl
+            bg-surface-primary/95
+            border border-border-secondary rounded-2xl
             shadow-2xl flex flex-col
             transition-all duration-300 ease-out
             ${isOpen
@@ -376,7 +376,7 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-700/50 transition-colors cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-muted hover:bg-surface-tertiary transition-colors cursor-pointer"
               aria-label="Chat schließen"
             >
               <X size={18} />
@@ -384,7 +384,7 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
           </div>
 
           {/* ── Quick Actions ── */}
-          <div className="flex gap-2 px-4 py-2 overflow-x-auto border-b border-slate-800/50 shrink-0 scrollbar-none">
+          <div className="flex gap-2 px-4 py-2 overflow-x-auto border-b border-border-secondary shrink-0 scrollbar-none">
             {QUICK_ACTIONS.map((action) => (
               <button
                 key={action.label}
@@ -392,9 +392,9 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                 disabled={isStreaming}
                 className="
                   whitespace-nowrap text-xs px-3 py-1.5 rounded-full
-                  bg-slate-800/70 text-slate-500
-                  border border-slate-700/40
-                  hover:bg-slate-700/70 hover:text-slate-100 hover:border-slate-600/50
+                  bg-surface-primary/70 text-text-muted
+                  border border-border-secondary
+                  hover:bg-surface-tertiary hover:text-text-primary hover:border-border-primary
                   disabled:opacity-40 disabled:cursor-not-allowed
                   transition-colors cursor-pointer shrink-0
                 "
@@ -421,7 +421,7 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                       ? 'bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-2xl rounded-br-sm max-w-[85%] ml-auto shadow-sm shadow-violet-500/20'
                       : msg.isError
                       ? 'bg-red-900/30 text-red-200 border border-red-700/40 rounded-2xl rounded-bl-sm max-w-[85%]'
-                      : 'bg-slate-800/80 text-slate-200 border border-slate-700/40 rounded-2xl rounded-bl-sm max-w-[85%]'}
+                      : 'bg-surface-primary/80 text-text-muted border border-border-secondary rounded-2xl rounded-bl-sm max-w-[85%]'}
                   `}
                 >
                   {msg.role === 'assistant' && msg.content === '' && isStreaming ? (
@@ -429,14 +429,14 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                   ) : msg.role === 'assistant' && msg.isError ? (
                     <div className="space-y-2">
                       <div className="flex items-start gap-2">
-                        <AlertTriangle size={14} className="text-red-400 mt-0.5 shrink-0" />
+                        <AlertTriangle size={14} className="text-status-offline mt-0.5 shrink-0" />
                         <div className="space-y-1">{renderMarkdown(msg.content)}</div>
                       </div>
                       {lastError?.canRetry && (
                         <button
                           onClick={retryLastMessage}
                           disabled={isStreaming}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 transition-colors cursor-pointer disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-300 bg-status-warning/10 border border-status-warning/20 rounded-lg hover:bg-status-warning/20 transition-colors cursor-pointer disabled:opacity-50"
                         >
                           <RotateCcw size={12} />
                           Erneut versuchen
@@ -476,13 +476,13 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
 
           {/* ── Model info footer ── */}
           {lastUsedModel && (
-            <div className="px-4 py-1 text-[10px] text-slate-600 text-center border-t border-slate-800/30">
+            <div className="px-4 py-1 text-[10px] text-text-secondary text-center border-t border-border-secondary">
               Modell: {lastUsedModel}
             </div>
           )}
 
           {/* ── Input Area ── */}
-          <div className="border-t border-slate-700/50 px-4 py-3 shrink-0">
+          <div className="border-t border-border-primary px-4 py-3 shrink-0">
             <div className="flex items-end gap-2">
               <textarea
                 ref={textareaRef}
@@ -493,9 +493,9 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                 disabled={isStreaming}
                 rows={1}
                 className="
-                  flex-1 resize-none bg-slate-800/60 text-slate-100
-                  border border-slate-700/50 rounded-xl px-3.5 py-2.5
-                  text-sm placeholder:text-slate-500
+                  flex-1 resize-none bg-surface-primary/60 text-text-primary
+                  border border-border-primary rounded-xl px-3.5 py-2.5
+                  text-sm placeholder:text-text-muted
                   focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
                   disabled:opacity-50 disabled:cursor-not-allowed
                   transition-colors
@@ -507,9 +507,9 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                   onClick={cancelStream}
                   className="
                     w-10 h-10 shrink-0 rounded-xl
-                    bg-red-600 text-white
+                    bg-status-offline text-white
                     flex items-center justify-center
-                    hover:bg-red-500
+                    hover:bg-status-offline
                     transition-colors cursor-pointer
                   "
                   aria-label="Antwort abbrechen"
@@ -526,7 +526,7 @@ export default function ChatAssistant({ rawData, kpis, comparisonData, currentUs
                     flex items-center justify-center
                     hover:from-violet-500 hover:to-indigo-500
                     shadow-sm shadow-violet-500/20
-                    disabled:bg-slate-700 disabled:text-slate-500 disabled:from-slate-700 disabled:to-slate-700 disabled:shadow-none
+                    disabled:bg-surface-tertiary disabled:text-text-muted disabled:from-surface-tertiary disabled:to-surface-tertiary disabled:shadow-none
                     disabled:cursor-not-allowed
                     transition-all cursor-pointer
                   "

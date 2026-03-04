@@ -129,14 +129,14 @@ function TrendBadge({ current, previous, suffix = '', inverted = false, isCurren
   const pctChange = ((current - previous) / previous) * 100;
   if (Math.abs(pctChange) < 0.5) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-xs font-mono text-slate-500">
+      <span className="inline-flex items-center gap-0.5 text-xs font-mono text-text-muted">
         <Minus size={10} />
         <span>±0%</span>
       </span>
     );
   }
   const isPositive = inverted ? pctChange < 0 : pctChange > 0;
-  const color = isPositive ? '#22c55e' : '#ef4444';
+  const color = isPositive ? '#34C759' : '#FF3B30';
   const Icon = pctChange > 0 ? ArrowUpRight : ArrowDownRight;
   const sign = pctChange > 0 ? '+' : '';
 
@@ -151,9 +151,9 @@ function TrendBadge({ current, previous, suffix = '', inverted = false, isCurren
 /* ─── KPI Card ─── */
 function KPICard({ label, value, subtitle, icon: Icon, color, trend }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+        <span className="text-text-muted text-xs font-medium uppercase tracking-wider">
           {label}
         </span>
         <Icon size={16} style={{ color }} className="opacity-70" />
@@ -165,7 +165,7 @@ function KPICard({ label, value, subtitle, icon: Icon, color, trend }) {
         {trend}
       </div>
       {subtitle && (
-        <div className="text-slate-500 text-xs mt-1">{subtitle}</div>
+        <div className="text-text-muted text-xs mt-1">{subtitle}</div>
       )}
     </div>
   );
@@ -175,13 +175,13 @@ function KPICard({ label, value, subtitle, icon: Icon, color, trend }) {
 function ChartTooltip({ active, payload, label, isCurrency }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-xl px-3 py-2 shadow-lg">
-      <div className="text-xs font-mono text-slate-500 mb-1">{label}</div>
+    <div className="bg-surface-primary border border-border-secondary rounded-xl px-3 py-2 shadow-lg">
+      <div className="text-xs font-mono text-text-muted mb-1">{label}</div>
       {payload.map((item, i) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-          <span className="text-xs text-slate-600">{item.name}:</span>
-          <span className="text-xs font-mono font-medium text-slate-900">
+          <span className="text-xs text-text-secondary">{item.name}:</span>
+          <span className="text-xs font-mono font-medium text-text-primary">
             {isCurrency ? fmtCurrency(item.value) : fmt(item.value)}
           </span>
         </div>
@@ -465,22 +465,22 @@ export default function ProgrammaticDashboard() {
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-6 rounded-full bg-violet-500" />
             <div>
-              <h2 className="text-base font-bold text-slate-900">Programmatic Performance</h2>
+              <h2 className="text-base font-bold text-text-primary">Programmatic Performance</h2>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-500 font-mono">Vistar SSP · Exchange + Direct</span>
+                <span className="text-xs text-text-muted font-mono">Vistar SSP · Exchange + Direct</span>
                 {lastSyncTs && (
                   <>
-                    <span className="text-slate-200">|</span>
-                    <span className="text-xs font-mono text-slate-500">
+                    <span className="text-text-muted">|</span>
+                    <span className="text-xs font-mono text-text-muted">
                       Daten: {fmtDate(dateRange.start)} – {fmtDate(dateRange.end)}
                     </span>
-                    <span className="text-slate-200">|</span>
-                    <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-500">
+                    <span className="text-text-muted">|</span>
+                    <span className="inline-flex items-center gap-1 text-xs font-mono text-text-muted">
                       <Clock size={9} className="opacity-60" />
                       Geladen: {timeAgo(lastSyncTs)}
                     </span>
                     {Date.now() - lastSyncTs > 3600000 && (
-                      <span className="inline-flex items-center gap-1 text-xs font-mono text-amber-500">
+                      <span className="inline-flex items-center gap-1 text-xs font-mono text-status-warning">
                         <AlertTriangle size={9} />
                         Daten evtl. veraltet
                       </span>
@@ -495,7 +495,7 @@ export default function ProgrammaticDashboard() {
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-600 hover:bg-slate-50/60 transition-colors disabled:opacity-40"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-secondary hover:bg-surface-secondary/60 transition-colors disabled:opacity-40"
             title="Daten neu laden"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -504,15 +504,15 @@ export default function ProgrammaticDashboard() {
 
         {/* Date Range Picker */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-surface-primary border border-border-secondary rounded-xl p-1">
             {PRESETS.map((label) => (
               <button
                 key={label}
                 onClick={() => selectPreset(label)}
                 className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg transition-all ${
                   dateRange.label === label
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/60'
+                    ? 'bg-accent text-white shadow-sm'
+                    : 'text-text-muted hover:text-text-primary hover:bg-surface-secondary/60'
                 }`}
               >
                 {label}
@@ -528,8 +528,8 @@ export default function ProgrammaticDashboard() {
               }}
               className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg transition-all ${
                 dateRange.label === 'Custom'
-                  ? 'bg-blue-500 text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/60'
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface-secondary/60'
               }`}
             >
               Custom
@@ -538,24 +538,24 @@ export default function ProgrammaticDashboard() {
 
           {/* Custom Date Inputs */}
           {showCustom && (
-            <div className="flex items-center gap-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-1.5">
+            <div className="flex items-center gap-2 bg-surface-primary border border-border-secondary rounded-xl p-1.5">
               <input
                 type="date"
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
-                className="px-2 py-1 text-xs font-mono bg-slate-50/80 border border-slate-200/60 rounded-md text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="px-2 py-1 text-xs font-mono bg-surface-secondary/80 border border-border-secondary rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-blue-400"
               />
-              <span className="text-xs text-slate-500">–</span>
+              <span className="text-xs text-text-muted">–</span>
               <input
                 type="date"
                 value={customEnd}
                 onChange={(e) => setCustomEnd(e.target.value)}
-                className="px-2 py-1 text-xs font-mono bg-slate-50/80 border border-slate-200/60 rounded-md text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="px-2 py-1 text-xs font-mono bg-surface-secondary/80 border border-border-secondary rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-blue-400"
               />
               <button
                 onClick={applyCustomRange}
                 disabled={!customStart || !customEnd || customStart > customEnd}
-                className="px-3 py-1 text-xs font-mono font-medium rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-1 text-xs font-mono font-medium rounded-md bg-accent text-white hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 OK
               </button>
@@ -568,24 +568,24 @@ export default function ProgrammaticDashboard() {
       {loading && (
         <div className="flex items-center justify-center py-20">
           <Loader2 size={24} className="animate-spin text-violet-400" />
-          <span className="ml-3 text-sm text-slate-500">Programmatic-Daten laden...</span>
+          <span className="ml-3 text-sm text-text-muted">Programmatic-Daten laden...</span>
         </div>
       )}
 
       {/* Error */}
       {!loading && error && (
-        <div className="bg-red-50/60 border border-red-200/40 rounded-2xl p-6 text-center">
-          <WifiOff size={24} className="mx-auto text-red-400 mb-2" />
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="bg-status-offline/10/60 border border-status-offline/20/40 rounded-2xl p-6 text-center">
+          <WifiOff size={24} className="mx-auto text-status-offline mb-2" />
+          <p className="text-sm text-status-offline">{error}</p>
         </div>
       )}
 
       {/* No Data Placeholder */}
       {!loading && !error && !hasData && (
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-10 text-center">
-          <BarChart3 size={32} className="mx-auto text-slate-500 mb-3" />
-          <p className="text-sm font-medium text-slate-600 mb-1">Keine Programmatic-Daten verfügbar</p>
-          <p className="text-xs text-slate-500">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-10 text-center">
+          <BarChart3 size={32} className="mx-auto text-text-muted mb-3" />
+          <p className="text-sm font-medium text-text-secondary mb-1">Keine Programmatic-Daten verfügbar</p>
+          <p className="text-xs text-text-muted">
             Vistar API-Zugangsdaten in Netlify konfigurieren und Sync ausführen.
           </p>
           <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-violet-50/60 border border-violet-200/40 rounded-lg text-xs font-mono text-violet-600">
@@ -605,13 +605,13 @@ export default function ProgrammaticDashboard() {
                 label="Revenue"
                 value={fmtCurrency(totals.revenue)}
                 icon={DollarSign}
-                color="#8b5cf6"
+                color="#AF52DE"
                 subtitle={`Profit: ${fmtCurrency(totals.profit)}`}
                 trend={<TrendBadge current={totals.revenue} previous={prevTotals?.revenue} />}
               />
             ) : (
-              <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03] flex items-center justify-center">
-                <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+              <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card flex items-center justify-center">
+                <div className="flex items-center gap-1.5 text-text-muted text-xs">
                   <Lock size={14} />
                   <span>Revenue</span>
                 </div>
@@ -621,7 +621,7 @@ export default function ProgrammaticDashboard() {
               label="Impressions"
               value={fmt(totals.impressions)}
               icon={Eye}
-              color="#3b82f6"
+              color="#007AFF"
               subtitle={`${fmt(Math.round(totals.impressions / (rangeDays || 1)))}/Tag`}
               trend={<TrendBadge current={totals.impressions} previous={prevTotals?.impressions} />}
             />
@@ -638,12 +638,12 @@ export default function ProgrammaticDashboard() {
                 label="Ø eCPM"
                 value={fmtCurrency(totals.avgECPM)}
                 icon={TrendingUp}
-                color="#f59e0b"
+                color="#FF9500"
                 trend={<TrendBadge current={totals.avgECPM} previous={prevTotals?.avgECPM} />}
               />
             ) : (
-              <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03] flex items-center justify-center">
-                <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+              <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card flex items-center justify-center">
+                <div className="flex items-center gap-1.5 text-text-muted text-xs">
                   <Lock size={14} />
                   <span>eCPM</span>
                 </div>
@@ -653,7 +653,7 @@ export default function ProgrammaticDashboard() {
               label="Aktive Venues"
               value={fmt(totals.activeVenues)}
               icon={Activity}
-              color="#22c55e"
+              color="#34C759"
               subtitle={`von ${fmt(totals.totalVenues)} gesamt`}
             />
             <KPICard
@@ -670,17 +670,17 @@ export default function ProgrammaticDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Revenue over Time */}
               {canViewRevenue ? (
-                <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-5">
+                <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-1 h-4 rounded-full bg-violet-500" />
-                    <h3 className="text-sm font-medium text-slate-900">Revenue / Tag</h3>
+                    <h3 className="text-sm font-medium text-text-primary">Revenue / Tag</h3>
                   </div>
                   <ResponsiveContainer width="100%" height={220}>
                     <AreaChart data={dailyData}>
                       <defs>
                         <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.15} />
-                          <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#AF52DE" stopOpacity={0.15} />
+                          <stop offset="100%" stopColor="#AF52DE" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
@@ -702,7 +702,7 @@ export default function ProgrammaticDashboard() {
                         type="monotone"
                         dataKey="revenue"
                         name="Revenue"
-                        stroke="#8b5cf6"
+                        stroke="#AF52DE"
                         fill="url(#revGrad)"
                         strokeWidth={2}
                         dot={false}
@@ -711,12 +711,12 @@ export default function ProgrammaticDashboard() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-5">
+                <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-1 h-4 rounded-full bg-violet-500" />
-                    <h3 className="text-sm font-medium text-slate-900">Revenue / Tag</h3>
+                    <h3 className="text-sm font-medium text-text-primary">Revenue / Tag</h3>
                   </div>
-                  <div className="flex items-center justify-center py-16 text-slate-500 text-sm gap-2">
+                  <div className="flex items-center justify-center py-16 text-text-muted text-sm gap-2">
                     <Lock size={16} />
                     <span>Umsatzdaten nur mit Berechtigung sichtbar</span>
                   </div>
@@ -724,17 +724,17 @@ export default function ProgrammaticDashboard() {
               )}
 
               {/* Impressions over Time */}
-              <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-5">
+              <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1 h-4 rounded-full bg-blue-500" />
-                  <h3 className="text-sm font-medium text-slate-900">Impressions / Tag</h3>
+                  <div className="w-1 h-4 rounded-full bg-accent" />
+                  <h3 className="text-sm font-medium text-text-primary">Impressions / Tag</h3>
                 </div>
                 <ResponsiveContainer width="100%" height={220}>
                   <AreaChart data={dailyData}>
                     <defs>
                       <linearGradient id="impGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
-                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#007AFF" stopOpacity={0.15} />
+                        <stop offset="100%" stopColor="#007AFF" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
@@ -756,7 +756,7 @@ export default function ProgrammaticDashboard() {
                       type="monotone"
                       dataKey="impressions"
                       name="Impressions"
-                      stroke="#3b82f6"
+                      stroke="#007AFF"
                       fill="url(#impGrad)"
                       strokeWidth={2}
                       dot={false}
@@ -769,10 +769,10 @@ export default function ProgrammaticDashboard() {
 
           {/* Ad Plays Bar Chart */}
           {dailyData.length > 0 && (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-5">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-4 rounded-full bg-cyan-500" />
-                <h3 className="text-sm font-medium text-slate-900">Ad Plays / Tag</h3>
+                <h3 className="text-sm font-medium text-text-primary">Ad Plays / Tag</h3>
               </div>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={dailyData}>
@@ -804,11 +804,11 @@ export default function ProgrammaticDashboard() {
 
           {/* Top Venues by Revenue */}
           {topVenues.length > 0 && canViewRevenue && (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03]">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card">
               <div className="flex items-center gap-2 p-5 pb-3">
                 <div className="w-1 h-4 rounded-full bg-violet-500" />
-                <h3 className="text-sm font-medium text-slate-900">Top Venues nach Revenue</h3>
-                <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+                <h3 className="text-sm font-medium text-text-primary">Top Venues nach Revenue</h3>
+                <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                   {topVenues.length}
                 </span>
               </div>
@@ -817,28 +817,28 @@ export default function ProgrammaticDashboard() {
                 {topVenues.map((venue, i) => (
                   <div
                     key={venue.id}
-                    className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-slate-50/60 transition-colors"
+                    className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-surface-secondary/60 transition-colors"
                   >
-                    <span className="w-5 text-xs font-mono text-slate-500 text-right">
+                    <span className="w-5 text-xs font-mono text-text-muted text-right">
                       {i + 1}.
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-mono font-medium text-slate-900 truncate">
+                        <span className="text-xs font-mono font-medium text-text-primary truncate">
                           {venue.doId}
                         </span>
                         {venue.locationName && (
-                          <span className="text-xs text-slate-500 truncate">
+                          <span className="text-xs text-text-muted truncate">
                             {venue.locationName}
                           </span>
                         )}
                         {venue.city && (
-                          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-slate-100/80 text-slate-500 flex-shrink-0">
+                          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted flex-shrink-0">
                             {venue.city}
                           </span>
                         )}
                       </div>
-                      <div className="w-full h-1.5 bg-slate-100/80 rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-surface-secondary/80 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-violet-400 to-violet-500 transition-all"
                           style={{ width: `${(venue.revenue / maxRevenue) * 100}%` }}
@@ -850,15 +850,15 @@ export default function ProgrammaticDashboard() {
                         <div className="text-xs font-mono font-medium text-violet-600">
                           {fmtCurrency(venue.revenue)}
                         </div>
-                        <div className="text-xs font-mono text-slate-500">
+                        <div className="text-xs font-mono text-text-muted">
                           {fmt(venue.impressions)} imp
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-xs font-mono text-slate-500">
+                        <div className="text-xs font-mono text-text-muted">
                           eCPM
                         </div>
-                        <div className="text-xs font-mono font-medium text-amber-600">
+                        <div className="text-xs font-mono font-medium text-status-warning">
                           {fmtCurrency(venue.ecpm)}
                         </div>
                       </div>
@@ -869,12 +869,12 @@ export default function ProgrammaticDashboard() {
             </div>
           )}
           {topVenues.length > 0 && !canViewRevenue && (
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-5">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-5">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-1 h-4 rounded-full bg-violet-500" />
-                <h3 className="text-sm font-medium text-slate-900">Top Venues nach Revenue</h3>
+                <h3 className="text-sm font-medium text-text-primary">Top Venues nach Revenue</h3>
               </div>
-              <div className="flex items-center justify-center py-8 text-slate-500 text-sm gap-2">
+              <div className="flex items-center justify-center py-8 text-text-muted text-sm gap-2">
                 <Lock size={16} />
                 <span>Umsatzdaten nur mit Berechtigung sichtbar</span>
               </div>
@@ -883,22 +883,22 @@ export default function ProgrammaticDashboard() {
 
           {/* Underperforming Venues */}
           {underperformers.length > 0 && canViewRevenue && (
-            <div className="bg-white/60 backdrop-blur-xl border border-amber-200/40 rounded-2xl shadow-sm shadow-black/[0.03]">
+            <div className="bg-surface-primary border border-status-warning/20/40 rounded-2xl shadow-card">
               <div className="flex items-center gap-2 p-5 pb-3">
-                <div className="w-1 h-4 rounded-full bg-amber-500" />
-                <AlertTriangle size={14} className="text-amber-500" />
-                <h3 className="text-sm font-medium text-slate-900">Underperforming Venues</h3>
-                <span className="text-xs font-mono text-amber-600 bg-amber-50/80 px-2 py-0.5 rounded">
+                <div className="w-1 h-4 rounded-full bg-status-warning" />
+                <AlertTriangle size={14} className="text-status-warning" />
+                <h3 className="text-sm font-medium text-text-primary">Underperforming Venues</h3>
+                <span className="text-xs font-mono text-status-warning bg-status-warning/10/80 px-2 py-0.5 rounded">
                   {underperformers.length}
                 </span>
-                <span className="text-xs text-slate-500 ml-1">
+                <span className="text-xs text-text-muted ml-1">
                   Aktiv aber &lt;30% des Ø Revenue/Tag
                 </span>
               </div>
 
               <div className="px-5 pb-2">
                 {/* Header */}
-                <div className="flex items-center gap-3 py-1.5 px-3 text-xs font-mono text-slate-500 uppercase tracking-wider border-b border-slate-100/60">
+                <div className="flex items-center gap-3 py-1.5 px-3 text-xs font-mono text-text-muted uppercase tracking-wider border-b border-border-secondary/60">
                   <span className="w-5">#</span>
                   <span className="flex-1">Venue</span>
                   <span className="w-16 text-right">Tage</span>
@@ -913,42 +913,42 @@ export default function ProgrammaticDashboard() {
                 {underperformers.map((venue, i) => (
                   <div
                     key={venue.id}
-                    className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-amber-50/40 transition-colors"
+                    className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-status-warning/10/40 transition-colors"
                   >
-                    <span className="w-5 text-xs font-mono text-slate-500 text-right">
+                    <span className="w-5 text-xs font-mono text-text-muted text-right">
                       {i + 1}.
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-medium text-slate-900 truncate">
+                        <span className="text-xs font-mono font-medium text-text-primary truncate">
                           {venue.doId}
                         </span>
                         {venue.locationName && (
-                          <span className="text-xs text-slate-500 truncate">
+                          <span className="text-xs text-text-muted truncate">
                             {venue.locationName}
                           </span>
                         )}
                         {venue.city && (
-                          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-slate-100/80 text-slate-500 flex-shrink-0">
+                          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted flex-shrink-0">
                             {venue.city}
                           </span>
                         )}
                       </div>
                     </div>
-                    <span className="w-16 text-xs font-mono text-slate-500 text-right">
+                    <span className="w-16 text-xs font-mono text-text-muted text-right">
                       {venue.activeDays}d
                     </span>
-                    <span className="w-20 text-xs font-mono text-slate-500 text-right">
+                    <span className="w-20 text-xs font-mono text-text-muted text-right">
                       {fmt(venue.spotsPerDay)}
                     </span>
-                    <span className="w-20 text-xs font-mono text-amber-600 font-medium text-right">
+                    <span className="w-20 text-xs font-mono text-status-warning font-medium text-right">
                       {fmtCurrency(venue.revenuePerDay)}
                     </span>
-                    <span className="w-20 text-xs font-mono text-slate-500 text-right">
+                    <span className="w-20 text-xs font-mono text-text-muted text-right">
                       {fmtCurrency(venue.totalRevenue)}
                     </span>
                     <span className={`w-16 text-xs font-mono font-medium text-right ${
-                      venue.pctOfAvg < 10 ? 'text-red-500' : 'text-amber-500'
+                      venue.pctOfAvg < 10 ? 'text-status-offline' : 'text-status-warning'
                     }`}>
                       {venue.pctOfAvg}%
                     </span>

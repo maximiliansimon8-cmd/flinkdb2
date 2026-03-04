@@ -655,14 +655,14 @@ export async function fetchGroups() {
 
 function getDefaultGroups() {
   return [
-    { id: 'grp_admin', name: 'Admin', description: 'Vollzugriff', color: '#3b82f6', icon: 'Shield', tabs: [], actions: [], memberCount: 0 },
-    { id: 'grp_operations', name: 'Operations', description: 'Display-Management, Hardware & Tasks', color: '#22c55e', icon: 'Wrench',
+    { id: 'grp_admin', name: 'Admin', description: 'Vollzugriff', color: '#007AFF', icon: 'Shield', tabs: [], actions: [], memberCount: 0 },
+    { id: 'grp_operations', name: 'Operations', description: 'Display-Management, Hardware & Tasks', color: '#34C759', icon: 'Wrench',
       tabs: ['displays', 'displays.overview', 'displays.list', 'displays.cities', 'hardware', 'hardware.inventory', 'hardware.wareneingang', 'hardware.qr-codes', 'hardware.positionen', 'hardware.bestellwesen', 'hardware.lager-versand', 'hardware.tracking', 'tasks', 'communication', 'map'],
       actions: ['view', 'export', 'view_contacts', 'view_leasing', 'view_identities', 'view_sim_details', 'create_task', 'edit_task', 'delete_task', 'change_display_status', 'initiate_swap', 'initiate_deinstall', 'manage_hardware', 'send_message', 'view_messages'], memberCount: 0 },
-    { id: 'grp_akquise', name: 'Akquise', description: 'Neukundengewinnung & Pipeline', color: '#f59e0b', icon: 'Target',
+    { id: 'grp_akquise', name: 'Akquise', description: 'Neukundengewinnung & Pipeline', color: '#FF9500', icon: 'Target',
       tabs: ['displays', 'displays.overview', 'displays.list', 'displays.cities', 'acquisition', 'acquisition.netzwerk', 'acquisition.pipeline', 'acquisition.storno', 'akquise-app', 'contacts', 'activities', 'map', 'communication'],
       actions: ['view', 'export', 'view_contacts', 'view_contracts', 'view_frequency', 'create_task', 'manage_akquise', 'manage_akquise_automation', 'send_message', 'view_messages'], memberCount: 0 },
-    { id: 'grp_account_management', name: 'Account Management', description: 'Bestandskundenbetreuung & Renewals', color: '#8b5cf6', icon: 'Users',
+    { id: 'grp_account_management', name: 'Account Management', description: 'Bestandskundenbetreuung & Renewals', color: '#AF52DE', icon: 'Users',
       tabs: ['displays', 'displays.overview', 'displays.list', 'displays.cities', 'acquisition', 'acquisition.netzwerk', 'contacts', 'activities', 'communication', 'tasks', 'programmatic', 'map'],
       actions: ['view', 'export', 'view_contacts', 'view_contracts', 'view_revenue', 'view_leasing', 'view_frequency', 'manage_accounts', 'create_task', 'send_message', 'view_messages'], memberCount: 0 },
     { id: 'grp_management', name: 'Management', description: 'Berichte & Finanzen', color: '#a855f7', icon: 'BarChart3',

@@ -199,13 +199,13 @@ export function normalizeStandort(raw, booking, termin) {
    ═══════════════════════════════════════════════ */
 
 const BOOKING_STATUS = {
-  none:      { label: 'Kein Termin',   color: 'bg-gray-100 text-gray-600 border-gray-200', icon: Clock },
-  pending:   { label: 'Eingeladen',    color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Send },
-  booked:    { label: 'Eingebucht',    color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
-  confirmed: { label: 'Eingebucht',    color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
+  none:      { label: 'Kein Termin',   color: 'bg-surface-secondary text-text-secondary border-border-secondary', icon: Clock },
+  pending:   { label: 'Eingeladen',    color: 'bg-status-warning/10 text-yellow-700 border-status-warning/20', icon: Send },
+  booked:    { label: 'Eingebucht',    color: 'bg-status-online/10 text-green-700 border-status-online/20', icon: CheckCircle },
+  confirmed: { label: 'Eingebucht',    color: 'bg-status-online/10 text-green-700 border-status-online/20', icon: CheckCircle },
   completed: { label: 'Abgeschlossen', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
-  cancelled: { label: 'Storniert',     color: 'bg-red-100 text-red-700 border-red-200', icon: X },
-  no_show:   { label: 'No-Show',       color: 'bg-gray-100 text-gray-600 border-gray-200', icon: ShieldAlert },
+  cancelled: { label: 'Storniert',     color: 'bg-status-offline/10 text-red-700 border-status-offline/20', icon: X },
+  no_show:   { label: 'No-Show',       color: 'bg-surface-secondary text-text-secondary border-border-secondary', icon: ShieldAlert },
 };
 
 function BookingStatusBadge({ status }) {
@@ -220,11 +220,11 @@ function BookingStatusBadge({ status }) {
 
 function StatusBadge({ label, variant = 'default' }) {
   const variants = {
-    green: 'bg-green-100 text-green-700 border-green-200',
+    green: 'bg-status-online/10 text-green-700 border-status-online/20',
     cyan: 'bg-cyan-100 text-cyan-700 border-cyan-200',
-    amber: 'bg-amber-100 text-amber-700 border-amber-200',
-    blue: 'bg-blue-100 text-blue-700 border-blue-200',
-    default: 'bg-gray-100 text-gray-600 border-gray-200',
+    amber: 'bg-status-warning/10 text-amber-700 border-status-warning/20',
+    blue: 'bg-accent-light text-blue-700 border-accent/20',
+    default: 'bg-surface-secondary text-text-secondary border-border-secondary',
   };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${variants[variant] || variants.default}`}>
@@ -237,8 +237,8 @@ function InfoRow({ label, value, mono }) {
   if (!value || value === '--') return null;
   return (
     <div>
-      <div className="text-gray-400 text-xs">{label}</div>
-      <div className={`text-gray-900 text-sm ${mono ? 'font-mono text-xs' : ''}`}>{value}</div>
+      <div className="text-text-muted text-xs">{label}</div>
+      <div className={`text-text-primary text-sm ${mono ? 'font-mono text-xs' : ''}`}>{value}</div>
     </div>
   );
 }
@@ -258,23 +258,23 @@ function TimelineSection({ booking, rawBooking }) {
 
   // From rawBooking (Supabase booking record)
   if (rawBooking) {
-    addEntry(rawBooking.created_at, 'Buchung erstellt', Plus, 'text-gray-400');
-    addEntry(rawBooking.whatsapp_sent_at, 'WhatsApp gesendet', Send, 'text-green-500');
-    addEntry(rawBooking.booked_at, 'Termin gebucht', CalendarCheck, 'text-blue-500');
+    addEntry(rawBooking.created_at, 'Buchung erstellt', Plus, 'text-text-muted');
+    addEntry(rawBooking.whatsapp_sent_at, 'WhatsApp gesendet', Send, 'text-status-online');
+    addEntry(rawBooking.booked_at, 'Termin gebucht', CalendarCheck, 'text-accent');
     addEntry(rawBooking.confirmed_at, 'Termin bestaetigt', CheckCircle, 'text-emerald-500');
-    addEntry(rawBooking.reminder_sent_at, 'Erinnerung gesendet', Clock, 'text-amber-500');
+    addEntry(rawBooking.reminder_sent_at, 'Erinnerung gesendet', Clock, 'text-status-warning');
     addEntry(rawBooking.updated_at && rawBooking.updated_at !== rawBooking.created_at
-      ? rawBooking.updated_at : null, 'Zuletzt aktualisiert', RotateCcw, 'text-gray-400');
+      ? rawBooking.updated_at : null, 'Zuletzt aktualisiert', RotateCcw, 'text-text-muted');
   } else if (booking) {
-    addEntry(booking.whatsappSentAt, 'WhatsApp gesendet', Send, 'text-green-500');
-    addEntry(booking.bookedAt, 'Termin gebucht', CalendarCheck, 'text-blue-500');
-    addEntry(booking.reminderSentAt, 'Erinnerung gesendet', Clock, 'text-amber-500');
-    addEntry(booking.updatedAt, 'Zuletzt aktualisiert', RotateCcw, 'text-gray-400');
+    addEntry(booking.whatsappSentAt, 'WhatsApp gesendet', Send, 'text-status-online');
+    addEntry(booking.bookedAt, 'Termin gebucht', CalendarCheck, 'text-accent');
+    addEntry(booking.reminderSentAt, 'Erinnerung gesendet', Clock, 'text-status-warning');
+    addEntry(booking.updatedAt, 'Zuletzt aktualisiert', RotateCcw, 'text-text-muted');
   }
 
   // Airtable enrichment
   if (rawBooking?._terminStatus) {
-    addEntry(rawBooking.booked_date, `Terminstatus: ${rawBooking._terminStatus}`, Calendar, 'text-purple-500');
+    addEntry(rawBooking.booked_date, `Terminstatus: ${rawBooking._terminStatus}`, Calendar, 'text-brand-purple');
   }
   if (rawBooking?._statusInstallation) {
     addEntry(rawBooking.booked_date, `Installation: ${rawBooking._statusInstallation}`, Wrench, 'text-indigo-500');
@@ -286,24 +286,24 @@ function TimelineSection({ booking, rawBooking }) {
   if (entries.length === 0) return null;
 
   return (
-    <div className="bg-gray-50 rounded-2xl p-4 space-y-1 border border-gray-100">
-      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5 mb-3">
+    <div className="bg-surface-secondary rounded-2xl p-4 space-y-1 border border-gray-100">
+      <h4 className="text-sm font-semibold text-text-primary flex items-center gap-1.5 mb-3">
         <History size={14} /> Verlauf
       </h4>
       <div className="relative">
         {/* Vertical line */}
-        <div className="absolute left-[9px] top-2 bottom-2 w-px bg-gray-200" />
+        <div className="absolute left-[9px] top-2 bottom-2 w-px bg-surface-tertiary" />
         <div className="space-y-3">
           {entries.map((entry, i) => {
             const Icon = entry.icon;
             return (
               <div key={i} className="flex items-start gap-3 relative">
-                <div className={`w-[19px] h-[19px] rounded-full bg-white border-2 border-gray-200 flex items-center justify-center shrink-0 z-10 ${entry.color}`}>
+                <div className={`w-[19px] h-[19px] rounded-full bg-surface-primary border-2 border-border-secondary flex items-center justify-center shrink-0 z-10 ${entry.color}`}>
                   <Icon size={10} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-gray-700 font-medium">{entry.label}</div>
-                  <div className="text-[10px] text-gray-400">{formatDateTime(entry.date)}</div>
+                  <div className="text-xs text-text-primary font-medium">{entry.label}</div>
+                  <div className="text-[10px] text-text-muted">{formatDateTime(entry.date)}</div>
                 </div>
               </div>
             );
@@ -350,7 +350,7 @@ function AkquiseDetailSection({ airtableId, bookingId }) {
 
   if (loading) {
     return (
-      <div className="bg-orange-50/50 rounded-2xl p-4 border border-orange-100 flex items-center justify-center gap-2 text-sm text-orange-600">
+      <div className="bg-status-warning/10/50 rounded-2xl p-4 border border-orange-100 flex items-center justify-center gap-2 text-sm text-status-warning">
         <Loader2 size={14} className="animate-spin" /> Akquise-Daten laden...
       </div>
     );
@@ -358,7 +358,7 @@ function AkquiseDetailSection({ airtableId, bookingId }) {
 
   if (error) {
     return (
-      <div className="bg-red-50 rounded-2xl p-4 border border-red-100 text-sm text-red-600 flex items-center gap-2">
+      <div className="bg-status-offline/10 rounded-2xl p-4 border border-red-100 text-sm text-status-offline flex items-center gap-2">
         <AlertTriangle size={14} /> Fehler beim Laden: {error}
       </div>
     );
@@ -369,7 +369,7 @@ function AkquiseDetailSection({ airtableId, bookingId }) {
   const d = detail.akquise || detail;
 
   return (
-    <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
+    <div className="bg-status-warning/10/50 rounded-2xl p-4 space-y-2 border border-orange-100">
       <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
         <Building size={14} /> Akquise-Daten (Detail)
       </h4>
@@ -382,13 +382,13 @@ function AkquiseDetailSection({ airtableId, bookingId }) {
         {(d.dvacWeek || d.dvac_week || d.dvacMonth || d.dvac_month) && (<>
           <div>
             <div className="text-orange-400 text-xs">dVAC / Woche</div>
-            <div className="text-gray-900 font-semibold">
+            <div className="text-text-primary font-semibold">
               {(d.dvacWeek || d.dvac_week) != null ? Math.round(d.dvacWeek || d.dvac_week).toLocaleString('de-DE') : '--'}
             </div>
           </div>
           <div>
             <div className="text-orange-400 text-xs">dVAC / Monat</div>
-            <div className="text-gray-900 font-semibold">
+            <div className="text-text-primary font-semibold">
               {(d.dvacMonth || d.dvac_month) != null ? Math.round(d.dvacMonth || d.dvac_month).toLocaleString('de-DE') : '--'}
             </div>
           </div>
@@ -398,11 +398,11 @@ function AkquiseDetailSection({ airtableId, bookingId }) {
 
       {/* Technical details from API response */}
       {(d.hindernisse || d.hindernisse_vorhanden || d.hindernisseBeschreibung || d.hindernisse_beschreibung) && (
-        <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="mt-2 p-2 bg-status-warning/10 border border-status-warning/20 rounded-lg">
           <div className="text-xs font-medium text-amber-700 flex items-center gap-1">
             <AlertTriangle size={11} /> Hindernisse
           </div>
-          <div className="text-xs text-amber-600 whitespace-pre-wrap mt-1">
+          <div className="text-xs text-status-warning whitespace-pre-wrap mt-1">
             {d.hindernisseBeschreibung || d.hindernisse_beschreibung || d.hindernisse || d.hindernisse_vorhanden}
           </div>
         </div>
@@ -411,8 +411,8 @@ function AkquiseDetailSection({ airtableId, bookingId }) {
       {/* Kommentare from API */}
       {(d.akquiseKommentar || d.akquise_comment) && (
         <div className="mt-2">
-          <div className="text-[10px] font-semibold text-orange-500 uppercase tracking-wider mb-0.5">Akquise Kommentar</div>
-          <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-orange-100">
+          <div className="text-[10px] font-semibold text-status-warning uppercase tracking-wider mb-0.5">Akquise Kommentar</div>
+          <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-orange-100">
             {d.akquiseKommentar || d.akquise_comment}
           </div>
         </div>
@@ -605,18 +605,18 @@ export default function UnifiedStandortDetail({
   return (
     <div className={`fixed inset-0 bg-black/40 z-50 flex justify-end animate-fade-in ${className}`} onClick={onClose}>
       <div
-        className="bg-white w-full max-w-lg h-full overflow-y-auto shadow-2xl"
+        className="bg-surface-primary w-full max-w-lg h-full overflow-y-auto shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
         {/* ── Header ── */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-surface-primary border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
           <div className="min-w-0">
-            <h3 className="font-bold text-gray-900 text-lg truncate">{s.name}</h3>
-            <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+            <h3 className="font-bold text-text-primary text-lg truncate">{s.name}</h3>
+            <p className="text-sm text-text-muted flex items-center gap-1 mt-0.5">
               <MapPin size={13} /> {fullAddress || '---'}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors shrink-0">
+          <button onClick={onClose} className="p-2 hover:bg-surface-secondary rounded-xl text-text-muted transition-colors shrink-0">
             <X size={20} />
           </button>
         </div>
@@ -630,7 +630,7 @@ export default function UnifiedStandortDetail({
             {s.booking && <BookingStatusBadge status={s.booking.status} />}
             {mapsUrl && (
               <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-full hover:bg-blue-100 transition-colors">
+                className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-accent bg-accent-light border border-accent/20 rounded-full hover:bg-accent-light transition-colors">
                 <MapPin size={10} /> Maps
               </a>
             )}
@@ -646,7 +646,7 @@ export default function UnifiedStandortDetail({
              1. ACTION BAR (when showActions && rawBooking)
              ══════════════════════════════════════ */}
           {showActions && rawBooking && (
-            <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm space-y-2">
+            <div className="bg-surface-primary rounded-2xl p-3 border border-border-secondary shadow-sm space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Booked / confirmed: status change actions */}
                 {isBookedOrConfirmed && onStatusChange && (
@@ -654,7 +654,7 @@ export default function UnifiedStandortDetail({
                     <button
                       onClick={() => onStatusChange(bookingId, 'cancelled')}
                       disabled={isLoading}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 bg-status-offline/10 border border-status-offline/20 rounded-lg hover:bg-status-offline/10 transition-colors disabled:opacity-50"
                     >
                       {isLoading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                       Stornieren
@@ -662,7 +662,7 @@ export default function UnifiedStandortDetail({
                     <button
                       onClick={() => onStatusChange(bookingId, 'no_show')}
                       disabled={isLoading}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-primary bg-surface-secondary border border-border-secondary rounded-lg hover:bg-surface-secondary transition-colors disabled:opacity-50"
                     >
                       {isLoading ? <Loader2 size={12} className="animate-spin" /> : <ShieldAlert size={12} />}
                       No-Show
@@ -675,7 +675,7 @@ export default function UnifiedStandortDetail({
                   <button
                     onClick={() => onReschedule(bookingId, null, null)}
                     disabled={isLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-accent-light border border-accent/20 rounded-lg hover:bg-accent-light transition-colors disabled:opacity-50"
                   >
                     {isLoading ? <Loader2 size={12} className="animate-spin" /> : <CalendarClock size={12} />}
                     Umbuchen
@@ -687,7 +687,7 @@ export default function UnifiedStandortDetail({
                   <button
                     onClick={() => onReinvite(rawBooking)}
                     disabled={isLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-green-600 border border-green-700 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-status-online border border-green-700 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 shadow-sm"
                   >
                     {isLoading ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
                     Neu einladen
@@ -706,18 +706,18 @@ export default function UnifiedStandortDetail({
 
               {/* Cancellation details */}
               {isCancelledOrNoShow && rawBooking && (rawBooking.cancelled_by_user_name || rawBooking.cancelled_reason || rawBooking.cancelled_at) && (
-                <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-lg text-xs space-y-1">
+                <div className="mt-2 p-2.5 bg-status-offline/10 border border-status-offline/20 rounded-lg text-xs space-y-1">
                   <div className="font-semibold text-red-700 flex items-center gap-1">
                     <Trash2 size={11} /> Storno-Details
                   </div>
                   {rawBooking.cancelled_by_user_name && (
-                    <p className="text-red-600">Storniert von: <span className="font-medium">{rawBooking.cancelled_by_user_name}</span></p>
+                    <p className="text-status-offline">Storniert von: <span className="font-medium">{rawBooking.cancelled_by_user_name}</span></p>
                   )}
                   {rawBooking.cancelled_at && (
-                    <p className="text-red-600">Zeitpunkt: {new Date(rawBooking.cancelled_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-status-offline">Zeitpunkt: {new Date(rawBooking.cancelled_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                   )}
                   {rawBooking.cancelled_reason && (
-                    <p className="text-red-600">Grund: {rawBooking.cancelled_reason}</p>
+                    <p className="text-status-offline">Grund: {rawBooking.cancelled_reason}</p>
                   )}
                 </div>
               )}
@@ -729,46 +729,46 @@ export default function UnifiedStandortDetail({
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
               className="block rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:border-cyan-300 transition-colors group relative">
               <div className="bg-gradient-to-br from-blue-50 to-cyan-50 h-24 flex items-center justify-center gap-3">
-                <MapPin size={28} className="text-blue-400 group-hover:text-blue-600 transition-colors" />
+                <MapPin size={28} className="text-accent group-hover:text-accent transition-colors" />
                 <div className="text-left">
-                  <div className="text-sm font-semibold text-gray-800">{address}</div>
-                  <div className="text-xs text-gray-500">{[s.plz, s.city].filter(Boolean).join(' ')}</div>
-                  <div className="text-[10px] text-blue-500 mt-0.5 group-hover:text-blue-700 font-medium">In Google Maps oeffnen →</div>
+                  <div className="text-sm font-semibold text-text-primary">{address}</div>
+                  <div className="text-xs text-text-muted">{[s.plz, s.city].filter(Boolean).join(' ')}</div>
+                  <div className="text-[10px] text-accent mt-0.5 group-hover:text-blue-700 font-medium">In Google Maps oeffnen →</div>
                 </div>
               </div>
             </a>
           )}
 
           {/* ── Kontakt (with optional Phone Edit) ── */}
-          <div className="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+          <div className="bg-surface-secondary rounded-2xl p-4 space-y-2 border border-gray-100">
+            <h4 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
               <User size={14} /> Kontakt
             </h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <InfoRow label="Name" value={s.contactName} />
               <div>
-                <div className="text-gray-400 text-xs">Telefon</div>
+                <div className="text-text-muted text-xs">Telefon</div>
                 {editingPhone && showPhoneEdit ? (
                   <div className="flex items-center gap-1 mt-0.5">
                     <input
                       type="tel"
                       value={phoneValue}
                       onChange={e => setPhoneValue(e.target.value)}
-                      className="w-full px-2 py-1 text-sm font-mono border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      className="w-full px-2 py-1 text-sm font-mono border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20"
                       placeholder="+49..."
                       autoFocus
                     />
                     <button
                       onClick={handlePhoneSave}
                       disabled={savingPhone || !phoneValue.trim()}
-                      className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                      className="p-1.5 text-status-online hover:bg-status-online/10 rounded-lg transition-colors disabled:opacity-50"
                       title="Speichern"
                     >
                       {savingPhone ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
                     </button>
                     <button
                       onClick={handlePhoneEditCancel}
-                      className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-1.5 text-text-muted hover:bg-surface-secondary rounded-lg transition-colors"
                       title="Abbrechen"
                     >
                       <XCircle size={13} />
@@ -776,13 +776,13 @@ export default function UnifiedStandortDetail({
                   </div>
                 ) : s.contactPhone ? (
                   <div className="flex items-center gap-1">
-                    <a href={`tel:${s.contactPhone}`} className="text-gray-900 font-mono text-sm hover:text-cyan-600 transition-colors">
+                    <a href={`tel:${s.contactPhone}`} className="text-text-primary font-mono text-sm hover:text-cyan-600 transition-colors">
                       {s.contactPhone}
                     </a>
                     {showPhoneEdit && onPhoneUpdate && (
                       <button
                         onClick={handlePhoneEditStart}
-                        className="p-1 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                        className="p-1 text-text-muted hover:text-accent hover:bg-accent-light rounded transition-colors"
                         title="Telefonnummer bearbeiten"
                       >
                         <Edit3 size={11} />
@@ -791,11 +791,11 @@ export default function UnifiedStandortDetail({
                   </div>
                 ) : (
                   <div className="flex items-center gap-1">
-                    <span className="text-amber-500 flex items-center gap-1 text-sm"><PhoneOff size={11} /> Keine Nr.</span>
+                    <span className="text-status-warning flex items-center gap-1 text-sm"><PhoneOff size={11} /> Keine Nr.</span>
                     {showPhoneEdit && onPhoneUpdate && (
                       <button
                         onClick={handlePhoneEditStart}
-                        className="p-1 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                        className="p-1 text-text-muted hover:text-accent hover:bg-accent-light rounded transition-colors"
                         title="Telefonnummer hinzufuegen"
                       >
                         <Edit3 size={11} />
@@ -805,17 +805,17 @@ export default function UnifiedStandortDetail({
                 )}
               </div>
               <div>
-                <div className="text-gray-400 text-xs">E-Mail</div>
+                <div className="text-text-muted text-xs">E-Mail</div>
                 {s.contactEmail ? (
-                  <a href={`mailto:${s.contactEmail}`} className="text-gray-900 text-sm truncate block hover:text-cyan-600 transition-colors">
+                  <a href={`mailto:${s.contactEmail}`} className="text-text-primary text-sm truncate block hover:text-cyan-600 transition-colors">
                     {s.contactEmail}
                   </a>
-                ) : <span className="text-gray-400 text-sm">--</span>}
+                ) : <span className="text-text-muted text-sm">--</span>}
               </div>
               {s.jetId && !s.jetId.startsWith('rec') && (
                 <div>
-                  <div className="text-gray-400 text-xs">JET ID</div>
-                  <div className="text-gray-900 font-mono text-sm">{s.jetId}</div>
+                  <div className="text-text-muted text-xs">JET ID</div>
+                  <div className="text-text-primary font-mono text-sm">{s.jetId}</div>
                 </div>
               )}
             </div>
@@ -824,7 +824,7 @@ export default function UnifiedStandortDetail({
           {/* ── Fotos ── */}
           {resolvedImages.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+              <h4 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
                 <Image size={14} /> Standort-Fotos ({resolvedImages.length})
               </h4>
               <div className="grid grid-cols-3 gap-2">
@@ -840,14 +840,14 @@ export default function UnifiedStandortDetail({
                 ))}
               </div>
               {resolvedImages.length > 6 && (
-                <div className="text-[10px] text-gray-400 text-center">+{resolvedImages.length - 6} weitere Fotos</div>
+                <div className="text-[10px] text-text-muted text-center">+{resolvedImages.length - 6} weitere Fotos</div>
               )}
             </div>
           )}
 
           {/* ── Hindernisse / Technische Details ── */}
           {(s.hindernisse || s.hindernisseBeschreibung || s.fensterbreite || s.steckdose || s.mountType) && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+            <div className="p-3 bg-status-warning/10 border border-status-warning/20 rounded-xl space-y-2">
               <div className="text-xs font-medium text-amber-700 flex items-center gap-1.5">
                 <AlertTriangle size={13} /> Hindernisse / Technische Details
               </div>
@@ -855,19 +855,19 @@ export default function UnifiedStandortDetail({
                 <div className="text-xs text-amber-800 flex items-center gap-1"><Wrench size={11} /> Montageart: {s.mountType}</div>
               )}
               {s.hindernisse && typeof s.hindernisse === 'string' && (
-                <div className="text-xs text-amber-600 whitespace-pre-wrap">{s.hindernisse}</div>
+                <div className="text-xs text-status-warning whitespace-pre-wrap">{s.hindernisse}</div>
               )}
               {s.hindernisseBeschreibung && (
-                <div className="text-xs text-amber-600 whitespace-pre-wrap">{s.hindernisseBeschreibung}</div>
+                <div className="text-xs text-status-warning whitespace-pre-wrap">{s.hindernisseBeschreibung}</div>
               )}
               <div className="flex gap-3 text-xs">
                 {s.fensterbreite && (
-                  <span className={`inline-flex items-center gap-1 ${isVorhanden(s.fensterbreite) ? 'text-green-600' : 'text-gray-500'}`}>
+                  <span className={`inline-flex items-center gap-1 ${isVorhanden(s.fensterbreite) ? 'text-status-online' : 'text-text-muted'}`}>
                     <CheckCircle size={11} /> Fensterbreite: {s.fensterbreite === true ? 'Ja' : s.fensterbreite}
                   </span>
                 )}
                 {s.steckdose && (
-                  <span className={`inline-flex items-center gap-1 ${isVorhanden(s.steckdose) ? 'text-green-600' : 'text-gray-500'}`}>
+                  <span className={`inline-flex items-center gap-1 ${isVorhanden(s.steckdose) ? 'text-status-online' : 'text-text-muted'}`}>
                     <Zap size={11} /> Steckdose: {s.steckdose === true ? 'Ja' : s.steckdose}
                   </span>
                 )}
@@ -883,61 +883,61 @@ export default function UnifiedStandortDetail({
               </h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <div className="text-blue-400 text-xs">Status</div>
+                  <div className="text-accent text-xs">Status</div>
                   <BookingStatusBadge status={s.booking.status} />
                 </div>
                 {s.booking.bookedDate && (
                   <div>
-                    <div className="text-blue-400 text-xs">Termin</div>
+                    <div className="text-accent text-xs">Termin</div>
                     <div className="text-blue-900 font-semibold">{formatDate(s.booking.bookedDate)}</div>
                   </div>
                 )}
                 {s.booking.bookedTime && (
                   <div>
-                    <div className="text-blue-400 text-xs">Uhrzeit</div>
+                    <div className="text-accent text-xs">Uhrzeit</div>
                     <div className="text-blue-900">{s.booking.bookedTime}{s.booking.bookedEndTime ? ` - ${s.booking.bookedEndTime}` : ''}</div>
                   </div>
                 )}
                 {s.booking.routeCity && (
                   <div>
-                    <div className="text-blue-400 text-xs">Route / Stadt</div>
+                    <div className="text-accent text-xs">Route / Stadt</div>
                     <div className="text-blue-900">{s.booking.routeCity}</div>
                   </div>
                 )}
                 {s.booking.whatsappSentAt && (
                   <div>
-                    <div className="text-blue-400 text-xs">WhatsApp gesendet</div>
+                    <div className="text-accent text-xs">WhatsApp gesendet</div>
                     <div className="text-blue-900">{formatDateTime(s.booking.whatsappSentAt)}</div>
                   </div>
                 )}
                 {s.booking.bookedAt && (
                   <div>
-                    <div className="text-blue-400 text-xs">Bestaetigt am</div>
+                    <div className="text-accent text-xs">Bestaetigt am</div>
                     <div className="text-blue-900">{formatDateTime(s.booking.bookedAt)}</div>
                   </div>
                 )}
                 {s.booking.installerTeam && (
                   <div>
-                    <div className="text-blue-400 text-xs">Team</div>
+                    <div className="text-accent text-xs">Team</div>
                     <div className="text-blue-900">{s.booking.installerTeam}</div>
                   </div>
                 )}
                 {s.booking.bookingSource && (
                   <div>
-                    <div className="text-blue-400 text-xs">Quelle</div>
+                    <div className="text-accent text-xs">Quelle</div>
                     <div className="text-blue-900 text-xs">{s.booking.bookingSource === 'airtable' ? 'Airtable' : s.booking.bookingSource}</div>
                   </div>
                 )}
               </div>
               {s.booking.bookingToken && !showBookingLink && (
                 <a href={`/book/${s.booking.bookingToken}`} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium mt-1">
+                  className="inline-flex items-center gap-1 text-xs text-accent hover:text-blue-800 font-medium mt-1">
                   <ExternalLink size={11} /> Buchungsseite oeffnen
                 </a>
               )}
               {s.booking.notes && (
                 <div className="mt-2 pt-2 border-t border-blue-100">
-                  <div className="text-blue-400 text-xs mb-0.5">Notizen</div>
+                  <div className="text-accent text-xs mb-0.5">Notizen</div>
                   <div className="text-xs text-blue-900 whitespace-pre-wrap">{s.booking.notes}</div>
                 </div>
               )}
@@ -955,7 +955,7 @@ export default function UnifiedStandortDetail({
               <select
                 value={rawBooking.installer_team || ''}
                 onChange={e => onTeamChange && onTeamChange(rawBooking.id, e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-300 transition-colors"
+                className="w-full px-3 py-2 text-sm border border-brand-purple/20 rounded-xl bg-surface-primary focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-300 transition-colors"
               >
                 <option value="">-- Kein Team --</option>
                 {teams.map(team => (
@@ -974,8 +974,8 @@ export default function UnifiedStandortDetail({
             <>
               {/* Earliest date info */}
               {rawBooking.earliest_date && (
-                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                  <CalendarClock size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 p-3 bg-status-warning/10 border border-status-warning/20 rounded-xl">
+                  <CalendarClock size={14} className="text-status-warning shrink-0 mt-0.5" />
                   <div>
                     <div className="text-xs font-medium text-amber-700">Fruehestens ab</div>
                     <div className="text-sm font-semibold text-amber-900">{formatDate(rawBooking.earliest_date)}</div>
@@ -989,33 +989,33 @@ export default function UnifiedStandortDetail({
                   {!showDeferForm ? (
                     <button
                       onClick={() => setShowDeferForm(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 bg-status-warning/10 border border-status-warning/20 rounded-lg hover:bg-status-warning/10 transition-colors"
                     >
                       <CalendarClock size={12} /> Auf spaeter verschieben
                     </button>
                   ) : (
-                    <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 space-y-2">
+                    <div className="bg-status-warning/10 rounded-xl p-3 border border-status-warning/20 space-y-2">
                       <div className="text-xs font-medium text-amber-700 flex items-center gap-1">
                         <CalendarClock size={12} /> Auf spaeter verschieben
                       </div>
                       <div>
-                        <label className="text-[10px] text-amber-600 block mb-0.5">Fruehestes Datum</label>
+                        <label className="text-[10px] text-status-warning block mb-0.5">Fruehestes Datum</label>
                         <input
                           type="date"
                           value={deferDate}
                           onChange={e => setDeferDate(e.target.value)}
-                          className="w-full px-2 py-1.5 text-sm border border-amber-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-200"
+                          className="w-full px-2 py-1.5 text-sm border border-status-warning/20 rounded-lg bg-surface-primary focus:outline-none focus:ring-2 focus:ring-amber-200"
                           min={new Date().toLocaleDateString('sv-SE')}
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-amber-600 block mb-0.5">Notiz (optional)</label>
+                        <label className="text-[10px] text-status-warning block mb-0.5">Notiz (optional)</label>
                         <input
                           type="text"
                           value={deferNote}
                           onChange={e => setDeferNote(e.target.value)}
                           placeholder="z.B. Urlaub bis ..."
-                          className="w-full px-2 py-1.5 text-sm border border-amber-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-200"
+                          className="w-full px-2 py-1.5 text-sm border border-status-warning/20 rounded-lg bg-surface-primary focus:outline-none focus:ring-2 focus:ring-amber-200"
                         />
                       </div>
                       <div className="flex items-center gap-2">
@@ -1029,7 +1029,7 @@ export default function UnifiedStandortDetail({
                         </button>
                         <button
                           onClick={() => { setShowDeferForm(false); setDeferDate(''); setDeferNote(''); }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-primary border border-border-secondary rounded-lg hover:bg-surface-secondary transition-colors"
                         >
                           Abbrechen
                         </button>
@@ -1045,20 +1045,20 @@ export default function UnifiedStandortDetail({
              4. BOOKING LINK (when showBookingLink && bookingToken)
              ══════════════════════════════════════ */}
           {showBookingLink && bookingUrl && (
-            <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-100 space-y-1.5">
-              <div className="text-xs font-medium text-blue-600 flex items-center gap-1">
+            <div className="bg-accent-light/50 rounded-xl p-3 border border-blue-100 space-y-1.5">
+              <div className="text-xs font-medium text-accent flex items-center gap-1">
                 <ExternalLink size={11} /> Buchungslink
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex-1 min-w-0 text-[11px] font-mono text-blue-800 bg-white px-2.5 py-1.5 rounded-lg border border-blue-100 truncate">
+                <div className="flex-1 min-w-0 text-[11px] font-mono text-blue-800 bg-surface-primary px-2.5 py-1.5 rounded-lg border border-blue-100 truncate">
                   {bookingUrl}
                 </div>
                 <button
                   onClick={handleCopyLink}
                   className={`shrink-0 p-1.5 rounded-lg border transition-colors ${
                     linkCopied
-                      ? 'text-green-600 bg-green-50 border-green-200'
-                      : 'text-blue-600 bg-white border-blue-200 hover:bg-blue-50'
+                      ? 'text-status-online bg-status-online/10 border-status-online/20'
+                      : 'text-accent bg-surface-primary border-accent/20 hover:bg-accent-light'
                   }`}
                   title={linkCopied ? 'Kopiert!' : 'Link kopieren'}
                 >
@@ -1068,7 +1068,7 @@ export default function UnifiedStandortDetail({
                   href={bookingUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 p-1.5 text-blue-600 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                  className="shrink-0 p-1.5 text-accent bg-surface-primary border border-accent/20 rounded-lg hover:bg-accent-light transition-colors"
                   title="Buchungsseite oeffnen"
                 >
                   <ExternalLink size={13} />
@@ -1085,30 +1085,30 @@ export default function UnifiedStandortDetail({
               </h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <div className="text-purple-400 text-xs">Status</div>
+                  <div className="text-brand-purple text-xs">Status</div>
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${
-                    s.termin.status === 'Geplant' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                    s.termin.status === 'Durchgeführt' ? 'bg-green-100 text-green-700 border-green-200' :
-                    s.termin.status === 'Verschoben' ? 'bg-amber-100 text-amber-700 border-amber-200' :
-                    s.termin.status === 'Abgesagt' ? 'bg-red-100 text-red-700 border-red-200' :
-                    'bg-gray-100 text-gray-600 border-gray-200'
+                    s.termin.status === 'Geplant' ? 'bg-accent-light text-blue-700 border-accent/20' :
+                    s.termin.status === 'Durchgeführt' ? 'bg-status-online/10 text-green-700 border-status-online/20' :
+                    s.termin.status === 'Verschoben' ? 'bg-status-warning/10 text-amber-700 border-status-warning/20' :
+                    s.termin.status === 'Abgesagt' ? 'bg-status-offline/10 text-red-700 border-status-offline/20' :
+                    'bg-surface-secondary text-text-secondary border-border-secondary'
                   }`}>{s.termin.status || 'Unbekannt'}</span>
                 </div>
                 {s.termin.datum && (
                   <div>
-                    <div className="text-purple-400 text-xs">Datum</div>
+                    <div className="text-brand-purple text-xs">Datum</div>
                     <div className="text-purple-900 font-semibold">{formatDate(s.termin.datum)}</div>
                   </div>
                 )}
                 {s.termin.zeit && (
                   <div>
-                    <div className="text-purple-400 text-xs">Uhrzeit</div>
+                    <div className="text-brand-purple text-xs">Uhrzeit</div>
                     <div className="text-purple-900">{s.termin.zeit}</div>
                   </div>
                 )}
                 {s.termin.notiz && (
                   <div className="col-span-2">
-                    <div className="text-purple-400 text-xs">Notiz</div>
+                    <div className="text-brand-purple text-xs">Notiz</div>
                     <div className="text-purple-900 text-xs whitespace-pre-wrap">{s.termin.notiz}</div>
                   </div>
                 )}
@@ -1123,7 +1123,7 @@ export default function UnifiedStandortDetail({
               bookingId={rawBooking?.id || s.booking?.id}
             />
           ) : (
-            <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
+            <div className="bg-status-warning/10/50 rounded-2xl p-4 space-y-2 border border-orange-100">
               <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
                 <Building size={14} /> Akquise-Daten
               </h4>
@@ -1135,11 +1135,11 @@ export default function UnifiedStandortDetail({
                 {(s.dvacWeek || s.dvacMonth) && (<>
                   <div>
                     <div className="text-orange-400 text-xs">dVAC / Woche</div>
-                    <div className="text-gray-900 font-semibold">{s.dvacWeek != null ? Math.round(s.dvacWeek).toLocaleString('de-DE') : '--'}</div>
+                    <div className="text-text-primary font-semibold">{s.dvacWeek != null ? Math.round(s.dvacWeek).toLocaleString('de-DE') : '--'}</div>
                   </div>
                   <div>
                     <div className="text-orange-400 text-xs">dVAC / Monat</div>
-                    <div className="text-gray-900 font-semibold">{s.dvacMonth != null ? Math.round(s.dvacMonth).toLocaleString('de-DE') : '--'}</div>
+                    <div className="text-text-primary font-semibold">{s.dvacMonth != null ? Math.round(s.dvacMonth).toLocaleString('de-DE') : '--'}</div>
                   </div>
                 </>)}
                 {s.schaufenster && <InfoRow label="Schaufenster" value={s.schaufenster} />}
@@ -1166,48 +1166,48 @@ export default function UnifiedStandortDetail({
 
           {/* ── Dokumente ── */}
           {(resolvedVertragPdf.length > 0 || resolvedFawData.length > 0 || s.vertragPdfUrl || s.fawDataUrl) && (
-            <div className="bg-slate-50 rounded-2xl p-4 space-y-2 border border-slate-200">
-              <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+            <div className="bg-surface-secondary rounded-2xl p-4 space-y-2 border border-border-secondary">
+              <h4 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
                 <FileText size={14} /> Dokumente
               </h4>
               <div className="space-y-1.5">
                 {resolvedVertragPdf.map((doc, i) => (
                   <a key={`pdf-${i}`} href={doc.url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50/50 transition-colors group">
-                    <FileText size={14} className="text-green-500 shrink-0" />
+                    className="flex items-center gap-2 px-3 py-2 bg-surface-primary rounded-xl border border-gray-100 hover:border-green-300 hover:bg-status-online/10/50 transition-colors group">
+                    <FileText size={14} className="text-status-online shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-gray-900 truncate">{doc.filename || 'Vertrag PDF'}</div>
-                      {doc.size > 0 && <div className="text-[10px] text-gray-400">{(doc.size / 1024).toFixed(0)} KB</div>}
+                      <div className="text-xs font-medium text-text-primary truncate">{doc.filename || 'Vertrag PDF'}</div>
+                      {doc.size > 0 && <div className="text-[10px] text-text-muted">{(doc.size / 1024).toFixed(0)} KB</div>}
                     </div>
-                    <Download size={12} className="text-gray-300 group-hover:text-green-500 shrink-0" />
+                    <Download size={12} className="text-text-muted group-hover:text-status-online shrink-0" />
                   </a>
                 ))}
                 {resolvedFawData.map((doc, i) => (
                   <a key={`faw-${i}`} href={doc.url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group">
-                    <FileText size={14} className="text-blue-500 shrink-0" />
+                    className="flex items-center gap-2 px-3 py-2 bg-surface-primary rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-accent-light/50 transition-colors group">
+                    <FileText size={14} className="text-accent shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-gray-900 truncate">{doc.filename || 'FAW Daten'}</div>
-                      {doc.size > 0 && <div className="text-[10px] text-gray-400">{(doc.size / 1024).toFixed(0)} KB</div>}
+                      <div className="text-xs font-medium text-text-primary truncate">{doc.filename || 'FAW Daten'}</div>
+                      {doc.size > 0 && <div className="text-[10px] text-text-muted">{(doc.size / 1024).toFixed(0)} KB</div>}
                     </div>
-                    <Download size={12} className="text-gray-300 group-hover:text-blue-500 shrink-0" />
+                    <Download size={12} className="text-text-muted group-hover:text-accent shrink-0" />
                   </a>
                 ))}
                 {/* Fallback for URL-only documents (from API responses) */}
                 {resolvedVertragPdf.length === 0 && s.vertragPdfUrl && (
                   <a href={s.vertragPdfUrl} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50/50 transition-colors group">
-                    <FileText size={14} className="text-green-500 shrink-0" />
-                    <div className="text-xs font-medium text-gray-900">Vertrag PDF</div>
-                    <Download size={12} className="text-gray-300 group-hover:text-green-500 shrink-0 ml-auto" />
+                    className="flex items-center gap-2 px-3 py-2 bg-surface-primary rounded-xl border border-gray-100 hover:border-green-300 hover:bg-status-online/10/50 transition-colors group">
+                    <FileText size={14} className="text-status-online shrink-0" />
+                    <div className="text-xs font-medium text-text-primary">Vertrag PDF</div>
+                    <Download size={12} className="text-text-muted group-hover:text-status-online shrink-0 ml-auto" />
                   </a>
                 )}
                 {resolvedFawData.length === 0 && s.fawDataUrl && (
                   <a href={s.fawDataUrl} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group">
-                    <FileText size={14} className="text-blue-500 shrink-0" />
-                    <div className="text-xs font-medium text-gray-900">FAW Daten</div>
-                    <Download size={12} className="text-gray-300 group-hover:text-blue-500 shrink-0 ml-auto" />
+                    className="flex items-center gap-2 px-3 py-2 bg-surface-primary rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-accent-light/50 transition-colors group">
+                    <FileText size={14} className="text-accent shrink-0" />
+                    <div className="text-xs font-medium text-text-primary">FAW Daten</div>
+                    <Download size={12} className="text-text-muted group-hover:text-accent shrink-0 ml-auto" />
                   </a>
                 )}
               </div>
@@ -1242,25 +1242,25 @@ export default function UnifiedStandortDetail({
               {s.akquiseKommentar && (
                 <div>
                   <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Akquise</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{s.akquiseKommentar}</div>
+                  <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-sky-100">{s.akquiseKommentar}</div>
                 </div>
               )}
               {s.akquiseKommentarUpdate && (
                 <div>
                   <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Akquise Update</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{s.akquiseKommentarUpdate}</div>
+                  <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-sky-100">{s.akquiseKommentarUpdate}</div>
                 </div>
               )}
               {s.kommentarInstallationen && (
                 <div>
                   <div className="text-[10px] font-semibold text-violet-500 uppercase tracking-wider mb-0.5">Installation</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-violet-100">{s.kommentarInstallationen}</div>
+                  <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-violet-100">{s.kommentarInstallationen}</div>
                 </div>
               )}
               {s.frequencyApprovalComment && (
                 <div>
-                  <div className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-0.5">FAW Kommentar</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-amber-100">{s.frequencyApprovalComment}</div>
+                  <div className="text-[10px] font-semibold text-status-warning uppercase tracking-wider mb-0.5">FAW Kommentar</div>
+                  <div className="text-xs text-text-primary whitespace-pre-wrap bg-surface-primary rounded-lg p-2.5 border border-amber-100">{s.frequencyApprovalComment}</div>
                 </div>
               )}
             </div>
@@ -1287,7 +1287,7 @@ export default function UnifiedStandortDetail({
           {showInviteButton && onInvite && s.contactPhone && (
             <button
               onClick={() => onInvite(rawStandort)}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-green-600 border border-green-700 rounded-xl hover:bg-green-700 transition-colors shadow-sm"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-status-online border border-green-700 rounded-xl hover:bg-green-700 transition-colors shadow-sm"
             >
               <Send size={14} /> Einladung senden
             </button>

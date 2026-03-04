@@ -10,25 +10,25 @@ import { supabase } from '../utils/authService';
 
 // ─── Constants ───
 const COMPONENT_TYPES = {
-  ops:     { label: 'OPS Player', icon: Cpu,     color: '#3b82f6' },
-  display: { label: 'Display',   icon: Monitor, color: '#8b5cf6' },
-  sim:     { label: 'SIM-Karte', icon: Hash,    color: '#22c55e' },
-  mount:   { label: 'Halterung', icon: Grip,    color: '#f59e0b' },
+  ops:     { label: 'OPS Player', icon: Cpu,     color: '#007AFF' },
+  display: { label: 'Display',   icon: Monitor, color: '#AF52DE' },
+  sim:     { label: 'SIM-Karte', icon: Hash,    color: '#34C759' },
+  mount:   { label: 'Halterung', icon: Grip,    color: '#FF9500' },
 };
 
 const SHIPPING_STATUS = {
   kommissioniert: { label: 'Kommissioniert', color: '#64748b', bg: '#64748b15' },
-  verpackt:       { label: 'Verpackt',       color: '#3b82f6', bg: '#3b82f615' },
-  versendet:      { label: 'Versendet',      color: '#f59e0b', bg: '#f59e0b15' },
-  zugestellt:     { label: 'Zugestellt',      color: '#22c55e', bg: '#22c55e15' },
-  problem:        { label: 'Problem',         color: '#ef4444', bg: '#ef444415' },
+  verpackt:       { label: 'Verpackt',       color: '#007AFF', bg: '#007AFF15' },
+  versendet:      { label: 'Versendet',      color: '#FF9500', bg: '#FF950015' },
+  zugestellt:     { label: 'Zugestellt',      color: '#34C759', bg: '#34C75915' },
+  problem:        { label: 'Problem',         color: '#FF3B30', bg: '#FF3B3015' },
 };
 
 const RETURN_STATUS = {
   erwartet:    { label: 'Erwartet',    color: '#64748b', bg: '#64748b15' },
-  eingegangen: { label: 'Eingegangen', color: '#3b82f6', bg: '#3b82f615' },
-  geprueft:    { label: 'Gepr\u00fcft',      color: '#f59e0b', bg: '#f59e0b15' },
-  entschieden: { label: 'Entschieden', color: '#22c55e', bg: '#22c55e15' },
+  eingegangen: { label: 'Eingegangen', color: '#007AFF', bg: '#007AFF15' },
+  geprueft:    { label: 'Gepr\u00fcft',      color: '#FF9500', bg: '#FF950015' },
+  entschieden: { label: 'Entschieden', color: '#34C759', bg: '#34C75915' },
 };
 
 const RETURN_REASONS = [
@@ -40,9 +40,9 @@ const RETURN_REASONS = [
 ];
 
 const ITEM_CONDITIONS = [
-  { value: 'ok', label: 'OK', color: '#22c55e' },
-  { value: 'beschaedigt', label: 'Besch\u00e4digt', color: '#f59e0b' },
-  { value: 'defekt', label: 'Defekt', color: '#ef4444' },
+  { value: 'ok', label: 'OK', color: '#34C759' },
+  { value: 'beschaedigt', label: 'Besch\u00e4digt', color: '#FF9500' },
+  { value: 'defekt', label: 'Defekt', color: '#FF3B30' },
 ];
 
 // ─── Helper: StatusBadge ───
@@ -61,8 +61,8 @@ function StatusBadge({ status, config }) {
 // ─── Helper: KPI Card ───
 function KpiCard({ label, value, color }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-3 shadow-sm shadow-black/[0.03]">
-      <div className="text-[10px] text-slate-500 uppercase font-mono tracking-wider">{label}</div>
+    <div className="bg-surface-primary border border-border-secondary rounded-xl p-3 shadow-card">
+      <div className="text-[10px] text-text-muted uppercase font-mono tracking-wider">{label}</div>
       <div className="text-xl font-bold font-mono mt-0.5" style={{ color }}>{value}</div>
     </div>
   );
@@ -283,15 +283,15 @@ function LagerbestandTab() {
   return (
     <div className="space-y-6">
       {/* ─── Stock Dashboard Grid ─── */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-4 shadow-sm shadow-black/[0.03]">
+      <div className="bg-surface-primary border border-border-secondary rounded-xl p-4 shadow-card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Package size={16} className="text-blue-500" />
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+            <Package size={16} className="text-accent" />
             Aktueller Lagerbestand
           </h3>
           <button
             onClick={() => { loadStock(); loadLocations(); loadAlerts(); }}
-            className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 transition-colors"
+            className="p-2 rounded-lg border border-border-secondary hover:bg-surface-secondary text-text-muted transition-colors"
             title="Aktualisieren"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -300,19 +300,19 @@ function LagerbestandTab() {
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 size={16} className="text-blue-500 animate-spin" />
-            <span className="ml-2 text-xs text-slate-500">Lade Lagerbestand...</span>
+            <Loader2 size={16} className="text-accent animate-spin" />
+            <span className="ml-2 text-xs text-text-muted">Lade Lagerbestand...</span>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-2 px-3 text-slate-500 font-medium">Typ</th>
-                  <th className="text-center py-2 px-3 text-slate-500 font-medium">Verf\u00fcgbar</th>
-                  <th className="text-center py-2 px-3 text-slate-500 font-medium">Defekt</th>
-                  <th className="text-center py-2 px-3 text-slate-500 font-medium">Reserviert</th>
-                  <th className="text-center py-2 px-3 text-slate-500 font-medium">Gesamt</th>
+                <tr className="border-b border-border-secondary">
+                  <th className="text-left py-2 px-3 text-text-muted font-medium">Typ</th>
+                  <th className="text-center py-2 px-3 text-text-muted font-medium">Verf\u00fcgbar</th>
+                  <th className="text-center py-2 px-3 text-text-muted font-medium">Defekt</th>
+                  <th className="text-center py-2 px-3 text-text-muted font-medium">Reserviert</th>
+                  <th className="text-center py-2 px-3 text-text-muted font-medium">Gesamt</th>
                 </tr>
               </thead>
               <tbody>
@@ -321,7 +321,7 @@ function LagerbestandTab() {
                   const reserved = reservedCounts[s.type] || 0;
                   const total = s.available + defect + reserved;
                   return (
-                    <tr key={s.type} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                    <tr key={s.type} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors">
                       <td className="py-2.5 px-3">
                         <span
                           className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
@@ -331,16 +331,16 @@ function LagerbestandTab() {
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="font-mono font-bold text-green-600">{s.available}</span>
+                        <span className="font-mono font-bold text-status-online">{s.available}</span>
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className={`font-mono font-bold ${defect > 0 ? 'text-red-500' : 'text-slate-300'}`}>{defect}</span>
+                        <span className={`font-mono font-bold ${defect > 0 ? 'text-status-offline' : 'text-text-muted'}`}>{defect}</span>
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className={`font-mono font-bold ${reserved > 0 ? 'text-amber-500' : 'text-slate-300'}`}>{reserved}</span>
+                        <span className={`font-mono font-bold ${reserved > 0 ? 'text-status-warning' : 'text-text-muted'}`}>{reserved}</span>
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="font-mono font-bold text-slate-700">{total}</span>
+                        <span className="font-mono font-bold text-text-primary">{total}</span>
                       </td>
                     </tr>
                   );
@@ -352,15 +352,15 @@ function LagerbestandTab() {
       </div>
 
       {/* ─── Warehouse Locations ─── */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-4 shadow-sm shadow-black/[0.03]">
+      <div className="bg-surface-primary border border-border-secondary rounded-xl p-4 shadow-card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Warehouse size={16} className="text-blue-500" />
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+            <Warehouse size={16} className="text-accent" />
             Lagerpl\u00e4tze
           </h3>
           <button
             onClick={() => setShowLocationForm(!showLocationForm)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-accent text-white text-xs font-medium transition-colors shadow-sm"
           >
             <Plus size={14} />
             Lagerplatz
@@ -369,55 +369,55 @@ function LagerbestandTab() {
 
         {/* Add location form */}
         {showLocationForm && (
-          <form onSubmit={handleSaveLocation} className="border border-slate-200/60 rounded-lg p-4 mb-4 space-y-3 bg-white/80">
+          <form onSubmit={handleSaveLocation} className="border border-border-secondary rounded-lg p-4 mb-4 space-y-3 bg-surface-primary">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Lager *</label>
+                <label className="text-xs text-text-muted mb-1 block">Lager *</label>
                 <input type="text" value={locationForm.warehouse}
                   onChange={e => setLocationForm({ ...locationForm, warehouse: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   required />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Zone</label>
+                <label className="text-xs text-text-muted mb-1 block">Zone</label>
                 <input type="text" value={locationForm.zone}
                   onChange={e => setLocationForm({ ...locationForm, zone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   placeholder="z.B. A, B, C..." />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Regal</label>
+                <label className="text-xs text-text-muted mb-1 block">Regal</label>
                 <input type="text" value={locationForm.shelf}
                   onChange={e => setLocationForm({ ...locationForm, shelf: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   placeholder="z.B. R1, R2..." />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Name</label>
+                <label className="text-xs text-text-muted mb-1 block">Name</label>
                 <input type="text" value={locationForm.name}
                   onChange={e => setLocationForm({ ...locationForm, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   placeholder="Bezeichnung" />
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Kapazit\u00e4t</label>
+                <label className="text-xs text-text-muted mb-1 block">Kapazit\u00e4t</label>
                 <input type="number" min="1" value={locationForm.capacity}
                   onChange={e => setLocationForm({ ...locationForm, capacity: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Aktuell belegt</label>
+                <label className="text-xs text-text-muted mb-1 block">Aktuell belegt</label>
                 <input type="number" min="0" value={locationForm.current_count}
                   onChange={e => setLocationForm({ ...locationForm, current_count: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Typ</label>
+                <label className="text-xs text-text-muted mb-1 block">Typ</label>
                 <select value={locationForm.type}
                   onChange={e => setLocationForm({ ...locationForm, type: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                   <option value="allgemein">Allgemein</option>
                   <option value="ops">OPS Player</option>
                   <option value="display">Displays</option>
@@ -429,12 +429,12 @@ function LagerbestandTab() {
             </div>
             <div className="flex items-center gap-2 pt-1">
               <button type="submit" disabled={savingLocation}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent disabled:opacity-50 text-white text-xs font-medium transition-colors">
                 {savingLocation ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
                 Speichern
               </button>
               <button type="button" onClick={() => setShowLocationForm(false)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 transition-colors">
+                className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary transition-colors">
                 Abbrechen
               </button>
             </div>
@@ -443,40 +443,40 @@ function LagerbestandTab() {
 
         {loadingLocations ? (
           <div className="flex items-center justify-center py-6">
-            <Loader2 size={16} className="text-blue-500 animate-spin" />
+            <Loader2 size={16} className="text-accent animate-spin" />
           </div>
         ) : locations.length === 0 ? (
-          <div className="text-center py-6 text-slate-400 text-xs">Noch keine Lagerpl\u00e4tze definiert</div>
+          <div className="text-center py-6 text-text-muted text-xs">Noch keine Lagerpl\u00e4tze definiert</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-2 px-3 text-slate-500 font-medium">Lager</th>
-                  <th className="text-left py-2 px-3 text-slate-500 font-medium">Zone</th>
-                  <th className="text-left py-2 px-3 text-slate-500 font-medium">Regal</th>
-                  <th className="text-left py-2 px-3 text-slate-500 font-medium">Name</th>
-                  <th className="text-left py-2 px-3 text-slate-500 font-medium">Typ</th>
-                  <th className="text-left py-2 px-3 text-slate-500 font-medium">Belegung</th>
+                <tr className="border-b border-border-secondary">
+                  <th className="text-left py-2 px-3 text-text-muted font-medium">Lager</th>
+                  <th className="text-left py-2 px-3 text-text-muted font-medium">Zone</th>
+                  <th className="text-left py-2 px-3 text-text-muted font-medium">Regal</th>
+                  <th className="text-left py-2 px-3 text-text-muted font-medium">Name</th>
+                  <th className="text-left py-2 px-3 text-text-muted font-medium">Typ</th>
+                  <th className="text-left py-2 px-3 text-text-muted font-medium">Belegung</th>
                 </tr>
               </thead>
               <tbody>
                 {locations.map(loc => {
                   const pct = loc.capacity > 0 ? Math.round((loc.current_count / loc.capacity) * 100) : 0;
-                  const barColor = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#22c55e';
+                  const barColor = pct > 90 ? '#FF3B30' : pct > 70 ? '#FF9500' : '#34C759';
                   return (
-                    <tr key={loc.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-700">{loc.warehouse}</td>
-                      <td className="py-2.5 px-3 text-slate-600">{loc.zone || '\u2013'}</td>
-                      <td className="py-2.5 px-3 text-slate-600">{loc.shelf || '\u2013'}</td>
-                      <td className="py-2.5 px-3 text-slate-600">{loc.name || '\u2013'}</td>
-                      <td className="py-2.5 px-3 text-slate-500">{loc.type || 'allgemein'}</td>
+                    <tr key={loc.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors">
+                      <td className="py-2.5 px-3 font-medium text-text-primary">{loc.warehouse}</td>
+                      <td className="py-2.5 px-3 text-text-secondary">{loc.zone || '\u2013'}</td>
+                      <td className="py-2.5 px-3 text-text-secondary">{loc.shelf || '\u2013'}</td>
+                      <td className="py-2.5 px-3 text-text-secondary">{loc.name || '\u2013'}</td>
+                      <td className="py-2.5 px-3 text-text-muted">{loc.type || 'allgemein'}</td>
                       <td className="py-2.5 px-3 min-w-[160px]">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2 bg-surface-secondary rounded-full overflow-hidden">
                             <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: barColor }} />
                           </div>
-                          <span className="text-[10px] font-mono text-slate-500 w-16 text-right">{loc.current_count}/{loc.capacity}</span>
+                          <span className="text-[10px] font-mono text-text-muted w-16 text-right">{loc.current_count}/{loc.capacity}</span>
                         </div>
                       </td>
                     </tr>
@@ -489,15 +489,15 @@ function LagerbestandTab() {
       </div>
 
       {/* ─── Stock Alerts ─── */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-4 shadow-sm shadow-black/[0.03]">
+      <div className="bg-surface-primary border border-border-secondary rounded-xl p-4 shadow-card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <AlertTriangle size={16} className="text-amber-500" />
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+            <AlertTriangle size={16} className="text-status-warning" />
             Bestandswarnungen
           </h3>
           <button
             onClick={() => setShowAlertForm(!showAlertForm)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-600 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-secondary hover:bg-surface-secondary text-xs font-medium text-text-secondary transition-colors"
           >
             <Plus size={14} />
             Alert konfigurieren
@@ -506,37 +506,37 @@ function LagerbestandTab() {
 
         {/* Alert form */}
         {showAlertForm && (
-          <form onSubmit={handleSaveAlert} className="border border-slate-200/60 rounded-lg p-4 mb-4 space-y-3 bg-white/80">
+          <form onSubmit={handleSaveAlert} className="border border-border-secondary rounded-lg p-4 mb-4 space-y-3 bg-surface-primary">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Komponententyp</label>
+                <label className="text-xs text-text-muted mb-1 block">Komponententyp</label>
                 <select value={alertForm.component_type}
                   onChange={e => setAlertForm({ ...alertForm, component_type: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                   {Object.entries(COMPONENT_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Lager</label>
+                <label className="text-xs text-text-muted mb-1 block">Lager</label>
                 <input type="text" value={alertForm.warehouse}
                   onChange={e => setAlertForm({ ...alertForm, warehouse: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Mindestbestand</label>
+                <label className="text-xs text-text-muted mb-1 block">Mindestbestand</label>
                 <input type="number" min="1" value={alertForm.min_stock}
                   onChange={e => setAlertForm({ ...alertForm, min_stock: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
               </div>
             </div>
             <div className="flex items-center gap-2 pt-1">
               <button type="submit" disabled={savingAlert}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-status-warning hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
                 {savingAlert ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
                 Alert speichern
               </button>
               <button type="button" onClick={() => setShowAlertForm(false)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 transition-colors">
+                className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary transition-colors">
                 Abbrechen
               </button>
             </div>
@@ -545,10 +545,10 @@ function LagerbestandTab() {
 
         {loadingAlerts ? (
           <div className="flex items-center justify-center py-4">
-            <Loader2 size={16} className="text-blue-500 animate-spin" />
+            <Loader2 size={16} className="text-accent animate-spin" />
           </div>
         ) : alerts.length === 0 ? (
-          <div className="text-center py-4 text-slate-400 text-xs">Keine Bestandswarnungen konfiguriert</div>
+          <div className="text-center py-4 text-text-muted text-xs">Keine Bestandswarnungen konfiguriert</div>
         ) : (
           <div className="space-y-2">
             {alerts.map(alert => {
@@ -560,27 +560,27 @@ function LagerbestandTab() {
                   key={alert.id}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg border transition-colors ${
                     isLow
-                      ? 'bg-red-50/80 border-red-200 shadow-sm shadow-red-500/5'
-                      : 'bg-white/60 border-slate-200/60'
+                      ? 'bg-status-offline/10/80 border-status-offline/20 shadow-sm shadow-red-500/5'
+                      : 'bg-surface-primary border-border-secondary'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {isLow && <AlertTriangle size={14} className="text-red-500 flex-shrink-0" />}
+                    {isLow && <AlertTriangle size={14} className="text-status-offline flex-shrink-0" />}
                     <span
                       className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
                       style={{ backgroundColor: typeInfo.color + '15', color: typeInfo.color, border: `1px solid ${typeInfo.color}33` }}
                     >
                       {typeInfo.label}
                     </span>
-                    <span className="text-xs text-slate-600">{alert.warehouse}</span>
-                    <span className="text-xs text-slate-400">|</span>
-                    <span className={`text-xs font-mono font-bold ${isLow ? 'text-red-600' : 'text-green-600'}`}>
+                    <span className="text-xs text-text-secondary">{alert.warehouse}</span>
+                    <span className="text-xs text-text-muted">|</span>
+                    <span className={`text-xs font-mono font-bold ${isLow ? 'text-status-offline' : 'text-status-online'}`}>
                       {currentStock}
                     </span>
-                    <span className="text-xs text-slate-400">/ Min: {alert.min_stock}</span>
+                    <span className="text-xs text-text-muted">/ Min: {alert.min_stock}</span>
                   </div>
                   <button onClick={() => deleteAlert(alert.id)}
-                    className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-red-500 transition-colors">
+                    className="p-1 rounded hover:bg-surface-secondary text-text-muted hover:text-status-offline transition-colors">
                     <Trash2 size={12} />
                   </button>
                 </div>
@@ -854,27 +854,27 @@ function VersandTab() {
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Gesamt" value={kpis.total} color="#3b82f6" />
+        <KpiCard label="Gesamt" value={kpis.total} color="#007AFF" />
         <KpiCard label="Kommissioniert" value={kpis.komm} color="#64748b" />
-        <KpiCard label="Versendet" value={kpis.versendet} color="#f59e0b" />
-        <KpiCard label="Zugestellt" value={kpis.zugestellt} color="#22c55e" />
+        <KpiCard label="Versendet" value={kpis.versendet} color="#FF9500" />
+        <KpiCard label="Zugestellt" value={kpis.zugestellt} color="#34C759" />
       </div>
 
       {/* Header bar */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
           <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               placeholder="VS-ID, Ziel, Spediteur, Tracking..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
           </div>
-          <button onClick={loadOrders} className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500" title="Aktualisieren">
+          <button onClick={loadOrders} className="p-2 rounded-lg border border-border-secondary hover:bg-surface-secondary text-text-muted" title="Aktualisieren">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
         <button onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors shadow-sm">
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-accent text-white text-xs font-medium transition-colors shadow-sm">
           <Plus size={14} />
           Neue Sendung
         </button>
@@ -882,45 +882,45 @@ function VersandTab() {
 
       {/* ─── New Shipping Order Form ─── */}
       {showForm && (
-        <form onSubmit={handleCreateOrder} className="bg-white border border-slate-200/60 rounded-xl p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Send size={16} className="text-blue-500" />
+        <form onSubmit={handleCreateOrder} className="bg-surface-primary border border-border-secondary rounded-xl p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+            <Send size={16} className="text-accent" />
             Neue Versandbestellung
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Zieltyp *</label>
+              <label className="text-xs text-text-muted mb-1 block">Zieltyp *</label>
               <select value={form.destination_type}
                 onChange={e => setForm({ ...form, destination_type: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                 <option value="installation">Installation</option>
                 <option value="partner-lager">Partner-Lager</option>
                 <option value="ruecksendung">R\u00fccksendung</option>
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Ziel-Name *</label>
+              <label className="text-xs text-text-muted mb-1 block">Ziel-Name *</label>
               <input type="text" value={form.destination_name}
                 onChange={e => setForm({ ...form, destination_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Name des Ziels" required />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Ziel-Adresse</label>
+              <label className="text-xs text-text-muted mb-1 block">Ziel-Adresse</label>
               <input type="text" value={form.destination_address}
                 onChange={e => setForm({ ...form, destination_address: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Stra\u00dfe, PLZ Ort" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Spediteur</label>
+              <label className="text-xs text-text-muted mb-1 block">Spediteur</label>
               <select value={form.carrier}
                 onChange={e => setForm({ ...form, carrier: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                 <option value="DHL">DHL</option>
                 <option value="UPS">UPS</option>
                 <option value="DPD">DPD</option>
@@ -930,10 +930,10 @@ function VersandTab() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Verpackungsart</label>
+              <label className="text-xs text-text-muted mb-1 block">Verpackungsart</label>
               <select value={form.packaging_type}
                 onChange={e => setForm({ ...form, packaging_type: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                 <option value="Paket">Paket</option>
                 <option value="Palette">Palette</option>
                 <option value="Express">Express</option>
@@ -941,51 +941,51 @@ function VersandTab() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Erstellt von</label>
+              <label className="text-xs text-text-muted mb-1 block">Erstellt von</label>
               <input type="text" value={form.created_by}
                 onChange={e => setForm({ ...form, created_by: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Dein Name" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">Notizen</label>
+            <label className="text-xs text-text-muted mb-1 block">Notizen</label>
             <textarea value={form.notes}
               onChange={e => setForm({ ...form, notes: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
               rows={2} placeholder="Optionale Anmerkungen..." />
           </div>
 
           {/* Items */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-slate-600 font-semibold">Artikel</label>
+              <label className="text-xs text-text-secondary font-semibold">Artikel</label>
               <button type="button" onClick={addFormItem}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium text-blue-600 hover:bg-blue-50 border border-blue-200/50 transition-colors">
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium text-accent hover:bg-accent-light border border-accent/20/50 transition-colors">
                 <Plus size={12} />
                 Artikel hinzuf\u00fcgen
               </button>
             </div>
             <div className="space-y-2">
               {formItems.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-2 border border-slate-200/60 rounded-lg bg-white/40">
+                <div key={idx} className="flex items-center gap-2 p-2 border border-border-secondary rounded-lg bg-surface-primary/60">
                   <select value={item.component_type}
                     onChange={e => updateFormItem(idx, 'component_type', e.target.value)}
-                    className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs w-32">
+                    className="px-2 py-1.5 rounded-lg border border-border-secondary text-xs w-32">
                     {Object.entries(COMPONENT_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
                   <input type="text" value={item.serial_number}
                     onChange={e => updateFormItem(idx, 'serial_number', e.target.value)}
-                    className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="flex-1 px-2 py-1.5 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
                     placeholder="Seriennummer *" />
                   <input type="text" value={item.qr_code}
                     onChange={e => updateFormItem(idx, 'qr_code', e.target.value)}
-                    className="w-32 px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-32 px-2 py-1.5 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
                     placeholder="QR-Code" />
                   {formItems.length > 1 && (
                     <button type="button" onClick={() => removeFormItem(idx)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      className="p-1.5 rounded-lg text-text-muted hover:text-status-offline hover:bg-status-offline/10 transition-colors">
                       <X size={14} />
                     </button>
                   )}
@@ -996,12 +996,12 @@ function VersandTab() {
 
           <div className="flex items-center gap-2 pt-2">
             <button type="submit" disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent disabled:opacity-50 text-white text-xs font-medium transition-colors">
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
               Sendung erstellen
             </button>
             <button type="button" onClick={() => setShowForm(false)}
-              className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 transition-colors">
+              className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary transition-colors">
               Abbrechen
             </button>
           </div>
@@ -1011,49 +1011,49 @@ function VersandTab() {
       {/* ─── Shipping Orders Table ─── */}
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 size={16} className="text-blue-500 animate-spin" />
-          <span className="ml-2 text-xs text-slate-500">Lade Versandauftr\u00e4ge...</span>
+          <Loader2 size={16} className="text-accent animate-spin" />
+          <span className="ml-2 text-xs text-text-muted">Lade Versandauftr\u00e4ge...</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-xs">
+        <div className="text-center py-8 text-text-muted text-xs">
           {orders.length === 0 ? 'Noch keine Versandauftr\u00e4ge' : 'Keine Treffer f\u00fcr die Suche'}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">VS-ID</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Datum</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Ziel</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Spediteur</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Tracking</th>
-                <th className="text-center py-2 px-3 text-slate-500 font-medium">Items</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Status</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Aktionen</th>
+              <tr className="border-b border-border-secondary">
+                <th className="text-left py-2 px-3 text-text-muted font-medium">VS-ID</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Datum</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Ziel</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Spediteur</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Tracking</th>
+                <th className="text-center py-2 px-3 text-text-muted font-medium">Items</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Status</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Aktionen</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(order => {
                 const itemCount = order.shipping_order_items?.[0]?.count || 0;
                 return (
-                  <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors cursor-pointer"
+                  <tr key={order.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors cursor-pointer"
                     onClick={() => openDetail(order)}>
-                    <td className="py-2 px-3 font-mono text-blue-600 font-medium">{order.shipping_id}</td>
-                    <td className="py-2 px-3 font-mono text-slate-600">{new Date(order.created_at).toLocaleDateString('de-DE')}</td>
-                    <td className="py-2 px-3 text-slate-700">
+                    <td className="py-2 px-3 font-mono text-accent font-medium">{order.shipping_id}</td>
+                    <td className="py-2 px-3 font-mono text-text-secondary">{new Date(order.created_at).toLocaleDateString('de-DE')}</td>
+                    <td className="py-2 px-3 text-text-primary">
                       <div>{order.destination_name}</div>
-                      <div className="text-[10px] text-slate-400">{order.destination_type}</div>
+                      <div className="text-[10px] text-text-muted">{order.destination_type}</div>
                     </td>
-                    <td className="py-2 px-3 text-slate-600">{order.carrier || '\u2013'}</td>
-                    <td className="py-2 px-3 font-mono text-slate-600 text-[11px]">{order.tracking_number || '\u2013'}</td>
-                    <td className="py-2 px-3 text-center font-mono font-bold text-slate-600">{itemCount}</td>
+                    <td className="py-2 px-3 text-text-secondary">{order.carrier || '\u2013'}</td>
+                    <td className="py-2 px-3 font-mono text-text-secondary text-[11px]">{order.tracking_number || '\u2013'}</td>
+                    <td className="py-2 px-3 text-center font-mono font-bold text-text-secondary">{itemCount}</td>
                     <td className="py-2 px-3">
                       <StatusBadge status={order.status} config={SHIPPING_STATUS} />
                     </td>
                     <td className="py-2 px-3" onClick={e => e.stopPropagation()}>
                       <button onClick={() => openDetail(order)}
-                        className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/50 transition-colors">
+                        className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-surface-secondary text-text-secondary hover:bg-surface-secondary border border-border-secondary transition-colors">
                         <Eye size={10} />
                         Details
                       </button>
@@ -1068,19 +1068,19 @@ function VersandTab() {
 
       {/* ─── Detail Modal ─── */}
       {detailOrder && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDetailOrder(null)}>
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between rounded-t-xl">
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setDetailOrder(null)}>
+          <div className="bg-surface-primary rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-surface-primary border-b border-border-secondary px-5 py-4 flex items-center justify-between rounded-t-xl">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <Send size={16} className="text-blue-500" />
+                <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+                  <Send size={16} className="text-accent" />
                   Versandauftrag {detailOrder.shipping_id}
                 </h3>
-                <div className="text-xs text-slate-500 mt-0.5">
+                <div className="text-xs text-text-muted mt-0.5">
                   Erstellt am {new Date(detailOrder.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
-              <button onClick={() => setDetailOrder(null)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+              <button onClick={() => setDetailOrder(null)} className="p-1.5 rounded-lg hover:bg-surface-secondary text-text-muted">
                 <X size={16} />
               </button>
             </div>
@@ -1089,55 +1089,55 @@ function VersandTab() {
               {/* Order info */}
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-500">Zieltyp:</span>
-                  <span className="ml-2 text-slate-700 font-medium">{detailOrder.destination_type}</span>
+                  <span className="text-text-muted">Zieltyp:</span>
+                  <span className="ml-2 text-text-primary font-medium">{detailOrder.destination_type}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Ziel:</span>
-                  <span className="ml-2 text-slate-700 font-medium">{detailOrder.destination_name}</span>
+                  <span className="text-text-muted">Ziel:</span>
+                  <span className="ml-2 text-text-primary font-medium">{detailOrder.destination_name}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Adresse:</span>
-                  <span className="ml-2 text-slate-700">{detailOrder.destination_address || '\u2013'}</span>
+                  <span className="text-text-muted">Adresse:</span>
+                  <span className="ml-2 text-text-primary">{detailOrder.destination_address || '\u2013'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Spediteur:</span>
-                  <span className="ml-2 text-slate-700">{detailOrder.carrier || '\u2013'}</span>
+                  <span className="text-text-muted">Spediteur:</span>
+                  <span className="ml-2 text-text-primary">{detailOrder.carrier || '\u2013'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Tracking:</span>
-                  <span className="ml-2 text-slate-700 font-mono">{detailOrder.tracking_number || '\u2013'}</span>
+                  <span className="text-text-muted">Tracking:</span>
+                  <span className="ml-2 text-text-primary font-mono">{detailOrder.tracking_number || '\u2013'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Status:</span>
+                  <span className="text-text-muted">Status:</span>
                   <span className="ml-2"><StatusBadge status={detailOrder.status} config={SHIPPING_STATUS} /></span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Verpackung:</span>
-                  <span className="ml-2 text-slate-700">{detailOrder.packaging_type || '\u2013'}</span>
+                  <span className="text-text-muted">Verpackung:</span>
+                  <span className="ml-2 text-text-primary">{detailOrder.packaging_type || '\u2013'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Erstellt von:</span>
-                  <span className="ml-2 text-slate-700">{detailOrder.created_by || '\u2013'}</span>
+                  <span className="text-text-muted">Erstellt von:</span>
+                  <span className="ml-2 text-text-primary">{detailOrder.created_by || '\u2013'}</span>
                 </div>
               </div>
 
               {detailOrder.notes && (
-                <div className="text-xs bg-slate-50 p-3 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-500 font-medium">Notizen: </span>
-                  <span className="text-slate-700">{detailOrder.notes}</span>
+                <div className="text-xs bg-surface-secondary p-3 rounded-lg border border-border-secondary">
+                  <span className="text-text-muted font-medium">Notizen: </span>
+                  <span className="text-text-primary">{detailOrder.notes}</span>
                 </div>
               )}
 
               {/* Items */}
               <div>
-                <h4 className="text-xs font-semibold text-slate-700 mb-2">Artikel</h4>
+                <h4 className="text-xs font-semibold text-text-primary mb-2">Artikel</h4>
                 {loadingDetail ? (
                   <div className="flex items-center justify-center py-4">
-                    <Loader2 size={14} className="text-blue-500 animate-spin" />
+                    <Loader2 size={14} className="text-accent animate-spin" />
                   </div>
                 ) : detailItems.length === 0 ? (
-                  <div className="text-xs text-slate-400 text-center py-4">Keine Artikel</div>
+                  <div className="text-xs text-text-muted text-center py-4">Keine Artikel</div>
                 ) : (
                   <div className="space-y-1.5">
                     {detailItems.map(item => {
@@ -1145,14 +1145,14 @@ function VersandTab() {
                       return (
                         <div key={item.id}
                           className={`flex items-center gap-3 px-3 py-2 rounded-lg border transition-colors ${
-                            item.pick_status ? 'bg-green-50/50 border-green-200/60' : 'bg-white border-slate-200/60'
+                            item.pick_status ? 'bg-status-online/10/50 border-status-online/20/60' : 'bg-surface-primary border-border-secondary'
                           }`}
                         >
                           <button onClick={() => togglePickStatus(item.id, item.pick_status)}
                             className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
                               item.pick_status
-                                ? 'bg-green-500 border-green-500 text-white'
-                                : 'border-slate-300 hover:border-blue-400'
+                                ? 'bg-status-online border-status-online text-white'
+                                : 'border-border-primary hover:border-blue-400'
                             }`}>
                             {item.pick_status && <CheckCircle2 size={12} />}
                           </button>
@@ -1162,9 +1162,9 @@ function VersandTab() {
                           >
                             {typeInfo.label}
                           </span>
-                          <span className="font-mono text-xs text-slate-700">{item.serial_number}</span>
+                          <span className="font-mono text-xs text-text-primary">{item.serial_number}</span>
                           {item.qr_code && (
-                            <span className="font-mono text-[10px] text-slate-400">{item.qr_code}</span>
+                            <span className="font-mono text-[10px] text-text-muted">{item.qr_code}</span>
                           )}
                         </div>
                       );
@@ -1174,17 +1174,17 @@ function VersandTab() {
               </div>
 
               {/* Action buttons */}
-              <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
+              <div className="flex items-center gap-2 pt-2 border-t border-border-secondary">
                 {(detailOrder.status === 'kommissioniert' || detailOrder.status === 'verpackt') && (
                   <button onClick={() => { setTrackingModal(detailOrder); setTrackingNumber(detailOrder.tracking_number || ''); }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium transition-colors">
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-status-warning hover:bg-amber-600 text-white text-xs font-medium transition-colors">
                     <Truck size={14} />
                     Als versendet markieren
                   </button>
                 )}
                 {detailOrder.status === 'versendet' && (
                   <button onClick={markAsZugestellt}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-medium transition-colors">
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-status-online hover:bg-status-online text-white text-xs font-medium transition-colors">
                     <CheckCircle2 size={14} />
                     Als zugestellt markieren
                   </button>
@@ -1197,26 +1197,26 @@ function VersandTab() {
 
       {/* ─── Tracking Number Modal ─── */}
       {trackingModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setTrackingModal(null)}>
-          <div className="bg-white rounded-xl max-w-md w-full p-5 shadow-xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <Truck size={16} className="text-amber-500" />
+        <div className="fixed inset-0 bg-black/30 z-[60] flex items-center justify-center p-4" onClick={() => setTrackingModal(null)}>
+          <div className="bg-surface-primary rounded-xl max-w-md w-full p-5 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
+              <Truck size={16} className="text-status-warning" />
               Tracking-Nummer eingeben
             </h3>
-            <div className="text-xs text-slate-500 mb-4">
-              Sendung <span className="font-mono text-blue-600 font-medium">{trackingModal.shipping_id}</span> als versendet markieren
+            <div className="text-xs text-text-muted mb-4">
+              Sendung <span className="font-mono text-accent font-medium">{trackingModal.shipping_id}</span> als versendet markieren
             </div>
             <input type="text" value={trackingNumber}
               onChange={e => setTrackingNumber(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 mb-4"
+              className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20 mb-4"
               placeholder="Tracking-Nummer eingeben" autoFocus />
             <div className="flex items-center gap-2">
               <button onClick={markAsVersendet} disabled={!trackingNumber.trim()}
-                className="flex-1 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+                className="flex-1 px-4 py-2 rounded-lg bg-status-warning hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
                 Best\u00e4tigen
               </button>
               <button onClick={() => setTrackingModal(null)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 transition-colors">
+                className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary transition-colors">
                 Abbrechen
               </button>
             </div>
@@ -1502,27 +1502,27 @@ function RuecksendungenTab() {
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Gesamt" value={kpis.total} color="#3b82f6" />
+        <KpiCard label="Gesamt" value={kpis.total} color="#007AFF" />
         <KpiCard label="Erwartet" value={kpis.erwartet} color="#64748b" />
-        <KpiCard label="Eingegangen" value={kpis.eingegangen} color="#3b82f6" />
-        <KpiCard label="Gepr\u00fcft" value={kpis.geprueft} color="#22c55e" />
+        <KpiCard label="Eingegangen" value={kpis.eingegangen} color="#007AFF" />
+        <KpiCard label="Gepr\u00fcft" value={kpis.geprueft} color="#34C759" />
       </div>
 
       {/* Header bar */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
           <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               placeholder="RMA-ID, Quelle, Grund..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
           </div>
-          <button onClick={loadReturns} className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500" title="Aktualisieren">
+          <button onClick={loadReturns} className="p-2 rounded-lg border border-border-secondary hover:bg-surface-secondary text-text-muted" title="Aktualisieren">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
         <button onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors shadow-sm">
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-accent text-white text-xs font-medium transition-colors shadow-sm">
           <Plus size={14} />
           Neue R\u00fccksendung
         </button>
@@ -1530,35 +1530,35 @@ function RuecksendungenTab() {
 
       {/* ─── New Return Form ─── */}
       {showForm && (
-        <form onSubmit={handleCreateReturn} className="bg-white border border-slate-200/60 rounded-xl p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <RotateCcw size={16} className="text-blue-500" />
+        <form onSubmit={handleCreateReturn} className="bg-surface-primary border border-border-secondary rounded-xl p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+            <RotateCcw size={16} className="text-accent" />
             Neue R\u00fccksendung erfassen
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Quelle *</label>
+              <label className="text-xs text-text-muted mb-1 block">Quelle *</label>
               <select value={form.source_type}
                 onChange={e => setForm({ ...form, source_type: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                 <option value="standort">Standort</option>
                 <option value="partner">Partner</option>
                 <option value="techniker">Techniker</option>
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Quell-Name *</label>
+              <label className="text-xs text-text-muted mb-1 block">Quell-Name *</label>
               <input type="text" value={form.source_name}
                 onChange={e => setForm({ ...form, source_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Name / Bezeichnung" required />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Grund *</label>
+              <label className="text-xs text-text-muted mb-1 block">Grund *</label>
               <select value={form.reason}
                 onChange={e => setForm({ ...form, reason: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                 {RETURN_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
             </div>
@@ -1566,24 +1566,24 @@ function RuecksendungenTab() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Referenz</label>
+              <label className="text-xs text-text-muted mb-1 block">Referenz</label>
               <input type="text" value={form.reference}
                 onChange={e => setForm({ ...form, reference: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Swap/Deinstall-ID" />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Spediteur</label>
+              <label className="text-xs text-text-muted mb-1 block">Spediteur</label>
               <input type="text" value={form.carrier}
                 onChange={e => setForm({ ...form, carrier: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="DHL, UPS, ..." />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Tracking</label>
+              <label className="text-xs text-text-muted mb-1 block">Tracking</label>
               <input type="text" value={form.tracking_number}
                 onChange={e => setForm({ ...form, tracking_number: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Tracking-Nummer" />
             </div>
           </div>
@@ -1591,32 +1591,32 @@ function RuecksendungenTab() {
           {/* Items */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-slate-600 font-semibold">Artikel</label>
+              <label className="text-xs text-text-secondary font-semibold">Artikel</label>
               <button type="button" onClick={addFormItem}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium text-blue-600 hover:bg-blue-50 border border-blue-200/50 transition-colors">
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium text-accent hover:bg-accent-light border border-accent/20/50 transition-colors">
                 <Plus size={12} />
                 Artikel hinzuf\u00fcgen
               </button>
             </div>
             <div className="space-y-2">
               {formItems.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-2 border border-slate-200/60 rounded-lg bg-white/40">
+                <div key={idx} className="flex items-center gap-2 p-2 border border-border-secondary rounded-lg bg-surface-primary/60">
                   <select value={item.component_type}
                     onChange={e => updateFormItem(idx, 'component_type', e.target.value)}
-                    className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs w-32">
+                    className="px-2 py-1.5 rounded-lg border border-border-secondary text-xs w-32">
                     {Object.entries(COMPONENT_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
                   <input type="text" value={item.serial_number}
                     onChange={e => updateFormItem(idx, 'serial_number', e.target.value)}
-                    className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="flex-1 px-2 py-1.5 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
                     placeholder="Seriennummer *" />
                   <input type="text" value={item.qr_code}
                     onChange={e => updateFormItem(idx, 'qr_code', e.target.value)}
-                    className="w-32 px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-32 px-2 py-1.5 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
                     placeholder="QR-Code" />
                   {formItems.length > 1 && (
                     <button type="button" onClick={() => removeFormItem(idx)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      className="p-1.5 rounded-lg text-text-muted hover:text-status-offline hover:bg-status-offline/10 transition-colors">
                       <X size={14} />
                     </button>
                   )}
@@ -1627,12 +1627,12 @@ function RuecksendungenTab() {
 
           <div className="flex items-center gap-2 pt-2">
             <button type="submit" disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent disabled:opacity-50 text-white text-xs font-medium transition-colors">
               {saving ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
               R\u00fccksendung erstellen
             </button>
             <button type="button" onClick={() => setShowForm(false)}
-              className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 transition-colors">
+              className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary transition-colors">
               Abbrechen
             </button>
           </div>
@@ -1642,26 +1642,26 @@ function RuecksendungenTab() {
       {/* ─── Returns Table ─── */}
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 size={16} className="text-blue-500 animate-spin" />
-          <span className="ml-2 text-xs text-slate-500">Lade R\u00fccksendungen...</span>
+          <Loader2 size={16} className="text-accent animate-spin" />
+          <span className="ml-2 text-xs text-text-muted">Lade R\u00fccksendungen...</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-xs">
+        <div className="text-center py-8 text-text-muted text-xs">
           {returns.length === 0 ? 'Noch keine R\u00fccksendungen' : 'Keine Treffer f\u00fcr die Suche'}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">RMA-ID</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Datum</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Quelle</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Grund</th>
-                <th className="text-center py-2 px-3 text-slate-500 font-medium">Items</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Status</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Pr\u00fcfergebnis</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Entscheidung</th>
+              <tr className="border-b border-border-secondary">
+                <th className="text-left py-2 px-3 text-text-muted font-medium">RMA-ID</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Datum</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Quelle</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Grund</th>
+                <th className="text-center py-2 px-3 text-text-muted font-medium">Items</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Status</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Pr\u00fcfergebnis</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Entscheidung</th>
               </tr>
             </thead>
             <tbody>
@@ -1669,21 +1669,21 @@ function RuecksendungenTab() {
                 const itemCount = ret.return_order_items?.[0]?.count || 0;
                 const reasonInfo = RETURN_REASONS.find(r => r.value === ret.reason);
                 return (
-                  <tr key={ret.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors cursor-pointer"
+                  <tr key={ret.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors cursor-pointer"
                     onClick={() => openDetail(ret)}>
-                    <td className="py-2 px-3 font-mono text-blue-600 font-medium">{ret.return_id}</td>
-                    <td className="py-2 px-3 font-mono text-slate-600">{new Date(ret.created_at).toLocaleDateString('de-DE')}</td>
-                    <td className="py-2 px-3 text-slate-700">
+                    <td className="py-2 px-3 font-mono text-accent font-medium">{ret.return_id}</td>
+                    <td className="py-2 px-3 font-mono text-text-secondary">{new Date(ret.created_at).toLocaleDateString('de-DE')}</td>
+                    <td className="py-2 px-3 text-text-primary">
                       <div>{ret.source_name}</div>
-                      <div className="text-[10px] text-slate-400">{ret.source_type}</div>
+                      <div className="text-[10px] text-text-muted">{ret.source_type}</div>
                     </td>
-                    <td className="py-2 px-3 text-slate-600">{reasonInfo?.label || ret.reason}</td>
-                    <td className="py-2 px-3 text-center font-mono font-bold text-slate-600">{itemCount}</td>
+                    <td className="py-2 px-3 text-text-secondary">{reasonInfo?.label || ret.reason}</td>
+                    <td className="py-2 px-3 text-center font-mono font-bold text-text-secondary">{itemCount}</td>
                     <td className="py-2 px-3">
                       <StatusBadge status={ret.status} config={RETURN_STATUS} />
                     </td>
-                    <td className="py-2 px-3 text-slate-600 text-[11px]">{ret.inspection_result || '\u2013'}</td>
-                    <td className="py-2 px-3 text-slate-600 text-[11px]">{ret.decision || '\u2013'}</td>
+                    <td className="py-2 px-3 text-text-secondary text-[11px]">{ret.inspection_result || '\u2013'}</td>
+                    <td className="py-2 px-3 text-text-secondary text-[11px]">{ret.decision || '\u2013'}</td>
                   </tr>
                 );
               })}
@@ -1694,19 +1694,19 @@ function RuecksendungenTab() {
 
       {/* ─── Detail / Inspection Modal ─── */}
       {detailReturn && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDetailReturn(null)}>
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between rounded-t-xl">
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setDetailReturn(null)}>
+          <div className="bg-surface-primary rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-surface-primary border-b border-border-secondary px-5 py-4 flex items-center justify-between rounded-t-xl">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <RotateCcw size={16} className="text-blue-500" />
+                <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+                  <RotateCcw size={16} className="text-accent" />
                   R\u00fccksendung {detailReturn.return_id}
                 </h3>
-                <div className="text-xs text-slate-500 mt-0.5">
+                <div className="text-xs text-text-muted mt-0.5">
                   <StatusBadge status={detailReturn.status} config={RETURN_STATUS} />
                 </div>
               </div>
-              <button onClick={() => setDetailReturn(null)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+              <button onClick={() => setDetailReturn(null)} className="p-1.5 rounded-lg hover:bg-surface-secondary text-text-muted">
                 <X size={16} />
               </button>
             </div>
@@ -1715,57 +1715,57 @@ function RuecksendungenTab() {
               {/* Return info */}
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-500">Quelle:</span>
-                  <span className="ml-2 text-slate-700 font-medium">{detailReturn.source_name} ({detailReturn.source_type})</span>
+                  <span className="text-text-muted">Quelle:</span>
+                  <span className="ml-2 text-text-primary font-medium">{detailReturn.source_name} ({detailReturn.source_type})</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Grund:</span>
-                  <span className="ml-2 text-slate-700 font-medium">{RETURN_REASONS.find(r => r.value === detailReturn.reason)?.label || detailReturn.reason}</span>
+                  <span className="text-text-muted">Grund:</span>
+                  <span className="ml-2 text-text-primary font-medium">{RETURN_REASONS.find(r => r.value === detailReturn.reason)?.label || detailReturn.reason}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Referenz:</span>
-                  <span className="ml-2 text-slate-700 font-mono">{detailReturn.reference || '\u2013'}</span>
+                  <span className="text-text-muted">Referenz:</span>
+                  <span className="ml-2 text-text-primary font-mono">{detailReturn.reference || '\u2013'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Spediteur:</span>
-                  <span className="ml-2 text-slate-700">{detailReturn.carrier || '\u2013'}</span>
+                  <span className="text-text-muted">Spediteur:</span>
+                  <span className="ml-2 text-text-primary">{detailReturn.carrier || '\u2013'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Tracking:</span>
-                  <span className="ml-2 text-slate-700 font-mono">{detailReturn.tracking_number || '\u2013'}</span>
+                  <span className="text-text-muted">Tracking:</span>
+                  <span className="ml-2 text-text-primary font-mono">{detailReturn.tracking_number || '\u2013'}</span>
                 </div>
                 {detailReturn.inspection_result && (
                   <div>
-                    <span className="text-slate-500">Pr\u00fcfergebnis:</span>
-                    <span className="ml-2 text-slate-700 font-medium">{detailReturn.inspection_result}</span>
+                    <span className="text-text-muted">Pr\u00fcfergebnis:</span>
+                    <span className="ml-2 text-text-primary font-medium">{detailReturn.inspection_result}</span>
                   </div>
                 )}
                 {detailReturn.decision && (
                   <div>
-                    <span className="text-slate-500">Entscheidung:</span>
-                    <span className="ml-2 text-slate-700 font-medium capitalize">{detailReturn.decision}</span>
+                    <span className="text-text-muted">Entscheidung:</span>
+                    <span className="ml-2 text-text-primary font-medium capitalize">{detailReturn.decision}</span>
                   </div>
                 )}
               </div>
 
               {/* Items with inspection */}
               <div>
-                <h4 className="text-xs font-semibold text-slate-700 mb-2">
+                <h4 className="text-xs font-semibold text-text-primary mb-2">
                   Artikel {detailReturn.status === 'eingegangen' && '(Pr\u00fcfung)'}
                 </h4>
                 {loadingDetail ? (
                   <div className="flex items-center justify-center py-4">
-                    <Loader2 size={14} className="text-blue-500 animate-spin" />
+                    <Loader2 size={14} className="text-accent animate-spin" />
                   </div>
                 ) : detailItems.length === 0 ? (
-                  <div className="text-xs text-slate-400 text-center py-4">Keine Artikel</div>
+                  <div className="text-xs text-text-muted text-center py-4">Keine Artikel</div>
                 ) : (
                   <div className="space-y-2">
                     {detailItems.map(item => {
                       const typeInfo = COMPONENT_TYPES[item.component_type] || { label: item.component_type, color: '#64748b' };
                       const condInfo = ITEM_CONDITIONS.find(c => c.value === item.condition);
                       return (
-                        <div key={item.id} className="p-3 border border-slate-200/60 rounded-lg bg-white/60 space-y-2">
+                        <div key={item.id} className="p-3 border border-border-secondary rounded-lg bg-surface-primary space-y-2">
                           <div className="flex items-center gap-3">
                             <span
                               className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium"
@@ -1773,9 +1773,9 @@ function RuecksendungenTab() {
                             >
                               {typeInfo.label}
                             </span>
-                            <span className="font-mono text-xs text-slate-700">{item.serial_number}</span>
+                            <span className="font-mono text-xs text-text-primary">{item.serial_number}</span>
                             {item.qr_code && (
-                              <span className="font-mono text-[10px] text-slate-400">{item.qr_code}</span>
+                              <span className="font-mono text-[10px] text-text-muted">{item.qr_code}</span>
                             )}
                             {condInfo && (
                               <span
@@ -1793,7 +1793,7 @@ function RuecksendungenTab() {
                               <select
                                 value={item.condition || ''}
                                 onChange={e => updateItemCondition(item.id, 'condition', e.target.value)}
-                                className="px-2 py-1 rounded-lg border border-slate-200 text-xs"
+                                className="px-2 py-1 rounded-lg border border-border-secondary text-xs"
                               >
                                 <option value="">Zustand w\u00e4hlen...</option>
                                 {ITEM_CONDITIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -1802,7 +1802,7 @@ function RuecksendungenTab() {
                                 type="text"
                                 value={item.condition_notes || ''}
                                 onChange={e => updateItemCondition(item.id, 'condition_notes', e.target.value)}
-                                className="flex-1 px-2 py-1 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                className="flex-1 px-2 py-1 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                                 placeholder="Anmerkungen..."
                               />
                             </div>
@@ -1815,10 +1815,10 @@ function RuecksendungenTab() {
               </div>
 
               {/* Action buttons */}
-              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200">
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border-secondary">
                 {detailReturn.status === 'erwartet' && (
                   <button onClick={markAsEingegangen}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors">
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent text-white text-xs font-medium transition-colors">
                     <Package size={14} />
                     Als eingegangen markieren
                   </button>
@@ -1827,17 +1827,17 @@ function RuecksendungenTab() {
                 {detailReturn.status === 'eingegangen' && (
                   <>
                     <button onClick={() => completeInspection('ok')} disabled={inspecting}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-status-online hover:bg-status-online disabled:opacity-50 text-white text-xs font-medium transition-colors">
                       <CheckCircle2 size={14} />
                       Pr\u00fcfung: OK
                     </button>
                     <button onClick={() => completeInspection('teilweise_defekt')} disabled={inspecting}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-status-warning hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
                       <AlertTriangle size={14} />
                       Teilweise defekt
                     </button>
                     <button onClick={() => completeInspection('defekt')} disabled={inspecting}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-status-offline hover:bg-status-offline disabled:opacity-50 text-white text-xs font-medium transition-colors">
                       <AlertCircle size={14} />
                       Komplett defekt
                     </button>
@@ -1846,24 +1846,24 @@ function RuecksendungenTab() {
 
                 {detailReturn.status === 'geprueft' && (
                   <>
-                    <span className="text-xs text-slate-500 mr-1">Entscheidung:</span>
+                    <span className="text-xs text-text-muted mr-1">Entscheidung:</span>
                     <button onClick={() => handleDecision('lager')}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-accent text-white text-xs font-medium transition-colors">
                       <ArrowRight size={12} />
                       Lager
                     </button>
                     <button onClick={() => handleDecision('reparatur')}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-status-warning hover:bg-amber-600 text-white text-xs font-medium transition-colors">
                       <ArrowRight size={12} />
                       Reparatur
                     </button>
                     <button onClick={() => handleDecision('entsorgung')}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-status-offline hover:bg-status-offline text-white text-xs font-medium transition-colors">
                       <ArrowRight size={12} />
                       Entsorgung
                     </button>
                     <button onClick={() => handleDecision('lieferant')}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-500 hover:bg-slate-600 text-white text-xs font-medium transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-secondary0 hover:bg-surface-tertiary text-white text-xs font-medium transition-colors">
                       <ArrowRight size={12} />
                       An Lieferant
                     </button>
@@ -1895,7 +1895,7 @@ export default function LagerVersandTab() {
   return (
     <div className="space-y-4">
       {/* Sub-tab pills */}
-      <div className="flex items-center gap-0 bg-white/40 backdrop-blur-sm border border-slate-200/60 rounded-xl p-1 overflow-x-auto">
+      <div className="flex items-center gap-0 bg-surface-primary border border-border-secondary rounded-xl p-1 overflow-x-auto">
         {SUB_TABS.map(tab => {
           const Icon = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -1905,8 +1905,8 @@ export default function LagerVersandTab() {
               onClick={() => setActiveSubTab(tab.id)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all flex-1 justify-center whitespace-nowrap ${
                 isActive
-                  ? 'bg-white shadow-sm text-slate-800 border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-600'
+                  ? 'bg-surface-primary shadow-sm text-text-primary border border-border-secondary'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
             >
               <Icon size={14} />

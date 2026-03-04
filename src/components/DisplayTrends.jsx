@@ -10,10 +10,10 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-  online: '#22c55e',
-  warning: '#f59e0b',
-  critical: '#ef4444',
-  permanent_offline: '#dc2626',
+  online: '#34C759',
+  warning: '#FF9500',
+  critical: '#FF3B30',
+  permanent_offline: '#FF3B30',
 };
 
 function StatusBadge({ status }) {
@@ -156,15 +156,15 @@ export default function DisplayTrends({ onSelectDisplay }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="w-5 h-5 animate-spin text-slate-400" />
-        <span className="ml-2 text-sm text-slate-500">Lade Display-Trends...</span>
+        <RefreshCw className="w-5 h-5 animate-spin text-text-muted" />
+        <span className="ml-2 text-sm text-text-muted">Lade Display-Trends...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-500 text-sm">{error}</div>
+      <div className="text-center py-8 text-status-offline text-sm">{error}</div>
     );
   }
 
@@ -177,8 +177,8 @@ export default function DisplayTrends({ onSelectDisplay }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-slate-700">Display Status-Trends</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h3 className="text-sm font-semibold text-text-primary">Display Status-Trends</h3>
+          <p className="text-xs text-text-muted mt-0.5">
             Veränderungen der letzten {daysBack} Tage · {trends.totalTracked} Displays überwacht
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function DisplayTrends({ onSelectDisplay }) {
           <select
             value={daysBack}
             onChange={(e) => setDaysBack(Number(e.target.value))}
-            className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white/60 text-slate-600"
+            className="text-xs border border-border-secondary rounded-lg px-2 py-1 bg-surface-primary text-text-secondary"
           >
             <option value={3}>3 Tage</option>
             <option value={7}>7 Tage</option>
@@ -195,10 +195,10 @@ export default function DisplayTrends({ onSelectDisplay }) {
           </select>
           <button
             onClick={loadTrends}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors"
             title="Neu laden"
           >
-            <RefreshCw size={14} className="text-slate-400" />
+            <RefreshCw size={14} className="text-text-muted" />
           </button>
         </div>
       </div>
@@ -206,36 +206,36 @@ export default function DisplayTrends({ onSelectDisplay }) {
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
         <div
-          className={`bg-green-50/60 border rounded-xl p-3 cursor-pointer transition-all ${
+          className={`bg-status-online/10/60 border rounded-xl p-3 cursor-pointer transition-all ${
             expandedSection === 'improved' ? 'border-green-300 ring-1 ring-green-200' : 'border-green-100'
           }`}
           onClick={() => setExpandedSection(expandedSection === 'improved' ? null : 'improved')}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingUp size={16} className="text-green-500" />
+              <TrendingUp size={16} className="text-status-online" />
               <span className="text-sm font-semibold text-green-700">Verbessert</span>
             </div>
-            <span className="text-2xl font-mono font-bold text-green-600">{improved.length}</span>
+            <span className="text-2xl font-mono font-bold text-status-online">{improved.length}</span>
           </div>
-          <p className="text-[10px] text-green-500 mt-1">
+          <p className="text-[10px] text-status-online mt-1">
             {improved.filter(d => d.currentStatus === 'online').length} jetzt online
           </p>
         </div>
         <div
-          className={`bg-red-50/60 border rounded-xl p-3 cursor-pointer transition-all ${
+          className={`bg-status-offline/10/60 border rounded-xl p-3 cursor-pointer transition-all ${
             expandedSection === 'worsened' ? 'border-red-300 ring-1 ring-red-200' : 'border-red-100'
           }`}
           onClick={() => setExpandedSection(expandedSection === 'worsened' ? null : 'worsened')}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingDown size={16} className="text-red-500" />
+              <TrendingDown size={16} className="text-status-offline" />
               <span className="text-sm font-semibold text-red-700">Verschlechtert</span>
             </div>
-            <span className="text-2xl font-mono font-bold text-red-600">{worsened.length}</span>
+            <span className="text-2xl font-mono font-bold text-status-offline">{worsened.length}</span>
           </div>
-          <p className="text-[10px] text-red-500 mt-1">
+          <p className="text-[10px] text-status-offline mt-1">
             {worsened.filter(d => d.currentStatus === 'permanent_offline').length} dauerhaft offline
           </p>
         </div>
@@ -243,15 +243,15 @@ export default function DisplayTrends({ onSelectDisplay }) {
 
       {/* Improved list */}
       {expandedSection === 'improved' && (
-        <div className="bg-white/60 border border-slate-200/60 rounded-xl overflow-hidden">
-          <div className="px-3 py-2 border-b border-slate-100 bg-green-50/30">
+        <div className="bg-surface-primary border border-border-secondary rounded-xl overflow-hidden">
+          <div className="px-3 py-2 border-b border-border-secondary bg-status-online/10/30">
             <span className="text-xs font-semibold text-green-700 flex items-center gap-1.5">
               <TrendingUp size={12} />
               Verbesserte Displays ({improved.length})
             </span>
           </div>
           {improved.length === 0 ? (
-            <div className="px-3 py-6 text-center text-xs text-slate-400">
+            <div className="px-3 py-6 text-center text-xs text-text-muted">
               Keine Verbesserungen im gewählten Zeitraum
             </div>
           ) : (
@@ -259,16 +259,16 @@ export default function DisplayTrends({ onSelectDisplay }) {
               {improved.map((d) => (
                 <div
                   key={d.displayId}
-                  className="px-3 py-2 flex items-center justify-between hover:bg-slate-50/50 cursor-pointer transition-colors"
+                  className="px-3 py-2 flex items-center justify-between hover:bg-surface-secondary/50 cursor-pointer transition-colors"
                   onClick={() => onSelectDisplay?.(d.rawDisplayId || d.displayId)}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-medium text-slate-700 truncate">{d.locationName}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">{d.rawDisplayId || d.displayId}</div>
+                    <div className="text-xs font-medium text-text-primary truncate">{d.locationName}</div>
+                    <div className="text-[10px] text-text-muted font-mono">{d.rawDisplayId || d.displayId}</div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
                     <StatusBadge status={d.previousStatus} />
-                    <ArrowRight size={10} className="text-green-400" />
+                    <ArrowRight size={10} className="text-status-online" />
                     <StatusBadge status={d.currentStatus} />
                   </div>
                 </div>
@@ -280,15 +280,15 @@ export default function DisplayTrends({ onSelectDisplay }) {
 
       {/* Worsened list */}
       {expandedSection === 'worsened' && (
-        <div className="bg-white/60 border border-slate-200/60 rounded-xl overflow-hidden">
-          <div className="px-3 py-2 border-b border-slate-100 bg-red-50/30">
+        <div className="bg-surface-primary border border-border-secondary rounded-xl overflow-hidden">
+          <div className="px-3 py-2 border-b border-border-secondary bg-status-offline/10/30">
             <span className="text-xs font-semibold text-red-700 flex items-center gap-1.5">
               <TrendingDown size={12} />
               Verschlechterte Displays ({worsened.length})
             </span>
           </div>
           {worsened.length === 0 ? (
-            <div className="px-3 py-6 text-center text-xs text-slate-400">
+            <div className="px-3 py-6 text-center text-xs text-text-muted">
               Keine Verschlechterungen im gewählten Zeitraum
             </div>
           ) : (
@@ -296,16 +296,16 @@ export default function DisplayTrends({ onSelectDisplay }) {
               {worsened.map((d) => (
                 <div
                   key={d.displayId}
-                  className="px-3 py-2 flex items-center justify-between hover:bg-slate-50/50 cursor-pointer transition-colors"
+                  className="px-3 py-2 flex items-center justify-between hover:bg-surface-secondary/50 cursor-pointer transition-colors"
                   onClick={() => onSelectDisplay?.(d.rawDisplayId || d.displayId)}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-medium text-slate-700 truncate">{d.locationName}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">{d.rawDisplayId || d.displayId}</div>
+                    <div className="text-xs font-medium text-text-primary truncate">{d.locationName}</div>
+                    <div className="text-[10px] text-text-muted font-mono">{d.rawDisplayId || d.displayId}</div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
                     <StatusBadge status={d.previousStatus} />
-                    <ArrowRight size={10} className="text-red-400" />
+                    <ArrowRight size={10} className="text-status-offline" />
                     <StatusBadge status={d.currentStatus} />
                   </div>
                 </div>

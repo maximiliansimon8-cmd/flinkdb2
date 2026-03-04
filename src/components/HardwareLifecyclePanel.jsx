@@ -12,35 +12,35 @@ import QRCodeLib from 'qrcode';
 
 // ─── Constants ───
 const POSITIONS = {
-  zulieferung:  { label: 'Zulieferung',  icon: Truck,      color: '#8b5cf6' },
-  lager:        { label: 'Lager',        icon: Warehouse,  color: '#3b82f6' },
-  versand:      { label: 'Versand',      icon: Send,       color: '#f59e0b' },
-  standort:     { label: 'Am Standort',  icon: Building2,  color: '#22c55e' },
-  ruecksendung: { label: 'Rücksendung', icon: RotateCcw,  color: '#ef4444' },
+  zulieferung:  { label: 'Zulieferung',  icon: Truck,      color: '#AF52DE' },
+  lager:        { label: 'Lager',        icon: Warehouse,  color: '#007AFF' },
+  versand:      { label: 'Versand',      icon: Send,       color: '#FF9500' },
+  standort:     { label: 'Am Standort',  icon: Building2,  color: '#34C759' },
+  ruecksendung: { label: 'Rücksendung', icon: RotateCcw,  color: '#FF3B30' },
   reparatur:    { label: 'Reparatur',    icon: Wrench,     color: '#f97316' },
   entsorgung:   { label: 'Entsorgung',   icon: Trash2,     color: '#64748b' },
 };
 
 const COMPONENT_TYPES = {
-  ops:     { label: 'OPS Player', icon: Cpu,     color: '#3b82f6' },
-  display: { label: 'Display',   icon: Monitor, color: '#8b5cf6' },
-  sim:     { label: 'SIM-Karte', icon: CardSim, color: '#22c55e' },
-  mount:   { label: 'Halterung', icon: Grip,    color: '#f59e0b' },
+  ops:     { label: 'OPS Player', icon: Cpu,     color: '#007AFF' },
+  display: { label: 'Display',   icon: Monitor, color: '#AF52DE' },
+  sim:     { label: 'SIM-Karte', icon: CardSim, color: '#34C759' },
+  mount:   { label: 'Halterung', icon: Grip,    color: '#FF9500' },
 };
 
 const CONDITIONS = [
-  { value: 'ok', label: 'OK', color: '#22c55e' },
-  { value: 'damaged', label: 'Beschädigt', color: '#f59e0b' },
-  { value: 'defect', label: 'Defekt', color: '#ef4444' },
+  { value: 'ok', label: 'OK', color: '#34C759' },
+  { value: 'damaged', label: 'Beschädigt', color: '#FF9500' },
+  { value: 'defect', label: 'Defekt', color: '#FF3B30' },
   { value: 'incomplete', label: 'Unvollständig', color: '#64748b' },
 ];
 
 const QR_STATUS = {
   generated:   { bg: '#64748b15', text: '#64748b', label: 'Generiert' },
-  assigned:    { bg: '#3b82f615', text: '#3b82f6', label: 'Zugewiesen' },
-  printed:     { bg: '#8b5cf615', text: '#8b5cf6', label: 'Gedruckt' },
-  active:      { bg: '#22c55e15', text: '#22c55e', label: 'Aktiv' },
-  deactivated: { bg: '#ef444415', text: '#ef4444', label: 'Deaktiviert' },
+  assigned:    { bg: '#007AFF15', text: '#007AFF', label: 'Zugewiesen' },
+  printed:     { bg: '#AF52DE15', text: '#AF52DE', label: 'Gedruckt' },
+  active:      { bg: '#34C75915', text: '#34C759', label: 'Aktiv' },
+  deactivated: { bg: '#FF3B3015', text: '#FF3B30', label: 'Deaktiviert' },
 };
 
 // ─── Helpers ───
@@ -340,23 +340,23 @@ function WareneingangTab() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
           <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Suche nach WE-ID, Lieferant, SN..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
           </div>
-          <button onClick={loadReceipts} className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500" title="Aktualisieren">
+          <button onClick={loadReceipts} className="p-2 rounded-lg border border-border-secondary hover:bg-surface-secondary text-text-muted" title="Aktualisieren">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => { setShowImport(!showImport); setShowForm(false); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-600 transition-colors">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-secondary hover:bg-surface-secondary text-xs font-medium text-text-secondary transition-colors">
             <Upload size={14} />
             SN-Import
           </button>
           <button onClick={() => { setShowForm(!showForm); setShowImport(false); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors shadow-sm">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-accent text-white text-xs font-medium transition-colors shadow-sm">
             <Plus size={14} />
             Wareneingang
           </button>
@@ -365,42 +365,42 @@ function WareneingangTab() {
 
       {/* ─── SN Import Panel ─── */}
       {showImport && (
-        <div className="bg-white border border-slate-200/60 rounded-xl p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Upload size={16} className="text-blue-500" />
+        <div className="bg-surface-primary border border-border-secondary rounded-xl p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+            <Upload size={16} className="text-accent" />
             Seriennummern importieren
           </h3>
-          <p className="text-xs text-slate-500">CSV, TSV oder Textdatei mit Seriennummern hochladen. Eine SN pro Zeile oder als Spalte in CSV.</p>
+          <p className="text-xs text-text-muted">CSV, TSV oder Textdatei mit Seriennummern hochladen. Eine SN pro Zeile oder als Spalte in CSV.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Komponententyp *</label>
+              <label className="text-xs text-text-muted mb-1 block">Komponententyp *</label>
               <select value={importConfig.componentType} onChange={e => setImportConfig({...importConfig, componentType: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs">
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs">
                 {Object.entries(COMPONENT_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Lieferant</label>
+              <label className="text-xs text-text-muted mb-1 block">Lieferant</label>
               <input type="text" value={importConfig.supplier} onChange={e => setImportConfig({...importConfig, supplier: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs" placeholder="z.B. Philips, JWIPC..." />
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs" placeholder="z.B. Philips, JWIPC..." />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Ziellager</label>
+              <label className="text-xs text-text-muted mb-1 block">Ziellager</label>
               <input type="text" value={importConfig.warehouse} onChange={e => setImportConfig({...importConfig, warehouse: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs" />
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs" />
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <input ref={fileInputRef} type="file" accept=".csv,.tsv,.txt,.xlsx" onChange={handleFileSelect} className="hidden" />
             <button onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg border-2 border-dashed border-slate-300 hover:border-blue-400 text-xs text-slate-600 hover:text-blue-600 transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg border-2 border-dashed border-border-primary hover:border-blue-400 text-xs text-text-secondary hover:text-accent transition-colors">
               <FileText size={14} />
               Datei auswählen
             </button>
             {importData && (
-              <span className="text-xs text-green-600 font-medium">
+              <span className="text-xs text-status-online font-medium">
                 <Check size={12} className="inline mr-1" />
                 {importData.rows.length} Zeilen erkannt
               </span>
@@ -410,23 +410,23 @@ function WareneingangTab() {
           {/* Import Preview */}
           {importData && importData.rows.length > 0 && (
             <div className="space-y-3">
-              <div className="text-xs font-medium text-slate-600">Vorschau (erste 10 Zeilen):</div>
-              <div className="overflow-x-auto max-h-[200px] overflow-y-auto border border-slate-200 rounded-lg">
+              <div className="text-xs font-medium text-text-secondary">Vorschau (erste 10 Zeilen):</div>
+              <div className="overflow-x-auto max-h-[200px] overflow-y-auto border border-border-secondary rounded-lg">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-slate-50">
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left py-1.5 px-3 text-slate-500 font-medium">#</th>
+                  <thead className="sticky top-0 bg-surface-secondary">
+                    <tr className="border-b border-border-secondary">
+                      <th className="text-left py-1.5 px-3 text-text-muted font-medium">#</th>
                       {importData.headers.map((h, i) => (
-                        <th key={i} className="text-left py-1.5 px-3 text-slate-500 font-medium">{h}</th>
+                        <th key={i} className="text-left py-1.5 px-3 text-text-muted font-medium">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {importData.rows.slice(0, 10).map((row, i) => (
-                      <tr key={i} className="border-b border-slate-100">
-                        <td className="py-1.5 px-3 text-slate-400">{i + 1}</td>
+                      <tr key={i} className="border-b border-border-secondary">
+                        <td className="py-1.5 px-3 text-text-muted">{i + 1}</td>
                         {Object.values(row).map((v, j) => (
-                          <td key={j} className="py-1.5 px-3 font-mono text-slate-700">{v}</td>
+                          <td key={j} className="py-1.5 px-3 font-mono text-text-primary">{v}</td>
                         ))}
                       </tr>
                     ))}
@@ -436,12 +436,12 @@ function WareneingangTab() {
 
               <div className="flex items-center gap-3">
                 <button onClick={runImport} disabled={importing}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent disabled:opacity-50 text-white text-xs font-medium transition-colors">
                   {importing ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                   {importing ? `Importiere...` : `${importData.rows.length} Seriennummern importieren`}
                 </button>
                 <button onClick={() => { setImportData(null); setImportResult(null); }}
-                  className="px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50">
+                  className="px-3 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary">
                   Verwerfen
                 </button>
               </div>
@@ -450,15 +450,15 @@ function WareneingangTab() {
 
           {/* Import Results */}
           {importResult && (
-            <div className={`rounded-lg p-3 border ${importResult.errors > 0 ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+            <div className={`rounded-lg p-3 border ${importResult.errors > 0 ? 'bg-status-warning/10 border-status-warning/20' : 'bg-status-online/10 border-status-online/20'}`}>
               <div className="text-sm font-medium mb-2 flex items-center gap-2">
-                {importResult.errors > 0 ? <AlertTriangle size={14} className="text-amber-600" /> : <CheckCircle2 size={14} className="text-green-600" />}
+                {importResult.errors > 0 ? <AlertTriangle size={14} className="text-status-warning" /> : <CheckCircle2 size={14} className="text-status-online" />}
                 Import abgeschlossen
               </div>
               <div className="flex gap-4 text-xs">
                 <span className="text-green-700"><strong>{importResult.imported}</strong> importiert</span>
-                <span className="text-amber-600"><strong>{importResult.duplicates}</strong> Duplikate</span>
-                <span className="text-red-600"><strong>{importResult.errors}</strong> Fehler</span>
+                <span className="text-status-warning"><strong>{importResult.duplicates}</strong> Duplikate</span>
+                <span className="text-status-offline"><strong>{importResult.errors}</strong> Fehler</span>
               </div>
             </div>
           )}
@@ -467,57 +467,57 @@ function WareneingangTab() {
 
       {/* ─── Single Receipt Form ─── */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border border-slate-200/60 rounded-xl p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Package size={16} className="text-blue-500" />
+        <form onSubmit={handleSubmit} className="bg-surface-primary border border-border-secondary rounded-xl p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+            <Package size={16} className="text-accent" />
             Neuer Wareneingang
-            <span className="text-[10px] text-slate-400 font-normal ml-2">QR-Code wird automatisch generiert</span>
+            <span className="text-[10px] text-text-muted font-normal ml-2">QR-Code wird automatisch generiert</span>
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Lieferant</label>
+              <label className="text-xs text-text-muted mb-1 block">Lieferant</label>
               <input type="text" value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="z.B. Philips, JWIPC, 1NCE..." />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Lieferschein-Nr</label>
+              <label className="text-xs text-text-muted mb-1 block">Lieferschein-Nr</label>
               <input type="text" value={form.deliveryNote} onChange={e => setForm({...form, deliveryNote: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Spediteur</label>
+              <label className="text-xs text-text-muted mb-1 block">Spediteur</label>
               <input type="text" value={form.carrier} onChange={e => setForm({...form, carrier: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="z.B. DHL, UPS..." />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Komponententyp *</label>
+              <label className="text-xs text-text-muted mb-1 block">Komponententyp *</label>
               <select value={form.componentType} onChange={e => setForm({...form, componentType: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                 {Object.entries(COMPONENT_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 <option value="accessory">Zubehör</option>
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Seriennummer *</label>
+              <label className="text-xs text-text-muted mb-1 block">Seriennummer *</label>
               <input type="text" value={form.serialNumber} onChange={e => setForm({...form, serialNumber: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="SN scannen oder eingeben" required />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Anzahl</label>
+              <label className="text-xs text-text-muted mb-1 block">Anzahl</label>
               <input type="number" min="1" value={form.quantity} onChange={e => setForm({...form, quantity: parseInt(e.target.value) || 1})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Zustand</label>
+              <label className="text-xs text-text-muted mb-1 block">Zustand</label>
               <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20">
                 {CONDITIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
@@ -525,39 +525,39 @@ function WareneingangTab() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Empfangen von</label>
+              <label className="text-xs text-text-muted mb-1 block">Empfangen von</label>
               <input type="text" value={form.receivedBy} onChange={e => setForm({...form, receivedBy: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Ziellager</label>
+              <label className="text-xs text-text-muted mb-1 block">Ziellager</label>
               <input type="text" value={form.warehouse} onChange={e => setForm({...form, warehouse: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Bestellnummer / PO</label>
+              <label className="text-xs text-text-muted mb-1 block">Bestellnummer / PO</label>
               <input type="text" value={form.orderReference} onChange={e => setForm({...form, orderReference: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
             </div>
           </div>
 
           {form.condition !== 'ok' && (
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Zustandsbeschreibung</label>
+              <label className="text-xs text-text-muted mb-1 block">Zustandsbeschreibung</label>
               <textarea value={form.conditionNotes} onChange={e => setForm({...form, conditionNotes: e.target.value})}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 rows={2} placeholder="Beschreibung von Schäden etc." />
             </div>
           )}
 
           <div className="flex items-center gap-2 pt-2">
             <button type="submit" disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-medium transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent disabled:opacity-50 text-white text-xs font-medium transition-colors">
               {saving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
               Erfassen + QR generieren
             </button>
             <button type="button" onClick={() => setShowForm(false)}
-              className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 transition-colors">
+              className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary transition-colors">
               Abbrechen
             </button>
           </div>
@@ -567,26 +567,26 @@ function WareneingangTab() {
       {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 size={16} className="text-blue-500 animate-spin" />
-          <span className="ml-2 text-xs text-slate-500">Lade Wareneingänge...</span>
+          <Loader2 size={16} className="text-accent animate-spin" />
+          <span className="ml-2 text-xs text-text-muted">Lade Wareneingänge...</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-xs">
+        <div className="text-center py-8 text-text-muted text-xs">
           {receipts.length === 0 ? 'Noch keine Wareneingänge erfasst' : 'Keine Treffer für die Suche'}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">WE-ID</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Datum</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Typ</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Lieferant</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">SN</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">QR-Code</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Zustand</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Lager</th>
+              <tr className="border-b border-border-secondary">
+                <th className="text-left py-2 px-3 text-text-muted font-medium">WE-ID</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Datum</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Typ</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Lieferant</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">SN</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">QR-Code</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Zustand</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Lager</th>
               </tr>
             </thead>
             <tbody>
@@ -595,23 +595,23 @@ function WareneingangTab() {
                 const condInfo = CONDITIONS.find(c => c.value === r.condition) || CONDITIONS[0];
                 const qrCode = r.hardware_qr_codes?.qr_code || (r.qr_code_id ? `QR #${r.qr_code_id}` : null);
                 return (
-                  <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                    <td className="py-2 px-3 font-mono text-blue-600">{r.receipt_id}</td>
-                    <td className="py-2 px-3 font-mono text-slate-600">{new Date(r.receipt_date).toLocaleDateString('de-DE')}</td>
+                  <tr key={r.id} className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors">
+                    <td className="py-2 px-3 font-mono text-accent">{r.receipt_id}</td>
+                    <td className="py-2 px-3 font-mono text-text-secondary">{new Date(r.receipt_date).toLocaleDateString('de-DE')}</td>
                     <td className="py-2 px-3">
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs"
                         style={{ backgroundColor: typeInfo.color + '15', color: typeInfo.color, border: `1px solid ${typeInfo.color}33` }}>
                         {typeInfo.label}
                       </span>
                     </td>
-                    <td className="py-2 px-3 text-slate-700">{r.supplier || '–'}</td>
-                    <td className="py-2 px-3 font-mono text-slate-600 text-[11px]">{r.serial_number || '–'}</td>
+                    <td className="py-2 px-3 text-text-primary">{r.supplier || '–'}</td>
+                    <td className="py-2 px-3 font-mono text-text-secondary text-[11px]">{r.serial_number || '–'}</td>
                     <td className="py-2 px-3">
                       {qrCode ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] bg-blue-50 text-blue-600 border border-blue-200/50 font-mono">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] bg-accent-light text-accent border border-accent/20/50 font-mono">
                           <QrCode size={10} />{qrCode}
                         </span>
-                      ) : <span className="text-slate-300">–</span>}
+                      ) : <span className="text-text-muted">–</span>}
                     </td>
                     <td className="py-2 px-3">
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs"
@@ -619,7 +619,7 @@ function WareneingangTab() {
                         {condInfo.label}
                       </span>
                     </td>
-                    <td className="py-2 px-3 text-slate-600">{r.warehouse}</td>
+                    <td className="py-2 px-3 text-text-secondary">{r.warehouse}</td>
                   </tr>
                 );
               })}
@@ -800,14 +800,14 @@ function QRCodeTab() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label: 'Gesamt', value: kpis.total, color: '#3b82f6' },
+          { label: 'Gesamt', value: kpis.total, color: '#007AFF' },
           { label: 'Generiert', value: kpis.generated, color: '#64748b' },
-          { label: 'Zugewiesen', value: kpis.assigned, color: '#8b5cf6' },
-          { label: 'Gedruckt', value: kpis.printed, color: '#f59e0b' },
-          { label: 'Aktiv', value: kpis.active, color: '#22c55e' },
+          { label: 'Zugewiesen', value: kpis.assigned, color: '#AF52DE' },
+          { label: 'Gedruckt', value: kpis.printed, color: '#FF9500' },
+          { label: 'Aktiv', value: kpis.active, color: '#34C759' },
         ].map(k => (
-          <div key={k.label} className="bg-white/60 border border-slate-200/60 rounded-xl p-3">
-            <div className="text-[10px] text-slate-500 uppercase font-mono">{k.label}</div>
+          <div key={k.label} className="bg-surface-primary border border-border-secondary rounded-xl p-3">
+            <div className="text-[10px] text-text-muted uppercase font-mono">{k.label}</div>
             <div className="text-xl font-bold font-mono" style={{ color: k.color }}>{k.value}</div>
           </div>
         ))}
@@ -817,12 +817,12 @@ function QRCodeTab() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
           <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-              placeholder="QR-Code, SN, Batch..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+              placeholder="QR-Code, SN, Batch..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
           </div>
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 text-xs">
+            className="px-3 py-2 rounded-lg border border-border-secondary text-xs">
             <option value="">Alle Status</option>
             {Object.entries(QR_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
           </select>
@@ -831,15 +831,15 @@ function QRCodeTab() {
         <div className="flex items-center gap-2">
           {selectedForPrint.size > 0 && (
             <button onClick={() => printLabels(codes.filter(c => selectedForPrint.has(c.id)))}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium transition-colors">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-status-warning hover:bg-amber-600 text-white text-xs font-medium transition-colors">
               <Printer size={14} />
               {selectedForPrint.size} Labels drucken
             </button>
           )}
           <input type="number" min="1" max="100" value={bulkCount} onChange={e => setBulkCount(parseInt(e.target.value) || 10)}
-            className="w-16 px-2 py-2 rounded-lg border border-slate-200 text-xs text-center" />
+            className="w-16 px-2 py-2 rounded-lg border border-border-secondary text-xs text-center" />
           <button onClick={generateBulk} disabled={generating}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-medium transition-colors shadow-sm">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-accent disabled:opacity-50 text-white text-xs font-medium transition-colors shadow-sm">
             {generating ? <Loader2 size={14} className="animate-spin" /> : <QrCode size={14} />}
             Generieren
           </button>
@@ -848,14 +848,14 @@ function QRCodeTab() {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center py-8"><Loader2 size={16} className="text-blue-500 animate-spin" /></div>
+        <div className="flex items-center justify-center py-8"><Loader2 size={16} className="text-accent animate-spin" /></div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-xs">{codes.length === 0 ? 'Noch keine QR-Codes' : 'Keine Treffer'}</div>
+        <div className="text-center py-8 text-text-muted text-xs">{codes.length === 0 ? 'Noch keine QR-Codes' : 'Keine Treffer'}</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200">
+              <tr className="border-b border-border-secondary">
                 <th className="py-2 px-2 w-8">
                   <input type="checkbox"
                     checked={filtered.length > 0 && filtered.every(c => selectedForPrint.has(c.id))}
@@ -863,14 +863,14 @@ function QRCodeTab() {
                       if (e.target.checked) setSelectedForPrint(new Set(filtered.map(c => c.id)));
                       else setSelectedForPrint(new Set());
                     }}
-                    className="rounded border-slate-300" />
+                    className="rounded border-border-primary" />
                 </th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">QR-Code</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Status</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Typ</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Seriennummer</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Batch</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Aktionen</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">QR-Code</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Status</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Typ</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Seriennummer</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Batch</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Aktionen</th>
               </tr>
             </thead>
             <tbody>
@@ -878,12 +878,12 @@ function QRCodeTab() {
                 const sc = QR_STATUS[c.status] || QR_STATUS.generated;
                 const typeInfo = COMPONENT_TYPES[c.component_type];
                 return (
-                  <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                  <tr key={c.id} className="border-b border-border-secondary hover:bg-surface-secondary/50">
                     <td className="py-2 px-2">
                       <input type="checkbox" checked={selectedForPrint.has(c.id)}
-                        onChange={() => togglePrintSelect(c.id)} className="rounded border-slate-300" />
+                        onChange={() => togglePrintSelect(c.id)} className="rounded border-border-primary" />
                     </td>
-                    <td className="py-2 px-3 font-mono text-blue-600 font-medium">{c.qr_code}</td>
+                    <td className="py-2 px-3 font-mono text-accent font-medium">{c.qr_code}</td>
                     <td className="py-2 px-3">
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs"
                         style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.text}33` }}>
@@ -891,19 +891,19 @@ function QRCodeTab() {
                       </span>
                     </td>
                     <td className="py-2 px-3">{typeInfo ? typeInfo.label : c.component_type || '–'}</td>
-                    <td className="py-2 px-3 font-mono text-slate-600 text-[11px]">{c.serial_number || <span className="text-slate-300 italic">nicht zugewiesen</span>}</td>
-                    <td className="py-2 px-3 font-mono text-slate-500 text-[10px]">{c.batch_id || '–'}</td>
+                    <td className="py-2 px-3 font-mono text-text-secondary text-[11px]">{c.serial_number || <span className="text-text-muted italic">nicht zugewiesen</span>}</td>
+                    <td className="py-2 px-3 font-mono text-text-muted text-[10px]">{c.batch_id || '–'}</td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-1">
                         {!c.serial_number && (
                           <button onClick={() => { setAssignModal({ id: c.id, qr_code: c.qr_code }); setAssignSN(''); setAssignType('ops'); }}
-                            className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200/50"
+                            className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-accent-light text-accent hover:bg-accent-light border border-accent/20/50"
                             title="SN zuweisen">
                             <Link2 size={10} /> Zuweisen
                           </button>
                         )}
                         <button onClick={() => printLabels([c])}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/50"
+                          className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-surface-secondary text-text-secondary hover:bg-surface-secondary border border-border-secondary"
                           title="Label drucken">
                           <Printer size={10} />
                         </button>
@@ -919,37 +919,37 @@ function QRCodeTab() {
 
       {/* Assign Modal */}
       {assignModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center" onClick={() => setAssignModal(null)}>
-          <div className="bg-white rounded-xl p-5 max-w-md w-full mx-4 shadow-xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <Link2 size={16} className="text-blue-500" />
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center" onClick={() => setAssignModal(null)}>
+          <div className="bg-surface-primary rounded-xl p-5 max-w-md w-full mx-4 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
+              <Link2 size={16} className="text-accent" />
               QR-Code zuweisen
             </h3>
-            <div className="text-xs text-slate-500 mb-4">
-              <span className="font-mono text-blue-600 font-medium">{assignModal.qr_code}</span> einer Seriennummer zuweisen
+            <div className="text-xs text-text-muted mb-4">
+              <span className="font-mono text-accent font-medium">{assignModal.qr_code}</span> einer Seriennummer zuweisen
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Seriennummer *</label>
+                <label className="text-xs text-text-muted mb-1 block">Seriennummer *</label>
                 <input type="text" value={assignSN} onChange={e => setAssignSN(e.target.value)} autoFocus
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
                   placeholder="Seriennummer eingeben oder scannen" />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Komponententyp</label>
+                <label className="text-xs text-text-muted mb-1 block">Komponententyp</label>
                 <select value={assignType} onChange={e => setAssignType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs">
+                  className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs">
                   {Object.entries(COMPONENT_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
             </div>
             <div className="flex items-center gap-2 mt-4">
               <button onClick={handleAssign} disabled={!assignSN.trim()}
-                className="flex-1 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-medium">
+                className="flex-1 px-4 py-2 rounded-lg bg-accent hover:bg-accent disabled:opacity-50 text-white text-xs font-medium">
                 Zuweisen
               </button>
               <button onClick={() => setAssignModal(null)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50">
+                className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary">
                 Abbrechen
               </button>
             </div>
@@ -1021,20 +1021,20 @@ function PositionenTab() {
   return (
     <div className="space-y-4">
       {/* Position Flow */}
-      <div className="bg-white/60 border border-slate-200/60 rounded-xl p-4">
-        <div className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-3">Hardware-Positionen</div>
+      <div className="bg-surface-primary border border-border-secondary rounded-xl p-4">
+        <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">Hardware-Positionen</div>
         <div className="flex items-center gap-1 overflow-x-auto pb-2">
           {Object.entries(POSITIONS).map(([key, pos], idx) => {
             const Icon = pos.icon;
             return (
               <React.Fragment key={key}>
-                {idx > 0 && <ArrowRight size={14} className="text-slate-300 flex-shrink-0" />}
+                {idx > 0 && <ArrowRight size={14} className="text-text-muted flex-shrink-0" />}
                 <button onClick={() => setFilterPosition(filterPosition === key ? '' : key)}
                   className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg border transition-all flex-shrink-0 min-w-[80px] ${
-                    filterPosition === key ? 'border-blue-300 bg-blue-50 shadow-sm' : 'border-slate-200/60 hover:border-slate-300'
+                    filterPosition === key ? 'border-blue-300 bg-accent-light shadow-sm' : 'border-border-secondary hover:border-border-primary'
                   }`}>
                   <Icon size={16} style={{ color: pos.color }} />
-                  <span className="text-[10px] text-slate-600 font-medium">{pos.label}</span>
+                  <span className="text-[10px] text-text-secondary font-medium">{pos.label}</span>
                   <span className="text-sm font-bold font-mono" style={{ color: pos.color }}>{distribution[key] || 0}</span>
                 </button>
               </React.Fragment>
@@ -1046,40 +1046,40 @@ function PositionenTab() {
       {/* Search */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-sm">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
             placeholder="SN, Hardware-ID, Standort..."
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20" />
         </div>
         {filterPosition && (
           <button onClick={() => setFilterPosition('')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-600">
+            className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-accent-light border border-accent/20 text-xs text-accent">
             <X size={12} />{POSITIONS[filterPosition]?.label}
           </button>
         )}
-        <button onClick={loadPositions} className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500">
+        <button onClick={loadPositions} className="p-2 rounded-lg border border-border-secondary hover:bg-surface-secondary text-text-muted">
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center py-8"><Loader2 size={16} className="text-blue-500 animate-spin" /></div>
+        <div className="flex items-center justify-center py-8"><Loader2 size={16} className="text-accent animate-spin" /></div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-xs">{positions.length === 0 ? 'Noch keine Positionen erfasst' : 'Keine Treffer'}</div>
+        <div className="text-center py-8 text-text-muted text-xs">{positions.length === 0 ? 'Noch keine Positionen erfasst' : 'Keine Treffer'}</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Typ</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">SN / ID</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Position</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Detail</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Standort</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Bewegt von</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Grund</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Seit</th>
+              <tr className="border-b border-border-secondary">
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Typ</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">SN / ID</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Position</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Detail</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Standort</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Bewegt von</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Grund</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Seit</th>
               </tr>
             </thead>
             <tbody>
@@ -1088,25 +1088,25 @@ function PositionenTab() {
                 const posInfo = POSITIONS[p.position] || { label: p.position, color: '#64748b' };
                 const PosIcon = posInfo.icon || MapPin;
                 return (
-                  <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                  <tr key={p.id} className="border-b border-border-secondary hover:bg-surface-secondary/50">
                     <td className="py-2 px-3">
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs"
                         style={{ backgroundColor: typeInfo.color + '15', color: typeInfo.color, border: `1px solid ${typeInfo.color}33` }}>
                         {typeInfo.label}
                       </span>
                     </td>
-                    <td className="py-2 px-3 font-mono text-slate-700 text-[11px]">{p.serial_number || p.hardware_id}</td>
+                    <td className="py-2 px-3 font-mono text-text-primary text-[11px]">{p.serial_number || p.hardware_id}</td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-1">
                         <PosIcon size={12} style={{ color: posInfo.color }} />
                         <span style={{ color: posInfo.color }} className="font-medium">{posInfo.label}</span>
                       </div>
                     </td>
-                    <td className="py-2 px-3 text-slate-600">{p.sub_position || '–'}</td>
-                    <td className="py-2 px-3 text-slate-700">{p.location_name ? `${p.location_name}${p.city ? ` (${p.city})` : ''}` : '–'}</td>
-                    <td className="py-2 px-3 text-slate-500">{p.moved_by || '–'}</td>
-                    <td className="py-2 px-3 text-slate-500">{p.move_reason || '–'}</td>
-                    <td className="py-2 px-3 font-mono text-slate-500">{new Date(p.created_at).toLocaleDateString('de-DE')}</td>
+                    <td className="py-2 px-3 text-text-secondary">{p.sub_position || '–'}</td>
+                    <td className="py-2 px-3 text-text-primary">{p.location_name ? `${p.location_name}${p.city ? ` (${p.city})` : ''}` : '–'}</td>
+                    <td className="py-2 px-3 text-text-muted">{p.moved_by || '–'}</td>
+                    <td className="py-2 px-3 text-text-muted">{p.move_reason || '–'}</td>
+                    <td className="py-2 px-3 font-mono text-text-muted">{new Date(p.created_at).toLocaleDateString('de-DE')}</td>
                   </tr>
                 );
               })}

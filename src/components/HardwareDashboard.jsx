@@ -36,11 +36,11 @@ import {
 /* ──────────────────────── STATUS COLORS ──────────────────────── */
 
 const STATUS_CONFIG = {
-  'active':              { label: 'Active',            color: '#22c55e', bg: '#22c55e15', icon: '🟢' },
-  'defect':              { label: 'Defekt',            color: '#ef4444', bg: '#ef444415', icon: '🔴' },
+  'active':              { label: 'Active',            color: '#34C759', bg: '#34C75915', icon: '🟢' },
+  'defect':              { label: 'Defekt',            color: '#FF3B30', bg: '#FF3B3015', icon: '🔴' },
   'prep/ warehouse':     { label: 'Lager',             color: '#64748b', bg: '#64748b15', icon: '⚫' },
-  'out for installation':{ label: 'Out for Install',   color: '#3b82f6', bg: '#3b82f615', icon: '🔵' },
-  'test device':         { label: 'Test',              color: '#8b5cf6', bg: '#8b5cf615', icon: '🟣' },
+  'out for installation':{ label: 'Out for Install',   color: '#007AFF', bg: '#007AFF15', icon: '🔵' },
+  'test device':         { label: 'Test',              color: '#AF52DE', bg: '#AF52DE15', icon: '🟣' },
   'to be deinstalled':   { label: 'Deinstall geplant', color: '#f97316', bg: '#f9731615', icon: '🟠' },
   'deinstalled':         { label: 'Deinstalliert',     color: '#f97316', bg: '#f9731615', icon: '🟠' },
   'to be swapped':       { label: 'Tausch geplant',    color: '#eab308', bg: '#eab30815', icon: '🟡' },
@@ -60,25 +60,25 @@ function deriveHardwareStatus(ops) {
   const locationStatus = (ops._onlineStatus || ops.locationOnlineStatus || '').toLowerCase();
 
   if (status.includes('deinstall') && !status.includes('to be'))
-    return { key: 'deinstalled', label: 'Deinstalliert', color: '#ef4444', bg: '#ef444415', iconName: 'XCircle' };
+    return { key: 'deinstalled', label: 'Deinstalliert', color: '#FF3B30', bg: '#FF3B3015', iconName: 'XCircle' };
   if (status.includes('to be deinstall'))
     return { key: 'to_be_deinstalled', label: 'Deinstall geplant', color: '#f97316', bg: '#f9731615', iconName: 'XCircle' };
   if (hasLocation && (locationStatus.includes('live') || locationStatus.includes('online')))
-    return { key: 'live', label: 'Live', color: '#22c55e', bg: '#22c55e15', iconName: 'Radio' };
+    return { key: 'live', label: 'Live', color: '#34C759', bg: '#34C75915', iconName: 'Radio' };
   if (status.includes('defect'))
-    return { key: 'defect', label: 'Defekt', color: '#ef4444', bg: '#ef444415', iconName: 'AlertTriangle' };
+    return { key: 'defect', label: 'Defekt', color: '#FF3B30', bg: '#FF3B3015', iconName: 'AlertTriangle' };
   if (status.includes('prep') || status.includes('warehouse') || status.includes('lager'))
-    return { key: 'warehouse', label: 'Lager', color: '#3b82f6', bg: '#3b82f615', iconName: 'Package' };
+    return { key: 'warehouse', label: 'Lager', color: '#007AFF', bg: '#007AFF15', iconName: 'Package' };
   if (status.includes('out for') || status.includes('installation') || status.includes('monteur'))
-    return { key: 'installer', label: 'Beim Monteur', color: '#f59e0b', bg: '#f59e0b15', iconName: 'Truck' };
+    return { key: 'installer', label: 'Beim Monteur', color: '#FF9500', bg: '#FF950015', iconName: 'Truck' };
   if (status.includes('to be swap'))
     return { key: 'to_be_swapped', label: 'Tausch geplant', color: '#eab308', bg: '#eab30815', iconName: 'ArrowLeftRight' };
   if (status.includes('test'))
-    return { key: 'test', label: 'Test-Gerät', color: '#8b5cf6', bg: '#8b5cf615', iconName: 'Monitor' };
+    return { key: 'test', label: 'Test-Gerät', color: '#AF52DE', bg: '#AF52DE15', iconName: 'Monitor' };
   if (hasLocation)
-    return { key: 'assigned', label: 'Zugeordnet', color: '#8b5cf6', bg: '#8b5cf615', iconName: 'MapPin' };
+    return { key: 'assigned', label: 'Zugeordnet', color: '#AF52DE', bg: '#AF52DE15', iconName: 'MapPin' };
   if (status === 'active' && !hasLocation)
-    return { key: 'warehouse', label: 'Lager', color: '#3b82f6', bg: '#3b82f615', iconName: 'Package' };
+    return { key: 'warehouse', label: 'Lager', color: '#007AFF', bg: '#007AFF15', iconName: 'Package' };
   return { key: 'unknown', label: 'Unbekannt', color: '#64748b', bg: '#64748b15', iconName: 'HelpCircle' };
 }
 
@@ -86,15 +86,15 @@ function deriveHardwareStatus(ops) {
 
 function KpiCard({ label, value, icon: Icon, color, subtitle }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}12` }}>
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-slate-800 font-mono">{value}</div>
-      {subtitle && <div className="text-xs text-slate-500 mt-1">{subtitle}</div>}
+      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      {subtitle && <div className="text-xs text-text-muted mt-1">{subtitle}</div>}
     </div>
   );
 }
@@ -527,7 +527,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           details: `${inst.installationType || 'Installation'} — ${inst.integrator || 'Unbekannt'}`,
           status: inst.status || '',
           icon: Wrench,
-          color: '#22c55e',
+          color: '#34C759',
         });
       }
     }
@@ -543,7 +543,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           details: `${(swap.swapType || []).join(', ')}${swap.swapReason ? ' — ' + swap.swapReason : ''}`,
           status: swap.status || '',
           icon: ArrowLeftRight,
-          color: '#f59e0b',
+          color: '#FF9500',
         });
       }
     }
@@ -559,7 +559,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           details: `${d.reason || 'Deinstallation'}${d.hardwareCondition ? ' — Zustand: ' + d.hardwareCondition : ''}`,
           status: d.status || '',
           icon: PackageX,
-          color: '#ef4444',
+          color: '#FF3B30',
         });
       }
     }
@@ -1124,8 +1124,8 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
-        <span className="ml-2 text-sm text-slate-500">Lade Hardware-Daten...</span>
+        <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
+        <span className="ml-2 text-sm text-text-muted">Lade Hardware-Daten...</span>
       </div>
     );
   }
@@ -1135,18 +1135,18 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-            <HardDrive size={20} className="text-slate-600" />
+          <div className="w-10 h-10 rounded-xl bg-surface-secondary flex items-center justify-center">
+            <HardDrive size={20} className="text-text-secondary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-800">Hardware Inventory</h1>
-            <p className="text-xs text-slate-500">{kpis.total} OPS-Einheiten &bull; {leaseKpis.bankAssets} Leasing-Assets &bull; {completeness.total} Live-Standorte</p>
+            <h1 className="text-lg font-bold text-text-primary">Hardware Inventory</h1>
+            <p className="text-xs text-text-muted">{kpis.total} OPS-Einheiten &bull; {leaseKpis.bankAssets} Leasing-Assets &bull; {completeness.total} Live-Standorte</p>
           </div>
         </div>
         <button
           onClick={() => loadData(true)}
           disabled={refreshing}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 border border-slate-200 text-xs font-medium text-slate-600 hover:bg-white transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-primary border border-border-secondary text-xs font-medium text-text-secondary hover:bg-surface-primary transition-colors"
         >
           <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
           Aktualisieren
@@ -1155,18 +1155,18 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
 
       {/* KPI Cards — Derived Hardware Status */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-        <KpiCard label="Gesamt" value={kpis.total} icon={HardDrive} color="#3b82f6" />
-        <KpiCard label="Live" value={kpis.live} icon={Radio} color="#22c55e" subtitle={`${kpis.total ? Math.round(kpis.live / kpis.total * 100) : 0}%`} />
-        <KpiCard label="Lager" value={kpis.hwWarehouse} icon={Package} color="#3b82f6" />
-        <KpiCard label="Beim Monteur" value={kpis.hwInstaller} icon={Truck} color="#f59e0b" />
-        <KpiCard label="Defekt" value={kpis.hwDefect} icon={AlertTriangle} color="#ef4444" />
+        <KpiCard label="Gesamt" value={kpis.total} icon={HardDrive} color="#007AFF" />
+        <KpiCard label="Live" value={kpis.live} icon={Radio} color="#34C759" subtitle={`${kpis.total ? Math.round(kpis.live / kpis.total * 100) : 0}%`} />
+        <KpiCard label="Lager" value={kpis.hwWarehouse} icon={Package} color="#007AFF" />
+        <KpiCard label="Beim Monteur" value={kpis.hwInstaller} icon={Truck} color="#FF9500" />
+        <KpiCard label="Defekt" value={kpis.hwDefect} icon={AlertTriangle} color="#FF3B30" />
         <KpiCard label="Deinstalliert" value={kpis.hwDeinstalled} icon={XCircle} color="#f97316" />
-        <KpiCard label="Vollst." value={`${completeness.completeCount}/${completeness.total}`} icon={ShieldCheck} color="#22c55e" subtitle={completeness.total > 0 ? `${Math.round(completeness.completeCount / completeness.total * 100)}% komplett` : ''} />
-        <KpiCard label="Leasing" value={`${leaseKpis.totalMonthly.toLocaleString('de-DE', { maximumFractionDigits: 0 })}€/mo`} icon={Landmark} color="#8b5cf6" subtitle={`${leaseKpis.certificates} Mietscheine`} />
+        <KpiCard label="Vollst." value={`${completeness.completeCount}/${completeness.total}`} icon={ShieldCheck} color="#34C759" subtitle={completeness.total > 0 ? `${Math.round(completeness.completeCount / completeness.total * 100)}% komplett` : ''} />
+        <KpiCard label="Leasing" value={`${leaseKpis.totalMonthly.toLocaleString('de-DE', { maximumFractionDigits: 0 })}€/mo`} icon={Landmark} color="#AF52DE" subtitle={`${leaseKpis.certificates} Mietscheine`} />
       </div>
 
       {/* Section Tabs */}
-      <div className="flex items-center gap-0 bg-white/40 backdrop-blur-sm border border-slate-200/60 rounded-xl p-1 overflow-x-auto">
+      <div className="flex items-center gap-0 bg-surface-primary border border-border-secondary rounded-xl p-1 overflow-x-auto">
         {[
           { id: 'ops', label: 'OPS Inventory', icon: Cpu, count: kpis.total },
           { id: 'completeness', label: 'Vollst.', icon: ClipboardCheck, count: completeness.withoutOps + completeness.withoutSim + completeness.withoutDisplay },
@@ -1192,15 +1192,15 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
               onClick={() => setActiveSection(tab.id)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all flex-1 justify-center whitespace-nowrap ${
                 isActive
-                  ? 'bg-white shadow-sm text-slate-800 border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-600'
+                  ? 'bg-surface-primary shadow-sm text-text-primary border border-border-secondary'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
             >
               <Icon size={13} />
               {tab.label}
               {tab.count !== null && (
                 <span className={`text-xs font-mono px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-slate-100 text-slate-600' : 'bg-transparent text-slate-500'
+                  isActive ? 'bg-surface-secondary text-text-secondary' : 'bg-transparent text-text-muted'
                 }`}>
                   {tab.count}
                 </span>
@@ -1211,24 +1211,24 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
       </div>
 
       {/* ═══ GLOBAL FILTER BAR ═══ */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 px-4 py-3">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="OPS-Nr, SN, SIM-ID, Standort, Stadt..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
             />
           </div>
           {/* Status */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none"
+            className="px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none"
           >
             <option value="all">Alle Status</option>
             {Object.entries(kpis.byHwStatus).sort((a, b) => b[1] - a[1]).map(([key, count]) => {
@@ -1245,7 +1245,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           <select
             value={cityFilter}
             onChange={(e) => setCityFilter(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none"
+            className="px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none"
           >
             <option value="">Alle Städte</option>
             {cities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -1254,7 +1254,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none"
+            className="px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none"
           >
             <option value="">Alle Typen</option>
             {hardwareTypes.map(t => <option key={t} value={t}>{t}</option>)}
@@ -1263,7 +1263,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           <select
             value={leasingFilter}
             onChange={(e) => setLeasingFilter(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none"
+            className="px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none"
           >
             <option value="">Leasing: Alle</option>
             <option value="with">Mit Leasing</option>
@@ -1273,7 +1273,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           <select
             value={completenessFilter}
             onChange={(e) => setCompletenessFilter(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none"
+            className="px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none"
           >
             <option value="">Vollst.: Alle</option>
             <option value="complete">Komplett (OPS+SIM+Display)</option>
@@ -1284,7 +1284,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
             <select
               value={mietscheinFilter}
               onChange={(e) => setMietscheinFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/40 text-xs focus:outline-none text-amber-700"
+              className="px-3 py-2 rounded-lg border border-status-warning/20 bg-status-warning/10/40 text-xs focus:outline-none text-amber-700"
             >
               <option value="">Alle Mietscheine</option>
               {mietscheinOptions.map(m => <option key={m} value={m}>{m}</option>)}
@@ -1292,7 +1292,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           )}
           {/* Result count + Reset */}
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-xs text-slate-500 font-mono">
+            <span className="text-xs text-text-muted font-mono">
               {activeSection === 'ops' ? `${filteredOps.length} OPS` :
                activeSection === 'completeness' ? `${filteredCompletenessRows.length} Standorte` :
                activeSection === 'leasing' ? `${filteredLeaseBank.length} Assets` :
@@ -1303,7 +1303,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
             {activeFilterCount > 0 && (
               <button
                 onClick={resetAllFilters}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors border border-red-200"
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-status-offline/10 text-status-offline text-xs font-medium hover:bg-status-offline/10 transition-colors border border-status-offline/20"
               >
                 <XCircle size={11} />
                 {activeFilterCount} Filter zurücksetzen
@@ -1315,23 +1315,23 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
 
       {/* ═══ OPS INVENTORY TABLE ═══ */}
       {activeSection === 'ops' && (
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] overflow-hidden">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card overflow-hidden">
 
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200/40">
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">OPS-Nr</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Standort</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Stadt</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">JET-ID</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">OPS-SN</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">SIM</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Display</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Leasing</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Online</th>
+                <tr className="border-b border-border-secondary/40">
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">OPS-Nr</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Status</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Standort</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Stadt</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">JET-ID</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">OPS-SN</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">SIM</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Display</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Leasing</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wider">Online</th>
                 </tr>
               </thead>
               <tbody>
@@ -1341,15 +1341,15 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                   return (
                     <React.Fragment key={ops.id}>
                       <tr
-                        className={`border-b border-slate-100/60 hover:bg-slate-50/40 transition-colors cursor-pointer ${isExpanded ? 'bg-slate-50/60' : ''}`}
+                        className={`border-b border-border-secondary/60 hover:bg-surface-secondary/40 transition-colors cursor-pointer ${isExpanded ? 'bg-surface-secondary/60' : ''}`}
                         onClick={() => setExpandedOps(isExpanded ? null : ops.id)}
                       >
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5">
-                            {isExpanded ? <ChevronUp size={12} className="text-slate-500" /> : <ChevronDown size={12} className="text-slate-500" />}
-                            <span className="font-mono font-semibold text-slate-700">{ops.opsNr || '–'}</span>
+                            {isExpanded ? <ChevronUp size={12} className="text-text-muted" /> : <ChevronDown size={12} className="text-text-muted" />}
+                            <span className="font-mono font-semibold text-text-primary">{ops.opsNr || '–'}</span>
                             {ops._siblingOpsCount > 1 && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-300">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-status-warning/10 text-amber-700 border border-amber-300">
                                 {ops._siblingOpsCount} OPS
                               </span>
                             )}
@@ -1363,56 +1363,56 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                             {hwStatus.label}
                           </span>
                         </td>
-                        <td className="px-3 py-2.5 text-slate-600 max-w-[150px] truncate" title={ops._locationName}>
-                          {ops._locationName || <span className="text-slate-500">–</span>}
+                        <td className="px-3 py-2.5 text-text-secondary max-w-[150px] truncate" title={ops._locationName}>
+                          {ops._locationName || <span className="text-text-muted">–</span>}
                         </td>
-                        <td className="px-3 py-2.5 text-slate-500 text-sm">{ops._city || '–'}</td>
-                        <td className="px-3 py-2.5 font-mono text-slate-500 text-sm">{ops._jetId || '–'}</td>
-                        <td className="px-3 py-2.5 font-mono text-slate-500 text-sm">{ops.opsSn || '–'}</td>
+                        <td className="px-3 py-2.5 text-text-muted text-sm">{ops._city || '–'}</td>
+                        <td className="px-3 py-2.5 font-mono text-text-muted text-sm">{ops._jetId || '–'}</td>
+                        <td className="px-3 py-2.5 font-mono text-text-muted text-sm">{ops.opsSn || '–'}</td>
                         <td className="px-3 py-2.5">
                           {ops.simId ? (
                             ops.simIdImprecise
-                              ? <span className="text-amber-500 text-xs" title="ICCID ungenau">⚠</span>
+                              ? <span className="text-status-warning text-xs" title="ICCID ungenau">⚠</span>
                               : <CheckCircle2 size={12} className="text-emerald-500" />
-                          ) : <span className="text-slate-500 text-xs">✗</span>}
+                          ) : <span className="text-text-muted text-xs">✗</span>}
                         </td>
                         <td className="px-3 py-2.5">
                           {ops.displaySn
                             ? <CheckCircle2 size={12} className="text-emerald-500" />
-                            : <span className="text-slate-500 text-xs">✗</span>}
+                            : <span className="text-text-muted text-xs">✗</span>}
                         </td>
                         <td className="px-3 py-2.5">
                           {ops._hasLeasing
                             ? <CreditCard size={12} className="text-violet-500" />
-                            : <span className="text-slate-500 text-xs">–</span>}
+                            : <span className="text-text-muted text-xs">–</span>}
                         </td>
                         <td className="px-3 py-2.5">
                           {ops._onlineStatus ? (
                             <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-                              ops._onlineStatus === 'Live' ? 'text-emerald-600' : 'text-slate-500'
+                              ops._onlineStatus === 'Live' ? 'text-emerald-600' : 'text-text-muted'
                             }`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${
-                                ops._onlineStatus === 'Live' ? 'bg-emerald-500' : 'bg-slate-300'
+                                ops._onlineStatus === 'Live' ? 'bg-emerald-500' : 'bg-surface-tertiary'
                               }`} />
                               {ops._onlineStatus}
                             </span>
                           ) : (
-                            <span className="text-slate-500">–</span>
+                            <span className="text-text-muted">–</span>
                           )}
                         </td>
                       </tr>
 
                       {/* Expanded Detail Row */}
                       {isExpanded && (
-                        <tr className="bg-slate-50/80">
+                        <tr className="bg-surface-secondary/80">
                           <td colSpan={10} className="px-4 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                               {/* Hardware Info */}
                               <div className="space-y-2">
-                                <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Hardware</div>
+                                <div className="text-xs font-medium text-text-muted uppercase tracking-wider">Hardware</div>
                                 <div className="space-y-1">
                                   <div className="flex justify-between items-center">
-                                    <span className="text-slate-500">Status:</span>
+                                    <span className="text-text-muted">Status:</span>
                                     <span
                                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
                                       style={{ backgroundColor: hwStatus.bg, color: hwStatus.color, border: `1px solid ${hwStatus.color}33` }}
@@ -1420,38 +1420,38 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                                       {hwStatus.label}
                                     </span>
                                   </div>
-                                  <div className="flex justify-between"><span className="text-slate-500">Airtable-Status:</span><span className="font-mono text-slate-500 text-xs">{ops.status || '–'}</span></div>
-                                  <div className="flex justify-between"><span className="text-slate-500">OPS-SN:</span><span className="font-mono text-slate-700">{ops.opsSn || '–'}</span></div>
-                                  <div className="flex justify-between"><span className="text-slate-500">Typ:</span><span className="text-slate-700">{ops.hardwareType || '–'}</span></div>
-                                  <div className="flex justify-between"><span className="text-slate-500">Display-SN:</span><span className="font-mono text-slate-700">{ops.displaySn || '–'}</span></div>
-                                  <div className="flex justify-between"><span className="text-slate-500">SIM-ID:</span><span className="font-mono text-slate-700">{ops.simId ? (ops.simIdImprecise ? '⚠ ungenau' : ops.simId) : '–'}</span></div>
-                                  <div className="flex justify-between"><span className="text-slate-500">Navori Venue:</span><span className="font-mono text-slate-700">{ops.navoriVenueId || '–'}</span></div>
-                                  {ops.note && <div className="mt-1 p-2 bg-amber-50 rounded-lg text-amber-700 text-xs">{ops.note}</div>}
+                                  <div className="flex justify-between"><span className="text-text-muted">Airtable-Status:</span><span className="font-mono text-text-muted text-xs">{ops.status || '–'}</span></div>
+                                  <div className="flex justify-between"><span className="text-text-muted">OPS-SN:</span><span className="font-mono text-text-primary">{ops.opsSn || '–'}</span></div>
+                                  <div className="flex justify-between"><span className="text-text-muted">Typ:</span><span className="text-text-primary">{ops.hardwareType || '–'}</span></div>
+                                  <div className="flex justify-between"><span className="text-text-muted">Display-SN:</span><span className="font-mono text-text-primary">{ops.displaySn || '–'}</span></div>
+                                  <div className="flex justify-between"><span className="text-text-muted">SIM-ID:</span><span className="font-mono text-text-primary">{ops.simId ? (ops.simIdImprecise ? '⚠ ungenau' : ops.simId) : '–'}</span></div>
+                                  <div className="flex justify-between"><span className="text-text-muted">Navori Venue:</span><span className="font-mono text-text-primary">{ops.navoriVenueId || '–'}</span></div>
+                                  {ops.note && <div className="mt-1 p-2 bg-status-warning/10 rounded-lg text-amber-700 text-xs">{ops.note}</div>}
                                 </div>
                               </div>
 
                               {/* Location Info */}
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Standort</div>
+                                  <div className="text-xs font-medium text-text-muted uppercase tracking-wider">Standort</div>
                                   {ops._siblingOpsCount > 1 && (
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-300">
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-status-warning/10 text-amber-700 border border-amber-300">
                                       {ops._siblingOpsCount} OPS an diesem Standort
                                     </span>
                                   )}
                                 </div>
                                 {ops._location ? (
                                   <div className="space-y-1">
-                                    <div className="flex justify-between"><span className="text-slate-500">Name:</span><span className="text-slate-700 font-medium">{ops._location.locationName || '–'}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">Stadt:</span><span className="text-slate-700">{ops._location.city || '–'}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">JET-ID:</span><span className="font-mono text-slate-700">{ops._location.jetId || '–'}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">Adresse:</span><span className="text-slate-700">{[ops._location.street, ops._location.streetNumber].filter(Boolean).join(' ') || '–'}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">PLZ:</span><span className="font-mono text-slate-700">{ops._location.postalCode || '–'}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">Live seit:</span><span className="text-slate-700">{fmtDate(ops._location.liveSince)}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">Name:</span><span className="text-text-primary font-medium">{ops._location.locationName || '–'}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">Stadt:</span><span className="text-text-primary">{ops._location.city || '–'}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">JET-ID:</span><span className="font-mono text-text-primary">{ops._location.jetId || '–'}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">Adresse:</span><span className="text-text-primary">{[ops._location.street, ops._location.streetNumber].filter(Boolean).join(' ') || '–'}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">PLZ:</span><span className="font-mono text-text-primary">{ops._location.postalCode || '–'}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">Live seit:</span><span className="text-text-primary">{fmtDate(ops._location.liveSince)}</span></div>
                                     {/* List all OPS at this location when multiple */}
                                     {ops._siblingOpsCount > 1 && (
-                                      <div className="mt-2 p-2 bg-amber-50/60 rounded-lg border border-amber-200/50">
-                                        <div className="text-xs font-medium text-amber-600 uppercase tracking-wider mb-1">Alle OPS an diesem Standort</div>
+                                      <div className="mt-2 p-2 bg-status-warning/10/60 rounded-lg border border-status-warning/20/50">
+                                        <div className="text-xs font-medium text-status-warning uppercase tracking-wider mb-1">Alle OPS an diesem Standort</div>
                                         <div className="flex flex-wrap gap-1">
                                           {ops._siblingOps.map(sibling => (
                                             <span
@@ -1459,7 +1459,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                                               className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono ${
                                                 sibling.id === ops.id
                                                   ? 'bg-amber-200 text-amber-800 font-bold'
-                                                  : 'bg-white text-slate-600 border border-slate-200'
+                                                  : 'bg-surface-primary text-text-secondary border border-border-secondary'
                                               }`}
                                             >
                                               {sibling.opsNr || sibling.opsSn || '–'}
@@ -1470,40 +1470,40 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                                     )}
                                   </div>
                                 ) : (
-                                  <div className="text-slate-500 text-xs">Kein Standort zugeordnet</div>
+                                  <div className="text-text-muted text-xs">Kein Standort zugeordnet</div>
                                 )}
                               </div>
 
                               {/* Leasing Info */}
                               <div className="space-y-2">
-                                <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Leasing</div>
+                                <div className="text-xs font-medium text-text-muted uppercase tracking-wider">Leasing</div>
                                 {ops._chgRecords.length > 0 ? (
                                   <div className="space-y-1">
                                     {ops._chgRecords.map((chg, i) => (
                                       <div key={i} className="p-2 bg-violet-50/50 rounded-lg space-y-0.5">
-                                        <div className="flex justify-between"><span className="text-slate-500">Asset-ID:</span><span className="font-mono text-slate-700">{chg.assetId || '–'}</span></div>
-                                        <div className="flex justify-between"><span className="text-slate-500">Mietschein:</span><span className="font-mono text-slate-700">{chg.chgCertificate || '–'}</span></div>
-                                        <div className="flex justify-between"><span className="text-slate-500">Laufzeit:</span><span className="text-slate-700">{fmtDate(chg.rentalStart)} → {fmtDate(chg.rentalEnd)}</span></div>
-                                        <div className="flex justify-between"><span className="text-slate-500">Status:</span><span className="text-slate-700">{chg.status || '–'}</span></div>
+                                        <div className="flex justify-between"><span className="text-text-muted">Asset-ID:</span><span className="font-mono text-text-primary">{chg.assetId || '–'}</span></div>
+                                        <div className="flex justify-between"><span className="text-text-muted">Mietschein:</span><span className="font-mono text-text-primary">{chg.chgCertificate || '–'}</span></div>
+                                        <div className="flex justify-between"><span className="text-text-muted">Laufzeit:</span><span className="text-text-primary">{fmtDate(chg.rentalStart)} → {fmtDate(chg.rentalEnd)}</span></div>
+                                        <div className="flex justify-between"><span className="text-text-muted">Status:</span><span className="text-text-primary">{chg.status || '–'}</span></div>
                                       </div>
                                     ))}
                                   </div>
                                 ) : ops._bankRecord ? (
                                   <div className="p-2 bg-violet-50/50 rounded-lg space-y-0.5">
-                                    <div className="flex justify-between"><span className="text-slate-500">Asset:</span><span className="font-mono text-slate-700">{ops._bankRecord.assetId || '–'}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">Mietschein:</span><span className="font-mono text-slate-700">{ops._bankRecord.rentalCertificate || '–'}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">€/Monat:</span><span className="font-mono text-slate-700 font-medium">{ops._bankRecord.monthlyPrice ? `${ops._bankRecord.monthlyPrice.toLocaleString('de-DE', { minimumFractionDigits: 2 })}€` : '–'}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">Asset:</span><span className="font-mono text-text-primary">{ops._bankRecord.assetId || '–'}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">Mietschein:</span><span className="font-mono text-text-primary">{ops._bankRecord.rentalCertificate || '–'}</span></div>
+                                    <div className="flex justify-between"><span className="text-text-muted">€/Monat:</span><span className="font-mono text-text-primary font-medium">{ops._bankRecord.monthlyPrice ? `${ops._bankRecord.monthlyPrice.toLocaleString('de-DE', { minimumFractionDigits: 2 })}€` : '–'}</span></div>
                                   </div>
                                 ) : (
-                                  <div className="text-slate-500 text-xs">Kein Leasing-Eintrag gefunden</div>
+                                  <div className="text-text-muted text-xs">Kein Leasing-Eintrag gefunden</div>
                                 )}
                               </div>
                             </div>
                             {/* Edit Button */}
-                            <div className="mt-3 pt-3 border-t border-slate-200/40 flex justify-end">
+                            <div className="mt-3 pt-3 border-t border-border-secondary/40 flex justify-end">
                               <button
                                 onClick={(e) => { e.stopPropagation(); setShowEditWarning(true); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-status-warning/10 text-amber-700 border border-status-warning/20 hover:bg-status-warning/10 transition-colors"
                               >
                                 <Pencil size={12} />
                                 Bearbeiten
@@ -1521,22 +1521,22 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
 
           {/* Pagination */}
           {opsTotalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200/40">
-              <span className="text-xs text-slate-500 font-mono">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border-secondary/40">
+              <span className="text-xs text-text-muted font-mono">
                 Seite {opsPage + 1} von {opsTotalPages} ({filteredOps.length} Eintr.)
               </span>
               <div className="flex gap-1">
                 <button
                   onClick={() => setOpsPage(Math.max(0, opsPage - 1))}
                   disabled={opsPage === 0}
-                  className="px-3 py-1 text-xs font-mono rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1 text-xs font-mono rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   ← Zurück
                 </button>
                 <button
                   onClick={() => setOpsPage(Math.min(opsTotalPages - 1, opsPage + 1))}
                   disabled={opsPage >= opsTotalPages - 1}
-                  className="px-3 py-1 text-xs font-mono rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1 text-xs font-mono rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-tertiary disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Weiter →
                 </button>
@@ -1550,46 +1550,46 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
       {activeSection === 'completeness' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <KpiCard label="Live Standorte" value={completeness.total} icon={MapPin} color="#3b82f6" />
-            <KpiCard label="Vollständig" value={completeness.completeCount} icon={ShieldCheck} color="#22c55e" subtitle={completeness.total > 0 ? `${Math.round(completeness.completeCount / completeness.total * 100)}%` : ''} />
-            <KpiCard label="Ohne OPS" value={completeness.withoutOps} icon={Cpu} color="#ef4444" />
-            <KpiCard label="Ohne SIM" value={completeness.withoutSim} icon={Wifi} color="#f59e0b" />
+            <KpiCard label="Live Standorte" value={completeness.total} icon={MapPin} color="#007AFF" />
+            <KpiCard label="Vollständig" value={completeness.completeCount} icon={ShieldCheck} color="#34C759" subtitle={completeness.total > 0 ? `${Math.round(completeness.completeCount / completeness.total * 100)}%` : ''} />
+            <KpiCard label="Ohne OPS" value={completeness.withoutOps} icon={Cpu} color="#FF3B30" />
+            <KpiCard label="Ohne SIM" value={completeness.withoutSim} icon={Wifi} color="#FF9500" />
             <KpiCard label="Ohne Display" value={completeness.withoutDisplay} icon={Monitor} color="#f97316" />
-            <KpiCard label="Ohne Leasing" value={completeness.withoutLeasing} icon={CreditCard} color="#8b5cf6" />
+            <KpiCard label="Ohne Leasing" value={completeness.withoutLeasing} icon={CreditCard} color="#AF52DE" />
           </div>
 
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200/40">
-              <h3 className="text-sm font-semibold text-slate-700">Hardware-Vollständigkeit pro Live-Standort</h3>
-              <p className="text-xs text-slate-500">Jeder Live-Standort benötigt: OPS + SIM + Display. Leasing wird als Bonus geprüft.</p>
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-secondary/40">
+              <h3 className="text-sm font-semibold text-text-primary">Hardware-Vollständigkeit pro Live-Standort</h3>
+              <p className="text-xs text-text-muted">Jeder Live-Standort benötigt: OPS + SIM + Display. Leasing wird als Bonus geprüft.</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200/40">
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">Standort</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">JET-ID</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">Stadt</th>
-                    <th className="text-center px-3 py-2 text-xs font-medium text-slate-500 uppercase">OPS</th>
-                    <th className="text-center px-3 py-2 text-xs font-medium text-slate-500 uppercase">SIM</th>
-                    <th className="text-center px-3 py-2 text-xs font-medium text-slate-500 uppercase">Display</th>
-                    <th className="text-center px-3 py-2 text-xs font-medium text-slate-500 uppercase">Leasing</th>
-                    <th className="text-center px-3 py-2 text-xs font-medium text-slate-500 uppercase">Status</th>
+                  <tr className="border-b border-border-secondary/40">
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">Standort</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">JET-ID</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">Stadt</th>
+                    <th className="text-center px-3 py-2 text-xs font-medium text-text-muted uppercase">OPS</th>
+                    <th className="text-center px-3 py-2 text-xs font-medium text-text-muted uppercase">SIM</th>
+                    <th className="text-center px-3 py-2 text-xs font-medium text-text-muted uppercase">Display</th>
+                    <th className="text-center px-3 py-2 text-xs font-medium text-text-muted uppercase">Leasing</th>
+                    <th className="text-center px-3 py-2 text-xs font-medium text-text-muted uppercase">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredCompletenessRows
                     .sort((a, b) => (a.complete === b.complete ? 0 : a.complete ? 1 : -1))
                     .map((row) => (
-                      <tr key={row.id} className="border-b border-slate-100/60 hover:bg-slate-50/40">
-                        <td className="px-3 py-2 text-slate-700 font-medium max-w-[180px] truncate">{row.locationName || '–'}</td>
-                        <td className="px-3 py-2 font-mono text-slate-500 text-sm">{row.jetId || '–'}</td>
-                        <td className="px-3 py-2 text-slate-500">{row.city || '–'}</td>
+                      <tr key={row.id} className="border-b border-border-secondary/60 hover:bg-surface-secondary/40">
+                        <td className="px-3 py-2 text-text-primary font-medium max-w-[180px] truncate">{row.locationName || '–'}</td>
+                        <td className="px-3 py-2 font-mono text-text-muted text-sm">{row.jetId || '–'}</td>
+                        <td className="px-3 py-2 text-text-muted">{row.city || '–'}</td>
                         <td className="px-3 py-2 text-center">
                           {row.hasOps ? (
                             <div className="inline-flex flex-col items-center gap-0.5">
                               {row.opsRecords.length > 1 ? (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-300">
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-status-warning/10 text-amber-700 border border-amber-300">
                                   {row.opsRecords.length} OPS
                                 </span>
                               ) : (
@@ -1597,23 +1597,23 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                               )}
                             </div>
                           ) : (
-                            <AlertTriangle size={14} className="text-red-500 inline" />
+                            <AlertTriangle size={14} className="text-status-offline inline" />
                           )}
                         </td>
                         <td className="px-3 py-2 text-center">
                           {row.hasSim
                             ? <CheckCircle2 size={14} className="text-emerald-500 inline" />
-                            : <AlertTriangle size={14} className="text-amber-500 inline" />}
+                            : <AlertTriangle size={14} className="text-status-warning inline" />}
                         </td>
                         <td className="px-3 py-2 text-center">
                           {row.hasDisplay
                             ? <CheckCircle2 size={14} className="text-emerald-500 inline" />
-                            : <AlertTriangle size={14} className="text-orange-500 inline" />}
+                            : <AlertTriangle size={14} className="text-status-warning inline" />}
                         </td>
                         <td className="px-3 py-2 text-center">
                           {row.hasLeasing
                             ? <CheckCircle2 size={14} className="text-violet-500 inline" />
-                            : <span className="text-slate-500 text-xs">–</span>}
+                            : <span className="text-text-muted text-xs">–</span>}
                         </td>
                         <td className="px-3 py-2 text-center">
                           {row.complete ? (
@@ -1621,7 +1621,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                               Komplett
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-200">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-status-offline/10 text-status-offline border border-status-offline/20">
                               Lückenhaft
                             </span>
                           )}
@@ -1639,12 +1639,12 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
       {activeSection === 'leasing' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <KpiCard label="Bank-Assets" value={leaseKpis.bankAssets} icon={Landmark} color="#8b5cf6" />
-            <KpiCard label="Aktive Verträge" value={leaseKpis.activeContracts} icon={CheckCircle2} color="#22c55e" subtitle={`${leaseKpis.bankAssets > 0 ? Math.round(leaseKpis.activeContracts / leaseKpis.bankAssets * 100) : 0}% aktiv`} />
-            <KpiCard label="Monatliche Kosten" value={`${leaseKpis.totalMonthly.toLocaleString('de-DE', { maximumFractionDigits: 0 })}€`} icon={CreditCard} color="#f59e0b" subtitle="Gesamt pro Monat" />
-            <KpiCard label="Mietscheine" value={leaseKpis.certificates} icon={Hash} color="#3b82f6" />
-            <KpiCard label="OPS-Match" value={leaseKpis.matchedOps} icon={CheckCircle2} color="#22c55e" subtitle={`${leaseKpis.unmatchedOps} ohne OPS`} />
-            <KpiCard label="CHG Records" value={leaseKpis.chgRecords} icon={Monitor} color="#8b5cf6" />
+            <KpiCard label="Bank-Assets" value={leaseKpis.bankAssets} icon={Landmark} color="#AF52DE" />
+            <KpiCard label="Aktive Verträge" value={leaseKpis.activeContracts} icon={CheckCircle2} color="#34C759" subtitle={`${leaseKpis.bankAssets > 0 ? Math.round(leaseKpis.activeContracts / leaseKpis.bankAssets * 100) : 0}% aktiv`} />
+            <KpiCard label="Monatliche Kosten" value={`${leaseKpis.totalMonthly.toLocaleString('de-DE', { maximumFractionDigits: 0 })}€`} icon={CreditCard} color="#FF9500" subtitle="Gesamt pro Monat" />
+            <KpiCard label="Mietscheine" value={leaseKpis.certificates} icon={Hash} color="#007AFF" />
+            <KpiCard label="OPS-Match" value={leaseKpis.matchedOps} icon={CheckCircle2} color="#34C759" subtitle={`${leaseKpis.unmatchedOps} ohne OPS`} />
+            <KpiCard label="CHG Records" value={leaseKpis.chgRecords} icon={Monitor} color="#AF52DE" />
           </div>
 
           {/* Contract Status Breakdown */}
@@ -1653,8 +1653,8 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
               {Object.entries(contractStatusBreakdown).sort((a, b) => b[1] - a[1]).map(([status, count]) => (
                 <span key={status} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${
                   status === 'In Miete' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : status === 'Zurückgegeben' ? 'bg-slate-50 text-slate-500 border-slate-200'
-                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                  : status === 'Zurückgegeben' ? 'bg-surface-secondary text-text-muted border-border-secondary'
+                  : 'bg-status-warning/10 text-amber-700 border-status-warning/20'
                 }`}>
                   <span className="font-bold font-mono">{count}</span>
                   {status}
@@ -1663,27 +1663,27 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
             </div>
           )}
 
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200/40">
-              <h3 className="text-sm font-semibold text-slate-700">Bank/CHG Leasing-Assets</h3>
-              <p className="text-xs text-slate-500">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-secondary/40">
+              <h3 className="text-sm font-semibold text-text-primary">Bank/CHG Leasing-Assets</h3>
+              <p className="text-xs text-text-muted">
                 {filteredLeaseBank.length} von {leaseKpis.bankAssets} Assets
-                {mietscheinFilter && <span className="text-amber-600"> &bull; Mietschein: {mietscheinFilter}</span>}
+                {mietscheinFilter && <span className="text-status-warning"> &bull; Mietschein: {mietscheinFilter}</span>}
                 {' '}&bull; Gesamt {leaseKpis.totalMonthly.toLocaleString('de-DE', { minimumFractionDigits: 2 })}€/Monat
               </p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200/40">
-                    <th className="text-center px-2 py-2 text-xs font-medium text-slate-500 uppercase" title="OPS-Match">OPS</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">Seriennummer</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">Installationsort</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">Mietschein</th>
-                    <th className="text-right px-3 py-2 text-xs font-medium text-slate-500 uppercase">€/Monat</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">Mietbeginn</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">Gepl. Ende</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-slate-500 uppercase">Vertragsstatus</th>
+                  <tr className="border-b border-border-secondary/40">
+                    <th className="text-center px-2 py-2 text-xs font-medium text-text-muted uppercase" title="OPS-Match">OPS</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">Seriennummer</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">Installationsort</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">Mietschein</th>
+                    <th className="text-right px-3 py-2 text-xs font-medium text-text-muted uppercase">€/Monat</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">Mietbeginn</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">Gepl. Ende</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-text-muted uppercase">Vertragsstatus</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1691,28 +1691,28 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                     const hasOps = item.serialNumber && opsSnSet.has(item.serialNumber);
                     const isExpiring = item.rentalEndPlanned && new Date(item.rentalEndPlanned) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
                     return (
-                      <tr key={item.assetId || i} className={`border-b border-slate-100/60 hover:bg-slate-50/40 ${isExpiring && item.contractStatus === 'In Miete' ? 'bg-amber-50/30' : ''}`}>
+                      <tr key={item.assetId || i} className={`border-b border-border-secondary/60 hover:bg-surface-secondary/40 ${isExpiring && item.contractStatus === 'In Miete' ? 'bg-status-warning/10/30' : ''}`}>
                         <td className="px-2 py-2 text-center">
                           {hasOps ? (
                             <CheckCircle2 size={13} className="text-emerald-500 inline" />
                           ) : (
-                            <span className="text-red-400 font-bold text-xs">✗</span>
+                            <span className="text-status-offline font-bold text-xs">✗</span>
                           )}
                         </td>
-                        <td className="px-3 py-2 font-mono font-medium text-slate-700">{item.serialNumber || '–'}</td>
-                        <td className="px-3 py-2 text-slate-600 max-w-[180px] truncate" title={item.installationLocation}>
+                        <td className="px-3 py-2 font-mono font-medium text-text-primary">{item.serialNumber || '–'}</td>
+                        <td className="px-3 py-2 text-text-secondary max-w-[180px] truncate" title={item.installationLocation}>
                           {item.installationLocation || '–'}
                         </td>
-                        <td className="px-3 py-2 font-mono text-slate-500">{item.rentalCertificate || '–'}</td>
-                        <td className="px-3 py-2 text-right font-mono text-slate-700 font-medium">
+                        <td className="px-3 py-2 font-mono text-text-muted">{item.rentalCertificate || '–'}</td>
+                        <td className="px-3 py-2 text-right font-mono text-text-primary font-medium">
                           {item.monthlyPrice ? `${item.monthlyPrice.toLocaleString('de-DE', { minimumFractionDigits: 2 })}€` : '–'}
                         </td>
-                        <td className="px-3 py-2 text-slate-500 font-mono text-sm">{fmtDate(item.rentalStart)}</td>
+                        <td className="px-3 py-2 text-text-muted font-mono text-sm">{fmtDate(item.rentalStart)}</td>
                         <td className="px-3 py-2 font-mono text-sm">
-                          <span className={isExpiring && item.contractStatus === 'In Miete' ? 'text-amber-600 font-medium' : 'text-slate-500'}>
+                          <span className={isExpiring && item.contractStatus === 'In Miete' ? 'text-status-warning font-medium' : 'text-text-muted'}>
                             {fmtDate(item.rentalEndPlanned)}
                             {isExpiring && item.contractStatus === 'In Miete' && (
-                              <AlertTriangle size={10} className="inline ml-1 text-amber-500" />
+                              <AlertTriangle size={10} className="inline ml-1 text-status-warning" />
                             )}
                           </span>
                         </td>
@@ -1721,8 +1721,8 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                             item.contractStatus === 'In Miete'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : item.contractStatus === 'Zurückgegeben'
-                                ? 'bg-slate-50 text-slate-500 border border-slate-200'
-                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                ? 'bg-surface-secondary text-text-muted border border-border-secondary'
+                                : 'bg-status-warning/10 text-amber-700 border border-status-warning/20'
                           }`}>
                             {item.contractStatus || '–'}
                           </span>
@@ -1734,7 +1734,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
               </table>
             </div>
             {filteredLeaseBank.length > 150 && (
-              <div className="px-4 py-2.5 text-center text-xs text-slate-500 border-t border-slate-200/40">
+              <div className="px-4 py-2.5 text-center text-xs text-text-muted border-t border-border-secondary/40">
                 Zeige 150 von {filteredLeaseBank.length} Assets
               </div>
             )}
@@ -1746,19 +1746,19 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
       {activeSection === 'orders' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <KpiCard label="Offene Tausch-Aufträge" value={openSwaps.length} icon={ArrowLeftRight} color="#f59e0b" subtitle={`${swaps.length} gesamt`} />
-            <KpiCard label="Offene Deinstallationen" value={openDeinstalls.length} icon={PackageX} color="#ef4444" subtitle={`${deinstalls.length} gesamt`} />
+            <KpiCard label="Offene Tausch-Aufträge" value={openSwaps.length} icon={ArrowLeftRight} color="#FF9500" subtitle={`${swaps.length} gesamt`} />
+            <KpiCard label="Offene Deinstallationen" value={openDeinstalls.length} icon={PackageX} color="#FF3B30" subtitle={`${deinstalls.length} gesamt`} />
           </div>
 
           {/* Swaps */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200/40 flex items-center gap-2">
-              <ArrowLeftRight size={14} className="text-amber-500" />
-              <h3 className="text-sm font-semibold text-slate-700">Hardware-Tausch Aufträge</h3>
-              <span className="text-xs font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{filteredSwaps.length}</span>
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-secondary/40 flex items-center gap-2">
+              <ArrowLeftRight size={14} className="text-status-warning" />
+              <h3 className="text-sm font-semibold text-text-primary">Hardware-Tausch Aufträge</h3>
+              <span className="text-xs font-mono bg-surface-secondary text-text-muted px-1.5 py-0.5 rounded">{filteredSwaps.length}</span>
             </div>
             {filteredSwaps.length === 0 ? (
-              <div className="px-4 py-8 text-center text-xs text-slate-500">Keine Tausch-Aufträge vorhanden</div>
+              <div className="px-4 py-8 text-center text-xs text-text-muted">Keine Tausch-Aufträge vorhanden</div>
             ) : (
               <div className="divide-y divide-slate-100/60">
                 {filteredSwaps.map((swap) => {
@@ -1767,25 +1767,25 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                     <div key={swap.id} className={`px-4 py-3 ${isDone ? 'opacity-50' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold text-slate-700">{swap.swapId || swap.id?.substring(0, 8)}</span>
+                          <span className="text-xs font-mono font-semibold text-text-primary">{swap.swapId || swap.id?.substring(0, 8)}</span>
                           {swap.locationName && (
-                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                            <span className="text-xs text-text-muted flex items-center gap-1">
                               <MapPin size={10} /> {swap.locationName}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-slate-500">{fmtDate(swap.swapDate)}</span>
+                          <span className="text-xs font-mono text-text-muted">{fmtDate(swap.swapDate)}</span>
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                            isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-status-warning/10 text-amber-700 border border-status-warning/20'
                           }`}>{swap.status || '–'}</span>
                         </div>
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-text-muted">
                         {(swap.swapType || []).join(', ')}{swap.swapReason ? ` — ${swap.swapReason}` : ''}
                       </div>
                       {swap.defectDescription && (
-                        <div className="text-xs text-slate-500 mt-0.5">{swap.defectDescription}</div>
+                        <div className="text-xs text-text-muted mt-0.5">{swap.defectDescription}</div>
                       )}
                     </div>
                   );
@@ -1795,14 +1795,14 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           </div>
 
           {/* Deinstalls */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200/40 flex items-center gap-2">
-              <PackageX size={14} className="text-red-500" />
-              <h3 className="text-sm font-semibold text-slate-700">Deinstallationen</h3>
-              <span className="text-xs font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{filteredDeinstalls.length}</span>
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-secondary/40 flex items-center gap-2">
+              <PackageX size={14} className="text-status-offline" />
+              <h3 className="text-sm font-semibold text-text-primary">Deinstallationen</h3>
+              <span className="text-xs font-mono bg-surface-secondary text-text-muted px-1.5 py-0.5 rounded">{filteredDeinstalls.length}</span>
             </div>
             {filteredDeinstalls.length === 0 ? (
-              <div className="px-4 py-8 text-center text-xs text-slate-500">Keine Deinstallationen vorhanden</div>
+              <div className="px-4 py-8 text-center text-xs text-text-muted">Keine Deinstallationen vorhanden</div>
             ) : (
               <div className="divide-y divide-slate-100/60">
                 {filteredDeinstalls.map((d) => {
@@ -1811,27 +1811,27 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                     <div key={d.id} className={`px-4 py-3 ${isDone ? 'opacity-50' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold text-slate-700">{d.deinstallId || d.id?.substring(0, 8)}</span>
+                          <span className="text-xs font-mono font-semibold text-text-primary">{d.deinstallId || d.id?.substring(0, 8)}</span>
                           {d.locationName && (
-                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                            <span className="text-xs text-text-muted flex items-center gap-1">
                               <MapPin size={10} /> {d.locationName}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-slate-500">{fmtDate(d.deinstallDate)}</span>
+                          <span className="text-xs font-mono text-text-muted">{fmtDate(d.deinstallDate)}</span>
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
                             isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : d.status === 'In Bearbeitung' ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                : 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : d.status === 'In Bearbeitung' ? 'bg-status-warning/10 text-amber-700 border border-status-warning/20'
+                                : 'bg-accent-light text-blue-700 border border-accent/20'
                           }`}>{d.status || '–'}</span>
                         </div>
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-text-muted">
                         {d.reason}{d.hardwareCondition ? ` — Zustand: ${d.hardwareCondition}` : ''}
                       </div>
                       {d.conditionDescription && (
-                        <div className="text-xs text-slate-500 mt-0.5">{d.conditionDescription}</div>
+                        <div className="text-xs text-text-muted mt-0.5">{d.conditionDescription}</div>
                       )}
                     </div>
                   );
@@ -1846,19 +1846,19 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
       {activeSection === 'timeline' && (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
-            <KpiCard label="Installationen" value={installationen.length} icon={Wrench} color="#22c55e" />
-            <KpiCard label="Tausch-Aufträge" value={swaps.length} icon={ArrowLeftRight} color="#f59e0b" />
-            <KpiCard label="Deinstallationen" value={deinstalls.length} icon={PackageX} color="#ef4444" />
+            <KpiCard label="Installationen" value={installationen.length} icon={Wrench} color="#34C759" />
+            <KpiCard label="Tausch-Aufträge" value={swaps.length} icon={ArrowLeftRight} color="#FF9500" />
+            <KpiCard label="Deinstallationen" value={deinstalls.length} icon={PackageX} color="#FF3B30" />
           </div>
 
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200/40">
-              <h3 className="text-sm font-semibold text-slate-700">Hardware-Bewegungen</h3>
-              <p className="text-xs text-slate-500">Alle Installationen, Tausch-Aufträge und Deinstallationen chronologisch</p>
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-secondary/40">
+              <h3 className="text-sm font-semibold text-text-primary">Hardware-Bewegungen</h3>
+              <p className="text-xs text-text-muted">Alle Installationen, Tausch-Aufträge und Deinstallationen chronologisch</p>
             </div>
 
             {filteredTimeline.length === 0 ? (
-              <div className="px-4 py-8 text-center text-xs text-slate-500">Keine Events vorhanden</div>
+              <div className="px-4 py-8 text-center text-xs text-text-muted">Keine Events vorhanden</div>
             ) : (
               <div className="divide-y divide-slate-100/60">
                 {filteredTimeline.slice(0, 100).map((event, i) => {
@@ -1872,18 +1872,18 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-slate-700 capitalize">{event.type === 'installation' ? 'Installation' : event.type === 'swap' ? 'Tausch' : 'Deinstallation'}</span>
-                            {event.opsNr && <span className="text-xs font-mono text-slate-500">OPS {event.opsNr}</span>}
-                            {event.locationName && <span className="text-xs text-slate-500 flex items-center gap-0.5"><MapPin size={9} /> {event.locationName}</span>}
+                            <span className="text-xs font-medium text-text-primary capitalize">{event.type === 'installation' ? 'Installation' : event.type === 'swap' ? 'Tausch' : 'Deinstallation'}</span>
+                            {event.opsNr && <span className="text-xs font-mono text-text-muted">OPS {event.opsNr}</span>}
+                            {event.locationName && <span className="text-xs text-text-muted flex items-center gap-0.5"><MapPin size={9} /> {event.locationName}</span>}
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-slate-500">{fmtDate(event.date)}</span>
+                            <span className="text-xs font-mono text-text-muted">{fmtDate(event.date)}</span>
                             {event.status && (
-                              <span className="text-xs font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{event.status}</span>
+                              <span className="text-xs font-mono text-text-muted bg-surface-secondary px-1.5 py-0.5 rounded">{event.status}</span>
                             )}
                           </div>
                         </div>
-                        <div className="text-xs text-slate-500">{event.details}</div>
+                        <div className="text-xs text-text-muted">{event.details}</div>
                       </div>
                     </div>
                   );
@@ -1892,7 +1892,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
             )}
 
             {filteredTimeline.length > 100 && (
-              <div className="px-4 py-2.5 text-center text-xs text-slate-500 border-t border-slate-200/40">
+              <div className="px-4 py-2.5 text-center text-xs text-text-muted border-t border-border-secondary/40">
                 Zeige 100 von {filteredTimeline.length} Events
               </div>
             )}
@@ -1909,12 +1909,12 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
               label="Gesamt Fehler"
               value={fehlerStats.total}
               icon={ShieldAlert}
-              color="#ef4444"
+              color="#FF3B30"
               subtitle={`${fehlerStats.locationsAffected} Standorte betroffen`}
             />
             {fehlerStats.types.map(type => {
-              const typeColor = type === 'Display-SN' ? '#f59e0b'
-                : type === 'Navori Venue-ID' ? '#8b5cf6'
+              const typeColor = type === 'Display-SN' ? '#FF9500'
+                : type === 'Navori Venue-ID' ? '#AF52DE'
                 : type === 'SIM-ID' ? '#06b6d4'
                 : type === 'SIM-Zuordnung' ? '#0891b2'
                 : type === 'Display-Zuordnung' ? '#a855f7'
@@ -1922,7 +1922,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                 : type === 'JET-ID' ? '#6366f1'
                 : type === 'JET-ID → SN' ? '#4f46e5'
                 : type.includes('Fehlend') ? '#f97316'
-                : '#3b82f6';
+                : '#007AFF';
               const typeIcon = type === 'Display-SN' ? Monitor
                 : type === 'Navori Venue-ID' ? Database
                 : type.includes('SIM') ? Wifi
@@ -1946,41 +1946,41 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
               label="Standorte"
               value={fehlerStats.locationsAffected}
               icon={MapPin}
-              color="#3b82f6"
+              color="#007AFF"
               subtitle={`von ${displayLocations.length} gesamt`}
             />
           </div>
 
           {/* Filter bar for Fehler */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] overflow-hidden">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card overflow-hidden">
             <div className="flex flex-wrap items-center gap-2 px-4 py-3">
               <div className="relative flex-1 min-w-[200px] max-w-sm">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   value={fehlerSearch}
                   onChange={(e) => setFehlerSearch(e.target.value)}
                   placeholder="Standort, JET-ID, SN suchen..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 />
               </div>
               <select
                 value={fehlerTypeFilter}
                 onChange={(e) => setFehlerTypeFilter(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none"
+                className="px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none"
               >
                 <option value="">Alle Fehlertypen</option>
                 {fehlerStats.types.map(t => (
                   <option key={t} value={t}>{t} ({fehlerStats.byType[t]})</option>
                 ))}
               </select>
-              <span className="text-xs text-slate-500 font-mono ml-auto">
+              <span className="text-xs text-text-muted font-mono ml-auto">
                 {filteredMismatches.length} Fehler
               </span>
               {(fehlerSearch || fehlerTypeFilter) && (
                 <button
                   onClick={() => { setFehlerSearch(''); setFehlerTypeFilter(''); }}
-                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors border border-red-200"
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-status-offline/10 text-status-offline text-xs font-medium hover:bg-status-offline/10 transition-colors border border-status-offline/20"
                 >
                   <XCircle size={11} />
                   Zurücksetzen
@@ -1990,11 +1990,11 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           </div>
 
           {/* Grouped Mismatch List by Location */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200/40 flex items-center justify-between">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-secondary/40 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-slate-700">Hardware-Abweichungen pro Standort</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="text-sm font-semibold text-text-primary">Hardware-Abweichungen pro Standort</h3>
+                <p className="text-xs text-text-muted">
                   Cross-System: Display-SN, SIM-ID, JET-ID, Asset-ID, Venue-ID — gruppiert nach Location
                 </p>
               </div>
@@ -2007,7 +2007,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                       setExpandedLocations(new Set(groupedByLocation.map(g => g.locationId)));
                     }
                   }}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                  className="text-xs text-accent hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-accent-light transition-colors"
                 >
                   {expandedLocations.size === groupedByLocation.length ? 'Alle zuklappen' : 'Alle aufklappen'}
                 </button>
@@ -2018,7 +2018,7 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
               <div className="px-4 py-12 text-center">
                 <CheckCircle2 size={32} className="text-emerald-400 mx-auto mb-3" />
                 <div className="text-sm font-medium text-emerald-600">Keine Abweichungen gefunden</div>
-                <div className="text-xs text-slate-500 mt-1">Alle Hardware-Daten sind konsistent</div>
+                <div className="text-xs text-text-muted mt-1">Alle Hardware-Daten sind konsistent</div>
               </div>
             ) : (
               <div className="divide-y divide-slate-100/60">
@@ -2029,14 +2029,14 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                     typeCounts[iss.type] = (typeCounts[iss.type] || 0) + 1;
                   }
                   const getBadgeClass = (type) =>
-                    type === 'Display-SN' ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    type === 'Display-SN' ? 'bg-status-warning/10 text-amber-700 border-status-warning/20'
                     : type === 'Navori Venue-ID' ? 'bg-violet-50 text-violet-700 border-violet-200'
                     : type === 'SIM-ID' || type === 'SIM-Zuordnung' || type === 'Fehlende SIM' ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
-                    : type === 'Display-Zuordnung' ? 'bg-purple-50 text-purple-700 border-purple-200'
+                    : type === 'Display-Zuordnung' ? 'bg-brand-purple/10 text-purple-700 border-brand-purple/20'
                     : type === 'Asset-ID' ? 'bg-pink-50 text-pink-700 border-pink-200'
                     : type.includes('JET-ID') ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                    : type.includes('Fehlend') ? 'bg-orange-50 text-orange-700 border-orange-200'
-                    : 'bg-blue-50 text-blue-700 border-blue-200';
+                    : type.includes('Fehlend') ? 'bg-status-warning/10 text-orange-700 border-status-warning/20'
+                    : 'bg-accent-light text-blue-700 border-accent/20';
 
                   return (
                     <div key={group.locationId}>
@@ -2050,28 +2050,28 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                             return next;
                           });
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50/60 transition-colors text-left"
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-secondary/60 transition-colors text-left"
                       >
                         {/* Expand/Collapse icon */}
                         <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`}>
-                          <ChevronDown size={14} className="text-slate-400" />
+                          <ChevronDown size={14} className="text-text-muted" />
                         </div>
 
                         {/* Error count badge */}
-                        <div className="w-7 h-7 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold text-red-600">{group.issues.length}</span>
+                        <div className="w-7 h-7 rounded-lg bg-status-offline/10 border border-status-offline/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-status-offline">{group.issues.length}</span>
                         </div>
 
                         {/* Location info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-800 truncate">{group.locationName || '\u2013'}</span>
+                            <span className="text-sm font-semibold text-text-primary truncate">{group.locationName || '\u2013'}</span>
                             {group.city && (
-                              <span className="text-xs text-slate-400 flex-shrink-0">{group.city}</span>
+                              <span className="text-xs text-text-muted flex-shrink-0">{group.city}</span>
                             )}
                           </div>
                           {group.jetId && (
-                            <span className="text-xs font-mono text-slate-400">{group.jetId}</span>
+                            <span className="text-xs font-mono text-text-muted">{group.jetId}</span>
                           )}
                         </div>
 
@@ -2090,22 +2090,22 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
 
                       {/* Expanded detail rows */}
                       {isExpanded && (
-                        <div className="bg-slate-50/40 border-t border-slate-100/60">
+                        <div className="bg-surface-secondary/40 border-t border-border-secondary/60">
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="border-b border-slate-200/30">
-                                <th className="text-left px-4 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider w-16">OPS</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Fehlertyp</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Quelle 1</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Wert 1</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Quelle 2</th>
-                                <th className="text-left px-3 py-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider">Wert 2</th>
+                              <tr className="border-b border-border-secondary/30">
+                                <th className="text-left px-4 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider w-16">OPS</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Fehlertyp</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Quelle 1</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Wert 1</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Quelle 2</th>
+                                <th className="text-left px-3 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider">Wert 2</th>
                               </tr>
                             </thead>
                             <tbody>
                               {group.issues.map((m, idx) => (
-                                <tr key={`${m.type}-${m.source1}-${idx}`} className="border-b border-slate-100/40 hover:bg-white/60 transition-colors">
-                                  <td className="px-4 py-2 font-mono text-slate-500">{m.opsNr || '\u2013'}</td>
+                                <tr key={`${m.type}-${m.source1}-${idx}`} className="border-b border-border-secondary/40 hover:bg-surface-secondary transition-colors">
+                                  <td className="px-4 py-2 font-mono text-text-muted">{m.opsNr || '\u2013'}</td>
                                   <td className="px-3 py-2">
                                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${getBadgeClass(m.type)}`}>
                                       {m.type}
@@ -2113,22 +2113,22 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
                                   </td>
                                   <td className="px-3 py-2">
                                     <div className="flex flex-col gap-0.5">
-                                      <span className="text-slate-600 font-medium">{m.sourceLabel1}</span>
-                                      <span className="font-mono text-slate-400 text-[10px]">{m.source1}.{m.field1}</span>
-                                      <span className="text-[10px] text-blue-400 font-medium">{m.origin1}</span>
+                                      <span className="text-text-secondary font-medium">{m.sourceLabel1}</span>
+                                      <span className="font-mono text-text-muted text-[10px]">{m.source1}.{m.field1}</span>
+                                      <span className="text-[10px] text-accent font-medium">{m.origin1}</span>
                                     </div>
                                   </td>
-                                  <td className="px-3 py-2 font-mono text-red-600 font-medium max-w-[160px] truncate" title={m.value1}>
+                                  <td className="px-3 py-2 font-mono text-status-offline font-medium max-w-[160px] truncate" title={m.value1}>
                                     {m.value1 || '\u2013'}
                                   </td>
                                   <td className="px-3 py-2">
                                     <div className="flex flex-col gap-0.5">
-                                      <span className="text-slate-600 font-medium">{m.sourceLabel2}</span>
-                                      <span className="font-mono text-slate-400 text-[10px]">{m.source2}.{m.field2}</span>
-                                      <span className="text-[10px] text-blue-400 font-medium">{m.origin2}</span>
+                                      <span className="text-text-secondary font-medium">{m.sourceLabel2}</span>
+                                      <span className="font-mono text-text-muted text-[10px]">{m.source2}.{m.field2}</span>
+                                      <span className="text-[10px] text-accent font-medium">{m.origin2}</span>
                                     </div>
                                   </td>
-                                  <td className="px-3 py-2 font-mono text-red-600 font-medium max-w-[160px] truncate" title={m.value2}>
+                                  <td className="px-3 py-2 font-mono text-status-offline font-medium max-w-[160px] truncate" title={m.value2}>
                                     {m.value2 || '\u2013'}
                                   </td>
                                 </tr>
@@ -2148,81 +2148,81 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
 
       {/* ═══ BESTELLWESEN ═══ */}
       {activeSection === 'bestellwesen' && (
-        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Bestellwesen...</span></div>}>
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Bestellwesen...</span></div>}>
           <BestellwesenTab />
         </React.Suspense>
       )}
 
       {/* ═══ WARENEINGANG ═══ */}
       {activeSection === 'wareneingang' && (
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
           <WareneingangTab />
         </div>
       )}
 
       {/* ═══ LAGER & VERSAND ═══ */}
       {activeSection === 'lager-versand' && (
-        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Lager & Versand...</span></div>}>
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Lager & Versand...</span></div>}>
           <LagerVersandTab />
         </React.Suspense>
       )}
 
       {/* ═══ QR-CODES ═══ */}
       {activeSection === 'qr-codes' && (
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
           <QRCodeTab />
         </div>
       )}
 
       {/* ═══ POSITIONEN ═══ */}
       {activeSection === 'positionen' && (
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] p-4">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card p-4">
           <PositionenTab />
         </div>
       )}
 
       {/* ═══ TRACKING DASHBOARD ═══ */}
       {activeSection === 'tracking' && (
-        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Tracking...</span></div>}>
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Tracking...</span></div>}>
           <TrackingDashboard />
         </React.Suspense>
       )}
 
       {/* ═══ NOCODB ═══ */}
       {activeSection === 'nocodb' && (
-        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade NocoDB...</span></div>}>
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade NocoDB...</span></div>}>
           <NocoDBPanel />
         </React.Suspense>
       )}
 
       {/* ═══ DATA QUALITY (embedded sub-tab) ═══ */}
       {activeSection === 'data-quality' && (
-        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Datenqualität...</span></div>}>
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Datenqualität...</span></div>}>
           <DataQualityDashboard comparisonData={comparisonData} rawData={rawData} />
         </React.Suspense>
       )}
 
       {/* ═══ FREIGABE / INSPECTION ═══ */}
       {activeSection === 'freigabe' && (
-        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Freigabe...</span></div>}>
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Freigabe...</span></div>}>
           <InstallationInspection />
         </React.Suspense>
       )}
 
       {/* Edit Warning Modal (Test-Modus) */}
       {showEditWarning && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-6 max-w-md border border-amber-200 shadow-xl">
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-surface-primary rounded-2xl p-6 max-w-md border border-status-warning/20 shadow-xl">
             <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle size={20} className="text-amber-500" />
-              <h3 className="text-sm font-bold text-slate-900">Bearbeitung (Test-Modus)</h3>
+              <AlertTriangle size={20} className="text-status-warning" />
+              <h3 className="text-sm font-bold text-text-primary">Bearbeitung (Test-Modus)</h3>
             </div>
-            <p className="text-xs text-slate-600 mb-4">
+            <p className="text-xs text-text-secondary mb-4">
               Die Bearbeitung von Hardware-Daten ist aktuell nur zu Testzwecken verfügbar.
               Änderungen werden NICHT gespeichert und nicht nach Airtable synchronisiert.
             </p>
             <div className="flex gap-2">
-              <button onClick={() => setShowEditWarning(false)} className="flex-1 px-4 py-2 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">
+              <button onClick={() => setShowEditWarning(false)} className="flex-1 px-4 py-2 rounded-lg text-xs font-medium bg-surface-secondary text-text-secondary hover:bg-surface-tertiary">
                 Verstanden
               </button>
             </div>

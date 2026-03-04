@@ -164,11 +164,11 @@ class TabErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 m-4 text-center">
-          <div className="text-red-600 font-bold mb-2">Fehler in "{this.props.name || 'Tab'}"</div>
-          <div className="text-xs text-red-500 font-mono mb-3">Ein Fehler ist aufgetreten. Bitte versuche es erneut.</div>
+        <div className="bg-status-offline/10 border border-status-offline/20 rounded-2xl p-6 m-4 text-center">
+          <div className="text-status-offline font-bold mb-2">Fehler in "{this.props.name || 'Tab'}"</div>
+          <div className="text-xs text-status-offline font-mono mb-3">Ein Fehler ist aufgetreten. Bitte versuche es erneut.</div>
           <button onClick={() => this.setState({ hasError: false, error: null })}
-            className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200">
+            className="px-4 py-2 bg-status-offline/10 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200">
             Erneut versuchen
           </button>
         </div>
@@ -1887,7 +1887,7 @@ function App() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #FBFBFD 0%, #F2F2F7 100%)' }}>
         <div className="w-full max-w-[380px] px-6">
-          <form onSubmit={handleLogin} className="bg-white rounded-3xl p-10 shadow-xl border border-gray-200/60">
+          <form onSubmit={handleLogin} className="bg-surface-primary rounded-3xl p-10 shadow-xl border border-border-secondary/60">
             <div className="flex flex-col items-center mb-10">
               <div className="w-[72px] h-[72px] rounded-[22px] bg-[#1D1D1F] flex items-center justify-center mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
                 <img
@@ -1916,7 +1916,7 @@ function App() {
                     onChange={(e) => { setEmailInput(e.target.value); setAuthError(''); }}
                     placeholder="name@dimension-outdoor.com"
                     autoFocus
-                    className={`w-full bg-white border-[1.5px] rounded-xl pl-11 pr-4 py-3.5 text-[16px] text-[#1D1D1F] placeholder-[#AEAEB2] focus:outline-none focus:ring-4 focus:ring-[#007AFF]/10 transition-all ${
+                    className={`w-full bg-surface-primary border-[1.5px] rounded-xl pl-11 pr-4 py-3.5 text-[16px] text-[#1D1D1F] placeholder-[#AEAEB2] focus:outline-none focus:ring-4 focus:ring-[#007AFF]/10 transition-all ${
                       authError
                         ? 'border-[#FF3B30] focus:border-[#FF3B30]'
                         : 'border-[#D2D2D7] focus:border-[#007AFF]'
@@ -1935,7 +1935,7 @@ function App() {
                     value={passwordInput}
                     onChange={(e) => { setPasswordInput(e.target.value); setAuthError(''); }}
                     placeholder="Passwort eingeben"
-                    className={`w-full bg-white border-[1.5px] rounded-xl pl-11 pr-4 py-3.5 text-[16px] text-[#1D1D1F] placeholder-[#AEAEB2] focus:outline-none focus:ring-4 focus:ring-[#007AFF]/10 transition-all ${
+                    className={`w-full bg-surface-primary border-[1.5px] rounded-xl pl-11 pr-4 py-3.5 text-[16px] text-[#1D1D1F] placeholder-[#AEAEB2] focus:outline-none focus:ring-4 focus:ring-[#007AFF]/10 transition-all ${
                       authError
                         ? 'border-[#FF3B30] focus:border-[#FF3B30]'
                         : 'border-[#D2D2D7] focus:border-[#007AFF]'
@@ -2074,10 +2074,10 @@ function App() {
     return (
       <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6">
         <div className="text-center">
-          <AlertCircle size={32} className="text-red-400 mx-auto mb-3" />
+          <AlertCircle size={32} className="text-status-offline mx-auto mb-3" />
           <p className="text-sm text-text-primary mb-1">Verbindungsfehler</p>
           <p className="text-xs text-text-muted mb-4">{error}</p>
-          <button onClick={() => loadData(true)} className="px-4 py-2 bg-blue-500 text-white text-sm rounded-xl">Erneut versuchen</button>
+          <button onClick={() => loadData(true)} className="px-4 py-2 bg-accent text-white text-sm rounded-xl">Erneut versuchen</button>
         </div>
       </div>
     );
@@ -2237,9 +2237,9 @@ function App() {
                 <div className="px-4 pt-4 pb-2">
                   <button
                     onClick={() => setShowQRScanner(true)}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 bg-blue-50/80 border border-blue-200/60 rounded-2xl active:bg-blue-100/80 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3.5 bg-accent-light/80 border border-accent/20/60 rounded-2xl active:bg-accent-light/80 transition-colors"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shrink-0">
                       <Search size={20} className="text-white" />
                     </div>
                     <div className="flex-1 text-left">
@@ -2282,9 +2282,9 @@ function App() {
         {/* QR Hardware Scanner Overlay */}
         {showQRScanner && (userIsAdmin || isFeatureEnabled('tab_qr_scanner')) && (
           <Suspense fallback={
-            <div className="fixed inset-0 z-[9999] bg-black/20 backdrop-blur-sm flex items-end justify-center">
+            <div className="fixed inset-0 z-[9999] bg-black/20 flex items-end justify-center">
               <div className="w-full max-w-lg bg-surface-primary rounded-t-3xl p-8 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-accent" />
               </div>
             </div>
           }>
@@ -2308,7 +2308,7 @@ function App() {
 
         {/* Display Detail Modal */}
         {selectedDisplay && (
-          <Suspense fallback={<div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-white" /></div>}>
+          <Suspense fallback={<div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-white" /></div>}>
             <DisplayDetail
               display={selectedDisplay}
               onClose={() => setSelectedDisplay(null)}
@@ -2319,13 +2319,13 @@ function App() {
         {/* Session Timeout Warning Banner */}
         {sessionWarning && (
           <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-xl bg-status-warning/10 border border-status-warning/20 shadow-lg animate-fade-in">
-            <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+            <AlertTriangle size={16} className="text-status-warning shrink-0" />
             <div>
               <p className="text-sm font-medium text-amber-800">Session laeuft ab</p>
             </div>
             <button
               onClick={() => { touchSession(); setSessionWarning(false); }}
-              className="ml-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 text-white active:bg-amber-600 transition-colors"
+              className="ml-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-status-warning text-white active:bg-amber-600 transition-colors"
             >
               Verlaengern
             </button>
@@ -2809,14 +2809,14 @@ function App() {
       {/* Session Timeout Warning Banner */}
       {sessionWarning && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-xl bg-status-warning/10 border border-status-warning/20 shadow-lg animate-fade-in">
-          <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+          <AlertTriangle size={16} className="text-status-warning shrink-0" />
           <div>
             <p className="text-sm font-medium text-amber-800">Session läuft bald ab</p>
-            <p className="text-xs text-amber-600">Klicke irgendwo um die Session zu verlängern</p>
+            <p className="text-xs text-status-warning">Klicke irgendwo um die Session zu verlängern</p>
           </div>
           <button
             onClick={() => { touchSession(); setSessionWarning(false); }}
-            className="ml-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+            className="ml-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-status-warning text-white hover:bg-amber-600 transition-colors"
           >
             Verlängern
           </button>
@@ -2825,7 +2825,7 @@ function App() {
 
       {/* Display Detail Modal */}
       {selectedDisplay && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-white" /></div>}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-white" /></div>}>
           <DisplayDetail
             display={selectedDisplay}
             onClose={() => setSelectedDisplay(null)}

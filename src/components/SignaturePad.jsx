@@ -99,7 +99,7 @@ export default function SignaturePad({ onChange, width = 320, height = 180 }) {
   return (
     <div className="relative">
       {/* Canvas container */}
-      <div className="relative bg-white rounded-2xl border-2 border-dashed border-gray-300 overflow-hidden">
+      <div className="relative bg-surface-primary rounded-2xl border-2 border-dashed border-border-primary overflow-hidden">
         <canvas
           ref={canvasRef}
           style={{ width: '100%', height: `${height}px`, touchAction: 'none' }}
@@ -112,14 +112,14 @@ export default function SignaturePad({ onChange, width = 320, height = 180 }) {
           onTouchEnd={endDraw}
         />
         {/* Signature line */}
-        <div className="absolute bottom-8 left-6 right-6 border-b border-gray-300" />
-        <div className="absolute bottom-2.5 left-6 text-[11px] text-gray-400">
+        <div className="absolute bottom-8 left-6 right-6 border-b border-border-primary" />
+        <div className="absolute bottom-2.5 left-6 text-[11px] text-text-muted">
           Unterschrift
         </div>
         {/* Placeholder text when empty */}
         {!hasSignature && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-gray-300 text-sm">Hier unterschreiben</span>
+            <span className="text-text-muted text-sm">Hier unterschreiben</span>
           </div>
         )}
       </div>
@@ -129,7 +129,7 @@ export default function SignaturePad({ onChange, width = 320, height = 180 }) {
         <button
           type="button"
           onClick={clear}
-          className="absolute top-2 right-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium rounded-lg transition-colors"
+          className="absolute top-2 right-2 px-3 py-1.5 bg-surface-secondary hover:bg-surface-tertiary text-text-secondary text-xs font-medium rounded-lg transition-colors"
         >
           Löschen
         </button>

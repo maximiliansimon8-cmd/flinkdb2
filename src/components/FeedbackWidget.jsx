@@ -38,16 +38,16 @@ import { getCurrentUser } from '../utils/authService';
 /* ─── Type Config ─── */
 
 const TYPES = {
-  bug: { label: 'Bug melden', icon: Bug, color: '#ef4444', dbValue: 'bug' },
-  feedback: { label: 'Feedback geben', icon: Lightbulb, color: '#f59e0b', dbValue: 'feedback' },
-  screenshot: { label: 'Screenshot + Notiz', icon: Camera, color: '#3b82f6', dbValue: 'feature' },
+  bug: { label: 'Bug melden', icon: Bug, color: '#FF3B30', dbValue: 'bug' },
+  feedback: { label: 'Feedback geben', icon: Lightbulb, color: '#FF9500', dbValue: 'feedback' },
+  screenshot: { label: 'Screenshot + Notiz', icon: Camera, color: '#007AFF', dbValue: 'feature' },
 };
 
 const PRIORITIES = [
   { value: 'low', label: 'Niedrig', color: '#64748b' },
-  { value: 'medium', label: 'Mittel', color: '#3b82f6' },
-  { value: 'high', label: 'Hoch', color: '#f59e0b' },
-  { value: 'critical', label: 'Kritisch', color: '#ef4444' },
+  { value: 'medium', label: 'Mittel', color: '#007AFF' },
+  { value: 'high', label: 'Hoch', color: '#FF9500' },
+  { value: 'critical', label: 'Kritisch', color: '#FF3B30' },
 ];
 
 /* ─── Helpers ─── */
@@ -141,9 +141,9 @@ function ContextMenu({ x, y, onSelect, onClose }) {
   }, [x, y]);
 
   const items = [
-    { id: 'bug', icon: Bug, label: 'Bug melden', emoji: '', color: '#ef4444' },
-    { id: 'feedback', icon: Lightbulb, label: 'Feedback geben', emoji: '', color: '#f59e0b' },
-    { id: 'screenshot', icon: Camera, label: 'Screenshot + Notiz', emoji: '', color: '#3b82f6' },
+    { id: 'bug', icon: Bug, label: 'Bug melden', emoji: '', color: '#FF3B30' },
+    { id: 'feedback', icon: Lightbulb, label: 'Feedback geben', emoji: '', color: '#FF9500' },
+    { id: 'screenshot', icon: Camera, label: 'Screenshot + Notiz', emoji: '', color: '#007AFF' },
     { id: 'divider' },
     { id: 'native', icon: Menu, label: 'Standard-Menu anzeigen', emoji: '', color: '#64748b' },
   ];
@@ -160,19 +160,19 @@ function ContextMenu({ x, y, onSelect, onClose }) {
       {/* Menu */}
       <div
         ref={menuRef}
-        className="fixed z-[9999] bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-xl shadow-2xl shadow-black/10 py-1.5 min-w-[220px] animate-fade-in"
+        className="fixed z-[9999] bg-surface-primary border border-border-secondary/80 rounded-xl shadow-2xl shadow-black/10 py-1.5 min-w-[220px] animate-fade-in"
         style={{ left: x, top: y }}
       >
         {items.map((item) => {
           if (item.id === 'divider') {
-            return <div key="divider" className="my-1.5 border-t border-slate-200/60" />;
+            return <div key="divider" className="my-1.5 border-t border-border-secondary" />;
           }
           const Icon = item.icon;
           return (
             <button
               key={item.id}
               onClick={() => onSelect(item.id)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50/80 transition-colors group"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-secondary/80 transition-colors group"
             >
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
@@ -204,8 +204,8 @@ function ClickMarker({ x, y }) {
           style={{ animationDuration: '1.5s' }}
         />
         {/* Inner dot */}
-        <div className="w-6 h-6 rounded-full bg-red-500/30 border-2 border-red-500 flex items-center justify-center">
-          <div className="w-2 h-2 rounded-full bg-red-500" />
+        <div className="w-6 h-6 rounded-full bg-status-offline/30 border-2 border-status-offline flex items-center justify-center">
+          <div className="w-2 h-2 rounded-full bg-status-offline" />
         </div>
       </div>
     </div>
@@ -292,13 +292,13 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
 
   if (submitted) {
     return (
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20 backdrop-blur-sm">
-        <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 text-center animate-fade-in">
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 text-center animate-fade-in">
           <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={28} className="text-emerald-500" />
           </div>
-          <h3 className="text-base font-semibold text-slate-900 mb-1">Gesendet!</h3>
-          <p className="text-sm text-slate-500">Danke fuer dein Feedback. Wir kuemmern uns darum.</p>
+          <h3 className="text-base font-semibold text-text-primary mb-1">Gesendet!</h3>
+          <p className="text-sm text-text-muted">Danke fuer dein Feedback. Wir kuemmern uns darum.</p>
         </div>
       </div>
     );
@@ -307,10 +307,10 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
   const TypeIcon = typeConfig.icon;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20 backdrop-blur-sm">
-      <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-fade-in max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-fade-in max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-secondary shrink-0">
           <div className="flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -319,13 +319,13 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
               <TypeIcon size={18} style={{ color: typeConfig.color }} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">{typeConfig.label}</h3>
-              <p className="text-xs text-slate-500 font-mono">{context.component} - {context.hash || 'root'}</p>
+              <h3 className="text-sm font-semibold text-text-primary">{typeConfig.label}</h3>
+              <p className="text-xs text-text-muted font-mono">{context.component} - {context.hash || 'root'}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100/60 text-slate-400 hover:text-slate-600 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-surface-secondary/60 text-text-muted hover:text-text-secondary transition-colors"
           >
             <X size={18} />
           </button>
@@ -334,7 +334,7 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50/80 border border-red-200/60 text-xs text-red-600">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-status-offline/10/80 border border-status-offline/20/60 text-xs text-status-offline">
               <AlertCircle size={14} />
               {error}
             </div>
@@ -342,24 +342,24 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
 
           {/* Context Info (collapsed by default) */}
           <details className="group">
-            <summary className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer hover:text-slate-700 transition-colors select-none">
+            <summary className="flex items-center gap-2 text-xs text-text-muted cursor-pointer hover:text-text-primary transition-colors select-none">
               <ChevronDown size={12} className="transition-transform group-open:rotate-180" />
               Erfasster Kontext
             </summary>
-            <div className="mt-2 grid grid-cols-2 gap-2 p-3 bg-slate-50/80 rounded-xl border border-slate-200/40">
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <div className="mt-2 grid grid-cols-2 gap-2 p-3 bg-surface-secondary/80 rounded-xl border border-border-secondary/40">
+              <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 <Globe size={10} />
                 <span className="font-mono truncate">{context.url}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 <Monitor size={10} />
                 <span className="font-mono">{context.viewportWidth} x {context.viewportHeight}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 <MapPin size={10} />
                 <span className="font-mono">Klick: ({clickX}, {clickY})</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 <Clock size={10} />
                 <span className="font-mono">
                   {new Date(context.timestamp).toLocaleString('de-DE', {
@@ -370,10 +370,10 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
                 </span>
               </div>
               {context.activeFilters && context.activeFilters.length > 0 && (
-                <div className="col-span-2 flex items-center gap-1.5 text-xs text-slate-500">
+                <div className="col-span-2 flex items-center gap-1.5 text-xs text-text-muted">
                   <span className="font-medium">Filter:</span>
                   {context.activeFilters.map((f, i) => (
-                    <span key={i} className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-mono">
+                    <span key={i} className="px-1.5 py-0.5 bg-accent-light text-accent rounded text-xs font-mono">
                       {f.value}
                     </span>
                   ))}
@@ -384,32 +384,32 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
 
           {/* Title */}
           <div>
-            <label className="text-xs text-slate-500 block mb-1.5">Titel (optional)</label>
+            <label className="text-xs text-text-muted block mb-1.5">Titel (optional)</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={`z.B. Button funktioniert nicht auf ${context.component}...`}
-              className="w-full bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 transition-all"
+              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-accent/10 transition-all"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="text-xs text-slate-500 block mb-1.5">Beschreibung *</label>
+            <label className="text-xs text-text-muted block mb-1.5">Beschreibung *</label>
             <textarea
               ref={descRef}
               value={description}
               onChange={(e) => { setDescription(e.target.value); setError(''); }}
               placeholder="Was ist passiert? Was hast du erwartet?"
               rows={4}
-              className="w-full bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 transition-all resize-none"
+              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-xl px-4 py-3 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-accent/10 transition-all resize-none"
             />
           </div>
 
           {/* Priority */}
           <div>
-            <label className="text-xs text-slate-500 block mb-2">Prioritaet</label>
+            <label className="text-xs text-text-muted block mb-2">Prioritaet</label>
             <div className="flex gap-2">
               {PRIORITIES.map((p) => (
                 <button
@@ -438,7 +438,7 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-white/60 backdrop-blur-xl border border-slate-200/60 text-slate-600 hover:bg-white/80 transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-surface-primary border border-border-secondary text-text-secondary hover:bg-surface-secondary transition-colors"
             >
               Abbrechen
             </button>

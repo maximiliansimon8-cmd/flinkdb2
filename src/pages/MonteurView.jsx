@@ -41,12 +41,12 @@ const BRAND = {
 };
 
 const STATUS_COLORS = {
-  booked:    { bg: 'bg-green-100',  text: 'text-green-700',  label: 'Bestätigt' },
-  confirmed: { bg: 'bg-green-100',  text: 'text-green-700',  label: 'Bestätigt' },
+  booked:    { bg: 'bg-status-online/10',  text: 'text-green-700',  label: 'Bestätigt' },
+  confirmed: { bg: 'bg-status-online/10',  text: 'text-green-700',  label: 'Bestätigt' },
   completed: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Installiert' },
-  cancelled: { bg: 'bg-red-100',    text: 'text-red-700',    label: 'Storniert' },
-  no_show:   { bg: 'bg-gray-100',   text: 'text-gray-700',   label: 'No-Show' },
-  pending:   { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Ausstehend' },
+  cancelled: { bg: 'bg-status-offline/10',    text: 'text-red-700',    label: 'Storniert' },
+  no_show:   { bg: 'bg-surface-secondary',   text: 'text-text-primary',   label: 'No-Show' },
+  pending:   { bg: 'bg-status-warning/10', text: 'text-yellow-700', label: 'Ausstehend' },
 };
 
 const MONTEUR_SESSION_KEY = 'monteur_auth';
@@ -218,7 +218,7 @@ function MonteurLoginScreen({ onLogin, loading: parentLoading }) {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border p-6 space-y-4" style={{ borderColor: '#E5E7EB' }}>
+        <form onSubmit={handleSubmit} className="bg-surface-primary rounded-2xl shadow-sm border p-6 space-y-4" style={{ borderColor: '#E5E7EB' }}>
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: BRAND.textLight }}>E-Mail</label>
             <input
@@ -853,7 +853,7 @@ export default function MonteurView() {
 
         {/* Error */}
         {error && !loading && (
-          <div className="bg-white rounded-2xl shadow-sm border p-6 text-center" style={{ borderColor: '#FEE2E2' }}>
+          <div className="bg-surface-primary rounded-2xl shadow-sm border p-6 text-center" style={{ borderColor: '#FEE2E2' }}>
             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: BRAND.redLight }}>
               <svg className="w-8 h-8" style={{ color: BRAND.red }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -872,7 +872,7 @@ export default function MonteurView() {
 
         {/* No bookings */}
         {data && data.bookingCount === 0 && !loading && (
-          <div className="bg-white rounded-2xl shadow-sm border p-6 text-center" style={{ borderColor: BRAND.orangeMedium }}>
+          <div className="bg-surface-primary rounded-2xl shadow-sm border p-6 text-center" style={{ borderColor: BRAND.orangeMedium }}>
             <p className="text-lg font-bold" style={{ color: BRAND.text }}>Keine Termine</p>
             <p className="text-sm mt-1" style={{ color: BRAND.textLight }}>
               {isJWT ? `Für ${formatDateDE(selectedDate)} sind keine Installationstermine geplant.` : 'Für heute sind keine Installationstermine geplant.'}
@@ -884,7 +884,7 @@ export default function MonteurView() {
         {data && data.bookings && data.bookings.length > 0 && (
           <div>
             {/* List / Map Toggle */}
-            <div className="flex gap-1 mb-3 bg-white rounded-lg p-1 border" style={{ borderColor: '#E5E7EB' }}>
+            <div className="flex gap-1 mb-3 bg-surface-primary rounded-lg p-1 border" style={{ borderColor: '#E5E7EB' }}>
               <button
                 onClick={() => setViewMode('list')}
                 className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-colors"
@@ -922,7 +922,7 @@ export default function MonteurView() {
 
               if (bookingsWithCoords.length === 0) {
                 return (
-                  <div className="bg-white rounded-xl border p-6 text-center" style={{ borderColor: '#E5E7EB' }}>
+                  <div className="bg-surface-primary rounded-xl border p-6 text-center" style={{ borderColor: '#E5E7EB' }}>
                     <p className="text-sm" style={{ color: BRAND.textLight }}>
                       Keine Koordinaten verfügbar. Bitte zur Listenansicht wechseln.
                     </p>
@@ -953,7 +953,7 @@ export default function MonteurView() {
                           <div className="text-sm min-w-[180px]">
                             <p className="font-bold" style={{ color: BRAND.orange }}>{b.bookedTime || '--:--'}</p>
                             <p className="font-semibold mt-0.5">{b.locationName || 'Unbekannt'}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">
+                            <p className="text-xs text-text-muted mt-0.5">
                               {[b.street, b.streetNumber].filter(Boolean).join(' ')}, {b.postalCode} {b.city}
                             </p>
                             {b.contactName && <p className="text-xs mt-1">{b.contactName}</p>}
@@ -1090,7 +1090,7 @@ export default function MonteurView() {
                 {isFirstDone && idx > 0 && (
                   <div className="flex items-center gap-3 py-3 mt-2">
                     <div className="flex-1 h-px bg-gray-300" />
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">✓ Erledigt</span>
+                    <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">✓ Erledigt</span>
                     <div className="flex-1 h-px bg-gray-300" />
                   </div>
                 )}
@@ -1190,8 +1190,8 @@ export default function MonteurView() {
                             /installiert|live|erfolgreich/i.test(b._statusInstallation)
                               ? 'bg-emerald-100 text-emerald-700'
                               : /abgebrochen|fehlgeschlagen/i.test(b._statusInstallation)
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-blue-100 text-blue-700'
+                              ? 'bg-status-offline/10 text-red-700'
+                              : 'bg-accent-light text-blue-700'
                           }`}>
                             {/installiert|live|erfolgreich/i.test(b._statusInstallation) ? '✓' : 'ℹ'} {b._statusInstallation}
                           </span>
@@ -1202,7 +1202,7 @@ export default function MonteurView() {
                           </span>
                         )}
                         {b._isAirtable && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">AT</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface-secondary text-text-muted">AT</span>
                         )}
                       </div>
                     </div>
@@ -1269,7 +1269,7 @@ export default function MonteurView() {
                             {b.akquise.images.map((img, i) => (
                               <button key={i}
                                 onClick={() => setGallery({ open: true, images: b.akquise.images, index: i })}
-                                className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden border bg-gray-50 cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all">
+                                className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden border bg-surface-secondary cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all">
                                 <img src={img.url} alt={img.filename || `Foto ${i + 1}`}
                                   className="w-full h-full object-cover" loading="lazy" />
                               </button>
@@ -1431,7 +1431,7 @@ export default function MonteurView() {
                         {/* Action Result */}
                         {result && (
                           <div className={`mt-2 p-2 rounded-lg text-xs text-center ${
-                            result.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                            result.success ? 'bg-status-online/10 text-green-700' : 'bg-status-offline/10 text-red-700'
                           }`}>
                             {result.success ? '\u2705 ' : '\u274C '}{result.message}
                           </div>

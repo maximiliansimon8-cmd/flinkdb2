@@ -46,11 +46,11 @@ const ACTIVITY_TYPES = {
 };
 
 const TYPE_CONFIG = {
-  [ACTIVITY_TYPES.NEU]: { label: 'Neu', color: '#22c55e', bg: 'bg-emerald-500/12', text: 'text-emerald-600', icon: Plus },
-  [ACTIVITY_TYPES.UPDATE]: { label: 'Update', color: '#3b82f6', bg: 'bg-blue-500/12', text: 'text-blue-600', icon: ArrowUpRight },
-  [ACTIVITY_TYPES.WARNUNG]: { label: 'Warnung', color: '#f59e0b', bg: 'bg-amber-500/12', text: 'text-amber-600', icon: AlertTriangle },
-  [ACTIVITY_TYPES.KRITISCH]: { label: 'Kritisch', color: '#ef4444', bg: 'bg-red-500/12', text: 'text-red-600', icon: WifiOff },
-  [ACTIVITY_TYPES.SYSTEM]: { label: 'System', color: '#a855f7', bg: 'bg-purple-500/12', text: 'text-purple-600', icon: Zap },
+  [ACTIVITY_TYPES.NEU]: { label: 'Neu', color: '#34C759', bg: 'bg-emerald-500/12', text: 'text-emerald-600', icon: Plus },
+  [ACTIVITY_TYPES.UPDATE]: { label: 'Update', color: '#007AFF', bg: 'bg-accent/12', text: 'text-accent', icon: ArrowUpRight },
+  [ACTIVITY_TYPES.WARNUNG]: { label: 'Warnung', color: '#FF9500', bg: 'bg-status-warning/12', text: 'text-status-warning', icon: AlertTriangle },
+  [ACTIVITY_TYPES.KRITISCH]: { label: 'Kritisch', color: '#FF3B30', bg: 'bg-status-offline/12', text: 'text-status-offline', icon: WifiOff },
+  [ACTIVITY_TYPES.SYSTEM]: { label: 'System', color: '#a855f7', bg: 'bg-brand-purple/12', text: 'text-brand-purple', icon: Zap },
 };
 
 const PAGE_SIZE = 30;
@@ -89,8 +89,8 @@ function getDateGroup(date) {
 }
 
 function getPriorityColor(priority) {
-  if (priority === 'Urgent') return '#ef4444';
-  if (priority === 'High') return '#f59e0b';
+  if (priority === 'Urgent') return '#FF3B30';
+  if (priority === 'High') return '#FF9500';
   return null;
 }
 
@@ -174,7 +174,7 @@ async function loadActivitiesFromSupabase() {
           timestamp: new Date(task.completed_date),
           icon: CheckCircle2,
           tag: 'Erledigt',
-          tagColor: '#22c55e',
+          tagColor: '#34C759',
         });
       }
     }
@@ -197,7 +197,7 @@ async function loadActivitiesFromSupabase() {
           timestamp: hb.timestamp_parsed ? new Date(hb.timestamp_parsed) : now,
           icon: AlertTriangle,
           tag: `${daysOffline}d`,
-          tagColor: '#f59e0b',
+          tagColor: '#FF9500',
         });
       } else if (daysOffline >= 7) {
         activities.push({
@@ -208,7 +208,7 @@ async function loadActivitiesFromSupabase() {
           timestamp: hb.timestamp_parsed ? new Date(hb.timestamp_parsed) : now,
           icon: WifiOff,
           tag: `${daysOffline}d`,
-          tagColor: '#ef4444',
+          tagColor: '#FF3B30',
         });
       }
     }
@@ -229,7 +229,7 @@ async function loadActivitiesFromSupabase() {
         timestamp: new Date(latestSync.last_sync_timestamp),
         icon: RefreshCw,
         tag: failedCount > 0 ? 'Fehler' : 'OK',
-        tagColor: failedCount > 0 ? '#ef4444' : '#22c55e',
+        tagColor: failedCount > 0 ? '#FF3B30' : '#34C759',
       });
     }
 
@@ -262,7 +262,7 @@ async function loadActivitiesFromSupabase() {
         timestamp: ts,
         icon: MapPinIcon,
         tag: city || null,
-        tagColor: '#22c55e',
+        tagColor: '#34C759',
       });
     }
 
@@ -352,10 +352,10 @@ export default function MobileActivityFeed() {
         <div className="w-full space-y-3">
           {[1,2,3,4,5].map(i => (
             <div key={i} className="flex gap-3 animate-pulse" style={{ animationDelay: `${i * 80}ms` }}>
-              <div className="w-9 h-9 rounded-full bg-slate-200/60 shrink-0" />
+              <div className="w-9 h-9 rounded-full bg-surface-tertiary/60 shrink-0" />
               <div className="flex-1 space-y-1.5">
-                <div className="h-3 bg-slate-200/60 rounded-full w-3/4" />
-                <div className="h-2.5 bg-slate-200/40 rounded-full w-1/2" />
+                <div className="h-3 bg-surface-tertiary/60 rounded-full w-3/4" />
+                <div className="h-2.5 bg-surface-tertiary/40 rounded-full w-1/2" />
               </div>
             </div>
           ))}
@@ -366,16 +366,16 @@ export default function MobileActivityFeed() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-2xl border-b border-slate-200/60 px-4 pt-4 pb-3">
+      <div className="sticky top-0 z-20 bg-surface-primary2xl border-b border-border-secondary px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
               <Radio size={16} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-slate-900 leading-tight">Liveticker</h1>
-              <p className="text-[11px] text-slate-400">
-                {activities.length} Aktivitaeten{unreadCount > 0 && <span className="text-blue-500 font-semibold"> · {unreadCount} neu</span>}
+              <h1 className="text-lg font-bold text-text-primary leading-tight">Liveticker</h1>
+              <p className="text-[11px] text-text-muted">
+                {activities.length} Aktivitaeten{unreadCount > 0 && <span className="text-accent font-semibold"> · {unreadCount} neu</span>}
               </p>
             </div>
           </div>
@@ -383,7 +383,7 @@ export default function MobileActivityFeed() {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-50/80 text-blue-600 text-[11px] font-semibold active:bg-blue-100/80 transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-accent-light/80 text-accent text-[11px] font-semibold active:bg-accent-light/80 transition-colors"
               >
                 <CheckCheck size={13} />
                 Alle gelesen
@@ -392,9 +392,9 @@ export default function MobileActivityFeed() {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="w-9 h-9 rounded-xl bg-slate-100/80 flex items-center justify-center active:bg-slate-200/80 transition-colors"
+              className="w-9 h-9 rounded-xl bg-surface-secondary/80 flex items-center justify-center active:bg-surface-tertiary/80 transition-colors"
             >
-              <RefreshCw size={16} className={`text-slate-500 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw size={16} className={`text-text-muted ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
@@ -424,8 +424,8 @@ export default function MobileActivityFeed() {
       <div className="flex-1 overflow-y-auto pb-24">
         {groupedActivities.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-            <Activity size={40} className="text-slate-200 mb-3" />
-            <p className="text-sm text-slate-400">Keine Aktivitaeten gefunden</p>
+            <Activity size={40} className="text-text-muted mb-3" />
+            <p className="text-sm text-text-muted">Keine Aktivitaeten gefunden</p>
           </div>
         )}
 
@@ -434,9 +434,9 @@ export default function MobileActivityFeed() {
             if (item.type === 'header') {
               return (
                 <div key={`h-${item.label}`} className="flex items-center gap-2 py-3 mt-1">
-                  <div className="h-px flex-1 bg-slate-200/60" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-1">{item.label}</span>
-                  <div className="h-px flex-1 bg-slate-200/60" />
+                  <div className="h-px flex-1 bg-surface-tertiary/60" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted px-1">{item.label}</span>
+                  <div className="h-px flex-1 bg-surface-tertiary/60" />
                 </div>
               );
             }
@@ -449,7 +449,7 @@ export default function MobileActivityFeed() {
             return (
               <div
                 key={a.id}
-                className={`flex gap-3 py-3 border-b border-slate-100/60 last:border-0 mobile-fade-in ${isUnread ? 'bg-blue-50/30 -mx-2 px-2 rounded-xl' : ''}`}
+                className={`flex gap-3 py-3 border-b border-border-secondary/60 last:border-0 mobile-fade-in ${isUnread ? 'bg-accent-light/30 -mx-2 px-2 rounded-xl' : ''}`}
                 style={{ animationDelay: `${Math.min(i * 30, 300)}ms` }}
               >
                 <div className="relative shrink-0">
@@ -457,7 +457,7 @@ export default function MobileActivityFeed() {
                     <Icon size={16} className={cfg.text} />
                   </div>
                   {isUnread && (
-                    <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-white" />
+                    <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-white" />
                   )}
                 </div>
 
@@ -465,7 +465,7 @@ export default function MobileActivityFeed() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-semibold text-slate-900 truncate">{a.title}</span>
+                        <span className="text-sm font-semibold text-text-primary truncate">{a.title}</span>
                         {a.tag && (
                           <span
                             className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
@@ -478,9 +478,9 @@ export default function MobileActivityFeed() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{a.description}</p>
+                      <p className="text-xs text-text-muted mt-0.5 line-clamp-2">{a.description}</p>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono whitespace-nowrap shrink-0 mt-0.5">
+                    <span className="text-[10px] text-text-muted font-mono whitespace-nowrap shrink-0 mt-0.5">
                       {relativeTime(a.timestamp)}
                     </span>
                   </div>
@@ -493,7 +493,7 @@ export default function MobileActivityFeed() {
           {visibleCount < filteredActivities.length && (
             <button
               onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
-              className="w-full py-3 mt-2 text-sm font-medium text-blue-600 bg-blue-50/50 rounded-xl active:bg-blue-100/60 transition-colors flex items-center justify-center gap-1.5"
+              className="w-full py-3 mt-2 text-sm font-medium text-accent bg-accent-light/50 rounded-xl active:bg-accent-light/60 transition-colors flex items-center justify-center gap-1.5"
             >
               <ChevronDown size={14} />
               Mehr laden ({filteredActivities.length - visibleCount} weitere)
@@ -511,14 +511,14 @@ function FilterPill({ active, onClick, label, count, color }) {
       onClick={onClick}
       className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all active:scale-95 ${
         active
-          ? 'bg-slate-900 text-white shadow-sm'
-          : 'bg-slate-100/80 text-slate-500'
+          ? 'bg-surface-primary text-white shadow-sm'
+          : 'bg-surface-secondary/80 text-text-muted'
       }`}
     >
       {color && !active && <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />}
       {label}
       {count > 0 && (
-        <span className={`font-mono text-[10px] ${active ? 'text-white/60' : 'text-slate-400'}`}>
+        <span className={`font-mono text-[10px] ${active ? 'text-white/60' : 'text-text-muted'}`}>
           {count}
         </span>
       )}

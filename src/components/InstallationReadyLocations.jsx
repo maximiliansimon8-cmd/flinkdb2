@@ -12,12 +12,12 @@ import UnifiedStandortDetail from './UnifiedStandortDetail';
 /* ── Status Badges ── */
 
 const BOOKING_STATUS_BADGES = {
-  none:      { label: 'Kein Termin',   color: 'bg-gray-100 text-gray-600 border-gray-200', icon: Clock },
-  pending:   { label: 'Eingeladen',    color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Send },
-  booked:    { label: 'Eingebucht',    color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
-  confirmed: { label: 'Eingebucht',    color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
+  none:      { label: 'Kein Termin',   color: 'bg-surface-secondary text-text-secondary border-border-secondary', icon: Clock },
+  pending:   { label: 'Eingeladen',    color: 'bg-status-warning/10 text-yellow-700 border-status-warning/20', icon: Send },
+  booked:    { label: 'Eingebucht',    color: 'bg-status-online/10 text-green-700 border-status-online/20', icon: CheckCircle },
+  confirmed: { label: 'Eingebucht',    color: 'bg-status-online/10 text-green-700 border-status-online/20', icon: CheckCircle },
   completed: { label: 'Abgeschlossen', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
-  cancelled: { label: 'Storniert',     color: 'bg-red-100 text-red-700 border-red-200', icon: X },
+  cancelled: { label: 'Storniert',     color: 'bg-status-offline/10 text-red-700 border-status-offline/20', icon: X },
 };
 
 function BookingStatusBadge({ status }) {
@@ -33,15 +33,15 @@ function BookingStatusBadge({ status }) {
 /* ── KPI Card ── */
 function KPICard({ label, value, icon: Icon, color, bgColor, subtitle }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 text-left transition-all hover:bg-white/80 hover:shadow-md">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 text-left transition-all hover:bg-surface-secondary hover:shadow-md">
       <div className="flex items-center justify-between mb-2">
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${bgColor}`}>
           <Icon size={18} className={color} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      <div className="text-xs text-gray-500 font-medium mt-0.5">{label}</div>
-      {subtitle && <div className="text-[10px] text-gray-400 mt-0.5">{subtitle}</div>}
+      <div className="text-2xl font-bold text-text-primary">{value}</div>
+      <div className="text-xs text-text-muted font-medium mt-0.5">{label}</div>
+      {subtitle && <div className="text-[10px] text-text-muted mt-0.5">{subtitle}</div>}
     </div>
   );
 }
@@ -312,7 +312,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <Loader2 className="w-7 h-7 animate-spin text-cyan-500" />
-        <span className="text-sm text-slate-500">Aufbaubereite Standorte werden geladen...</span>
+        <span className="text-sm text-text-muted">Aufbaubereite Standorte werden geladen...</span>
       </div>
     );
   }
@@ -322,20 +322,20 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-cyan-100 flex items-center justify-center">
               <CheckCircle size={18} className="text-cyan-600" />
             </div>
             Aufbaubereite Standorte
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-text-muted mt-0.5">
             Standorte mit Status "Won / Signed", Genehmigung erteilt und Vertrag vorhanden
           </p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={syncing}
-          className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 bg-white/60 border border-gray-200 rounded-xl hover:bg-white transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-2 text-sm text-text-secondary hover:text-text-primary bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-primary transition-colors disabled:opacity-50"
         >
           {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Aktualisieren
         </button>
@@ -354,52 +354,52 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
           label="Eingebucht"
           value={kpis.eingebucht}
           icon={CalendarCheck}
-          color="text-green-600"
-          bgColor="bg-green-100"
+          color="text-status-online"
+          bgColor="bg-status-online/10"
           subtitle={kpis.total > 0 ? `${Math.round((kpis.eingebucht / kpis.total) * 100)}% mit Termin` : undefined}
         />
         <KPICard
           label="Eingeladen"
           value={kpis.eingeladen}
           icon={Send}
-          color="text-yellow-600"
-          bgColor="bg-yellow-100"
+          color="text-status-warning"
+          bgColor="bg-status-warning/10"
           subtitle="Warten auf Terminwahl"
         />
         <KPICard
           label="Nicht eingeladen"
           value={kpis.keinTermin}
           icon={Clock}
-          color="text-amber-600"
-          bgColor="bg-amber-100"
+          color="text-status-warning"
+          bgColor="bg-status-warning/10"
           subtitle="Noch einladen oder anrufen"
         />
         <KPICard
           label="Ohne Telefonnummer"
           value={kpis.ohnePhone}
           icon={PhoneOff}
-          color="text-red-500"
-          bgColor="bg-red-100"
+          color="text-status-offline"
+          bgColor="bg-status-offline/10"
           subtitle="Koennen nicht angerufen werden"
         />
       </div>
 
       {/* Search + Filters */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 space-y-3">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 space-y-3">
         {/* Search Bar */}
         <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Suche nach Name, Stadt, Kontakt, Strasse, PLZ, JET-ID..."
-            className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:border-cyan-400 transition-all"
+            className="w-full pl-10 pr-10 py-2.5 bg-surface-primary border border-border-secondary rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:border-cyan-400 transition-all"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-100 rounded text-gray-400"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-surface-secondary rounded text-text-muted"
             >
               <X size={14} />
             </button>
@@ -408,7 +408,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
 
         {/* Filter Pills */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 text-xs text-gray-500">
+          <div className="flex items-center gap-1 text-xs text-text-muted">
             <Filter size={12} /> Filter:
           </div>
 
@@ -417,7 +417,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
             value={filterCity}
             onChange={e => setFilterCity(e.target.value)}
             className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
-              filterCity ? 'bg-cyan-50 border-cyan-300 text-cyan-700' : 'bg-white border-gray-200 text-gray-600'
+              filterCity ? 'bg-cyan-50 border-cyan-300 text-cyan-700' : 'bg-surface-primary border-border-secondary text-text-secondary'
             }`}
           >
             <option value="">Alle Staedte</option>
@@ -429,7 +429,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
             value={filterBookingStatus}
             onChange={e => setFilterBookingStatus(e.target.value)}
             className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
-              filterBookingStatus ? 'bg-cyan-50 border-cyan-300 text-cyan-700' : 'bg-white border-gray-200 text-gray-600'
+              filterBookingStatus ? 'bg-cyan-50 border-cyan-300 text-cyan-700' : 'bg-surface-primary border-border-secondary text-text-secondary'
             }`}
           >
             <option value="">Buchungsstatus</option>
@@ -443,7 +443,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
             value={filterPhone}
             onChange={e => setFilterPhone(e.target.value)}
             className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
-              filterPhone ? 'bg-cyan-50 border-cyan-300 text-cyan-700' : 'bg-white border-gray-200 text-gray-600'
+              filterPhone ? 'bg-cyan-50 border-cyan-300 text-cyan-700' : 'bg-surface-primary border-border-secondary text-text-secondary'
             }`}
           >
             <option value="">Telefonnummer</option>
@@ -455,43 +455,43 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
           {activeFilterCount > 0 && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-status-offline bg-status-offline/10 border border-status-offline/20 rounded-lg hover:bg-status-offline/10 transition-colors"
             >
               <X size={11} /> {activeFilterCount} Filter zuruecksetzen
             </button>
           )}
 
           {/* Result count */}
-          <div className="ml-auto text-xs text-gray-400">
+          <div className="ml-auto text-xs text-text-muted">
             {filtered.length} von {readyStandorte.length} Standorte
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center">
-              <Building size={24} className="text-gray-300" />
+            <div className="w-14 h-14 rounded-2xl bg-surface-secondary flex items-center justify-center">
+              <Building size={24} className="text-text-muted" />
             </div>
-            <p className="text-sm font-medium text-gray-600">Keine Standorte gefunden</p>
-            <p className="text-xs text-gray-400">Passe die Filter an oder aendere die Suche</p>
+            <p className="text-sm font-medium text-text-secondary">Keine Standorte gefunden</p>
+            <p className="text-xs text-text-muted">Passe die Filter an oder aendere die Suche</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
+                <tr className="border-b border-gray-100 bg-surface-secondary/50">
                   <SortableHeader label="Standort" field="locationName" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
                   <SortableHeader label="Stadt" field="city" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">PLZ</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Strasse</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">PLZ</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Strasse</th>
                   <SortableHeader label="Kontakt" field="contactPerson" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Telefon</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Vertrag</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Telefon</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Vertrag</th>
                   <SortableHeader label="Buchung" field="bookingStatus" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10"></th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -509,40 +509,40 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
                       className="hover:bg-cyan-50/40 cursor-pointer transition-colors group"
                     >
                       <td className="px-3 py-3">
-                        <div className="font-medium text-gray-900 group-hover:text-cyan-700 transition-colors truncate max-w-[200px]">
+                        <div className="font-medium text-text-primary group-hover:text-cyan-700 transition-colors truncate max-w-[200px]">
                           {standort.locationName || 'Unbekannt'}
                         </div>
                         {standort.jetId && !standort.jetId.startsWith('rec') && (
-                          <div className="text-[10px] text-gray-400 font-mono">{standort.jetId}</div>
+                          <div className="text-[10px] text-text-muted font-mono">{standort.jetId}</div>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-gray-600">{city || '--'}</td>
-                      <td className="px-3 py-3 text-gray-500 font-mono text-xs">{standort.postalCode || '--'}</td>
-                      <td className="px-3 py-3 text-gray-600 truncate max-w-[150px]">
+                      <td className="px-3 py-3 text-text-secondary">{city || '--'}</td>
+                      <td className="px-3 py-3 text-text-muted font-mono text-xs">{standort.postalCode || '--'}</td>
+                      <td className="px-3 py-3 text-text-secondary truncate max-w-[150px]">
                         {standort.street}{standort.streetNumber ? ` ${standort.streetNumber}` : ''}
                       </td>
-                      <td className="px-3 py-3 text-gray-600 truncate max-w-[130px]">{standort.contactPerson || '--'}</td>
+                      <td className="px-3 py-3 text-text-secondary truncate max-w-[130px]">{standort.contactPerson || '--'}</td>
                       <td className="px-3 py-3">
                         {hasPhone ? (
-                          <span className="text-gray-600 font-mono text-xs">{standort.contactPhone}</span>
+                          <span className="text-text-secondary font-mono text-xs">{standort.contactPhone}</span>
                         ) : (
-                          <span className="inline-flex items-center gap-0.5 text-amber-500 text-[10px] font-medium">
+                          <span className="inline-flex items-center gap-0.5 text-status-warning text-[10px] font-medium">
                             <PhoneOff size={10} /> Keine Nr.
                           </span>
                         )}
                       </td>
                       <td className="px-3 py-3">
                         {(standort.vertragVorhanden === true || standort.vertragVorhanden === 'true' || standort.vertragVorhanden === 'YES' || standort.vertragVorhanden === 'checked') ? (
-                          <CheckCircle size={14} className="text-green-500" />
+                          <CheckCircle size={14} className="text-status-online" />
                         ) : (
-                          <span className="text-gray-300 text-xs">--</span>
+                          <span className="text-text-muted text-xs">--</span>
                         )}
                       </td>
                       <td className="px-3 py-3">
                         {booking ? (
                           <BookingStatusBadge status={booking.status} />
                         ) : termin ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border bg-blue-100 text-blue-700 border-blue-200">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border bg-accent-light text-blue-700 border-accent/20">
                             <Calendar size={10} /> {termin.terminstatus || 'Geplant'}
                             {termin.installationsdatum && (
                               <span className="ml-0.5 text-[10px] opacity-75">
@@ -556,7 +556,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
                       </td>
                       <td className="px-3 py-3">
                         {hasHindernisse && (
-                          <AlertTriangle size={14} className="text-amber-500" title="Hindernisse vorhanden" />
+                          <AlertTriangle size={14} className="text-status-warning" title="Hindernisse vorhanden" />
                         )}
                       </td>
                     </tr>
@@ -583,9 +583,9 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
           <div className={`px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 ${
-            toast.type === 'error' ? 'bg-red-600 text-white' :
-            toast.type === 'info' ? 'bg-blue-600 text-white' :
-            'bg-green-600 text-white'
+            toast.type === 'error' ? 'bg-status-offline text-white' :
+            toast.type === 'info' ? 'bg-accent text-white' :
+            'bg-status-online text-white'
           }`}>
             {toast.type === 'info' && <Loader2 size={14} className="animate-spin" />}
             {toast.message}
@@ -602,12 +602,12 @@ function SortableHeader({ label, field, sortField, sortDir, onSort }) {
   const active = sortField === field;
   return (
     <th
-      className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 transition-colors"
+      className="text-left px-3 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider cursor-pointer select-none hover:text-text-primary transition-colors"
       onClick={() => onSort(field)}
     >
       <div className="flex items-center gap-1">
         {label}
-        <ArrowUpDown size={11} className={active ? 'text-cyan-500' : 'text-gray-300'} />
+        <ArrowUpDown size={11} className={active ? 'text-cyan-500' : 'text-text-muted'} />
         {active && (
           <span className="text-[9px] text-cyan-500">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>
         )}

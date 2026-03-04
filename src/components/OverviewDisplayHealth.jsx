@@ -25,36 +25,36 @@ const PATTERNS = [
     id: 'excellent',
     label: 'Ganztags + Morgens OK',
     icon: '✓✓',
-    color: '#22c55e',
-    bg: '#22c55e10',
-    border: '#22c55e30',
+    color: '#34C759',
+    bg: '#34C75910',
+    border: '#34C75930',
     description: 'Stabil online, inkl. morgens ab 06:00',
   },
   {
     id: 'good',
     label: 'Ganztags OK',
     icon: '✓',
-    color: '#3b82f6',
-    bg: '#3b82f610',
-    border: '#3b82f630',
+    color: '#007AFF',
+    bg: '#007AFF10',
+    border: '#007AFF30',
     description: 'Online tagsüber, vereinzelte Aussetzer',
   },
   {
     id: 'late_morning',
     label: 'Ganztags OK, Morgens spät',
     icon: '✓⚠',
-    color: '#f59e0b',
-    bg: '#f59e0b10',
-    border: '#f59e0b30',
+    color: '#FF9500',
+    bg: '#FF950010',
+    border: '#FF950030',
     description: 'Tagsüber OK, aber morgens verzögerter Start',
   },
   {
     id: 'offline',
     label: 'Offline',
     icon: '✗',
-    color: '#ef4444',
-    bg: '#ef444410',
-    border: '#ef444430',
+    color: '#FF3B30',
+    bg: '#FF3B3010',
+    border: '#FF3B3030',
     description: 'Kritisch offline oder dauerhaft nicht erreichbar',
   },
   {
@@ -150,32 +150,32 @@ function DisplayRow({ display, onCreateTask }) {
     : '—';
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50/60 transition-colors border-b border-slate-100/60 last:border-b-0">
+    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-secondary/60 transition-colors border-b border-border-secondary/60 last:border-b-0">
       <div className="flex-shrink-0">
         <div
           className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: display.status === 'online' ? '#22c55e' : display.status === 'warning' ? '#f59e0b' : display.status === 'critical' ? '#ef4444' : '#64748b' }}
+          style={{ backgroundColor: display.status === 'online' ? '#34C759' : display.status === 'warning' ? '#FF9500' : display.status === 'critical' ? '#FF3B30' : '#64748b' }}
         />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-slate-800 truncate">
+          <span className="text-xs font-medium text-text-primary truncate">
             {display.locationName || display.displayId}
           </span>
           {display.city && (
-            <span className="flex items-center gap-0.5 text-[10px] text-slate-400 font-mono flex-shrink-0">
+            <span className="flex items-center gap-0.5 text-[10px] text-text-muted font-mono flex-shrink-0">
               <MapPin size={9} />
               {display.city}
             </span>
           )}
         </div>
-        <div className="text-[10px] text-slate-400 font-mono truncate">
+        <div className="text-[10px] text-text-muted font-mono truncate">
           {display.displayId}
           {display.displayName && display.displayName !== display.displayId ? ` · ${display.displayName}` : ''}
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <span className="flex items-center gap-1 text-[10px] font-mono text-slate-400">
+        <span className="flex items-center gap-1 text-[10px] font-mono text-text-muted">
           <Clock size={9} />
           {offlineLabel}
         </span>
@@ -185,7 +185,7 @@ function DisplayRow({ display, onCreateTask }) {
               e.stopPropagation();
               onCreateTask(display);
             }}
-            className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+            className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium text-accent bg-accent-light hover:bg-accent-light transition-colors"
             title="Task erstellen"
           >
             <ClipboardPlus size={10} />
@@ -246,21 +246,21 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
   if (!displays || displays.length === 0) return null;
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Filter size={14} className="text-slate-400" />
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wider">
+          <Filter size={14} className="text-text-muted" />
+          <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">
             Display Health Patterns
           </h3>
-          <span className="text-[10px] font-mono text-slate-400 bg-slate-50/80 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
             {totalActive} aktive Displays
           </span>
         </div>
         {activePattern && (
           <button
             onClick={() => { setActivePattern(null); setCityFilter(null); }}
-            className="text-[10px] text-slate-500 hover:text-slate-700 font-medium transition-colors"
+            className="text-[10px] text-text-muted hover:text-text-primary font-medium transition-colors"
           >
             Filter zurücksetzen
           </button>
@@ -296,7 +296,7 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
                 <span className="text-sm font-mono font-bold" style={{ color: pattern.color }}>
                   {pattern.icon}
                 </span>
-                <span className="text-[10px] font-medium text-slate-600 leading-tight">
+                <span className="text-[10px] font-medium text-text-secondary leading-tight">
                   {pattern.label}
                 </span>
               </div>
@@ -304,12 +304,12 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
                 <span className="text-lg font-mono font-bold" style={{ color: pattern.color }}>
                   {count}
                 </span>
-                <span className="text-[10px] font-mono text-slate-400 mb-0.5">
+                <span className="text-[10px] font-mono text-text-muted mb-0.5">
                   {pct}%
                 </span>
               </div>
               {/* Progress bar */}
-              <div className="mt-2 h-1 rounded-full bg-slate-100 overflow-hidden">
+              <div className="mt-2 h-1 rounded-full bg-surface-secondary overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
@@ -320,7 +320,7 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
                 />
               </div>
               {isActive && (
-                <ChevronUp size={12} className="absolute top-2 right-2 text-slate-400" />
+                <ChevronUp size={12} className="absolute top-2 right-2 text-text-muted" />
               )}
             </button>
           );
@@ -329,17 +329,17 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
 
       {/* Expanded detail panel */}
       {activePattern && filteredDisplays.length > 0 && (
-        <div className="mt-4 border border-slate-200/60 rounded-xl overflow-hidden animate-fade-in">
+        <div className="mt-4 border border-border-secondary rounded-xl overflow-hidden animate-fade-in">
           {/* City filter row */}
           {cities.length > 1 && (
-            <div className="flex items-center gap-1.5 px-4 py-2 bg-slate-50/60 border-b border-slate-100/60 overflow-x-auto scrollbar-none">
-              <span className="text-[10px] text-slate-400 font-medium flex-shrink-0">Stadt:</span>
+            <div className="flex items-center gap-1.5 px-4 py-2 bg-surface-secondary/60 border-b border-border-secondary/60 overflow-x-auto scrollbar-none">
+              <span className="text-[10px] text-text-muted font-medium flex-shrink-0">Stadt:</span>
               <button
                 onClick={() => setCityFilter(null)}
                 className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors flex-shrink-0 ${
                   !cityFilter
-                    ? 'bg-slate-700 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/60'
+                    ? 'bg-[#1D1D1F] text-white'
+                    : 'bg-surface-primary text-text-secondary hover:bg-surface-secondary border border-border-secondary'
                 }`}
               >
                 Alle ({classified[activePattern]?.length || 0})
@@ -352,8 +352,8 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
                     onClick={() => setCityFilter(cityFilter === city ? null : city)}
                     className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors flex-shrink-0 ${
                       cityFilter === city
-                        ? 'bg-slate-700 text-white'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/60'
+                        ? 'bg-[#1D1D1F] text-white'
+                        : 'bg-surface-primary text-text-secondary hover:bg-surface-secondary border border-border-secondary'
                     }`}
                   >
                     {city} ({cityCount})
@@ -364,19 +364,19 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
           )}
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2 bg-slate-50/40 border-b border-slate-100/60">
+          <div className="flex items-center justify-between px-4 py-2 bg-surface-secondary/40 border-b border-border-secondary/60">
             <div className="flex items-center gap-2">
               <span className="text-sm font-mono font-bold" style={{ color: PATTERNS.find((p) => p.id === activePattern)?.color }}>
                 {PATTERNS.find((p) => p.id === activePattern)?.icon}
               </span>
-              <span className="text-xs font-medium text-slate-700">
+              <span className="text-xs font-medium text-text-primary">
                 {PATTERNS.find((p) => p.id === activePattern)?.label}
               </span>
-              <span className="text-[10px] font-mono text-slate-400 bg-slate-50/80 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
                 {filteredDisplays.length} Displays
               </span>
             </div>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-text-muted">
               {PATTERNS.find((p) => p.id === activePattern)?.description}
             </span>
           </div>
@@ -397,7 +397,7 @@ export default function OverviewDisplayHealth({ displays, onSelectDisplay, onCre
       )}
 
       {activePattern && filteredDisplays.length === 0 && (
-        <div className="mt-4 text-center py-8 text-xs text-slate-400">
+        <div className="mt-4 text-center py-8 text-xs text-text-muted">
           Keine Displays in dieser Kategorie
         </div>
       )}

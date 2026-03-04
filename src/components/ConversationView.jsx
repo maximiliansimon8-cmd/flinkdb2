@@ -64,26 +64,26 @@ function getChannelLabel(type) {
 function getChannelIcon(type) {
   switch (type) {
     case 'whats_app':
-      return <MessageSquare size={12} className="text-green-500" />;
+      return <MessageSquare size={12} className="text-status-online" />;
     case 'mail':
-      return <Mail size={12} className="text-blue-500" />;
+      return <Mail size={12} className="text-accent" />;
     case 'sms':
-      return <Phone size={12} className="text-orange-500" />;
+      return <Phone size={12} className="text-status-warning" />;
     default:
-      return <MessageSquare size={12} className="text-slate-400" />;
+      return <MessageSquare size={12} className="text-text-muted" />;
   }
 }
 
 function getChannelBadgeClass(type) {
   switch (type) {
     case 'whats_app':
-      return 'bg-green-100 text-green-700';
+      return 'bg-status-online/10 text-green-700';
     case 'mail':
-      return 'bg-blue-100 text-blue-700';
+      return 'bg-accent-light text-blue-700';
     case 'sms':
-      return 'bg-orange-100 text-orange-700';
+      return 'bg-status-warning/10 text-orange-700';
     default:
-      return 'bg-slate-100 text-slate-600';
+      return 'bg-surface-secondary text-text-secondary';
   }
 }
 
@@ -141,11 +141,11 @@ function ChannelBadge({ type }) {
 function DateDivider({ timestamp }) {
   return (
     <div className="flex items-center gap-3 py-3">
-      <div className="flex-1 h-px bg-slate-200/60" />
-      <span className="text-xs text-slate-400 font-medium">
+      <div className="flex-1 h-px bg-surface-tertiary/60" />
+      <span className="text-xs text-text-muted font-medium">
         {formatDateDivider(timestamp)}
       </span>
-      <div className="flex-1 h-px bg-slate-200/60" />
+      <div className="flex-1 h-px bg-surface-tertiary/60" />
     </div>
   );
 }
@@ -166,15 +166,15 @@ function ChatBubble({ message }) {
       <div
         className={`max-w-[75%] px-4 py-2.5 ${
           isOutbound
-            ? 'bg-blue-500 text-white rounded-2xl rounded-br-md'
-            : 'bg-white/80 backdrop-blur-sm text-slate-900 border border-slate-200/60 rounded-2xl rounded-bl-md'
+            ? 'bg-accent text-white rounded-2xl rounded-br-md'
+            : 'bg-surface-primary text-text-primary border border-border-secondary rounded-2xl rounded-bl-md'
         }`}
       >
         {/* Subject line for emails */}
         {message.subject && (
           <p
             className={`text-sm font-semibold mb-1 ${
-              isOutbound ? 'text-white' : 'text-slate-900'
+              isOutbound ? 'text-white' : 'text-text-primary'
             }`}
           >
             {message.subject}
@@ -182,7 +182,7 @@ function ChatBubble({ message }) {
         )}
 
         {/* Message body */}
-        <p className={`text-sm whitespace-pre-wrap ${isOutbound ? 'text-white' : 'text-slate-700'}`}>
+        <p className={`text-sm whitespace-pre-wrap ${isOutbound ? 'text-white' : 'text-text-primary'}`}>
           {body}
         </p>
 
@@ -193,7 +193,7 @@ function ChatBubble({ message }) {
           }`}
         >
           <span
-            className={`text-xs ${isOutbound ? 'text-white/60' : 'text-slate-400'}`}
+            className={`text-xs ${isOutbound ? 'text-white/60' : 'text-text-muted'}`}
           >
             {formatTimestamp(ts)}
           </span>
@@ -256,18 +256,18 @@ function MessageInput({ conversation, onSendMessage, channels, templates }) {
   }
 
   return (
-    <div className="border-t border-slate-200/60 bg-white/40 backdrop-blur-xl p-4">
+    <div className="border-t border-border-secondary bg-surface-primary p-4">
       {/* 24h window warning */}
       {channelType === 'whats_app' && isWindowClosed && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-amber-50/80 border border-amber-200/40 rounded-xl">
-          <Clock size={14} className="text-amber-500 flex-shrink-0" />
+        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-status-warning/10/80 border border-status-warning/20/40 rounded-xl">
+          <Clock size={14} className="text-status-warning flex-shrink-0" />
           <p className="text-xs text-amber-700">
             24h-Fenster geschlossen – nur genehmigte Templates können gesendet werden.
           </p>
           {whatsappTemplates.length > 0 && (
             <button
               onClick={() => setShowTemplates(!showTemplates)}
-              className="ml-auto text-xs text-amber-600 hover:text-amber-800 underline flex-shrink-0"
+              className="ml-auto text-xs text-status-warning hover:text-amber-800 underline flex-shrink-0"
             >
               {showTemplates ? 'Ausblenden' : 'Templates anzeigen'}
             </button>
@@ -277,7 +277,7 @@ function MessageInput({ conversation, onSendMessage, channels, templates }) {
 
       {/* Template selector */}
       {showTemplates && whatsappTemplates.length > 0 && (
-        <div className="mb-3 max-h-40 overflow-y-auto rounded-xl border border-slate-200/60 bg-white/60">
+        <div className="mb-3 max-h-40 overflow-y-auto rounded-xl border border-border-secondary bg-surface-primary">
           {whatsappTemplates.map((tpl) => (
             <button
               key={tpl.id}
@@ -286,13 +286,13 @@ function MessageInput({ conversation, onSendMessage, channels, templates }) {
                 setText(tpl.body || tpl.name || '');
                 setShowTemplates(false);
               }}
-              className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50/60 transition-colors border-b border-slate-100/80 last:border-b-0 ${
-                selectedTemplate === tpl.id ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+              className={`w-full text-left px-3 py-2 text-xs hover:bg-accent-light/60 transition-colors border-b border-border-secondary/80 last:border-b-0 ${
+                selectedTemplate === tpl.id ? 'bg-accent-light text-blue-700' : 'text-text-primary'
               }`}
             >
               <span className="font-medium">{tpl.name || tpl.id}</span>
               {tpl.body && (
-                <p className="text-slate-400 mt-0.5 truncate">{tpl.body}</p>
+                <p className="text-text-muted mt-0.5 truncate">{tpl.body}</p>
               )}
             </button>
           ))}
@@ -305,19 +305,19 @@ function MessageInput({ conversation, onSendMessage, channels, templates }) {
         {channelType === 'whats_app' && whatsappTemplates.length > 0 && !isWindowClosed && (
           <button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-slate-500 hover:bg-slate-100 transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-text-muted hover:bg-surface-secondary transition-colors"
           >
             <FileText size={11} />
             Templates ({whatsappTemplates.length})
           </button>
         )}
         {selectedTemplate && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent-light text-accent rounded text-[10px] font-medium">
             <FileText size={10} />
             Template ausgewählt
             <button
               onClick={() => { setSelectedTemplate(''); setText(''); }}
-              className="ml-1 text-blue-400 hover:text-blue-600"
+              className="ml-1 text-accent hover:text-accent"
             >
               ✕
             </button>
@@ -335,7 +335,7 @@ function MessageInput({ conversation, onSendMessage, channels, templates }) {
           placeholder={isWindowClosed ? 'Template auswählen...' : 'Nachricht schreiben...'}
           rows={1}
           disabled={isWindowClosed && !selectedTemplate}
-          className="flex-1 px-3 py-2 text-sm bg-white/60 border border-slate-200/60 rounded-xl text-slate-900 placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-3 py-2 text-sm bg-surface-primary border border-border-secondary rounded-xl text-text-primary placeholder:text-text-muted resize-none focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-blue-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ maxHeight: '96px' }}
         />
         <button
@@ -343,8 +343,8 @@ function MessageInput({ conversation, onSendMessage, channels, templates }) {
           disabled={!canSend}
           className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
             canSend
-              ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-sm'
-              : 'bg-slate-100 text-slate-300 cursor-not-allowed'
+              ? 'bg-accent hover:bg-accent text-white shadow-sm'
+              : 'bg-surface-secondary text-text-muted cursor-not-allowed'
           }`}
         >
           <Send size={16} />
@@ -362,42 +362,42 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
   const status = conversation?.status || '';
 
   return (
-    <div className="w-80 flex-shrink-0 border-l border-slate-200/60 bg-white/30 backdrop-blur-xl overflow-y-auto hidden lg:block">
+    <div className="w-80 flex-shrink-0 border-l border-border-secondary bg-surface-primary overflow-y-auto hidden lg:block">
       <div className="p-5 space-y-4">
         {/* Kontakt-Info */}
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-              <User size={18} className="text-blue-500" />
+            <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center">
+              <User size={18} className="text-accent" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-slate-900 truncate">
+              <h3 className="text-sm font-semibold text-text-primary truncate">
                 {contactName}
               </h3>
-              <p className="text-xs text-slate-400">Superchat Kontakt</p>
+              <p className="text-xs text-text-muted">Superchat Kontakt</p>
             </div>
           </div>
 
           <div className="space-y-2.5">
             {getContactPhone(contact) && (
               <div className="flex items-center gap-2.5">
-                <Phone size={13} className="text-slate-400 flex-shrink-0" />
-                <span className="text-xs text-slate-700 truncate">{getContactPhone(contact)}</span>
+                <Phone size={13} className="text-text-muted flex-shrink-0" />
+                <span className="text-xs text-text-primary truncate">{getContactPhone(contact)}</span>
               </div>
             )}
             {getContactEmail(contact) && (
               <div className="flex items-center gap-2.5">
-                <Mail size={13} className="text-slate-400 flex-shrink-0" />
-                <span className="text-xs text-slate-700 truncate">{getContactEmail(contact)}</span>
+                <Mail size={13} className="text-text-muted flex-shrink-0" />
+                <span className="text-xs text-text-primary truncate">{getContactEmail(contact)}</span>
               </div>
             )}
             {/* Custom attributes from Superchat (JET ID, Display ID, City etc.) */}
             {contact?.custom_attributes?.length > 0 && (
-              <div className="mt-2 pt-2 border-t border-slate-100/80 space-y-1.5">
+              <div className="mt-2 pt-2 border-t border-border-secondary/80 space-y-1.5">
                 {contact.custom_attributes.map((attr) => (
                   <div key={attr.id} className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400">{attr.name}</span>
-                    <span className="text-[10px] text-slate-600 font-medium truncate max-w-[140px]">{attr.value}</span>
+                    <span className="text-[10px] text-text-muted">{attr.name}</span>
+                    <span className="text-[10px] text-text-secondary font-medium truncate max-w-[140px]">{attr.value}</span>
                   </div>
                 ))}
               </div>
@@ -405,24 +405,24 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
           </div>
 
           {/* Conversation status */}
-          <div className="mt-3 pt-3 border-t border-slate-100/80 space-y-2">
+          <div className="mt-3 pt-3 border-t border-border-secondary/80 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">Status</span>
+              <span className="text-xs text-text-muted">Status</span>
               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                status === 'open' ? 'bg-amber-100 text-amber-700' : status === 'done' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
+                status === 'open' ? 'bg-status-warning/10 text-amber-700' : status === 'done' ? 'bg-status-online/10 text-green-700' : 'bg-surface-secondary text-text-secondary'
               }`}>
                 {status === 'open' ? 'Offen' : status === 'done' ? 'Erledigt' : status}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">Kanal</span>
+              <span className="text-xs text-text-muted">Kanal</span>
               <ChannelBadge type={channelType} />
             </div>
             {timeWindow && (
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">24h-Fenster</span>
+                <span className="text-xs text-text-muted">24h-Fenster</span>
                 <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                  timeWindow.state === 'open' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                  timeWindow.state === 'open' ? 'bg-status-online/10 text-status-online' : 'bg-status-offline/10 text-status-offline'
                 }`}>
                   <Clock size={10} />
                   {timeWindow.state === 'open' ? 'Offen' : 'Geschlossen'}
@@ -434,16 +434,16 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
 
         {/* ═══════ Standort-Details (Airtable Stammdaten) ═══════ */}
         {location ? (
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
                 <MapPin size={18} className="text-emerald-500" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-slate-900 truncate">
+                <h3 className="text-sm font-semibold text-text-primary truncate">
                   {location.name}
                 </h3>
-                <p className="text-xs text-slate-400">Standort-Details</p>
+                <p className="text-xs text-text-muted">Standort-Details</p>
               </div>
             </div>
 
@@ -451,8 +451,8 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
               {/* Adresse */}
               {(location.street || location.city) && (
                 <div className="flex items-start gap-2.5">
-                  <Building2 size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-slate-700">
+                  <Building2 size={13} className="text-text-muted mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-text-primary">
                     {location.street && <span>{location.street} {location.streetNumber}</span>}
                     {location.city && <><br />{location.postalCode} {location.city}</>}
                   </div>
@@ -462,10 +462,10 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
               {/* Ansprechpartner */}
               {location.contactPerson && (
                 <div className="flex items-start gap-2.5">
-                  <User size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                  <User size={13} className="text-text-muted mt-0.5 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-slate-400">Ansprechpartner</p>
-                    <p className="text-xs text-slate-700 font-medium">{location.contactPerson}</p>
+                    <p className="text-xs text-text-muted">Ansprechpartner</p>
+                    <p className="text-xs text-text-primary font-medium">{location.contactPerson}</p>
                   </div>
                 </div>
               )}
@@ -473,10 +473,10 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
               {/* Contact Email */}
               {(location.contactEmail || location.locationEmail) && (
                 <div className="flex items-start gap-2.5">
-                  <Mail size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                  <Mail size={13} className="text-text-muted mt-0.5 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-slate-400">E-Mail</p>
-                    <p className="text-xs text-slate-700 truncate">{location.contactEmail || location.locationEmail}</p>
+                    <p className="text-xs text-text-muted">E-Mail</p>
+                    <p className="text-xs text-text-primary truncate">{location.contactEmail || location.locationEmail}</p>
                   </div>
                 </div>
               )}
@@ -484,10 +484,10 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
               {/* Contact Phone */}
               {(location.contactPhone || location.locationPhone) && (
                 <div className="flex items-start gap-2.5">
-                  <Phone size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                  <Phone size={13} className="text-text-muted mt-0.5 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-slate-400">Telefon</p>
-                    <p className="text-xs text-slate-700">{location.contactPhone || location.locationPhone}</p>
+                    <p className="text-xs text-text-muted">Telefon</p>
+                    <p className="text-xs text-text-primary">{location.contactPhone || location.locationPhone}</p>
                   </div>
                 </div>
               )}
@@ -495,10 +495,10 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
               {/* Legal Entity */}
               {location.legalEntity && (
                 <div className="flex items-start gap-2.5">
-                  <Building2 size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                  <Building2 size={13} className="text-text-muted mt-0.5 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-slate-400">Rechtliche Einheit</p>
-                    <p className="text-xs text-slate-700">{location.legalEntity}</p>
+                    <p className="text-xs text-text-muted">Rechtliche Einheit</p>
+                    <p className="text-xs text-text-primary">{location.legalEntity}</p>
                   </div>
                 </div>
               )}
@@ -506,12 +506,12 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
               {/* Lead Status */}
               {location.leadStatus && location.leadStatus.length > 0 && (
                 <div className="flex items-start gap-2.5">
-                  <FileText size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                  <FileText size={13} className="text-text-muted mt-0.5 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-slate-400">Akquise-Status</p>
+                    <p className="text-xs text-text-muted">Akquise-Status</p>
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {location.leadStatus.map((s, i) => (
-                        <span key={i} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-medium rounded-md">
+                        <span key={i} className="inline-block px-2 py-0.5 bg-accent-light text-accent text-[10px] font-medium rounded-md">
                           {s}
                         </span>
                       ))}
@@ -523,15 +523,15 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
 
             {/* Display IDs */}
             {location.displayIds && location.displayIds.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-slate-100/80">
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">
+              <div className="mt-3 pt-3 border-t border-border-secondary/80">
+                <p className="text-xs text-text-muted font-medium uppercase tracking-wider mb-2">
                   Display IDs
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {location.displayIds.map((id, i) => (
                     <span
                       key={i}
-                      className="inline-block px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-mono rounded-lg"
+                      className="inline-block px-2 py-0.5 bg-surface-secondary text-text-secondary text-[10px] font-mono rounded-lg"
                     >
                       {id}
                     </span>
@@ -542,15 +542,15 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
 
             {/* JET IDs */}
             {location.jetIds && location.jetIds.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-slate-100/80">
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">
+              <div className="mt-3 pt-3 border-t border-border-secondary/80">
+                <p className="text-xs text-text-muted font-medium uppercase tracking-wider mb-2">
                   JET IDs
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {location.jetIds.map((id, i) => (
                     <span
                       key={i}
-                      className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-mono rounded-lg"
+                      className="inline-block px-2 py-0.5 bg-accent-light text-accent text-[10px] font-mono rounded-lg"
                     >
                       {id}
                     </span>
@@ -560,16 +560,16 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
             )}
           </div>
         ) : (
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                <MapPin size={18} className="text-slate-400" />
+              <div className="w-10 h-10 rounded-xl bg-surface-secondary flex items-center justify-center">
+                <MapPin size={18} className="text-text-muted" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-medium text-slate-500">
+                <h3 className="text-sm font-medium text-text-muted">
                   Kein Standort verknüpft
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-text-muted">
                   Kontakt ist keinem Standort zugeordnet
                 </p>
               </div>
@@ -621,22 +621,22 @@ export default function ConversationView({
       {/* ═══════ Left: Chat Area ═══════ */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header bar */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200/60 bg-white/40 backdrop-blur-xl">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border-secondary bg-surface-primary">
           <button
             onClick={onBack}
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl hover:bg-surface-secondary transition-colors text-text-muted hover:text-text-primary"
           >
             <ArrowLeft size={18} />
           </button>
 
           <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-semibold text-slate-900 truncate">
+            <h2 className="text-sm font-semibold text-text-primary truncate">
               {contactName}
             </h2>
             <div className="flex items-center gap-1.5 mt-0.5">
               <ChannelBadge type={channelType} />
               {location && (
-                <span className="text-xs text-slate-400 truncate">
+                <span className="text-xs text-text-muted truncate">
                   📍 {location.name}
                 </span>
               )}
@@ -649,26 +649,26 @@ export default function ConversationView({
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <Clock size={24} className="text-slate-300 mx-auto mb-2 animate-pulse" />
-                <p className="text-sm text-slate-400">Nachrichten werden geladen...</p>
+                <Clock size={24} className="text-text-muted mx-auto mb-2 animate-pulse" />
+                <p className="text-sm text-text-muted">Nachrichten werden geladen...</p>
               </div>
             </div>
           ) : messagesError === 'forbidden' ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-sm">
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-center mx-auto mb-4">
-                  <Lock size={24} className="text-amber-500" />
+                <div className="w-14 h-14 rounded-2xl bg-status-warning/10 border border-status-warning/20/60 flex items-center justify-center mx-auto mb-4">
+                  <Lock size={24} className="text-status-warning" />
                 </div>
-                <p className="text-sm font-semibold text-slate-700 mb-1.5">
+                <p className="text-sm font-semibold text-text-primary mb-1.5">
                   Nachrichtenverlauf nicht verfügbar
                 </p>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-text-muted leading-relaxed">
                   Euer Superchat-Workspace hat keinen API-Zugriff auf den Nachrichtenverlauf.
                   Nachrichten können weiterhin gesendet werden.
                 </p>
-                <div className="mt-4 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50/60 border border-blue-200/40 rounded-xl">
-                  <Info size={13} className="text-blue-500 flex-shrink-0" />
-                  <p className="text-[11px] text-blue-600">
+                <div className="mt-4 flex items-center justify-center gap-2 px-3 py-2 bg-accent-light/60 border border-accent/20/40 rounded-xl">
+                  <Info size={13} className="text-accent flex-shrink-0" />
+                  <p className="text-[11px] text-accent">
                     Tipp: Den Verlauf könnt ihr direkt in der Superchat-App einsehen.
                   </p>
                 </div>
@@ -677,11 +677,11 @@ export default function ConversationView({
           ) : groupedItems.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <MessageSquare size={32} className="text-slate-200 mx-auto mb-3" />
-                <p className="text-sm font-medium text-slate-400">
+                <MessageSquare size={32} className="text-text-muted mx-auto mb-3" />
+                <p className="text-sm font-medium text-text-muted">
                   Keine Nachrichten
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-text-muted mt-1">
                   Starten Sie die Konversation mit einer Nachricht.
                 </p>
               </div>

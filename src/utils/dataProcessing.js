@@ -194,10 +194,10 @@ export function getStatusCategory(offlineHours, neverOnline) {
 
 export function getStatusColor(category) {
   switch (category) {
-    case 'online': return '#22c55e';
-    case 'warning': return '#f59e0b';
-    case 'critical': return '#ef4444';
-    case 'permanent_offline': return '#dc2626';
+    case 'online': return '#34C759';
+    case 'warning': return '#FF9500';
+    case 'critical': return '#FF3B30';
+    case 'permanent_offline': return '#FF3B30';
     case 'never_online': return '#64748b';
     default: return '#64748b';
   }
@@ -848,10 +848,10 @@ export function computeNewDisplayWatchlist(displays, latestTimestamp) {
 export function computeOfflineDistribution(displays) {
   const active = displays.filter((d) => d.isActive);
   const buckets = [
-    { label: '0–24h', min: 0, max: 24, count: 0, color: '#22c55e' },
-    { label: '24–72h', min: 24, max: 72, count: 0, color: '#f59e0b' },
-    { label: '72h–7d', min: 72, max: 168, count: 0, color: '#ef4444' },
-    { label: '>7d', min: 168, max: Infinity, count: 0, color: '#dc2626' },
+    { label: '0–24h', min: 0, max: 24, count: 0, color: '#34C759' },
+    { label: '24–72h', min: 24, max: 72, count: 0, color: '#FF9500' },
+    { label: '72h–7d', min: 72, max: 168, count: 0, color: '#FF3B30' },
+    { label: '>7d', min: 168, max: Infinity, count: 0, color: '#FF3B30' },
     { label: 'Nie Online', min: -1, max: -1, count: 0, color: '#64748b' },
   ];
 

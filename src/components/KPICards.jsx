@@ -44,7 +44,7 @@ function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, ac
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl p-5 transition-all duration-200 ${
+      className={`bg-surface-primary rounded-2xl p-5 transition-all duration-200 ${
         large ? 'col-span-1 md:col-span-2 lg:col-span-1' : ''
       } ${
         onClick ? 'cursor-pointer hover:scale-[1.02] hover:shadow-lg' : ''

@@ -16,9 +16,9 @@ const REASON_OPTIONS = [
 
 const CONDITION_OPTIONS = [
   { value: 'Einwandfrei', label: 'Einwandfrei', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-  { value: 'Beschädigt', label: 'Beschädigt', color: 'text-amber-600 bg-amber-50 border-amber-200' },
-  { value: 'Defekt', label: 'Defekt', color: 'text-red-600 bg-red-50 border-red-200' },
-  { value: 'Prüfung nötig', label: 'Prüfung nötig', color: 'text-slate-600 bg-slate-50 border-slate-200' },
+  { value: 'Beschädigt', label: 'Beschädigt', color: 'text-status-warning bg-status-warning/10 border-status-warning/20' },
+  { value: 'Defekt', label: 'Defekt', color: 'text-status-offline bg-status-offline/10 border-status-offline/20' },
+  { value: 'Prüfung nötig', label: 'Prüfung nötig', color: 'text-text-secondary bg-surface-secondary border-border-secondary' },
 ];
 
 /* ──────────────────────── component ──────────────────────── */
@@ -136,22 +136,22 @@ export default function DeinstallModal({
         WebkitBackdropFilter: 'blur(8px)',
       }}
     >
-      <div className="w-full max-w-lg bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08] animate-fade-in max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-lg bg-surface-primary border border-white/60 rounded-2xl shadow-lg shadow-black/[0.08] animate-fade-in max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-secondary">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
-              <PackageX size={18} className="text-red-500" />
+            <div className="w-9 h-9 rounded-xl bg-status-offline/10 flex items-center justify-center">
+              <PackageX size={18} className="text-status-offline" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-slate-800">Deinstallation</h2>
+              <h2 className="text-base font-semibold text-text-primary">Deinstallation</h2>
               {locationName && (
-                <p className="text-xs text-slate-500">{locationName}{city ? `, ${city}` : ''}</p>
+                <p className="text-xs text-text-muted">{locationName}{city ? `, ${city}` : ''}</p>
               )}
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100/80 transition-colors">
-            <X size={18} className="text-slate-400" />
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-secondary/80 transition-colors">
+            <X size={18} className="text-text-muted" />
           </button>
         </div>
 
@@ -162,34 +162,34 @@ export default function DeinstallModal({
             {/* Hardware-Set am Standort */}
             {hasHardware && (
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-2">
+                <label className="block text-xs font-medium text-text-secondary mb-2">
                   Hardware am Standort
                 </label>
                 <div className="space-y-1.5">
                   {ops.map((o) => (
-                    <div key={o.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100 text-xs">
-                      <Cpu size={13} className="text-slate-400" />
-                      <span className="font-medium text-slate-700">OPS {o.opsNr}</span>
-                      <span className="text-slate-500">{o.opsSn || '–'}</span>
+                    <div key={o.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-secondary border border-border-secondary text-xs">
+                      <Cpu size={13} className="text-text-muted" />
+                      <span className="font-medium text-text-primary">OPS {o.opsNr}</span>
+                      <span className="text-text-muted">{o.opsSn || '–'}</span>
                       <span className={`ml-auto px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                        o.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                        o.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-surface-secondary text-text-muted'
                       }`}>
                         {o.status || '–'}
                       </span>
                     </div>
                   ))}
                   {sims.map((s, i) => (
-                    <div key={s.id || i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100 text-xs">
-                      <Wifi size={13} className="text-slate-400" />
-                      <span className="font-medium text-slate-700">SIM</span>
-                      <span className="text-slate-500 font-mono">{s.simId || '–'}</span>
+                    <div key={s.id || i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-secondary border border-border-secondary text-xs">
+                      <Wifi size={13} className="text-text-muted" />
+                      <span className="font-medium text-text-primary">SIM</span>
+                      <span className="text-text-muted font-mono">{s.simId || '–'}</span>
                     </div>
                   ))}
                   {displays.map((d, i) => (
-                    <div key={d.id || i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100 text-xs">
-                      <Monitor size={13} className="text-slate-400" />
-                      <span className="font-medium text-slate-700">Display</span>
-                      <span className="text-slate-500 font-mono">{d.displaySerialNumber || '–'}</span>
+                    <div key={d.id || i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-secondary border border-border-secondary text-xs">
+                      <Monitor size={13} className="text-text-muted" />
+                      <span className="font-medium text-text-primary">Display</span>
+                      <span className="text-text-muted font-mono">{d.displaySerialNumber || '–'}</span>
                     </div>
                   ))}
                 </div>
@@ -198,25 +198,25 @@ export default function DeinstallModal({
 
             {/* Datum */}
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">
                 <Calendar size={12} className="inline mr-1" />
-                Deinstallationsdatum <span className="text-red-400">*</span>
+                Deinstallationsdatum <span className="text-status-offline">*</span>
               </label>
               <input
                 type="date"
                 value={deinstallDate}
                 onChange={(e) => setDeinstallDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
               />
               {errors.deinstallDate && (
-                <p className="text-xs text-red-500 mt-1">{errors.deinstallDate}</p>
+                <p className="text-xs text-status-offline mt-1">{errors.deinstallDate}</p>
               )}
             </div>
 
             {/* Grund */}
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-2">
-                Grund <span className="text-red-400">*</span>
+              <label className="block text-xs font-medium text-text-secondary mb-2">
+                Grund <span className="text-status-offline">*</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {REASON_OPTIONS.map(({ value, label, icon, desc }) => (
@@ -226,19 +226,19 @@ export default function DeinstallModal({
                     onClick={() => setReason(value)}
                     className={`flex flex-col items-start px-3 py-2.5 rounded-lg border text-left transition-all ${
                       reason === value
-                        ? 'bg-red-50 border-red-300 shadow-sm'
-                        : 'bg-white/40 border-slate-200 hover:border-slate-300'
+                        ? 'bg-status-offline/10 border-red-300 shadow-sm'
+                        : 'bg-surface-primary/60 border-border-secondary hover:border-border-primary'
                     }`}
                   >
-                    <span className="text-xs font-medium text-slate-700">
+                    <span className="text-xs font-medium text-text-primary">
                       {icon} {label}
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">{desc}</span>
+                    <span className="text-[10px] text-text-muted mt-0.5">{desc}</span>
                   </button>
                 ))}
               </div>
               {errors.reason && (
-                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-status-offline mt-1 flex items-center gap-1">
                   <AlertCircle size={12} /> {errors.reason}
                 </p>
               )}
@@ -246,8 +246,8 @@ export default function DeinstallModal({
 
             {/* Hardware-Zustand */}
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-2">
-                Hardware-Zustand <span className="text-red-400">*</span>
+              <label className="block text-xs font-medium text-text-secondary mb-2">
+                Hardware-Zustand <span className="text-status-offline">*</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {CONDITION_OPTIONS.map(({ value, label, color }) => (
@@ -258,7 +258,7 @@ export default function DeinstallModal({
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                       hardwareCondition === value
                         ? `${color} shadow-sm`
-                        : 'bg-white/40 text-slate-500 border-slate-200 hover:border-slate-300'
+                        : 'bg-surface-primary/60 text-text-muted border-border-secondary hover:border-border-primary'
                     }`}
                   >
                     {hardwareCondition === value && <CheckCircle2 size={11} className="inline mr-1" />}
@@ -267,7 +267,7 @@ export default function DeinstallModal({
                 ))}
               </div>
               {errors.hardwareCondition && (
-                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-status-offline mt-1 flex items-center gap-1">
                   <AlertCircle size={12} /> {errors.hardwareCondition}
                 </p>
               )}
@@ -275,7 +275,7 @@ export default function DeinstallModal({
 
             {/* Techniker */}
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">
                 <Wrench size={12} className="inline mr-1" />
                 Techniker
               </label>
@@ -284,13 +284,13 @@ export default function DeinstallModal({
                 value={technician}
                 onChange={(e) => setTechnician(e.target.value)}
                 placeholder="Name des Technikers"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
               />
             </div>
 
             {/* Zustandsbeschreibung */}
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">
                 <MessageSquare size={12} className="inline mr-1" />
                 Zustandsbeschreibung / Bemerkungen
               </label>
@@ -299,34 +299,34 @@ export default function DeinstallModal({
                 onChange={(e) => setConditionDescription(e.target.value)}
                 placeholder="z.B. Display einwandfrei, Gehäuse leicht verkratzt, alle Kabel vorhanden..."
                 rows={3}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 resize-none"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 resize-none"
               />
             </div>
 
             {/* Error message */}
             {submitError && (
-              <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-red-50 border border-red-100">
-                <AlertCircle size={14} className="text-red-500 mt-0.5 shrink-0" />
-                <p className="text-xs text-red-600">{submitError}</p>
+              <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-status-offline/10 border border-red-100">
+                <AlertCircle size={14} className="text-status-offline mt-0.5 shrink-0" />
+                <p className="text-xs text-status-offline">{submitError}</p>
               </div>
             )}
           </div>
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200/60">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border-secondary">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100/80 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm text-text-secondary hover:bg-surface-secondary/80 rounded-lg transition-colors"
           >
             Abbrechen
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-status-offline hover:bg-status-offline text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 shadow-sm"
           >
             {loading ? (
               <>

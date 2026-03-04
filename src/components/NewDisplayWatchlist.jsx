@@ -26,10 +26,10 @@ import { createTask, fetchAllStammdaten, fetchInstallationByDisplayId } from '..
 
 function ScoreBadge({ score }) {
   let color, bg;
-  if (score >= 80) { color = '#22c55e'; bg = '#22c55e18'; }
-  else if (score >= 60) { color = '#f59e0b'; bg = '#f59e0b18'; }
+  if (score >= 80) { color = '#34C759'; bg = '#34C75918'; }
+  else if (score >= 60) { color = '#FF9500'; bg = '#FF950018'; }
   else if (score >= 40) { color = '#f97316'; bg = '#f9731618'; }
-  else { color = '#ef4444'; bg = '#ef444418'; }
+  else { color = '#FF3B30'; bg = '#FF3B3018'; }
 
   return (
     <span
@@ -236,22 +236,22 @@ export default function NewDisplayWatchlist({
   if (watchlist.length === 0) return null;
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl">
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/80 transition-colors rounded-t-2xl"
+        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface-secondary transition-colors rounded-t-2xl"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3">
-          <Baby size={16} className="text-[#3b82f6]" />
-          <h3 className="text-sm font-medium text-slate-900">
+          <Baby size={16} className="text-[#007AFF]" />
+          <h3 className="text-sm font-medium text-text-primary">
             Neue Displays – Watchlist
           </h3>
-          <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+          <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
             {watchlist.length} displays (&le; 28 Tage)
           </span>
           {problemDisplays.length > 0 && (
-            <span className="flex items-center gap-1 text-xs font-mono text-[#ef4444] bg-[#ef444418] px-2 py-0.5 rounded border border-[#ef444433]">
+            <span className="flex items-center gap-1 text-xs font-mono text-[#FF3B30] bg-[#FF3B3018] px-2 py-0.5 rounded border border-[#FF3B3033]">
               <AlertTriangle size={10} />
               {problemDisplays.length} auffällig
             </span>
@@ -268,10 +268,10 @@ export default function NewDisplayWatchlist({
               disabled={alertSending}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
                 alertResult === 'success'
-                  ? 'bg-green-50/60 text-green-600 border border-green-200/40'
+                  ? 'bg-status-online/10/60 text-status-online border border-status-online/20/40'
                   : alertResult === 'error'
-                    ? 'bg-red-50/60 text-red-500 border border-red-200/40'
-                    : 'bg-slate-50/80 text-slate-600 border border-slate-200/60 hover:border-[#f59e0b] hover:text-[#f59e0b]'
+                    ? 'bg-status-offline/10/60 text-status-offline border border-status-offline/20/40'
+                    : 'bg-surface-secondary/80 text-text-secondary border border-border-secondary hover:border-[#FF9500] hover:text-[#FF9500]'
               }`}
               title={webhookUrl ? 'Alert per Webhook senden' : 'Webhook konfigurieren'}
             >
@@ -291,39 +291,39 @@ export default function NewDisplayWatchlist({
               e.stopPropagation();
               setShowWebhookConfig(!showWebhookConfig);
             }}
-            className="p-1 rounded hover:bg-slate-50/80 text-slate-500 hover:text-slate-600 transition-colors"
+            className="p-1 rounded hover:bg-surface-secondary/80 text-text-muted hover:text-text-secondary transition-colors"
             title="Webhook konfigurieren"
           >
             {webhookUrl ? <Bell size={14} /> : <BellOff size={14} />}
           </button>
           {expanded ? (
-            <ChevronUp size={14} className="text-slate-500" />
+            <ChevronUp size={14} className="text-text-muted" />
           ) : (
-            <ChevronDown size={14} className="text-slate-500" />
+            <ChevronDown size={14} className="text-text-muted" />
           )}
         </div>
       </div>
 
       {/* Webhook config panel */}
       {showWebhookConfig && (
-        <div className="px-4 py-3 border-t border-slate-200/60 bg-slate-50/40">
+        <div className="px-4 py-3 border-t border-border-secondary bg-surface-secondary/40">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-500 flex-shrink-0">Webhook URL:</label>
+            <label className="text-xs text-text-muted flex-shrink-0">Webhook URL:</label>
             <input
               type="url"
               value={webhookInput}
               onChange={(e) => setWebhookInput(e.target.value)}
               placeholder="https://n8n.example.com/webhook/..."
-              className="flex-grow bg-slate-50/80 border border-slate-200/60 rounded px-2.5 py-1.5 text-xs font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6]"
+              className="flex-grow bg-surface-secondary/80 border border-border-secondary rounded px-2.5 py-1.5 text-xs font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF]"
             />
             <button
               onClick={saveWebhook}
-              className="px-3 py-1.5 rounded text-xs font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors"
+              className="px-3 py-1.5 rounded text-xs font-medium bg-[#007AFF] text-white hover:bg-[#2563eb] transition-colors"
             >
               Speichern
             </button>
           </div>
-          <p className="text-xs text-slate-500 mt-1.5">
+          <p className="text-xs text-text-muted mt-1.5">
             Verbinde mit n8n, Zapier, Make oder jedem Webhook-fähigen Dienst. Es wird ein JSON-Payload mit den Problem-Displays gesendet.
           </p>
         </div>
@@ -331,12 +331,12 @@ export default function NewDisplayWatchlist({
 
       {/* Content */}
       {expanded && (
-        <div className="border-t border-slate-200/60">
+        <div className="border-t border-border-secondary">
           {/* Problem displays */}
           {problemDisplays.length > 0 && (
             <div>
-              <div className="px-4 py-2 bg-red-50/40 border-b border-slate-200/60">
-                <span className="text-xs font-medium text-[#ef4444] uppercase tracking-wider">
+              <div className="px-4 py-2 bg-status-offline/10/40 border-b border-border-secondary">
+                <span className="text-xs font-medium text-[#FF3B30] uppercase tracking-wider">
                   Benötigt Aufmerksamkeit
                 </span>
               </div>
@@ -355,8 +355,8 @@ export default function NewDisplayWatchlist({
           {/* Healthy displays */}
           {healthyDisplays.length > 0 && (
             <div>
-              <div className="px-4 py-2 bg-green-50/40 border-b border-t border-slate-200/60">
-                <span className="text-xs font-medium text-[#22c55e] uppercase tracking-wider">
+              <div className="px-4 py-2 bg-status-online/10/40 border-b border-t border-border-secondary">
+                <span className="text-xs font-medium text-[#34C759] uppercase tracking-wider">
                   Läuft stabil
                 </span>
               </div>
@@ -380,8 +380,8 @@ export default function NewDisplayWatchlist({
 function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-2.5 border-b border-slate-200/40 transition-colors ${
-        d.needsAttention ? 'hover:bg-red-50/60' : 'hover:bg-white/80'
+      className={`flex items-center gap-3 px-4 py-2.5 border-b border-border-secondary/40 transition-colors ${
+        d.needsAttention ? 'hover:bg-status-offline/10/60' : 'hover:bg-surface-secondary'
       }`}
     >
       {/* Status + Score (clickable to open display detail) */}
@@ -392,19 +392,19 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
         {/* Display info */}
         <div className="flex-grow min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-slate-900 truncate">
+            <span className="text-xs font-mono text-text-primary truncate">
               {d.displayId}
             </span>
-            <span className="text-xs text-slate-500 truncate hidden md:inline">
+            <span className="text-xs text-text-muted truncate hidden md:inline">
               {d.displayName || d.locationName}
             </span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-xs text-slate-500 font-mono">
+            <span className="text-xs text-text-muted font-mono">
               {d.city}
             </span>
-            <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-500 bg-slate-100/80 px-1.5 py-0.5 rounded">
-              <Clock size={9} className="text-slate-500" />
+            <span className="inline-flex items-center gap-1 text-xs font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded">
+              <Clock size={9} className="text-text-muted" />
               {formatDate(d.firstSeen)} ({d.ageDays}d)
             </span>
           </div>
@@ -414,22 +414,22 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
       {/* Metrics */}
       <div className="flex items-center gap-4 flex-shrink-0 text-xs font-mono cursor-pointer" onClick={onClick}>
         <div className="text-center hidden lg:block">
-          <div className={d.uptimeRate < 70 ? 'text-[#ef4444]' : d.uptimeRate < 90 ? 'text-[#f59e0b]' : 'text-[#22c55e]'}>
+          <div className={d.uptimeRate < 70 ? 'text-[#FF3B30]' : d.uptimeRate < 90 ? 'text-[#FF9500]' : 'text-[#34C759]'}>
             {d.uptimeRate}%
           </div>
-          <div className="text-slate-500">Uptime</div>
+          <div className="text-text-muted">Uptime</div>
         </div>
         <div className="text-center hidden lg:block">
-          <div className={d.offlineEpisodes > 3 ? 'text-[#ef4444]' : 'text-slate-600'}>
+          <div className={d.offlineEpisodes > 3 ? 'text-[#FF3B30]' : 'text-text-secondary'}>
             {d.offlineEpisodes}
           </div>
-          <div className="text-slate-500">Ausfälle</div>
+          <div className="text-text-muted">Ausfälle</div>
         </div>
         <div className="text-center">
           <div style={{ color: getStatusColor(d.status) }}>
             {d.offlineHours != null && d.offlineHours >= 24 ? formatDuration(d.offlineHours) : getStatusLabel(d.status)}
           </div>
-          <div className="text-slate-500">Aktuell</div>
+          <div className="text-text-muted">Aktuell</div>
         </div>
       </div>
 
@@ -442,12 +442,12 @@ function WatchlistRow({ display: d, onClick, onCreateTask, taskState }) {
         disabled={!!taskState}
         className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0 ${
           taskState === 'success'
-            ? 'bg-green-50/60 text-green-600 border border-green-200/40'
+            ? 'bg-status-online/10/60 text-status-online border border-status-online/20/40'
             : taskState === 'error'
-              ? 'bg-red-50/60 text-red-500 border border-red-200/40'
+              ? 'bg-status-offline/10/60 text-status-offline border border-status-offline/20/40'
               : taskState === 'loading'
-                ? 'bg-blue-50/60 text-blue-500 border border-blue-200/40'
-                : 'bg-amber-50/60 text-amber-700 border border-amber-200/40 hover:bg-amber-100/60 hover:border-amber-300/60'
+                ? 'bg-accent-light/60 text-accent border border-accent/20/40'
+                : 'bg-status-warning/10/60 text-amber-700 border border-status-warning/20/40 hover:bg-status-warning/10/60 hover:border-amber-300/60'
         }`}
         title="Task erstellen: Call zur Klärung (Lieferando AM)"
       >

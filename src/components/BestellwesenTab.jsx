@@ -9,11 +9,11 @@ import { supabase } from '../utils/authService';
 
 // ─── Constants ───
 const STATUS_CONFIG = {
-  entwurf:       { label: 'Entwurf',       bg: 'bg-slate-100',  text: 'text-slate-700',  border: 'border-slate-200/50',  color: '#64748b' },
-  bestellt:      { label: 'Bestellt',      bg: 'bg-blue-50',    text: 'text-blue-700',   border: 'border-blue-200/50',   color: '#3b82f6' },
-  teilgeliefert: { label: 'Teilgeliefert', bg: 'bg-amber-50',   text: 'text-amber-700',  border: 'border-amber-200/50',  color: '#f59e0b' },
-  'vollständig': { label: 'Vollständig',   bg: 'bg-green-50',   text: 'text-green-700',  border: 'border-green-200/50',  color: '#22c55e' },
-  storniert:     { label: 'Storniert',     bg: 'bg-red-50',     text: 'text-red-700',    border: 'border-red-200/50',    color: '#ef4444' },
+  entwurf:       { label: 'Entwurf',       bg: 'bg-surface-secondary',  text: 'text-text-primary',  border: 'border-border-secondary',  color: '#64748b' },
+  bestellt:      { label: 'Bestellt',      bg: 'bg-accent-light',    text: 'text-blue-700',   border: 'border-accent/20/50',   color: '#007AFF' },
+  teilgeliefert: { label: 'Teilgeliefert', bg: 'bg-status-warning/10',   text: 'text-amber-700',  border: 'border-status-warning/20/50',  color: '#FF9500' },
+  'vollständig': { label: 'Vollständig',   bg: 'bg-status-online/10',   text: 'text-green-700',  border: 'border-status-online/20/50',  color: '#34C759' },
+  storniert:     { label: 'Storniert',     bg: 'bg-status-offline/10',     text: 'text-red-700',    border: 'border-status-offline/20/50',    color: '#FF3B30' },
 };
 
 const STATUS_FLOW = ['entwurf', 'bestellt', 'teilgeliefert', 'vollständig'];
@@ -288,16 +288,16 @@ export default function BestellwesenTab() {
       {/* ─── KPI Cards ─── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Gesamt',         value: kpis.total,         icon: ClipboardList, color: '#3b82f6' },
-          { label: 'Offen',          value: kpis.offen,         icon: ShoppingCart,  color: '#8b5cf6' },
-          { label: 'Teilgeliefert',  value: kpis.teilgeliefert, icon: Truck,         color: '#f59e0b' },
-          { label: 'Abgeschlossen',  value: kpis.abgeschlossen, icon: CheckCircle2,  color: '#22c55e' },
+          { label: 'Gesamt',         value: kpis.total,         icon: ClipboardList, color: '#007AFF' },
+          { label: 'Offen',          value: kpis.offen,         icon: ShoppingCart,  color: '#AF52DE' },
+          { label: 'Teilgeliefert',  value: kpis.teilgeliefert, icon: Truck,         color: '#FF9500' },
+          { label: 'Abgeschlossen',  value: kpis.abgeschlossen, icon: CheckCircle2,  color: '#34C759' },
         ].map(k => {
           const Icon = k.icon;
           return (
-            <div key={k.label} className="bg-white/60 border border-slate-200/60 rounded-xl p-3">
+            <div key={k.label} className="bg-surface-primary border border-border-secondary rounded-xl p-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-slate-500 uppercase font-mono">{k.label}</span>
+                <span className="text-[10px] text-text-muted uppercase font-mono">{k.label}</span>
                 <Icon size={14} style={{ color: k.color }} />
               </div>
               <div className="text-xl font-bold font-mono" style={{ color: k.color }}>{k.value}</div>
@@ -310,19 +310,19 @@ export default function BestellwesenTab() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
           <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="PO-Nr, Lieferant suchen..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white/60 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-secondary bg-surface-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 text-xs"
+            className="px-3 py-2 rounded-lg border border-border-secondary text-xs"
           >
             <option value="">Alle Status</option>
             {Object.entries(STATUS_CONFIG).map(([k, v]) => (
@@ -332,7 +332,7 @@ export default function BestellwesenTab() {
           {filterStatus && (
             <button
               onClick={() => setFilterStatus('')}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-600"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-accent-light border border-accent/20 text-xs text-accent"
             >
               <X size={12} />{STATUS_CONFIG[filterStatus]?.label}
             </button>
@@ -341,14 +341,14 @@ export default function BestellwesenTab() {
         <div className="flex items-center gap-2">
           <button
             onClick={loadOrders}
-            className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500"
+            className="p-2 rounded-lg border border-border-secondary hover:bg-surface-secondary text-text-muted"
             title="Aktualisieren"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-accent text-white text-xs font-medium transition-colors shadow-sm"
           >
             <Plus size={14} />
             Neue Bestellung
@@ -358,63 +358,63 @@ export default function BestellwesenTab() {
 
       {/* ─── New PO Form ─── */}
       {showForm && (
-        <form onSubmit={handleCreatePO} className="bg-white border border-slate-200/60 rounded-xl p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <ShoppingCart size={16} className="text-blue-500" />
+        <form onSubmit={handleCreatePO} className="bg-surface-primary border border-border-secondary rounded-xl p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+            <ShoppingCart size={16} className="text-accent" />
             Neue Bestellung anlegen
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Lieferant *</label>
+              <label className="text-xs text-text-muted mb-1 block">Lieferant *</label>
               <input
                 type="text"
                 value={form.supplier}
                 onChange={(e) => setForm({ ...form, supplier: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="z.B. Philips, JWIPC, 1NCE..."
                 required
               />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Lieferanten-Referenz</label>
+              <label className="text-xs text-text-muted mb-1 block">Lieferanten-Referenz</label>
               <input
                 type="text"
                 value={form.supplier_reference}
                 onChange={(e) => setForm({ ...form, supplier_reference: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Angebots-/Auftrags-Nr"
               />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Geplantes Lieferdatum</label>
+              <label className="text-xs text-text-muted mb-1 block">Geplantes Lieferdatum</label>
               <input
                 type="date"
                 value={form.expected_delivery}
                 onChange={(e) => setForm({ ...form, expected_delivery: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Notizen</label>
+              <label className="text-xs text-text-muted mb-1 block">Notizen</label>
               <textarea
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 rows={2}
                 placeholder="Interne Notizen zur Bestellung..."
               />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Erstellt von</label>
+              <label className="text-xs text-text-muted mb-1 block">Erstellt von</label>
               <input
                 type="text"
                 value={form.created_by}
                 onChange={(e) => setForm({ ...form, created_by: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                 placeholder="Name"
               />
             </div>
@@ -423,11 +423,11 @@ export default function BestellwesenTab() {
           {/* ─── Dynamic item rows ─── */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-slate-600">Positionen</span>
+              <span className="text-xs font-medium text-text-secondary">Positionen</span>
               <button
                 type="button"
                 onClick={addItem}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs text-slate-600 transition-colors"
+                className="flex items-center gap-1 px-2 py-1 rounded-lg border border-border-secondary hover:bg-surface-secondary text-xs text-text-secondary transition-colors"
               >
                 <Plus size={12} />
                 Position hinzufügen
@@ -436,7 +436,7 @@ export default function BestellwesenTab() {
 
             <div className="space-y-2">
               {/* Header */}
-              <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-slate-500 uppercase font-mono px-1">
+              <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-text-muted uppercase font-mono px-1">
                 <div className="col-span-3">Komponententyp</div>
                 <div className="col-span-4">Beschreibung</div>
                 <div className="col-span-2">Menge</div>
@@ -449,7 +449,7 @@ export default function BestellwesenTab() {
                   <select
                     value={item.component_type}
                     onChange={(e) => updateItem(idx, 'component_type', e.target.value)}
-                    className="md:col-span-3 px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="md:col-span-3 px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   >
                     {COMPONENT_TYPES.map(ct => (
                       <option key={ct.value} value={ct.value}>{ct.label}</option>
@@ -460,14 +460,14 @@ export default function BestellwesenTab() {
                     value={item.description}
                     onChange={(e) => updateItem(idx, 'description', e.target.value)}
                     placeholder="Beschreibung (optional)"
-                    className="md:col-span-4 px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="md:col-span-4 px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
                   <input
                     type="number"
                     min="1"
                     value={item.quantity}
                     onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)}
-                    className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="md:col-span-2 px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
                   <input
                     type="number"
@@ -476,13 +476,13 @@ export default function BestellwesenTab() {
                     value={item.unit_price}
                     onChange={(e) => updateItem(idx, 'unit_price', e.target.value)}
                     placeholder="EUR"
-                    className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="md:col-span-2 px-3 py-2 rounded-lg border border-border-secondary text-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
                   <button
                     type="button"
                     onClick={() => removeItem(idx)}
                     disabled={formItems.length <= 1}
-                    className="md:col-span-1 p-2 rounded-lg border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-500 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:border-slate-200 disabled:hover:text-slate-400 transition-colors"
+                    className="md:col-span-1 p-2 rounded-lg border border-border-secondary hover:bg-status-offline/10 hover:border-status-offline/20 text-text-muted hover:text-status-offline disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:border-border-secondary disabled:hover:text-text-muted transition-colors"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -495,7 +495,7 @@ export default function BestellwesenTab() {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent disabled:opacity-50 text-white text-xs font-medium transition-colors"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
               Bestellung anlegen
@@ -503,7 +503,7 @@ export default function BestellwesenTab() {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 transition-colors"
+              className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary transition-colors"
             >
               Abbrechen
             </button>
@@ -514,25 +514,25 @@ export default function BestellwesenTab() {
       {/* ─── PO List Table ─── */}
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 size={16} className="text-blue-500 animate-spin" />
-          <span className="ml-2 text-xs text-slate-500">Lade Bestellungen...</span>
+          <Loader2 size={16} className="text-accent animate-spin" />
+          <span className="ml-2 text-xs text-text-muted">Lade Bestellungen...</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-xs">
+        <div className="text-center py-8 text-text-muted text-xs">
           {orders.length === 0 ? 'Noch keine Bestellungen vorhanden' : 'Keine Treffer für die Suche'}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">PO-Nr</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Datum</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Lieferant</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Positionen</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Status</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Fortschritt</th>
-                <th className="text-left py-2 px-3 text-slate-500 font-medium">Aktionen</th>
+              <tr className="border-b border-border-secondary">
+                <th className="text-left py-2 px-3 text-text-muted font-medium">PO-Nr</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Datum</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Lieferant</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Positionen</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Status</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Fortschritt</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Aktionen</th>
               </tr>
             </thead>
             <tbody>
@@ -546,7 +546,7 @@ export default function BestellwesenTab() {
                 return (
                   <tr
                     key={order.id}
-                    className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors cursor-pointer"
+                    className="border-b border-border-secondary hover:bg-surface-secondary/50 transition-colors cursor-pointer"
                     onClick={() => {
                       // Load full detail
                       supabase
@@ -560,13 +560,13 @@ export default function BestellwesenTab() {
                         });
                     }}
                   >
-                    <td className="py-2 px-3 font-mono text-blue-600 font-medium">{order.po_number}</td>
-                    <td className="py-2 px-3 font-mono text-slate-600">
+                    <td className="py-2 px-3 font-mono text-accent font-medium">{order.po_number}</td>
+                    <td className="py-2 px-3 font-mono text-text-secondary">
                       {new Date(order.created_at).toLocaleDateString('de-DE')}
                     </td>
-                    <td className="py-2 px-3 text-slate-700">{order.supplier || '\u2013'}</td>
+                    <td className="py-2 px-3 text-text-primary">{order.supplier || '\u2013'}</td>
                     <td className="py-2 px-3">
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600 border border-slate-200/50">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs bg-surface-secondary text-text-secondary border border-border-secondary">
                         <Package size={10} />
                         {itemsCount}
                       </span>
@@ -581,16 +581,16 @@ export default function BestellwesenTab() {
                     </td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden min-w-[60px]">
+                        <div className="flex-1 h-1.5 bg-surface-secondary rounded-full overflow-hidden min-w-[60px]">
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
                               width: `${progress}%`,
-                              backgroundColor: progress >= 100 ? '#22c55e' : progress > 0 ? '#f59e0b' : '#e2e8f0',
+                              backgroundColor: progress >= 100 ? '#34C759' : progress > 0 ? '#FF9500' : '#e2e8f0',
                             }}
                           />
                         </div>
-                        <span className="text-[10px] text-slate-500 font-mono whitespace-nowrap">
+                        <span className="text-[10px] text-text-muted font-mono whitespace-nowrap">
                           {received}/{total}
                         </span>
                       </div>
@@ -609,7 +609,7 @@ export default function BestellwesenTab() {
                                 else setSelectedPO(order);
                               });
                           }}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/50"
+                          className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-surface-secondary text-text-secondary hover:bg-surface-secondary border border-border-secondary"
                           title="Details"
                         >
                           <Eye size={10} /> Details
@@ -662,7 +662,7 @@ function StatusDropdown({ currentStatus, onChangeStatus }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
-          <div className="absolute z-50 top-full mt-1 left-0 bg-white border border-slate-200 rounded-lg shadow-lg py-1 min-w-[140px]">
+          <div className="absolute z-50 top-full mt-1 left-0 bg-surface-primary border border-border-secondary rounded-lg shadow-lg py-1 min-w-[140px]">
             {Object.entries(STATUS_CONFIG).map(([key, config]) => (
               <button
                 key={key}
@@ -671,7 +671,7 @@ function StatusDropdown({ currentStatus, onChangeStatus }) {
                   if (key !== currentStatus) onChangeStatus(key);
                   setOpen(false);
                 }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 flex items-center gap-2 ${
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-surface-secondary flex items-center gap-2 ${
                   key === currentStatus ? 'font-medium' : ''
                 }`}
               >
@@ -680,7 +680,7 @@ function StatusDropdown({ currentStatus, onChangeStatus }) {
                   style={{ backgroundColor: config.color }}
                 />
                 {config.label}
-                {key === currentStatus && <CheckCircle2 size={10} className="ml-auto text-blue-500" />}
+                {key === currentStatus && <CheckCircle2 size={10} className="ml-auto text-accent" />}
               </button>
             ))}
           </div>
@@ -715,36 +715,36 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl p-5 max-w-3xl w-full mx-4 shadow-xl max-h-[90vh] overflow-y-auto"
+        className="bg-surface-primary rounded-xl p-5 max-w-3xl w-full mx-4 shadow-xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <ClipboardList size={16} className="text-blue-500" />
+            <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+              <ClipboardList size={16} className="text-accent" />
               Bestellung {order.po_number}
             </h3>
-            <p className="text-[10px] text-slate-500 mt-0.5 font-mono">
+            <p className="text-[10px] text-text-muted mt-0.5 font-mono">
               Erstellt am {new Date(order.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               {order.created_by && ` von ${order.created_by}`}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-surface-secondary text-text-muted hover:text-text-secondary transition-colors"
           >
             <X size={16} />
           </button>
         </div>
 
         {/* ─── Status Timeline ─── */}
-        <div className="bg-slate-50 rounded-lg p-3 mb-4">
-          <div className="text-[10px] text-slate-500 uppercase font-mono mb-2">Status-Verlauf</div>
+        <div className="bg-surface-secondary rounded-lg p-3 mb-4">
+          <div className="text-[10px] text-text-muted uppercase font-mono mb-2">Status-Verlauf</div>
           <div className="flex items-center gap-1">
             {STATUS_FLOW.map((step, idx) => {
               const stepConfig = STATUS_CONFIG[step];
@@ -755,7 +755,7 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
               return (
                 <React.Fragment key={step}>
                   {idx > 0 && (
-                    <div className={`flex-1 h-0.5 rounded ${isPast ? 'bg-blue-400' : 'bg-slate-200'}`} />
+                    <div className={`flex-1 h-0.5 rounded ${isPast ? 'bg-blue-400' : 'bg-surface-tertiary'}`} />
                   )}
                   <button
                     onClick={() => {
@@ -765,8 +765,8 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
                       isActive
                         ? `${stepConfig.bg} ${stepConfig.text} ${stepConfig.border} ring-2 ring-offset-1`
                         : isPast
-                          ? 'bg-blue-50 text-blue-600 border-blue-200/50'
-                          : 'bg-white text-slate-400 border-slate-200/50 hover:border-slate-300'
+                          ? 'bg-accent-light text-accent border-accent/20/50'
+                          : 'bg-surface-primary text-text-muted border-border-secondary hover:border-border-primary'
                     } ${isCancelled ? 'opacity-40' : ''}`}
                     style={isActive ? { '--tw-ring-color': stepConfig.color + '40' } : {}}
                   >
@@ -780,8 +780,8 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
             {order.status === 'storniert' && (
               <>
                 <div className="flex-1" />
-                <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-red-50 text-red-700 border border-red-200/50 ring-2 ring-offset-1"
-                  style={{ '--tw-ring-color': '#ef444440' }}
+                <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-status-offline/10 text-red-700 border border-status-offline/20/50 ring-2 ring-offset-1"
+                  style={{ '--tw-ring-color': '#FF3B3040' }}
                 >
                   <AlertTriangle size={12} />
                   Storniert
@@ -793,33 +793,33 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
 
         {/* ─── PO Info ─── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div className="bg-white border border-slate-200/60 rounded-lg p-3">
-            <div className="text-[10px] text-slate-500 uppercase font-mono flex items-center gap-1">
+          <div className="bg-surface-primary border border-border-secondary rounded-lg p-3">
+            <div className="text-[10px] text-text-muted uppercase font-mono flex items-center gap-1">
               <Hash size={10} /> PO-Nummer
             </div>
-            <div className="text-xs font-mono font-bold text-blue-600 mt-1">{order.po_number}</div>
+            <div className="text-xs font-mono font-bold text-accent mt-1">{order.po_number}</div>
           </div>
-          <div className="bg-white border border-slate-200/60 rounded-lg p-3">
-            <div className="text-[10px] text-slate-500 uppercase font-mono flex items-center gap-1">
+          <div className="bg-surface-primary border border-border-secondary rounded-lg p-3">
+            <div className="text-[10px] text-text-muted uppercase font-mono flex items-center gap-1">
               <Truck size={10} /> Lieferant
             </div>
-            <div className="text-xs font-medium text-slate-700 mt-1">{order.supplier || '\u2013'}</div>
+            <div className="text-xs font-medium text-text-primary mt-1">{order.supplier || '\u2013'}</div>
           </div>
-          <div className="bg-white border border-slate-200/60 rounded-lg p-3">
-            <div className="text-[10px] text-slate-500 uppercase font-mono flex items-center gap-1">
+          <div className="bg-surface-primary border border-border-secondary rounded-lg p-3">
+            <div className="text-[10px] text-text-muted uppercase font-mono flex items-center gap-1">
               <Calendar size={10} /> Lieferdatum
             </div>
-            <div className="text-xs text-slate-700 mt-1">
+            <div className="text-xs text-text-primary mt-1">
               {order.expected_delivery
                 ? new Date(order.expected_delivery).toLocaleDateString('de-DE')
                 : '\u2013'}
             </div>
           </div>
-          <div className="bg-white border border-slate-200/60 rounded-lg p-3">
-            <div className="text-[10px] text-slate-500 uppercase font-mono flex items-center gap-1">
+          <div className="bg-surface-primary border border-border-secondary rounded-lg p-3">
+            <div className="text-[10px] text-text-muted uppercase font-mono flex items-center gap-1">
               <DollarSign size={10} /> Gesamtbetrag
             </div>
-            <div className="text-xs font-mono font-bold text-slate-700 mt-1">
+            <div className="text-xs font-mono font-bold text-text-primary mt-1">
               {order.total_amount
                 ? `${Number(order.total_amount).toLocaleString('de-DE', { minimumFractionDigits: 2 })} EUR`
                 : '\u2013'}
@@ -831,34 +831,34 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
         {(order.supplier_reference || order.notes) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
             {order.supplier_reference && (
-              <div className="bg-slate-50 rounded-lg p-3">
-                <div className="text-[10px] text-slate-500 uppercase font-mono mb-1">Lieferanten-Referenz</div>
-                <div className="text-xs text-slate-700 font-mono">{order.supplier_reference}</div>
+              <div className="bg-surface-secondary rounded-lg p-3">
+                <div className="text-[10px] text-text-muted uppercase font-mono mb-1">Lieferanten-Referenz</div>
+                <div className="text-xs text-text-primary font-mono">{order.supplier_reference}</div>
               </div>
             )}
             {order.notes && (
-              <div className="bg-slate-50 rounded-lg p-3">
-                <div className="text-[10px] text-slate-500 uppercase font-mono mb-1">Notizen</div>
-                <div className="text-xs text-slate-600">{order.notes}</div>
+              <div className="bg-surface-secondary rounded-lg p-3">
+                <div className="text-[10px] text-text-muted uppercase font-mono mb-1">Notizen</div>
+                <div className="text-xs text-text-secondary">{order.notes}</div>
               </div>
             )}
           </div>
         )}
 
         {/* ─── Progress bar ─── */}
-        <div className="bg-slate-50 rounded-lg p-3 mb-4">
+        <div className="bg-surface-secondary rounded-lg p-3 mb-4">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-slate-500 uppercase font-mono">Lieferfortschritt</span>
-            <span className="text-xs font-mono font-bold text-slate-700">
+            <span className="text-[10px] text-text-muted uppercase font-mono">Lieferfortschritt</span>
+            <span className="text-xs font-mono font-bold text-text-primary">
               {received} / {total} Stk.
             </span>
           </div>
-          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+          <div className="h-2 bg-surface-tertiary rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all"
               style={{
                 width: total > 0 ? `${Math.round((received / total) * 100)}%` : '0%',
-                backgroundColor: received >= total && total > 0 ? '#22c55e' : received > 0 ? '#f59e0b' : '#e2e8f0',
+                backgroundColor: received >= total && total > 0 ? '#34C759' : received > 0 ? '#FF9500' : '#e2e8f0',
               }}
             />
           </div>
@@ -866,24 +866,24 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
 
         {/* ─── Items list ─── */}
         <div className="mb-4">
-          <div className="text-xs font-medium text-slate-600 uppercase tracking-wider mb-2">
+          <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-2">
             Positionen ({items.length})
           </div>
 
           {items.length === 0 ? (
-            <div className="text-center py-4 text-slate-400 text-xs">Keine Positionen vorhanden</div>
+            <div className="text-center py-4 text-text-muted text-xs">Keine Positionen vorhanden</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-2 px-3 text-slate-500 font-medium">#</th>
-                    <th className="text-left py-2 px-3 text-slate-500 font-medium">Typ</th>
-                    <th className="text-left py-2 px-3 text-slate-500 font-medium">Beschreibung</th>
-                    <th className="text-left py-2 px-3 text-slate-500 font-medium">Bestellt</th>
-                    <th className="text-left py-2 px-3 text-slate-500 font-medium">Erhalten</th>
-                    <th className="text-left py-2 px-3 text-slate-500 font-medium">Preis</th>
-                    <th className="text-left py-2 px-3 text-slate-500 font-medium">Aktion</th>
+                  <tr className="border-b border-border-secondary">
+                    <th className="text-left py-2 px-3 text-text-muted font-medium">#</th>
+                    <th className="text-left py-2 px-3 text-text-muted font-medium">Typ</th>
+                    <th className="text-left py-2 px-3 text-text-muted font-medium">Beschreibung</th>
+                    <th className="text-left py-2 px-3 text-text-muted font-medium">Bestellt</th>
+                    <th className="text-left py-2 px-3 text-text-muted font-medium">Erhalten</th>
+                    <th className="text-left py-2 px-3 text-text-muted font-medium">Preis</th>
+                    <th className="text-left py-2 px-3 text-text-muted font-medium">Aktion</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -894,17 +894,17 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
                       const isComplete = (item.received_quantity || 0) >= (item.quantity || 0);
 
                       return (
-                        <tr key={item.id} className={`border-b border-slate-100 ${isComplete ? 'bg-green-50/30' : ''}`}>
-                          <td className="py-2 px-3 text-slate-400 font-mono">{item.line_number || '\u2013'}</td>
-                          <td className="py-2 px-3 text-slate-700 font-medium">{typeLabel}</td>
-                          <td className="py-2 px-3 text-slate-600">{item.description || '\u2013'}</td>
-                          <td className="py-2 px-3 font-mono text-slate-700">{item.quantity}</td>
+                        <tr key={item.id} className={`border-b border-border-secondary ${isComplete ? 'bg-status-online/10/30' : ''}`}>
+                          <td className="py-2 px-3 text-text-muted font-mono">{item.line_number || '\u2013'}</td>
+                          <td className="py-2 px-3 text-text-primary font-medium">{typeLabel}</td>
+                          <td className="py-2 px-3 text-text-secondary">{item.description || '\u2013'}</td>
+                          <td className="py-2 px-3 font-mono text-text-primary">{item.quantity}</td>
                           <td className="py-2 px-3">
-                            <span className={`font-mono font-medium ${isComplete ? 'text-green-600' : 'text-amber-600'}`}>
+                            <span className={`font-mono font-medium ${isComplete ? 'text-status-online' : 'text-status-warning'}`}>
                               {item.received_quantity || 0}
                             </span>
                           </td>
-                          <td className="py-2 px-3 font-mono text-slate-600">
+                          <td className="py-2 px-3 font-mono text-text-secondary">
                             {item.unit_price
                               ? `${Number(item.unit_price).toLocaleString('de-DE', { minimumFractionDigits: 2 })} EUR`
                               : '\u2013'}
@@ -919,7 +919,7 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
                                   value={receiveQty}
                                   onChange={(e) => setReceiveQty(e.target.value)}
                                   autoFocus
-                                  className="w-16 px-2 py-1 rounded border border-blue-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  className="w-16 px-2 py-1 rounded border border-blue-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent/20"
                                   placeholder="Anz."
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') handleReceiveSubmit(item);
@@ -928,14 +928,14 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
                                 />
                                 <button
                                   onClick={() => handleReceiveSubmit(item)}
-                                  className="p-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors"
+                                  className="p-1 rounded bg-status-online hover:bg-status-online text-white transition-colors"
                                   title="Verbuchen"
                                 >
                                   <CheckCircle2 size={12} />
                                 </button>
                                 <button
                                   onClick={() => { setReceiveMode(null); setReceiveQty(''); }}
-                                  className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors"
+                                  className="p-1 rounded bg-surface-secondary hover:bg-surface-tertiary text-text-muted transition-colors"
                                 >
                                   <X size={12} />
                                 </button>
@@ -949,8 +949,8 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
                                 disabled={isComplete}
                                 className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] transition-colors ${
                                   isComplete
-                                    ? 'bg-green-50 text-green-600 border border-green-200/50 cursor-default'
-                                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200/50'
+                                    ? 'bg-status-online/10 text-status-online border border-status-online/20/50 cursor-default'
+                                    : 'bg-accent-light text-accent hover:bg-accent-light border border-accent/20/50'
                                 }`}
                                 title={isComplete ? 'Vollständig' : 'Wareneingang verbuchen'}
                               >
@@ -972,12 +972,12 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
         </div>
 
         {/* ─── Footer actions ─── */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+        <div className="flex items-center justify-between pt-3 border-t border-border-secondary">
           <div className="flex items-center gap-2">
             {order.status !== 'storniert' && order.status !== 'vollständig' && (
               <button
                 onClick={() => onChangeStatus(order.id, 'storniert')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-status-offline/20 text-status-offline hover:bg-status-offline/10 text-xs transition-colors"
               >
                 <AlertTriangle size={12} />
                 Stornieren
@@ -986,7 +986,7 @@ function PODetailModal({ order, onClose, onReceive, onChangeStatus }) {
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 rounded-lg border border-border-secondary text-xs text-text-muted hover:bg-surface-secondary transition-colors"
           >
             Schließen
           </button>

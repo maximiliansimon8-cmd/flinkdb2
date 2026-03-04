@@ -102,8 +102,8 @@ const TAB_ICONS = {
 /* ─── Color Presets ─── */
 
 const COLOR_PRESETS = [
-  '#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#06b6d4',
-  '#ef4444', '#ec4899', '#f97316', '#14b8a6', '#64748b',
+  '#007AFF', '#34C759', '#FF9500', '#a855f7', '#06b6d4',
+  '#FF3B30', '#ec4899', '#f97316', '#14b8a6', '#64748b',
 ];
 
 /* ─── Group Badge ─── */
@@ -147,94 +147,94 @@ function AddUserModal({ onClose, onSave, groups, installerTeams }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-      <div className="bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-xl w-full max-w-md mx-4 animate-fade-in">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-xl w-full max-w-md mx-4 animate-fade-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-secondary">
           <div className="flex items-center gap-2">
-            <UserPlus size={18} className="text-[#3b82f6]" />
-            <h3 className="text-sm font-semibold text-slate-900">Neuer Benutzer</h3>
+            <UserPlus size={18} className="text-[#007AFF]" />
+            <h3 className="text-sm font-semibold text-text-primary">Neuer Benutzer</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-surface-secondary/60 text-text-muted hover:text-text-primary transition-colors">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50/80 border border-red-200/60 text-xs text-red-600">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-status-offline/10/80 border border-status-offline/20/60 text-xs text-status-offline">
               <AlertCircle size={14} />
               {error}
             </div>
           )}
 
           <div>
-            <label className="text-xs text-slate-500 block mb-1.5">Name</label>
+            <label className="text-xs text-text-muted block mb-1.5">Name</label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => { setForm({ ...form, name: e.target.value }); setError(''); }}
               placeholder="Vor- und Nachname"
               autoFocus
-              className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
           <div>
-            <label className="text-xs text-slate-500 block mb-1.5">E-Mail / Benutzername</label>
+            <label className="text-xs text-text-muted block mb-1.5">E-Mail / Benutzername</label>
             <input
               type="text"
               value={form.email}
               onChange={(e) => { setForm({ ...form, email: e.target.value }); setError(''); }}
               placeholder="email@beispiel.de"
-              className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
           <div>
-            <label className="text-xs text-slate-500 block mb-1.5">Gruppe</label>
+            <label className="text-xs text-text-muted block mb-1.5">Gruppe</label>
             <div className="relative">
               <select
                 value={form.groupId}
                 onChange={(e) => setForm({ ...form, groupId: e.target.value })}
-                className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none cursor-pointer"
+                className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors appearance-none cursor-pointer"
               >
                 {groups.map((g) => (
                   <option key={g.id} value={g.id}>{g.name}</option>
                 ))}
               </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs text-slate-500 block mb-1.5">Passwort</label>
+            <label className="text-xs text-text-muted block mb-1.5">Passwort</label>
             <input
               type="text"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder="Passwort eingeben (min. 8 Zeichen)"
-              className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
           {/* Installer Team — only for Monteur group */}
           {form.groupId === 'grp_monteur' && (
             <div>
-              <label className="text-xs text-slate-500 block mb-1.5">Installations-Team</label>
+              <label className="text-xs text-text-muted block mb-1.5">Installations-Team</label>
               <div className="relative">
                 <select
                   value={form.installerTeam}
                   onChange={(e) => setForm({ ...form, installerTeam: e.target.value })}
-                  className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none cursor-pointer"
+                  className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors appearance-none cursor-pointer"
                 >
                   <option value="">Team wählen...</option>
                   {(installerTeams || []).map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
               </div>
-              <p className="text-[10px] text-slate-400 mt-1">Monteur wird diesem Installations-Team zugeordnet.</p>
+              <p className="text-[10px] text-text-muted mt-1">Monteur wird diesem Installations-Team zugeordnet.</p>
             </div>
           )}
 
@@ -242,13 +242,13 @@ function AddUserModal({ onClose, onSave, groups, installerTeams }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-white/60 backdrop-blur-xl border border-slate-200/60 text-slate-600 hover:bg-white/80 transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-surface-primary border border-border-secondary text-text-secondary hover:bg-surface-secondary transition-colors"
             >
               Abbrechen
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-[#007AFF] text-white hover:bg-[#2563eb] transition-colors"
             >
               Erstellen
             </button>
@@ -342,23 +342,23 @@ function GroupEditModal({ group, onClose, onSave }) {
   const getSubTabs = (parentId) => ALL_TABS.filter((t) => t.parent === parentId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-      <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-xl w-full max-w-2xl mx-4 animate-fade-in max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60 shrink-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-xl w-full max-w-2xl mx-4 animate-fade-in max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-secondary shrink-0">
           <div className="flex items-center gap-2">
-            <Layers size={18} className="text-[#3b82f6]" />
-            <h3 className="text-sm font-semibold text-slate-900">
+            <Layers size={18} className="text-[#007AFF]" />
+            <h3 className="text-sm font-semibold text-text-primary">
               {isNew ? 'Neue Gruppe erstellen' : `Gruppe bearbeiten: ${group.name}`}
             </h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-surface-secondary/60 text-text-muted hover:text-text-primary transition-colors">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50/80 border border-red-200/60 text-xs text-red-600">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-status-offline/10/80 border border-status-offline/20/60 text-xs text-status-offline">
               <AlertCircle size={14} />
               {error}
             </div>
@@ -367,31 +367,31 @@ function GroupEditModal({ group, onClose, onSave }) {
           {/* Name + Description */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-slate-500 block mb-1.5">Gruppenname</label>
+              <label className="text-xs text-text-muted block mb-1.5">Gruppenname</label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => { setForm({ ...form, name: e.target.value }); setError(''); }}
                 placeholder="z.B. Operations"
                 autoFocus
-                className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
+                className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
               />
             </div>
             <div>
-              <label className="text-xs text-slate-500 block mb-1.5">Beschreibung</label>
+              <label className="text-xs text-text-muted block mb-1.5">Beschreibung</label>
               <input
                 type="text"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="Kurze Beschreibung..."
-                className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
+                className="w-full bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors"
               />
             </div>
           </div>
 
           {/* Color Picker */}
           <div>
-            <label className="text-xs text-slate-500 block mb-2">
+            <label className="text-xs text-text-muted block mb-2">
               <Palette size={12} className="inline mr-1" />
               Gruppenfarbe
             </label>
@@ -402,7 +402,7 @@ function GroupEditModal({ group, onClose, onSave }) {
                   type="button"
                   onClick={() => setForm({ ...form, color: c })}
                   className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                    form.color === c ? 'border-slate-900 scale-110 shadow-sm' : 'border-transparent hover:scale-105'
+                    form.color === c ? 'border-[#1D1D1F] scale-110 shadow-sm' : 'border-transparent hover:scale-105'
                   }`}
                   style={{ backgroundColor: c }}
                 />
@@ -412,7 +412,7 @@ function GroupEditModal({ group, onClose, onSave }) {
 
           {/* Tabs */}
           <div>
-            <label className="text-xs text-slate-500 block mb-2">
+            <label className="text-xs text-text-muted block mb-2">
               <Monitor size={12} className="inline mr-1" />
               Sichtbare Tabs
             </label>
@@ -423,7 +423,7 @@ function GroupEditModal({ group, onClose, onSave }) {
                 const TabIcon = TAB_ICONS[tab.id] || Monitor;
 
                 return (
-                  <div key={tab.id} className="border border-slate-200/40 rounded-xl p-3">
+                  <div key={tab.id} className="border border-border-secondary/40 rounded-xl p-3">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <button
                         type="button"
@@ -433,11 +433,11 @@ function GroupEditModal({ group, onClose, onSave }) {
                         {isChecked ? (
                           <ToggleRight size={20} style={{ color: form.color }} />
                         ) : (
-                          <ToggleLeft size={20} className="text-slate-500" />
+                          <ToggleLeft size={20} className="text-text-muted" />
                         )}
                       </button>
-                      <TabIcon size={14} className={isChecked ? 'text-slate-700' : 'text-slate-500'} />
-                      <span className={`text-sm font-medium ${isChecked ? 'text-slate-900' : 'text-slate-500'}`}>
+                      <TabIcon size={14} className={isChecked ? 'text-text-primary' : 'text-text-muted'} />
+                      <span className={`text-sm font-medium ${isChecked ? 'text-text-primary' : 'text-text-muted'}`}>
                         {tab.label}
                       </span>
                     </label>
@@ -453,8 +453,8 @@ function GroupEditModal({ group, onClose, onSave }) {
                               onClick={() => toggleTab(sub.id)}
                               className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
                                 subChecked
-                                  ? 'border-blue-200 bg-blue-50/80 text-blue-700'
-                                  : 'border-slate-200/60 bg-slate-50/60 text-slate-500 hover:border-slate-300'
+                                  ? 'border-accent/20 bg-accent-light/80 text-blue-700'
+                                  : 'border-border-secondary bg-surface-secondary/60 text-text-muted hover:border-border-primary'
                               }`}
                             >
                               {sub.label}
@@ -471,14 +471,14 @@ function GroupEditModal({ group, onClose, onSave }) {
 
           {/* Actions */}
           <div>
-            <label className="text-xs text-slate-500 block mb-2">
+            <label className="text-xs text-text-muted block mb-2">
               <Key size={12} className="inline mr-1" />
               Erlaubte Aktionen
             </label>
             <div className="space-y-3">
               {Object.entries(actionsByCategory).map(([category, actions]) => (
-                <div key={category} className="border border-slate-200/40 rounded-xl p-3">
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <div key={category} className="border border-border-secondary/40 rounded-xl p-3">
+                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
                     {category}
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -492,7 +492,7 @@ function GroupEditModal({ group, onClose, onSave }) {
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                             isActive
                               ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200'
-                              : 'bg-slate-50/60 text-slate-500 border-slate-200/60 hover:border-slate-300'
+                              : 'bg-surface-secondary/60 text-text-muted border-border-secondary hover:border-border-primary'
                           }`}
                         >
                           {isActive && <Check size={10} className="inline mr-1" />}
@@ -511,13 +511,13 @@ function GroupEditModal({ group, onClose, onSave }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-white/60 backdrop-blur-xl border border-slate-200/60 text-slate-600 hover:bg-white/80 transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-surface-primary border border-border-secondary text-text-secondary hover:bg-surface-secondary transition-colors"
             >
               Abbrechen
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-[#007AFF] text-white hover:bg-[#2563eb] transition-colors"
             >
               {isNew ? 'Erstellen' : 'Speichern'}
             </button>
@@ -582,7 +582,7 @@ function FeatureFlagsSection({ featureFlags, setFeatureFlags, flagsLoading, setF
   if (flagsLoading) {
     return (
       <div className="flex items-center justify-center h-48">
-        <RefreshCw size={20} className="animate-spin text-slate-400" />
+        <RefreshCw size={20} className="animate-spin text-text-muted" />
       </div>
     );
   }
@@ -590,25 +590,25 @@ function FeatureFlagsSection({ featureFlags, setFeatureFlags, flagsLoading, setF
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-text-muted">
           Feature Flags steuern die Sichtbarkeit von Dashboard-Bereichen. Deaktivierte Features sind für alle Benutzer ausgeblendet.
         </p>
       </div>
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl divide-y divide-slate-100/60 shadow-sm shadow-black/[0.03]">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl divide-y divide-slate-100/60 shadow-card">
         {featureFlags.map((flag) => (
           <div key={flag.key} className="flex items-center gap-4 px-5 py-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-900 font-mono">{flag.key}</span>
+                <span className="text-sm font-medium text-text-primary font-mono">{flag.key}</span>
                 {flag.enabled ? (
                   <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60">Aktiv</span>
                 ) : (
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-50 text-slate-500 border border-slate-200/60">Aus</span>
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-surface-secondary text-text-muted border border-border-secondary">Aus</span>
                 )}
               </div>
-              <div className="text-xs text-slate-500 mt-0.5">{flag.description || '—'}</div>
+              <div className="text-xs text-text-muted mt-0.5">{flag.description || '—'}</div>
               {flag.updated_at && (
-                <div className="text-[10px] text-slate-400 mt-1 font-mono">
+                <div className="text-[10px] text-text-muted mt-1 font-mono">
                   Aktualisiert: {new Date(flag.updated_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   {flag.updated_by ? ` von ${flag.updated_by}` : ''}
                 </div>
@@ -623,13 +623,13 @@ function FeatureFlagsSection({ featureFlags, setFeatureFlags, flagsLoading, setF
               {flag.enabled ? (
                 <ToggleRight size={32} className={`text-emerald-500 ${toggling === flag.key ? 'opacity-50' : 'hover:text-emerald-600'}`} />
               ) : (
-                <ToggleLeft size={32} className={`text-slate-300 ${toggling === flag.key ? 'opacity-50' : 'hover:text-slate-400'}`} />
+                <ToggleLeft size={32} className={`text-text-muted ${toggling === flag.key ? 'opacity-50' : 'hover:text-text-muted'}`} />
               )}
             </button>
           </div>
         ))}
         {featureFlags.length === 0 && (
-          <div className="px-5 py-8 text-center text-sm text-slate-500">
+          <div className="px-5 py-8 text-center text-sm text-text-muted">
             Keine Feature Flags vorhanden
           </div>
         )}
@@ -878,10 +878,10 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
   };
 
   const auditActionColor = (action) => {
-    if (action.includes('login_failed') || action.includes('deleted')) return '#ef4444';
-    if (action.includes('login') || action.includes('created')) return '#22c55e';
-    if (action.includes('logout') || action.includes('expired')) return '#f59e0b';
-    if (action.includes('password')) return '#3b82f6';
+    if (action.includes('login_failed') || action.includes('deleted')) return '#FF3B30';
+    if (action.includes('login') || action.includes('created')) return '#34C759';
+    if (action.includes('logout') || action.includes('expired')) return '#FF9500';
+    if (action.includes('password')) return '#007AFF';
     if (action.includes('group') || action.includes('updated')) return '#a855f7';
     return '#64748b';
   };
@@ -1110,9 +1110,9 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
     <div className="space-y-5 animate-fade-in">
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium shadow-lg backdrop-blur-xl border animate-fade-in ${
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium shadow-lg border animate-fade-in ${
           toast.type === 'error'
-            ? 'bg-red-50/90 border-red-200/60 text-red-700'
+            ? 'bg-status-offline/10/90 border-status-offline/20/60 text-red-700'
             : 'bg-emerald-50/90 border-emerald-200/60 text-emerald-700'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <Check size={16} />}
@@ -1123,19 +1123,19 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center">
-            <Shield size={20} className="text-[#3b82f6]" />
+          <div className="w-10 h-10 rounded-xl bg-[#007AFF]/10 flex items-center justify-center">
+            <Shield size={20} className="text-[#007AFF]" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Admin Panel</h2>
-            <p className="text-xs text-slate-500 font-mono">Benutzer- & Gruppenverwaltung</p>
+            <h2 className="text-lg font-bold text-text-primary">Admin Panel</h2>
+            <p className="text-xs text-text-muted font-mono">Benutzer- & Gruppenverwaltung</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {activeSection === 'users' && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#007AFF] text-white hover:bg-[#2563eb] transition-colors"
             >
               <UserPlus size={16} />
               Benutzer hinzufügen
@@ -1144,7 +1144,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           {activeSection === 'groups' && (
             <button
               onClick={() => { setEditingGroup(null); setShowGroupModal(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#007AFF] text-white hover:bg-[#2563eb] transition-colors"
             >
               <Plus size={16} />
               Neue Gruppe
@@ -1154,7 +1154,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
       </div>
 
       {/* Section Tabs */}
-      <div className="flex gap-1 bg-white/40 backdrop-blur-sm border border-slate-200/40 rounded-xl p-1 overflow-x-auto">
+      <div className="flex gap-1 bg-surface-primary border border-border-secondary/40 rounded-xl p-1 overflow-x-auto">
         {primarySections.map((sec) => {
           const Icon = sec.icon;
           const isActive = activeSection === sec.id;
@@ -1164,15 +1164,15 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
               onClick={() => setActiveSection(sec.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all shrink-0 whitespace-nowrap justify-center ${
                 isActive
-                  ? 'bg-white/80 text-slate-900 shadow-sm border border-slate-200/60'
-                  : 'text-slate-500 hover:text-slate-600'
+                  ? 'bg-surface-primary text-text-primary shadow-sm border border-border-secondary'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
             >
               <Icon size={16} />
               {sec.label}
               {sec.count != null && (
                 <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
-                  isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-50/60 text-slate-500'
+                  isActive ? 'bg-accent-light text-accent' : 'bg-surface-secondary/60 text-text-muted'
                 }`}>
                   {sec.count}
                 </span>
@@ -1187,8 +1187,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             onClick={() => setShowMoreMenu(!showMoreMenu)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap justify-center ${
               activeMoreSection
-                ? 'bg-white/80 text-slate-900 shadow-sm border border-slate-200/60'
-                : 'text-slate-500 hover:text-slate-600'
+                ? 'bg-surface-primary text-text-primary shadow-sm border border-border-secondary'
+                : 'text-text-muted hover:text-text-secondary'
             }`}
           >
             {activeMoreSection ? (
@@ -1204,7 +1204,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           {showMoreMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowMoreMenu(false)} />
-              <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-slate-200/60 py-1 min-w-[200px]">
+              <div className="absolute top-full left-0 mt-1 z-50 bg-surface-primary rounded-xl shadow-lg border border-border-secondary py-1 min-w-[200px]">
                 {moreSections.map((sec) => {
                   const Icon = sec.icon;
                   const isActive = activeSection === sec.id;
@@ -1214,15 +1214,15 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       onClick={() => { setActiveSection(sec.id); setShowMoreMenu(false); }}
                       className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium transition-all ${
                         isActive
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-slate-600 hover:bg-slate-50'
+                          ? 'bg-accent-light text-blue-700'
+                          : 'text-text-secondary hover:bg-surface-secondary'
                       }`}
                     >
                       <Icon size={16} />
                       {sec.label}
                       {sec.count != null && (
                         <span className={`text-xs font-mono px-1.5 py-0.5 rounded ml-auto ${
-                          isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'
+                          isActive ? 'bg-accent-light text-accent' : 'bg-surface-secondary text-text-muted'
                         }`}>
                           {sec.count}
                         </span>
@@ -1246,38 +1246,38 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
               return (
                 <div
                   key={g.id}
-                  className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]"
+                  className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: g.color + '15' }}>
                       <Icon size={16} style={{ color: g.color }} />
                     </div>
                   </div>
-                  <div className="text-xl font-bold font-mono text-slate-900">{g.count}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">{g.name}</div>
+                  <div className="text-xl font-bold font-mono text-text-primary">{g.count}</div>
+                  <div className="text-xs text-text-muted mt-0.5">{g.name}</div>
                 </div>
               );
             })}
           </div>
 
           {/* User Table */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border-secondary">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-4 rounded-full bg-[#3b82f6]" />
-                <h3 className="text-sm font-semibold text-slate-900">Benutzerverwaltung</h3>
-                <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+                <div className="w-1 h-4 rounded-full bg-[#007AFF]" />
+                <h3 className="text-sm font-semibold text-text-primary">Benutzerverwaltung</h3>
+                <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                   {filteredUsers.length}
                 </span>
               </div>
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Suchen..."
-                  className="bg-slate-50/80 border border-slate-200/60 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors w-56"
+                  className="bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-3 py-2 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors w-56"
                 />
               </div>
             </div>
@@ -1285,12 +1285,12 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200/40">
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Benutzer</th>
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">E-Mail</th>
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Gruppe</th>
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Letzter Login</th>
-                    <th className="text-right text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Aktionen</th>
+                  <tr className="border-b border-border-secondary/40">
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Benutzer</th>
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">E-Mail</th>
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Gruppe</th>
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Letzter Login</th>
+                    <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Aktionen</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1302,7 +1302,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     return (
                       <tr
                         key={user.id}
-                        className="border-b border-slate-100/60 hover:bg-blue-50/30 transition-colors"
+                        className="border-b border-border-secondary/60 hover:bg-accent-light/30 transition-colors"
                       >
                         {/* Name + Avatar */}
                         <td className="px-5 py-3">
@@ -1314,20 +1314,20 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               {getInitials(user.name)}
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-slate-900">
+                              <div className="text-sm font-medium text-text-primary">
                                 {user.name}
                                 {isSelf && (
-                                  <span className="ml-2 text-xs font-mono text-slate-500">(Du)</span>
+                                  <span className="ml-2 text-xs font-mono text-text-muted">(Du)</span>
                                 )}
                               </div>
-                              <div className="text-xs font-mono text-slate-500">{user.id}</div>
+                              <div className="text-xs font-mono text-text-muted">{user.id}</div>
                             </div>
                           </div>
                         </td>
 
                         {/* Email */}
                         <td className="px-5 py-3">
-                          <span className="text-sm font-mono text-slate-600">{user.email}</span>
+                          <span className="text-sm font-mono text-text-secondary">{user.email}</span>
                         </td>
 
                         {/* Group */}
@@ -1337,7 +1337,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               <select
                                 defaultValue={user.groupId}
                                 onChange={(e) => handleGroupChange(user.id, e.target.value)}
-                                className="bg-slate-50/80 border border-[#3b82f6] rounded-lg px-2 py-1.5 text-xs text-slate-900 focus:outline-none appearance-none cursor-pointer"
+                                className="bg-surface-secondary/80 border border-[#007AFF] rounded-lg px-2 py-1.5 text-xs text-text-primary focus:outline-none appearance-none cursor-pointer"
                                 autoFocus
                               >
                                 {groups.map((g) => (
@@ -1346,7 +1346,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               </select>
                               <button
                                 onClick={() => setEditingGroupId(null)}
-                                className="p-1 rounded hover:bg-slate-100/60 text-slate-500"
+                                className="p-1 rounded hover:bg-surface-secondary/60 text-text-muted"
                               >
                                 <X size={12} />
                               </button>
@@ -1354,10 +1354,10 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                           ) : (
                             <div className="flex flex-col gap-0.5">
                               {userGroup ? <GroupBadge group={userGroup} /> : (
-                                <span className="text-xs text-slate-500">–</span>
+                                <span className="text-xs text-text-muted">–</span>
                               )}
                               {user.installerTeam && (
-                                <span className="text-[10px] text-slate-400">Team: {user.installerTeam}</span>
+                                <span className="text-[10px] text-text-muted">Team: {user.installerTeam}</span>
                               )}
                             </div>
                           )}
@@ -1365,7 +1365,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                         {/* Last Login */}
                         <td className="px-5 py-3">
-                          <span className="text-xs font-mono text-slate-500">
+                          <span className="text-xs font-mono text-text-muted">
                             {user.lastLogin
                               ? new Date(user.lastLogin).toLocaleString('de-DE', {
                                   day: '2-digit',
@@ -1383,14 +1383,14 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => setEditingGroupId(isEditing ? null : user.id)}
-                              className="p-1.5 rounded-md hover:bg-blue-50/60 text-slate-500 hover:text-[#3b82f6] transition-colors"
+                              className="p-1.5 rounded-md hover:bg-accent-light/60 text-text-muted hover:text-[#007AFF] transition-colors"
                               title="Gruppe ändern"
                             >
                               <Edit3 size={14} />
                             </button>
                             <button
                               onClick={() => handleResetPassword(user.id, user.name)}
-                              className="p-1.5 rounded-md hover:bg-amber-50/60 text-slate-500 hover:text-amber-600 transition-colors"
+                              className="p-1.5 rounded-md hover:bg-status-warning/10/60 text-text-muted hover:text-status-warning transition-colors"
                               title="Passwort zurücksetzen"
                             >
                               <Key size={14} />
@@ -1399,13 +1399,13 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               <div className="flex items-center gap-1 ml-1">
                                 <button
                                   onClick={() => handleDeleteUser(user.id)}
-                                  className="px-2 py-1 rounded-md bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors"
+                                  className="px-2 py-1 rounded-md bg-status-offline text-white text-xs font-medium hover:bg-status-offline transition-colors"
                                 >
                                   Löschen
                                 </button>
                                 <button
                                   onClick={() => setConfirmDelete(null)}
-                                  className="p-1 rounded-md hover:bg-slate-100/60 text-slate-500"
+                                  className="p-1 rounded-md hover:bg-surface-secondary/60 text-text-muted"
                                 >
                                   <X size={12} />
                                 </button>
@@ -1416,8 +1416,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                                 disabled={isSelf}
                                 className={`p-1.5 rounded-md transition-colors ${
                                   isSelf
-                                    ? 'text-slate-200 cursor-not-allowed'
-                                    : 'hover:bg-red-50/60 text-slate-500 hover:text-red-500'
+                                    ? 'text-text-muted cursor-not-allowed'
+                                    : 'hover:bg-status-offline/10/60 text-text-muted hover:text-status-offline'
                                 }`}
                                 title={isSelf ? 'Eigenen Account nicht löschbar' : 'Benutzer löschen'}
                               >
@@ -1434,8 +1434,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     <tr>
                       <td colSpan={5} className="px-5 py-12 text-center">
                         <div className="flex flex-col items-center gap-2">
-                          <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
-                          <span className="text-xs text-slate-500">Lade Benutzer...</span>
+                          <div className="w-6 h-6 border-2 border-accent/20 border-t-blue-500 rounded-full animate-spin" />
+                          <span className="text-xs text-text-muted">Lade Benutzer...</span>
                         </div>
                       </td>
                     </tr>
@@ -1443,7 +1443,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   {!loadingUsers && filteredUsers.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-5 py-12 text-center">
-                        <div className="text-slate-500 text-sm">Keine Benutzer gefunden</div>
+                        <div className="text-text-muted text-sm">Keine Benutzer gefunden</div>
                       </td>
                     </tr>
                   )}
@@ -1466,10 +1466,10 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             return (
               <div
                 key={group.id}
-                className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03] overflow-hidden"
+                className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card overflow-hidden"
               >
                 {/* Group Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/40">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-border-secondary/40">
                   <div className="flex items-center gap-3">
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -1479,24 +1479,24 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-slate-900">{group.name}</h3>
-                        <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+                        <h3 className="text-sm font-semibold text-text-primary">{group.name}</h3>
+                        <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                           {group.memberCount} Mitglieder
                         </span>
                         {group.id === 'grp_admin' && (
-                          <span className="text-xs font-mono text-blue-500 bg-blue-50/80 px-2 py-0.5 rounded">
+                          <span className="text-xs font-mono text-accent bg-accent-light/80 px-2 py-0.5 rounded">
                             System
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{group.description}</p>
+                      <p className="text-xs text-text-muted mt-0.5">{group.description}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => { setEditingGroup(group); setShowGroupModal(true); }}
-                      className="p-2 rounded-lg hover:bg-blue-50/60 text-slate-500 hover:text-[#3b82f6] transition-colors"
+                      className="p-2 rounded-lg hover:bg-accent-light/60 text-text-muted hover:text-[#007AFF] transition-colors"
                       title="Gruppe bearbeiten"
                     >
                       <Edit3 size={14} />
@@ -1506,13 +1506,13 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                         <div className="flex items-center gap-1 ml-1">
                           <button
                             onClick={() => handleDeleteGroup(group.id)}
-                            className="px-2 py-1 rounded-md bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors"
+                            className="px-2 py-1 rounded-md bg-status-offline text-white text-xs font-medium hover:bg-status-offline transition-colors"
                           >
                             Löschen
                           </button>
                           <button
                             onClick={() => setConfirmGroupDelete(null)}
-                            className="p-1 rounded-md hover:bg-slate-100/60 text-slate-500"
+                            className="p-1 rounded-md hover:bg-surface-secondary/60 text-text-muted"
                           >
                             <X size={12} />
                           </button>
@@ -1520,7 +1520,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       ) : (
                         <button
                           onClick={() => setConfirmGroupDelete(group.id)}
-                          className="p-2 rounded-lg hover:bg-red-50/60 text-slate-500 hover:text-red-500 transition-colors"
+                          className="p-2 rounded-lg hover:bg-status-offline/10/60 text-text-muted hover:text-status-offline transition-colors"
                           title="Gruppe löschen"
                         >
                           <Trash2 size={14} />
@@ -1534,7 +1534,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Tabs */}
                   <div>
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
                       Sichtbare Tabs
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -1547,7 +1547,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                         return (
                           <span
                             key={tabId}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-slate-50/80 text-slate-600 border border-slate-200/40"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-surface-secondary/80 text-text-secondary border border-border-secondary/40"
                           >
                             <TabIcon size={10} />
                             {tab?.label}
@@ -1559,7 +1559,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                   {/* Actions */}
                   <div>
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
                       Aktionen
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -1580,7 +1580,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                   {/* Members */}
                   <div>
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
                       Mitglieder
                     </div>
                     {members.length > 0 ? (
@@ -1593,12 +1593,12 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                             >
                               {getInitials(m.name)}
                             </div>
-                            <span className="text-xs text-slate-600">{m.name}</span>
+                            <span className="text-xs text-text-secondary">{m.name}</span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-500 italic">Keine Mitglieder</span>
+                      <span className="text-xs text-text-muted italic">Keine Mitglieder</span>
                     )}
                   </div>
                 </div>
@@ -1612,33 +1612,33 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
       {activeSection === 'audit' && (
         <div className="space-y-4">
           {/* Audit Header with actions */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border-secondary">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 rounded-full bg-emerald-500" />
-                <h3 className="text-sm font-semibold text-slate-900">Aktivitätsprotokoll</h3>
-                <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+                <h3 className="text-sm font-semibold text-text-primary">Aktivitätsprotokoll</h3>
+                <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                   {filteredAuditLog.length} Einträge
                 </span>
-                <span className="text-xs font-mono text-blue-400 bg-blue-50/80 px-2 py-0.5 rounded flex items-center gap-1">
+                <span className="text-xs font-mono text-accent bg-accent-light/80 px-2 py-0.5 rounded flex items-center gap-1">
                   <Clock size={10} />
                   Timeout: {getSessionTimeoutMinutes() / 60}h
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
                     value={auditFilter}
                     onChange={(e) => setAuditFilter(e.target.value)}
                     placeholder="Log durchsuchen..."
-                    className="bg-slate-50/80 border border-slate-200/60 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors w-48"
+                    className="bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-3 py-2 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors w-48"
                   />
                 </div>
                 <button
                   onClick={handleExportAuditLog}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-white/60 border border-slate-200/60 text-slate-600 hover:border-[#3b82f6] hover:text-[#3b82f6] transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-surface-primary border border-border-secondary text-text-secondary hover:border-[#007AFF] hover:text-[#007AFF] transition-colors"
                   title="Als CSV exportieren"
                 >
                   <Download size={13} />
@@ -1646,7 +1646,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 </button>
                 <button
                   onClick={async () => { await refreshAuditLog(); showToast('Audit-Log aktualisiert'); }}
-                  className="p-2 rounded-lg hover:bg-slate-100/60 text-slate-500 hover:text-slate-600 transition-colors"
+                  className="p-2 rounded-lg hover:bg-surface-secondary/60 text-text-muted hover:text-text-secondary transition-colors"
                   title="Aktualisieren"
                 >
                   <Activity size={14} />
@@ -1655,8 +1655,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             </div>
 
             {/* DSGVO Info */}
-            <div className="px-5 py-3 bg-blue-50/40 border-b border-blue-200/30">
-              <p className="text-xs text-blue-600 flex items-center gap-1.5">
+            <div className="px-5 py-3 bg-accent-light/40 border-b border-accent/20/30">
+              <p className="text-xs text-accent flex items-center gap-1.5">
                 <FileText size={12} />
                 <strong>DSGVO §47 Nachweispflicht:</strong> Alle sicherheitsrelevanten Aktionen werden serverseitig in der Airtable-Datenbank protokolliert. Logs sind persistent und revisionssicher.
               </p>
@@ -1666,14 +1666,14 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             <div className="max-h-[600px] overflow-y-auto">
               {loadingAudit ? (
                 <div className="p-12 text-center">
-                  <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
-                  <p className="text-xs text-slate-500">Lade Audit-Log...</p>
+                  <div className="w-6 h-6 border-2 border-accent/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-xs text-text-muted">Lade Audit-Log...</p>
                 </div>
               ) : filteredAuditLog.length === 0 ? (
                 <div className="p-12 text-center">
-                  <Activity size={32} className="text-slate-200 mx-auto mb-3" />
-                  <p className="text-sm text-slate-500">Keine Log-Einträge vorhanden</p>
-                  <p className="text-xs text-slate-500 font-mono mt-1">
+                  <Activity size={32} className="text-text-muted mx-auto mb-3" />
+                  <p className="text-sm text-text-muted">Keine Log-Einträge vorhanden</p>
+                  <p className="text-xs text-text-muted font-mono mt-1">
                     Aktionen werden ab jetzt protokolliert
                   </p>
                 </div>
@@ -1695,7 +1695,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     return (
                       <div
                         key={idx}
-                        className="flex items-start gap-3 px-5 py-3 hover:bg-slate-50/30 transition-colors"
+                        className="flex items-start gap-3 px-5 py-3 hover:bg-surface-secondary/30 transition-colors"
                       >
                         <div
                           className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
@@ -1705,12 +1705,12 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-medium text-slate-900 truncate">
+                            <span className="text-sm font-medium text-text-primary truncate">
                               {entry.detail}
                             </span>
                           </div>
                           <div className="flex items-center gap-3 mt-0.5">
-                            <span className="text-xs font-mono text-slate-500">
+                            <span className="text-xs font-mono text-text-muted">
                               {timeStr}
                             </span>
                             <span
@@ -1722,7 +1722,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                             >
                               {entry.action}
                             </span>
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-text-muted">
                               {entry.userName}
                             </span>
                           </div>
@@ -1735,8 +1735,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             </div>
 
             {filteredAuditLog.length > 100 && (
-              <div className="px-5 py-3 border-t border-slate-200/40 text-center">
-                <p className="text-xs text-slate-500 font-mono">
+              <div className="px-5 py-3 border-t border-border-secondary/40 text-center">
+                <p className="text-xs text-text-muted font-mono">
                   Zeige 100 von {filteredAuditLog.length} Einträgen. Exportiere CSV für vollständige Daten.
                 </p>
               </div>
@@ -1750,57 +1750,57 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
         <div className="space-y-4">
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50">
-                  <AlertCircle size={16} className="text-amber-500" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-status-warning/10">
+                  <AlertCircle size={16} className="text-status-warning" />
                 </div>
               </div>
-              <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.open}</div>
-              <div className="text-xs text-slate-500 mt-0.5">Offen</div>
+              <div className="text-xl font-bold font-mono text-text-primary">{feedbackStats.open}</div>
+              <div className="text-xs text-text-muted mt-0.5">Offen</div>
             </div>
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50">
-                  <Eye size={16} className="text-blue-500" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent-light">
+                  <Eye size={16} className="text-accent" />
                 </div>
               </div>
-              <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.in_review}</div>
-              <div className="text-xs text-slate-500 mt-0.5">In Review</div>
+              <div className="text-xl font-bold font-mono text-text-primary">{feedbackStats.in_review}</div>
+              <div className="text-xs text-text-muted mt-0.5">In Review</div>
             </div>
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-50">
-                  <ClipboardList size={16} className="text-purple-500" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-brand-purple/10">
+                  <ClipboardList size={16} className="text-brand-purple" />
                 </div>
               </div>
-              <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.planned}</div>
-              <div className="text-xs text-slate-500 mt-0.5">Geplant</div>
+              <div className="text-xl font-bold font-mono text-text-primary">{feedbackStats.planned}</div>
+              <div className="text-xs text-text-muted mt-0.5">Geplant</div>
             </div>
-            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+            <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50">
                   <Check size={16} className="text-emerald-500" />
                 </div>
               </div>
-              <div className="text-xl font-bold font-mono text-slate-900">{feedbackStats.done}</div>
-              <div className="text-xs text-slate-500 mt-0.5">Erledigt</div>
+              <div className="text-xl font-bold font-mono text-text-primary">{feedbackStats.done}</div>
+              <div className="text-xs text-text-muted mt-0.5">Erledigt</div>
             </div>
           </div>
 
           {/* Feedback Table */}
-          <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm shadow-black/[0.03]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60">
+          <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-card">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border-secondary">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-4 rounded-full bg-amber-500" />
-                <h3 className="text-sm font-semibold text-slate-900">Feedback & Anfragen</h3>
-                <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+                <div className="w-1 h-4 rounded-full bg-status-warning" />
+                <h3 className="text-sm font-semibold text-text-primary">Feedback & Anfragen</h3>
+                <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded">
                   {filteredFeedback.length}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 {/* Type Filter */}
-                <div className="flex gap-1 bg-slate-50/80 rounded-lg p-0.5 border border-slate-200/60">
+                <div className="flex gap-1 bg-surface-secondary/80 rounded-lg p-0.5 border border-border-secondary">
                   {[
                     { key: 'all', label: 'Alle' },
                     { key: 'feature', label: 'Features' },
@@ -1813,8 +1813,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       onClick={() => setFeedbackTypeFilter(t.key)}
                       className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                         feedbackTypeFilter === t.key
-                          ? 'bg-white shadow-sm text-slate-900 border border-slate-200/60'
-                          : 'text-slate-500 hover:text-slate-600'
+                          ? 'bg-surface-primary shadow-sm text-text-primary border border-border-secondary'
+                          : 'text-text-muted hover:text-text-secondary'
                       }`}
                     >
                       {t.label}
@@ -1826,7 +1826,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   <select
                     value={feedbackStatusFilter}
                     onChange={(e) => setFeedbackStatusFilter(e.target.value)}
-                    className="bg-slate-50/80 border border-slate-200/60 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none cursor-pointer pr-7"
+                    className="bg-surface-secondary/80 border border-border-secondary rounded-lg px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors appearance-none cursor-pointer pr-7"
                   >
                     <option value="all">Alle Status</option>
                     <option value="open">Offen</option>
@@ -1836,22 +1836,22 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     <option value="done">Erledigt</option>
                     <option value="rejected">Abgelehnt</option>
                   </select>
-                  <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                  <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                 </div>
                 {/* Search */}
                 <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
                     value={feedbackFilter}
                     onChange={(e) => setFeedbackFilter(e.target.value)}
                     placeholder="Suchen..."
-                    className="bg-slate-50/80 border border-slate-200/60 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors w-48"
+                    className="bg-surface-secondary/80 border border-border-secondary rounded-lg pl-9 pr-3 py-1.5 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-[#007AFF] transition-colors w-48"
                   />
                 </div>
                 <button
                   onClick={() => refreshFeedback()}
-                  className="p-2 rounded-lg hover:bg-slate-100/60 text-slate-500 hover:text-slate-600 transition-colors"
+                  className="p-2 rounded-lg hover:bg-surface-secondary/60 text-text-muted hover:text-text-secondary transition-colors"
                   title="Aktualisieren"
                 >
                   <Activity size={14} />
@@ -1862,24 +1862,24 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200/40">
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3 w-10">Typ</th>
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Titel</th>
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Benutzer</th>
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Priorität</th>
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Status</th>
-                    <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Erstellt</th>
+                  <tr className="border-b border-border-secondary/40">
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3 w-10">Typ</th>
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Titel</th>
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Benutzer</th>
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Priorität</th>
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Status</th>
+                    <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-5 py-3">Erstellt</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredFeedback.map((item) => {
                     const TypeIcon = item.type === 'feature' ? Lightbulb : item.type === 'bug' ? Bug : item.type === 'feedback' ? Lightbulb : HelpCircle;
-                    const typeColor = item.type === 'feature' ? '#f59e0b' : item.type === 'bug' ? '#ef4444' : item.type === 'feedback' ? '#8b5cf6' : '#3b82f6';
+                    const typeColor = item.type === 'feature' ? '#FF9500' : item.type === 'bug' ? '#FF3B30' : item.type === 'feedback' ? '#AF52DE' : '#007AFF';
                     const priorityConfig = {
-                      low: { label: 'Low', bg: 'bg-slate-50/80', text: 'text-slate-600', border: 'border-slate-200/60' },
-                      medium: { label: 'Medium', bg: 'bg-blue-50/80', text: 'text-blue-600', border: 'border-blue-200/60' },
-                      high: { label: 'High', bg: 'bg-amber-50/80', text: 'text-amber-600', border: 'border-amber-200/60' },
-                      critical: { label: 'Critical', bg: 'bg-red-50/80', text: 'text-red-600', border: 'border-red-200/60' },
+                      low: { label: 'Low', bg: 'bg-surface-secondary/80', text: 'text-text-secondary', border: 'border-border-secondary' },
+                      medium: { label: 'Medium', bg: 'bg-accent-light/80', text: 'text-accent', border: 'border-accent/20/60' },
+                      high: { label: 'High', bg: 'bg-status-warning/10/80', text: 'text-status-warning', border: 'border-status-warning/20/60' },
+                      critical: { label: 'Critical', bg: 'bg-status-offline/10/80', text: 'text-status-offline', border: 'border-status-offline/20/60' },
                     };
                     const prio = priorityConfig[item.priority] || priorityConfig.medium;
                     const isExpanded = expandedFeedbackId === item.id;
@@ -1889,7 +1889,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       <Fragment key={item.id}>
                       <tr
                         onClick={() => setExpandedFeedbackId(isExpanded ? null : item.id)}
-                        className={`border-b border-slate-100/60 hover:bg-blue-50/30 transition-colors cursor-pointer ${isExpanded ? 'bg-blue-50/20' : ''}`}
+                        className={`border-b border-border-secondary/60 hover:bg-accent-light/30 transition-colors cursor-pointer ${isExpanded ? 'bg-accent-light/20' : ''}`}
                       >
                         {/* Type Icon */}
                         <td className="px-5 py-3">
@@ -1904,13 +1904,13 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                         {/* Title */}
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-1.5">
-                            <ChevronRight size={12} className={`text-slate-400 transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
+                            <ChevronRight size={12} className={`text-text-muted transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
                             <div className="min-w-0">
-                              <div className="text-sm font-medium text-slate-900 truncate max-w-xs">
+                              <div className="text-sm font-medium text-text-primary truncate max-w-xs">
                                 {item.title}
                               </div>
                               {item.description && (
-                                <div className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
+                                <div className="text-xs text-text-muted truncate max-w-xs mt-0.5">
                                   {item.description}
                                 </div>
                               )}
@@ -1920,7 +1920,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                         {/* User */}
                         <td className="px-5 py-3">
-                          <span className="text-sm text-slate-600">{item.user_name || '–'}</span>
+                          <span className="text-sm text-text-secondary">{item.user_name || '–'}</span>
                         </td>
 
                         {/* Priority */}
@@ -1946,7 +1946,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                             <select
                               value={item.status || 'open'}
                               onChange={(e) => updateFeedbackStatus(item.id, e.target.value)}
-                              className="bg-slate-50/80 border border-slate-200/60 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#3b82f6] appearance-none cursor-pointer pr-7 transition-colors"
+                              className="bg-surface-secondary/80 border border-border-secondary rounded-lg px-2.5 py-1.5 text-xs font-medium text-text-primary focus:outline-none focus:border-[#007AFF] appearance-none cursor-pointer pr-7 transition-colors"
                             >
                               <option value="open">Offen</option>
                               <option value="in_review">In Review</option>
@@ -1955,13 +1955,13 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               <option value="done">Erledigt</option>
                               <option value="rejected">Abgelehnt</option>
                             </select>
-                            <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                            <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                           </div>
                         </td>
 
                         {/* Created */}
                         <td className="px-5 py-3">
-                          <span className="text-xs font-mono text-slate-500">
+                          <span className="text-xs font-mono text-text-muted">
                             {item.created_at
                               ? new Date(item.created_at).toLocaleString('de-DE', {
                                   day: '2-digit',
@@ -1977,14 +1977,14 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
                       {/* Expanded Detail Row */}
                       {isExpanded && (
-                        <tr className="bg-slate-50/40">
+                        <tr className="bg-surface-secondary/40">
                           <td colSpan={6} className="px-5 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               {/* Description */}
                               {item.description && (
                                 <div className="md:col-span-2">
-                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Beschreibung</div>
-                                  <div className="text-sm text-slate-700 bg-white/60 border border-slate-200/40 rounded-xl p-3 whitespace-pre-wrap">
+                                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Beschreibung</div>
+                                  <div className="text-sm text-text-primary bg-surface-primary border border-border-secondary/40 rounded-xl p-3 whitespace-pre-wrap">
                                     {item.description}
                                   </div>
                                 </div>
@@ -1993,41 +1993,41 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               {/* Click Position & Context */}
                               {hasContext && (
                                 <div>
-                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Kontext</div>
-                                  <div className="space-y-1.5 bg-white/60 border border-slate-200/40 rounded-xl p-3">
+                                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Kontext</div>
+                                  <div className="space-y-1.5 bg-surface-primary border border-border-secondary/40 rounded-xl p-3">
                                     {item.component && (
                                       <div className="flex items-center gap-2 text-xs">
-                                        <Monitor size={11} className="text-slate-400 shrink-0" />
-                                        <span className="text-slate-500">Komponente:</span>
-                                        <span className="font-mono text-slate-700">{item.component}</span>
+                                        <Monitor size={11} className="text-text-muted shrink-0" />
+                                        <span className="text-text-muted">Komponente:</span>
+                                        <span className="font-mono text-text-primary">{item.component}</span>
                                       </div>
                                     )}
                                     {item.url && (
                                       <div className="flex items-center gap-2 text-xs">
-                                        <Globe size={11} className="text-slate-400 shrink-0" />
-                                        <span className="text-slate-500">URL:</span>
-                                        <span className="font-mono text-slate-700 truncate">{item.url}</span>
+                                        <Globe size={11} className="text-text-muted shrink-0" />
+                                        <span className="text-text-muted">URL:</span>
+                                        <span className="font-mono text-text-primary truncate">{item.url}</span>
                                       </div>
                                     )}
                                     {item.click_x != null && item.click_y != null && (
                                       <div className="flex items-center gap-2 text-xs">
-                                        <MapPin size={11} className="text-red-400 shrink-0" />
-                                        <span className="text-slate-500">Klick-Position:</span>
-                                        <span className="font-mono text-red-600">({item.click_x}, {item.click_y})</span>
+                                        <MapPin size={11} className="text-status-offline shrink-0" />
+                                        <span className="text-text-muted">Klick-Position:</span>
+                                        <span className="font-mono text-status-offline">({item.click_x}, {item.click_y})</span>
                                       </div>
                                     )}
                                     {item.viewport_width && item.viewport_height && (
                                       <div className="flex items-center gap-2 text-xs">
-                                        <Monitor size={11} className="text-slate-400 shrink-0" />
-                                        <span className="text-slate-500">Viewport:</span>
-                                        <span className="font-mono text-slate-700">{item.viewport_width} x {item.viewport_height}</span>
+                                        <Monitor size={11} className="text-text-muted shrink-0" />
+                                        <span className="text-text-muted">Viewport:</span>
+                                        <span className="font-mono text-text-primary">{item.viewport_width} x {item.viewport_height}</span>
                                       </div>
                                     )}
                                     {item.user_agent && (
                                       <div className="flex items-start gap-2 text-xs">
-                                        <Globe size={11} className="text-slate-400 shrink-0 mt-0.5" />
-                                        <span className="text-slate-500 shrink-0">Browser:</span>
-                                        <span className="font-mono text-slate-600 text-xs break-all leading-relaxed">{item.user_agent.slice(0, 120)}{item.user_agent.length > 120 ? '...' : ''}</span>
+                                        <Globe size={11} className="text-text-muted shrink-0 mt-0.5" />
+                                        <span className="text-text-muted shrink-0">Browser:</span>
+                                        <span className="font-mono text-text-secondary text-xs break-all leading-relaxed">{item.user_agent.slice(0, 120)}{item.user_agent.length > 120 ? '...' : ''}</span>
                                       </div>
                                     )}
                                   </div>
@@ -2037,13 +2037,13 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               {/* Extra context data */}
                               {item.context_data && (
                                 <div>
-                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Zusatzdaten</div>
-                                  <div className="bg-white/60 border border-slate-200/40 rounded-xl p-3 space-y-1.5">
+                                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Zusatzdaten</div>
+                                  <div className="bg-surface-primary border border-border-secondary/40 rounded-xl p-3 space-y-1.5">
                                     {item.context_data.activeFilters && item.context_data.activeFilters.length > 0 && (
                                       <div className="text-xs">
-                                        <span className="text-slate-500">Aktive Filter: </span>
+                                        <span className="text-text-muted">Aktive Filter: </span>
                                         {item.context_data.activeFilters.map((f, i) => (
-                                          <span key={i} className="inline-flex px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded font-mono text-xs mr-1">
+                                          <span key={i} className="inline-flex px-1.5 py-0.5 bg-accent-light text-accent rounded font-mono text-xs mr-1">
                                             {f.label}: {f.value}
                                           </span>
                                         ))}
@@ -2051,8 +2051,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                                     )}
                                     {item.context_data.elementAtClick && (
                                       <div className="text-xs">
-                                        <span className="text-slate-500">Element: </span>
-                                        <span className="font-mono text-slate-600">
+                                        <span className="text-text-muted">Element: </span>
+                                        <span className="font-mono text-text-secondary">
                                           &lt;{item.context_data.elementAtClick.tag}&gt;
                                           {item.context_data.elementAtClick.text ? ` "${item.context_data.elementAtClick.text.slice(0, 50)}"` : ''}
                                         </span>
@@ -2060,14 +2060,14 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                                     )}
                                     {item.context_data.devicePixelRatio && (
                                       <div className="text-xs">
-                                        <span className="text-slate-500">DPR: </span>
-                                        <span className="font-mono text-slate-600">{item.context_data.devicePixelRatio}x</span>
+                                        <span className="text-text-muted">DPR: </span>
+                                        <span className="font-mono text-text-secondary">{item.context_data.devicePixelRatio}x</span>
                                       </div>
                                     )}
                                     {item.context_data.screenWidth && (
                                       <div className="text-xs">
-                                        <span className="text-slate-500">Bildschirm: </span>
-                                        <span className="font-mono text-slate-600">{item.context_data.screenWidth} x {item.context_data.screenHeight}</span>
+                                        <span className="text-text-muted">Bildschirm: </span>
+                                        <span className="font-mono text-text-secondary">{item.context_data.screenWidth} x {item.context_data.screenHeight}</span>
                                       </div>
                                     )}
                                   </div>
@@ -2077,8 +2077,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                               {/* Admin Notes */}
                               {item.admin_notes && (
                                 <div className="md:col-span-2">
-                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Admin Notizen</div>
-                                  <div className="text-sm text-slate-700 bg-amber-50/50 border border-amber-200/40 rounded-xl p-3">
+                                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Admin Notizen</div>
+                                  <div className="text-sm text-text-primary bg-status-warning/10/50 border border-status-warning/20/40 rounded-xl p-3">
                                     {item.admin_notes}
                                   </div>
                                 </div>
@@ -2095,8 +2095,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     <tr>
                       <td colSpan={6} className="px-5 py-12 text-center">
                         <div className="flex flex-col items-center gap-2">
-                          <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
-                          <span className="text-xs text-slate-500">Lade Feedback...</span>
+                          <div className="w-6 h-6 border-2 border-accent/20 border-t-blue-500 rounded-full animate-spin" />
+                          <span className="text-xs text-text-muted">Lade Feedback...</span>
                         </div>
                       </td>
                     </tr>
@@ -2104,9 +2104,9 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   {!loadingFeedback && filteredFeedback.length === 0 && (
                     <tr>
                       <td colSpan={6} className="px-5 py-12 text-center">
-                        <Lightbulb size={32} className="text-slate-200 mx-auto mb-3" />
-                        <div className="text-sm text-slate-500">Kein Feedback vorhanden</div>
-                        <p className="text-xs text-slate-500 font-mono mt-1">
+                        <Lightbulb size={32} className="text-text-muted mx-auto mb-3" />
+                        <div className="text-sm text-text-muted">Kein Feedback vorhanden</div>
+                        <p className="text-xs text-text-muted font-mono mt-1">
                           Feedback wird hier angezeigt, sobald Benutzer Anfragen einreichen
                         </p>
                       </td>
@@ -2124,7 +2124,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
         <div className="space-y-5">
           {/* Time Range + Refresh */}
           <div className="flex items-center justify-between">
-            <div className="flex gap-1 bg-white/40 backdrop-blur-sm border border-slate-200/40 rounded-lg p-0.5">
+            <div className="flex gap-1 bg-surface-primary border border-border-secondary/40 rounded-lg p-0.5">
               {[
                 { id: '24h', label: '24h' },
                 { id: '7d', label: '7 Tage' },
@@ -2135,8 +2135,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   onClick={() => setApiTimeRange(range.id)}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                     apiTimeRange === range.id
-                      ? 'bg-white shadow-sm text-slate-900 border border-slate-200/60'
-                      : 'text-slate-500 hover:text-slate-600'
+                      ? 'bg-surface-primary shadow-sm text-text-primary border border-border-secondary'
+                      : 'text-text-muted hover:text-text-secondary'
                   }`}
                 >
                   {range.label}
@@ -2146,7 +2146,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
             <button
               onClick={refreshApiUsage}
               disabled={loadingApiUsage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-white/60 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-text-primary hover:bg-surface-secondary transition-colors"
             >
               <RefreshCw size={13} className={loadingApiUsage ? 'animate-spin' : ''} />
               Aktualisieren
@@ -2157,76 +2157,76 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">API Calls</span>
-                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <Zap size={14} className="text-blue-500" />
+                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">API Calls</span>
+                <div className="w-7 h-7 rounded-lg bg-accent-light flex items-center justify-center">
+                  <Zap size={14} className="text-accent" />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-slate-800 font-mono">{apiStats.totalCalls.toLocaleString('de-DE')}</div>
-              <div className="text-xs text-slate-500 mt-1 font-mono">{apiTimeRange === '24h' ? 'Letzte 24 Stunden' : apiTimeRange === '7d' ? 'Letzte 7 Tage' : 'Letzte 30 Tage'}</div>
+              <div className="text-2xl font-bold text-text-primary font-mono">{apiStats.totalCalls.toLocaleString('de-DE')}</div>
+              <div className="text-xs text-text-muted mt-1 font-mono">{apiTimeRange === '24h' ? 'Letzte 24 Stunden' : apiTimeRange === '7d' ? 'Letzte 7 Tage' : 'Letzte 30 Tage'}</div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Kosten (est.)</span>
+                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Kosten (est.)</span>
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
                   <DollarSign size={14} className="text-emerald-500" />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-slate-800 font-mono">
+              <div className="text-2xl font-bold text-text-primary font-mono">
                 ${(apiStats.totalCostCents / 100).toFixed(2)}
               </div>
-              <div className="text-xs text-slate-500 mt-1 font-mono">
+              <div className="text-xs text-text-muted mt-1 font-mono">
                 {apiStats.totalTokensIn > 0 ? `${((apiStats.totalTokensIn + apiStats.totalTokensOut) / 1000).toFixed(0)}k Tokens` : 'Keine Token-Daten'}
               </div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Fehler</span>
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${apiStats.errorCount > 0 ? 'bg-red-50' : 'bg-emerald-50'}`}>
-                  <AlertCircle size={14} className={apiStats.errorCount > 0 ? 'text-red-500' : 'text-emerald-500'} />
+                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Fehler</span>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${apiStats.errorCount > 0 ? 'bg-status-offline/10' : 'bg-emerald-50'}`}>
+                  <AlertCircle size={14} className={apiStats.errorCount > 0 ? 'text-status-offline' : 'text-emerald-500'} />
                 </div>
               </div>
-              <div className={`text-2xl font-bold font-mono ${apiStats.errorCount > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+              <div className={`text-2xl font-bold font-mono ${apiStats.errorCount > 0 ? 'text-status-offline' : 'text-emerald-600'}`}>
                 {apiStats.errorCount}
               </div>
-              <div className="text-xs text-slate-500 mt-1 font-mono">
+              <div className="text-xs text-text-muted mt-1 font-mono">
                 {apiStats.totalCalls > 0 ? `${(apiStats.errorCount / apiStats.totalCalls * 100).toFixed(1)}% Error-Rate` : '—'}
               </div>
             </div>
 
             <div className="glass-card rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Ø Latenz</span>
-                <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
-                  <Clock size={14} className="text-amber-500" />
+                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Ø Latenz</span>
+                <div className="w-7 h-7 rounded-lg bg-status-warning/10 flex items-center justify-center">
+                  <Clock size={14} className="text-status-warning" />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-slate-800 font-mono">{apiStats.avgDuration}ms</div>
-              <div className="text-xs text-slate-500 mt-1 font-mono">Durchschnittliche Antwortzeit</div>
+              <div className="text-2xl font-bold text-text-primary font-mono">{apiStats.avgDuration}ms</div>
+              <div className="text-xs text-text-muted mt-1 font-mono">Durchschnittliche Antwortzeit</div>
             </div>
           </div>
 
           {/* Service Breakdown */}
           <div className="glass-card rounded-xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-200/60 flex items-center gap-2">
-              <Server size={14} className="text-slate-500" />
-              <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Kosten nach Service</span>
+            <div className="px-5 py-3 border-b border-border-secondary flex items-center gap-2">
+              <Server size={14} className="text-text-muted" />
+              <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Kosten nach Service</span>
             </div>
             <div className="divide-y divide-slate-100/80">
               {Object.entries(apiStats.byService)
                 .sort((a, b) => b[1].cost - a[1].cost)
                 .map(([service, data]) => {
                   const serviceColors = {
-                    anthropic: { bg: 'bg-purple-50', text: 'text-purple-600', bar: 'bg-purple-400' },
-                    airtable: { bg: 'bg-blue-50', text: 'text-blue-600', bar: 'bg-blue-400' },
+                    anthropic: { bg: 'bg-brand-purple/10', text: 'text-brand-purple', bar: 'bg-purple-400' },
+                    airtable: { bg: 'bg-accent-light', text: 'text-accent', bar: 'bg-blue-400' },
                     supabase: { bg: 'bg-emerald-50', text: 'text-emerald-600', bar: 'bg-emerald-400' },
-                    vistar: { bg: 'bg-orange-50', text: 'text-orange-600', bar: 'bg-orange-400' },
-                    'google-sheets': { bg: 'bg-green-50', text: 'text-green-600', bar: 'bg-green-400' },
+                    vistar: { bg: 'bg-status-warning/10', text: 'text-status-warning', bar: 'bg-orange-400' },
+                    'google-sheets': { bg: 'bg-status-online/10', text: 'text-status-online', bar: 'bg-green-400' },
                     superchat: { bg: 'bg-cyan-50', text: 'text-cyan-600', bar: 'bg-cyan-400' },
                   };
-                  const colors = serviceColors[service] || { bg: 'bg-slate-50', text: 'text-slate-600', bar: 'bg-slate-400' };
+                  const colors = serviceColors[service] || { bg: 'bg-surface-secondary', text: 'text-text-secondary', bar: 'bg-text-muted' };
                   const costPct = apiStats.totalCostCents > 0 ? (data.cost / apiStats.totalCostCents * 100) : 0;
 
                   return (
@@ -2236,32 +2236,32 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-slate-800 capitalize">{service}</span>
-                          <span className="text-xs font-mono text-slate-500">${(data.cost / 100).toFixed(3)}</span>
+                          <span className="text-sm font-medium text-text-primary capitalize">{service}</span>
+                          <span className="text-xs font-mono text-text-muted">${(data.cost / 100).toFixed(3)}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="flex-1 h-1.5 bg-surface-secondary rounded-full overflow-hidden">
                             <div className={`h-full ${colors.bar} rounded-full transition-all`} style={{ width: `${Math.max(costPct, 1)}%` }} />
                           </div>
-                          <span className="text-xs font-mono text-slate-500 shrink-0">{data.calls} calls</span>
+                          <span className="text-xs font-mono text-text-muted shrink-0">{data.calls} calls</span>
                         </div>
                         {data.tokensIn > 0 && (
-                          <div className="text-xs font-mono text-slate-500 mt-0.5">
+                          <div className="text-xs font-mono text-text-muted mt-0.5">
                             {(data.tokensIn / 1000).toFixed(0)}k in / {(data.tokensOut / 1000).toFixed(0)}k out tokens
                           </div>
                         )}
                       </div>
                       {data.errors > 0 && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-500 font-mono shrink-0">{data.errors} err</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-status-offline/10 text-status-offline font-mono shrink-0">{data.errors} err</span>
                       )}
                     </div>
                   );
                 })}
               {Object.keys(apiStats.byService).length === 0 && (
                 <div className="px-5 py-8 text-center">
-                  <Zap size={24} className="text-slate-200 mx-auto mb-2" />
-                  <div className="text-sm text-slate-500">Noch keine API-Daten</div>
-                  <p className="text-xs text-slate-500 font-mono mt-1">Daten werden erfasst sobald API-Calls stattfinden</p>
+                  <Zap size={24} className="text-text-muted mx-auto mb-2" />
+                  <div className="text-sm text-text-muted">Noch keine API-Daten</div>
+                  <p className="text-xs text-text-muted font-mono mt-1">Daten werden erfasst sobald API-Calls stattfinden</p>
                 </div>
               )}
             </div>
@@ -2269,14 +2269,14 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
           {/* Function Breakdown Table */}
           <div className="glass-card rounded-xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-200/60 flex items-center gap-2">
-              <Code size={14} className="text-slate-500" />
-              <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Calls nach Function</span>
+            <div className="px-5 py-3 border-b border-border-secondary flex items-center gap-2">
+              <Code size={14} className="text-text-muted" />
+              <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Calls nach Function</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-xs uppercase tracking-wider text-slate-500 font-medium">
+                  <tr className="text-xs uppercase tracking-wider text-text-muted font-medium">
                     <th className="px-5 py-2.5 text-left">Function</th>
                     <th className="px-3 py-2.5 text-right">Calls</th>
                     <th className="px-3 py-2.5 text-right">Errors</th>
@@ -2288,18 +2288,18 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   {Object.entries(apiStats.byFunction)
                     .sort((a, b) => b[1].calls - a[1].calls)
                     .map(([fn, data]) => (
-                      <tr key={fn} className="hover:bg-white/40 transition-colors">
-                        <td className="px-5 py-2.5 text-sm font-mono text-slate-800">{fn}</td>
-                        <td className="px-3 py-2.5 text-sm font-mono text-slate-600 text-right">{data.calls}</td>
+                      <tr key={fn} className="hover:bg-surface-primary/60 transition-colors">
+                        <td className="px-5 py-2.5 text-sm font-mono text-text-primary">{fn}</td>
+                        <td className="px-3 py-2.5 text-sm font-mono text-text-secondary text-right">{data.calls}</td>
                         <td className="px-3 py-2.5 text-right">
                           {data.errors > 0 ? (
-                            <span className="text-xs font-mono text-red-500">{data.errors}</span>
+                            <span className="text-xs font-mono text-status-offline">{data.errors}</span>
                           ) : (
                             <span className="text-xs font-mono text-emerald-500">0</span>
                           )}
                         </td>
-                        <td className="px-3 py-2.5 text-sm font-mono text-slate-500 text-right">{data.avgMs}ms</td>
-                        <td className="px-5 py-2.5 text-sm font-mono text-slate-600 text-right">${(data.cost / 100).toFixed(3)}</td>
+                        <td className="px-3 py-2.5 text-sm font-mono text-text-muted text-right">{data.avgMs}ms</td>
+                        <td className="px-5 py-2.5 text-sm font-mono text-text-secondary text-right">${(data.cost / 100).toFixed(3)}</td>
                       </tr>
                     ))}
                 </tbody>
@@ -2309,17 +2309,17 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
           {/* Recent Calls Log */}
           <div className="glass-card rounded-xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-200/60 flex items-center justify-between">
+            <div className="px-5 py-3 border-b border-border-secondary flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Activity size={14} className="text-slate-500" />
-                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Letzte API Calls</span>
+                <Activity size={14} className="text-text-muted" />
+                <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Letzte API Calls</span>
               </div>
-              <span className="text-xs font-mono text-slate-500">{apiUsageData.length} Einträge</span>
+              <span className="text-xs font-mono text-text-muted">{apiUsageData.length} Einträge</span>
             </div>
             <div className="overflow-x-auto max-h-96 overflow-y-auto">
               <table className="w-full">
-                <thead className="sticky top-0 bg-white/90 backdrop-blur-sm">
-                  <tr className="text-xs uppercase tracking-wider text-slate-500 font-medium">
+                <thead className="sticky top-0 bg-surface-primary">
+                  <tr className="text-xs uppercase tracking-wider text-text-muted font-medium">
                     <th className="px-4 py-2 text-left">Zeit</th>
                     <th className="px-3 py-2 text-left">Function</th>
                     <th className="px-3 py-2 text-left">Service</th>
@@ -2330,18 +2330,18 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {apiUsageData.slice(0, 100).map((row) => (
-                    <tr key={row.id} className="hover:bg-white/30 transition-colors text-xs">
-                      <td className="px-4 py-2 font-mono text-slate-500 whitespace-nowrap">
+                    <tr key={row.id} className="hover:bg-surface-primary/40 transition-colors text-xs">
+                      <td className="px-4 py-2 font-mono text-text-muted whitespace-nowrap">
                         {new Date(row.created_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </td>
-                      <td className="px-3 py-2 font-mono text-slate-700">{row.function_name}</td>
+                      <td className="px-3 py-2 font-mono text-text-primary">{row.function_name}</td>
                       <td className="px-3 py-2">
                         <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium ${
-                          row.service === 'anthropic' ? 'bg-purple-50 text-purple-600' :
-                          row.service === 'airtable' ? 'bg-blue-50 text-blue-600' :
+                          row.service === 'anthropic' ? 'bg-brand-purple/10 text-brand-purple' :
+                          row.service === 'airtable' ? 'bg-accent-light text-accent' :
                           row.service === 'supabase' ? 'bg-emerald-50 text-emerald-600' :
-                          row.service === 'vistar' ? 'bg-orange-50 text-orange-600' :
-                          'bg-slate-50 text-slate-600'
+                          row.service === 'vistar' ? 'bg-status-warning/10 text-status-warning' :
+                          'bg-surface-secondary text-text-secondary'
                         }`}>
                           {row.service}
                         </span>
@@ -2350,17 +2350,17 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                         {row.success ? (
                           <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 inline-flex items-center justify-center text-xs font-bold">{row.status_code || '✓'}</span>
                         ) : (
-                          <span className="w-4 h-4 rounded-full bg-red-100 text-red-600 inline-flex items-center justify-center text-xs font-bold">{row.status_code || '✗'}</span>
+                          <span className="w-4 h-4 rounded-full bg-status-offline/10 text-status-offline inline-flex items-center justify-center text-xs font-bold">{row.status_code || '✗'}</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 font-mono text-slate-500 text-right">{row.duration_ms ? `${row.duration_ms}ms` : '—'}</td>
-                      <td className="px-4 py-2 font-mono text-slate-600 text-right">{row.estimated_cost_cents ? `$${(row.estimated_cost_cents / 100).toFixed(4)}` : '—'}</td>
+                      <td className="px-3 py-2 font-mono text-text-muted text-right">{row.duration_ms ? `${row.duration_ms}ms` : '—'}</td>
+                      <td className="px-4 py-2 font-mono text-text-secondary text-right">{row.estimated_cost_cents ? `$${(row.estimated_cost_cents / 100).toFixed(4)}` : '—'}</td>
                     </tr>
                   ))}
                   {loadingApiUsage && (
                     <tr>
                       <td colSpan={6} className="px-5 py-8 text-center">
-                        <div className="flex items-center justify-center gap-2 text-slate-500">
+                        <div className="flex items-center justify-center gap-2 text-text-muted">
                           <RefreshCw size={14} className="animate-spin" />
                           <span className="text-sm">Lade API-Daten...</span>
                         </div>
@@ -2370,9 +2370,9 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   {!loadingApiUsage && apiUsageData.length === 0 && (
                     <tr>
                       <td colSpan={6} className="px-5 py-12 text-center">
-                        <Zap size={32} className="text-slate-200 mx-auto mb-3" />
-                        <div className="text-sm text-slate-500">Keine API-Daten vorhanden</div>
-                        <p className="text-xs text-slate-500 font-mono mt-1">
+                        <Zap size={32} className="text-text-muted mx-auto mb-3" />
+                        <div className="text-sm text-text-muted">Keine API-Daten vorhanden</div>
+                        <p className="text-xs text-text-muted font-mono mt-1">
                           API-Calls werden automatisch geloggt sobald die Tabelle erstellt ist
                         </p>
                       </td>
@@ -2391,10 +2391,10 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           {/* Info Banner */}
           <div className="glass-card rounded-xl p-5 border-l-4 border-l-blue-400">
             <div className="flex items-start gap-3">
-              <Server size={18} className="text-blue-500 mt-0.5 shrink-0" />
+              <Server size={18} className="text-accent mt-0.5 shrink-0" />
               <div>
-                <h3 className="text-sm font-semibold text-slate-900 mb-1">Attachment Storage (Supabase)</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <h3 className="text-sm font-semibold text-text-primary mb-1">Attachment Storage (Supabase)</h3>
+                <p className="text-xs text-text-secondary leading-relaxed">
                   Airtable-Attachment-URLs laufen nach ca. 2 Stunden ab. Dieser Sync kopiert alle Anhänge
                   (Fotos, PDFs, Verträge) in den permanenten Supabase Storage. Gecachte URLs werden
                   automatisch im Dashboard verwendet.
@@ -2406,7 +2406,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           {/* Controls */}
           <div className="glass-card rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
                 Attachment-Sync starten
               </h3>
             </div>
@@ -2418,7 +2418,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                   value={syncTableFilter}
                   onChange={(e) => setSyncTableFilter(e.target.value)}
                   disabled={syncRunning}
-                  className="w-full appearance-none px-3 py-2.5 bg-slate-50/80 border border-slate-200/60 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#3b82f6] transition-colors disabled:opacity-50"
+                  className="w-full appearance-none px-3 py-2.5 bg-surface-secondary/80 border border-border-secondary rounded-lg text-xs text-text-primary focus:outline-none focus:border-[#007AFF] transition-colors disabled:opacity-50"
                   style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
@@ -2438,8 +2438,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                 disabled={syncRunning}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   syncRunning
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    : 'bg-[#3b82f6] text-white hover:bg-[#2563eb]'
+                    ? 'bg-surface-secondary text-text-muted cursor-not-allowed'
+                    : 'bg-[#007AFF] text-white hover:bg-[#2563eb]'
                 }`}
               >
                 {syncRunning ? (
@@ -2458,7 +2458,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
 
             {/* Error */}
             {syncError && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50/80 border border-red-200/60 text-xs text-red-600 mb-4">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-status-offline/10/80 border border-status-offline/20/60 text-xs text-status-offline mb-4">
                 <AlertCircle size={14} />
                 {syncError}
               </div>
@@ -2473,39 +2473,39 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     <div className="text-xl font-bold font-mono text-emerald-700">{syncResult.totals?.uploaded || 0}</div>
                     <div className="text-[10px] font-medium text-emerald-600 uppercase tracking-wider mt-0.5">Hochgeladen</div>
                   </div>
-                  <div className="bg-blue-50/60 border border-blue-200/40 rounded-xl p-3 text-center">
+                  <div className="bg-accent-light/60 border border-accent/20/40 rounded-xl p-3 text-center">
                     <div className="text-xl font-bold font-mono text-blue-700">{syncResult.totals?.alreadyCached || 0}</div>
-                    <div className="text-[10px] font-medium text-blue-600 uppercase tracking-wider mt-0.5">Bereits gecached</div>
+                    <div className="text-[10px] font-medium text-accent uppercase tracking-wider mt-0.5">Bereits gecached</div>
                   </div>
-                  <div className="bg-slate-50/60 border border-slate-200/40 rounded-xl p-3 text-center">
-                    <div className="text-xl font-bold font-mono text-slate-700">{syncResult.totals?.attachmentsFound || 0}</div>
-                    <div className="text-[10px] font-medium text-slate-600 uppercase tracking-wider mt-0.5">Attachments gefunden</div>
+                  <div className="bg-surface-secondary/60 border border-border-secondary/40 rounded-xl p-3 text-center">
+                    <div className="text-xl font-bold font-mono text-text-primary">{syncResult.totals?.attachmentsFound || 0}</div>
+                    <div className="text-[10px] font-medium text-text-secondary uppercase tracking-wider mt-0.5">Attachments gefunden</div>
                   </div>
-                  <div className={`${(syncResult.totals?.errors || 0) > 0 ? 'bg-red-50/60 border-red-200/40' : 'bg-emerald-50/60 border-emerald-200/40'} border rounded-xl p-3 text-center`}>
+                  <div className={`${(syncResult.totals?.errors || 0) > 0 ? 'bg-status-offline/10/60 border-status-offline/20/40' : 'bg-emerald-50/60 border-emerald-200/40'} border rounded-xl p-3 text-center`}>
                     <div className={`text-xl font-bold font-mono ${(syncResult.totals?.errors || 0) > 0 ? 'text-red-700' : 'text-emerald-700'}`}>{syncResult.totals?.errors || 0}</div>
-                    <div className={`text-[10px] font-medium uppercase tracking-wider mt-0.5 ${(syncResult.totals?.errors || 0) > 0 ? 'text-red-600' : 'text-emerald-600'}`}>Fehler</div>
+                    <div className={`text-[10px] font-medium uppercase tracking-wider mt-0.5 ${(syncResult.totals?.errors || 0) > 0 ? 'text-status-offline' : 'text-emerald-600'}`}>Fehler</div>
                   </div>
                 </div>
 
                 {/* Duration + filter */}
-                <div className="flex items-center gap-3 text-xs text-slate-500 font-mono">
+                <div className="flex items-center gap-3 text-xs text-text-muted font-mono">
                   <span>Dauer: {((syncResult.duration_ms || 0) / 1000).toFixed(1)}s</span>
-                  <span className="text-slate-300">|</span>
+                  <span className="text-text-muted">|</span>
                   <span>Filter: {syncResult.filter || 'all'}</span>
-                  <span className="text-slate-300">|</span>
+                  <span className="text-text-muted">|</span>
                   <span>Records: {syncResult.totals?.recordsFetched || 0}</span>
                 </div>
 
                 {/* Per-source breakdown */}
                 {syncResult.sources?.length > 0 && (
                   <div className="glass-card rounded-xl overflow-hidden">
-                    <div className="px-4 py-2.5 border-b border-slate-200/60">
-                      <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Details pro Quelle</span>
+                    <div className="px-4 py-2.5 border-b border-border-secondary">
+                      <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Details pro Quelle</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="text-slate-500 uppercase tracking-wider font-medium border-b border-slate-100">
+                          <tr className="text-text-muted uppercase tracking-wider font-medium border-b border-border-secondary">
                             <th className="px-4 py-2 text-left">Quelle</th>
                             <th className="px-3 py-2 text-right">Records</th>
                             <th className="px-3 py-2 text-right">Gefunden</th>
@@ -2516,13 +2516,13 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                           {syncResult.sources.map((src) => (
-                            <tr key={src.name} className="hover:bg-white/30 transition-colors">
-                              <td className="px-4 py-2 font-mono font-medium text-slate-700">{src.name}</td>
-                              <td className="px-3 py-2 font-mono text-slate-500 text-right">{src.records}</td>
-                              <td className="px-3 py-2 font-mono text-slate-500 text-right">{src.attachments}</td>
-                              <td className="px-3 py-2 font-mono text-blue-600 text-right">{src.cached}</td>
+                            <tr key={src.name} className="hover:bg-surface-primary/40 transition-colors">
+                              <td className="px-4 py-2 font-mono font-medium text-text-primary">{src.name}</td>
+                              <td className="px-3 py-2 font-mono text-text-muted text-right">{src.records}</td>
+                              <td className="px-3 py-2 font-mono text-text-muted text-right">{src.attachments}</td>
+                              <td className="px-3 py-2 font-mono text-accent text-right">{src.cached}</td>
                               <td className="px-3 py-2 font-mono text-emerald-600 text-right">{src.uploaded}</td>
-                              <td className={`px-3 py-2 font-mono text-right ${src.errors > 0 ? 'text-red-600 font-bold' : 'text-slate-400'}`}>{src.errors}</td>
+                              <td className={`px-3 py-2 font-mono text-right ${src.errors > 0 ? 'text-status-offline font-bold' : 'text-text-muted'}`}>{src.errors}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -2537,8 +2537,8 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
                     <h4 className="text-xs font-semibold text-red-700 uppercase tracking-wider mb-2">Fehler-Details</h4>
                     <div className="space-y-1.5 max-h-40 overflow-y-auto">
                       {syncResult.sources.flatMap(s => (s.error_details || []).map(e => (
-                        <div key={`${e.recordId}-${e.filename}`} className="text-xs font-mono text-red-600">
-                          <span className="text-red-400">{e.recordId}</span> / {e.filename}: {e.error}
+                        <div key={`${e.recordId}-${e.filename}`} className="text-xs font-mono text-status-offline">
+                          <span className="text-status-offline">{e.recordId}</span> / {e.filename}: {e.error}
                         </div>
                       )))}
                     </div>
@@ -2551,17 +2551,17 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           {/* Setup Instructions */}
           <div className="glass-card rounded-xl p-5 border-l-4 border-l-amber-400">
             <div className="flex items-start gap-3">
-              <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+              <AlertCircle size={16} className="text-status-warning mt-0.5 shrink-0" />
               <div>
-                <h4 className="text-xs font-semibold text-slate-800 mb-2">Voraussetzungen (einmalig)</h4>
-                <ol className="text-xs text-slate-600 space-y-1.5 list-decimal list-inside">
+                <h4 className="text-xs font-semibold text-text-primary mb-2">Voraussetzungen (einmalig)</h4>
+                <ol className="text-xs text-text-secondary space-y-1.5 list-decimal list-inside">
                   <li>
                     <span className="font-medium">attachment_cache</span> Tabelle in Supabase SQL Editor erstellen
-                    <span className="text-slate-400 ml-1">(siehe sql/add-attachment-cache.sql)</span>
+                    <span className="text-text-muted ml-1">(siehe sql/add-attachment-cache.sql)</span>
                   </li>
                   <li>
                     <span className="font-medium">attachments</span> Storage Bucket in Supabase Dashboard erstellen
-                    <span className="text-slate-400 ml-1">(Storage &rarr; New Bucket &rarr; &quot;attachments&quot; &rarr; Public: ON)</span>
+                    <span className="text-text-muted ml-1">(Storage &rarr; New Bucket &rarr; &quot;attachments&quot; &rarr; Public: ON)</span>
                   </li>
                   <li>
                     <span className="font-medium">SUPABASE_SERVICE_ROLE_KEY</span> als Netlify Environment Variable setzen
@@ -2577,7 +2577,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
       {activeSection === 'data-mapping' && (
         <Suspense fallback={
           <div className="flex items-center justify-center h-64">
-            <RefreshCw size={20} className="animate-spin text-slate-400" />
+            <RefreshCw size={20} className="animate-spin text-text-muted" />
           </div>
         }>
           <DataMappingPanel />
@@ -2599,7 +2599,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
       {activeSection === 'api-overview' && (
         <Suspense fallback={
           <div className="flex items-center justify-center h-64">
-            <RefreshCw size={20} className="animate-spin text-slate-400" />
+            <RefreshCw size={20} className="animate-spin text-text-muted" />
           </div>
         }>
           <APIOverviewPanel />
@@ -2609,7 +2609,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
       {activeSection === 'stammdaten-import' && (
         <Suspense fallback={
           <div className="flex items-center justify-center h-64">
-            <RefreshCw size={20} className="animate-spin text-slate-400" />
+            <RefreshCw size={20} className="animate-spin text-text-muted" />
           </div>
         }>
           <StammdatenImport />

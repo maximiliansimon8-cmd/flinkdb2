@@ -26,10 +26,10 @@ function getStatusFromOffline(offlineHours, neverOnline) {
 
 function getStatusColor(status) {
   switch (status) {
-    case 'online': return '#22c55e';
-    case 'warning': return '#f59e0b';
-    case 'critical': return '#ef4444';
-    case 'permanent_offline': return '#dc2626';
+    case 'online': return '#34C759';
+    case 'warning': return '#FF9500';
+    case 'critical': return '#FF3B30';
+    case 'permanent_offline': return '#FF3B30';
     case 'never_online': return '#64748b';
     default: return '#64748b';
   }
@@ -72,11 +72,11 @@ function getCityFromId(displayId) {
 
 /* ─── Status Filter Chips ─── */
 const STATUS_FILTERS = [
-  { id: 'all', label: 'Alle', icon: Monitor, color: '#3b82f6' },
-  { id: 'online', label: 'Online', icon: Wifi, color: '#22c55e' },
-  { id: 'warning', label: 'Warnung', icon: Clock, color: '#f59e0b' },
-  { id: 'critical', label: 'Kritisch', icon: AlertTriangle, color: '#ef4444' },
-  { id: 'permanent_offline', label: 'Dauerhaft', icon: Skull, color: '#dc2626' },
+  { id: 'all', label: 'Alle', icon: Monitor, color: '#007AFF' },
+  { id: 'online', label: 'Online', icon: Wifi, color: '#34C759' },
+  { id: 'warning', label: 'Warnung', icon: Clock, color: '#FF9500' },
+  { id: 'critical', label: 'Kritisch', icon: AlertTriangle, color: '#FF3B30' },
+  { id: 'permanent_offline', label: 'Dauerhaft', icon: Skull, color: '#FF3B30' },
   { id: 'never_online', label: 'Nie Online', icon: WifiOff, color: '#64748b' },
 ];
 
@@ -95,8 +95,8 @@ function DisplayCard({ display, onTap, delay = 0 }) {
       }}
       className="
         w-full flex items-center gap-3 p-4 rounded-2xl
-        bg-white/70 backdrop-blur-sm border border-slate-200/50
-        active:scale-[0.98] active:bg-white/90
+        bg-surface-primary border border-border-secondary
+        active:scale-[0.98] active:bg-surface-secondary
         transition-all duration-200
         mobile-card-enter text-left
       "
@@ -112,16 +112,16 @@ function DisplayCard({ display, onTap, delay = 0 }) {
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <span className="text-sm font-semibold text-slate-800 truncate block">
+        <span className="text-sm font-semibold text-text-primary truncate block">
           {display.locationName || display.displayId}
         </span>
-        <span className="text-xs text-slate-500 truncate block mt-0.5">
+        <span className="text-xs text-text-muted truncate block mt-0.5">
           {display.city}
         </span>
         {display.offlineHours > 0 && display.status !== 'online' && (
           <div className="flex items-center gap-1 mt-1">
-            <Clock size={10} className="text-slate-400" />
-            <span className="text-[11px] font-mono text-slate-400">
+            <Clock size={10} className="text-text-muted" />
+            <span className="text-[11px] font-mono text-text-muted">
               Offline seit {formatDuration(display.offlineHours)}
             </span>
           </div>
@@ -136,7 +136,7 @@ function DisplayCard({ display, onTap, delay = 0 }) {
         >
           {statusLabel}
         </span>
-        <ChevronRight size={16} className="text-slate-300" />
+        <ChevronRight size={16} className="text-text-muted" />
       </div>
     </button>
   );
@@ -314,9 +314,9 @@ export default function MobileDisplayCards({
   return (
     <div className="flex flex-col h-full">
       {/* ─── Sticky Search Bar ─── */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl px-4 pt-3 pb-2 border-b border-slate-200/40">
+      <div className="sticky top-0 z-10 bg-surface-primary px-4 pt-3 pb-2 border-b border-border-secondary/40">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             ref={searchRef}
             type="text"
@@ -325,15 +325,15 @@ export default function MobileDisplayCards({
             onChange={e => setSearch(e.target.value)}
             className="
               w-full pl-10 pr-9 py-2.5 rounded-xl
-              bg-slate-50/80 border border-slate-200/60
-              text-sm text-slate-800 placeholder:text-slate-400
-              focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300
+              bg-surface-secondary/80 border border-border-secondary
+              text-sm text-text-primary placeholder:text-text-muted
+              focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-blue-300
               font-mono
             "
             style={{ fontSize: '16px' }}
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 active:text-slate-600">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted active:text-text-secondary">
               <X size={16} />
             </button>
           )}
@@ -355,14 +355,14 @@ export default function MobileDisplayCards({
                   flex items-center gap-1.5 px-3 py-1.5 rounded-full
                   text-xs font-medium whitespace-nowrap shrink-0
                   transition-all duration-200 active:scale-95
-                  ${isActive ? 'text-white shadow-sm' : 'bg-white/60 border border-slate-200/50 text-slate-600'}
+                  ${isActive ? 'text-white shadow-sm' : 'bg-surface-primary border border-border-secondary text-text-secondary'}
                 `}
                 style={isActive ? { backgroundColor: f.color } : {}}
               >
                 <f.icon size={12} />
                 <span>{f.label}</span>
                 {count > 0 && (
-                  <span className={`text-[10px] font-mono px-1 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  <span className={`text-[10px] font-mono px-1 py-0.5 rounded-md ${isActive ? 'bg-surface-primary/20 text-white' : 'bg-surface-secondary text-text-muted'}`}>
                     {count}
                   </span>
                 )}
@@ -381,18 +381,18 @@ export default function MobileDisplayCards({
         {/* Loading */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <Loader2 size={24} className="animate-spin text-blue-500" />
-            <span className="text-xs text-slate-400">Lade Displays...</span>
+            <Loader2 size={24} className="animate-spin text-accent" />
+            <span className="text-xs text-text-muted">Lade Displays...</span>
           </div>
         ) : (
           <>
             {/* Results count */}
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-slate-500 font-mono">
+              <span className="text-xs text-text-muted font-mono">
                 {displays.length} Displays
               </span>
               {search && (
-                <span className="text-xs text-blue-600 font-mono">
+                <span className="text-xs text-accent font-mono">
                   Suche: "{search}"
                 </span>
               )}
@@ -411,17 +411,17 @@ export default function MobileDisplayCards({
             {/* Loading more */}
             {loadingMore && (
               <div className="flex items-center justify-center py-4">
-                <Loader2 size={16} className="animate-spin text-blue-500 mr-2" />
-                <span className="text-xs text-slate-400">Lade mehr...</span>
+                <Loader2 size={16} className="animate-spin text-accent mr-2" />
+                <span className="text-xs text-text-muted">Lade mehr...</span>
               </div>
             )}
 
             {/* Empty state */}
             {displays.length === 0 && !loading && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Monitor size={32} className="text-slate-300 mb-3" />
-                <div className="text-sm font-medium text-slate-500">Keine Displays gefunden</div>
-                <div className="text-xs text-slate-400 mt-1">
+                <Monitor size={32} className="text-text-muted mb-3" />
+                <div className="text-sm font-medium text-text-muted">Keine Displays gefunden</div>
+                <div className="text-xs text-text-muted mt-1">
                   {search ? 'Versuche einen anderen Suchbegriff' : 'Kein Display mit diesem Status'}
                 </div>
               </div>

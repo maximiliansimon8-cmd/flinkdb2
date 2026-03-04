@@ -20,14 +20,14 @@ const MOUNT_TYPES = [
 ];
 
 const STATUS_BADGES = {
-  not_invited:   { label: 'Nicht eingeladen', color: 'bg-gray-100 text-gray-600 border-gray-200', icon: Clock },
-  invited:       { label: 'Eingeladen',       color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Send },
-  pending:       { label: 'Eingeladen',       color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Send },
-  invite_failed: { label: 'Senden fehlgeschlagen', color: 'bg-red-100 text-red-700 border-red-200', icon: AlertCircle },
-  booked:        { label: 'Eingebucht',       color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
-  confirmed:     { label: 'Eingebucht',       color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
+  not_invited:   { label: 'Nicht eingeladen', color: 'bg-surface-secondary text-text-secondary border-border-secondary', icon: Clock },
+  invited:       { label: 'Eingeladen',       color: 'bg-status-warning/10 text-yellow-700 border-status-warning/20', icon: Send },
+  pending:       { label: 'Eingeladen',       color: 'bg-status-warning/10 text-yellow-700 border-status-warning/20', icon: Send },
+  invite_failed: { label: 'Senden fehlgeschlagen', color: 'bg-status-offline/10 text-red-700 border-status-offline/20', icon: AlertCircle },
+  booked:        { label: 'Eingebucht',       color: 'bg-status-online/10 text-green-700 border-status-online/20', icon: CheckCircle },
+  confirmed:     { label: 'Eingebucht',       color: 'bg-status-online/10 text-green-700 border-status-online/20', icon: CheckCircle },
   completed:     { label: 'Abgeschlossen',    color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
-  cancelled:     { label: 'Storniert',        color: 'bg-red-100 text-red-700 border-red-200', icon: X },
+  cancelled:     { label: 'Storniert',        color: 'bg-status-offline/10 text-red-700 border-status-offline/20', icon: X },
 };
 
 function StatusBadge({ status }) {
@@ -59,10 +59,10 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+      <div className="bg-surface-primary rounded-2xl shadow-xl w-full max-w-md">
         <div className="p-5 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900">Einladungen senden</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-lg font-bold text-text-primary">Einladungen senden</h3>
+          <p className="text-sm text-text-muted mt-1">
             {withPhone.length} von {selectedStandorte.length} Standorte koennen eingeladen werden.
           </p>
         </div>
@@ -70,14 +70,14 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
         {/* Route/Tour Selector */}
         {routes && routes.length > 0 && (
           <div className="px-5 pt-4 pb-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <Calendar size={12} /> Route / Tour zuordnen
             </label>
             <select
               value={selectedRouteId || ''}
               onChange={(e) => onRouteChange(e.target.value)}
               disabled={inviting}
-              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 disabled:opacity-50"
+              className="w-full px-3 py-2 bg-surface-primary border border-border-secondary rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 disabled:opacity-50"
             >
               <option value="">Keine Route zuordnen (optional)</option>
               {routes.map(r => (
@@ -88,13 +88,13 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
               const sel = routes.find(r => r.id === parseInt(selectedRouteId) || r.id === selectedRouteId);
               if (!sel) return null;
               return (
-                <div className="mt-2 flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+                <div className="mt-2 flex items-center gap-2 p-2 bg-accent-light border border-accent/20 rounded-lg text-xs text-blue-700">
                   <Calendar size={12} className="shrink-0" />
                   <span>
                     Standorte werden der Tour <strong>{sel.city}</strong> am{' '}
                     <strong>{new Date(sel.schedule_date + 'T00:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</strong> zugeordnet.
                     {sel.frei < withPhone.length && (
-                      <span className="text-amber-600 font-medium ml-1">
+                      <span className="text-status-warning font-medium ml-1">
                         Achtung: Nur {sel.frei} Plaetze frei, aber {withPhone.length} ausgewaehlt!
                       </span>
                     )}
@@ -108,12 +108,12 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
         {/* Template Selector */}
         {templates && templates.length > 0 && (
           <div className="px-5 pt-4 pb-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">WhatsApp Template</label>
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1.5 block">WhatsApp Template</label>
             <select
               value={selectedTemplate || ''}
               onChange={(e) => onTemplateChange(e.target.value)}
               disabled={inviting}
-              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 disabled:opacity-50"
+              className="w-full px-3 py-2 bg-surface-primary border border-border-secondary rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 disabled:opacity-50"
             >
               {templates.map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
@@ -122,14 +122,14 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
             {activeTemplate && (
               <button
                 onClick={() => setShowPreview(!showPreview)}
-                className="text-xs text-orange-600 hover:text-orange-700 mt-1.5 flex items-center gap-1"
+                className="text-xs text-status-warning hover:text-orange-700 mt-1.5 flex items-center gap-1"
               >
                 <FileText size={10} />
                 {showPreview ? 'Vorschau ausblenden' : 'Vorschau anzeigen'}
               </button>
             )}
             {showPreview && activeTemplate && (
-              <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600 leading-relaxed whitespace-pre-wrap border border-gray-100">
+              <div className="mt-2 p-3 bg-surface-secondary rounded-lg text-xs text-text-secondary leading-relaxed whitespace-pre-wrap border border-gray-100">
                 {(() => {
                   // Fill template placeholders with example values from first selected standort
                   const example = withPhone[0];
@@ -146,7 +146,7 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
                   return previewBody;
                 })()}
                 {withPhone.length > 1 && (
-                  <div className="mt-2 pt-2 border-t border-gray-200 text-[10px] text-gray-400 italic">
+                  <div className="mt-2 pt-2 border-t border-border-secondary text-[10px] text-text-muted italic">
                     Vorschau fuer: {withPhone[0].locationName} | {withPhone.length - 1} weitere werden individuell angepasst
                   </div>
                 )}
@@ -158,16 +158,16 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
         <div className="p-5 space-y-3 max-h-60 overflow-y-auto">
           {withPhone.map(s => (
             <div key={s.id} className="flex items-center gap-2 text-sm">
-              <Check size={14} className="text-green-500 shrink-0" />
-              <span className="text-gray-900 font-medium truncate">{s.locationName}</span>
-              <span className="text-gray-400 text-xs ml-auto">{s.city?.[0]}</span>
+              <Check size={14} className="text-status-online shrink-0" />
+              <span className="text-text-primary font-medium truncate">{s.locationName}</span>
+              <span className="text-text-muted text-xs ml-auto">{s.city?.[0]}</span>
             </div>
           ))}
           {withoutPhone.map(s => (
             <div key={s.id} className="flex items-center gap-2 text-sm">
-              <AlertCircle size={14} className="text-amber-500 shrink-0" />
-              <span className="text-gray-400 truncate">{s.locationName}</span>
-              <span className="text-xs text-amber-500 ml-auto">Keine Tel.</span>
+              <AlertCircle size={14} className="text-status-warning shrink-0" />
+              <span className="text-text-muted truncate">{s.locationName}</span>
+              <span className="text-xs text-status-warning ml-auto">Keine Tel.</span>
             </div>
           ))}
         </div>
@@ -175,18 +175,18 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
         {/* Progress Bar */}
         {inviting && progress && (
           <div className="px-5 pb-3">
-            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+            <div className="flex items-center justify-between text-xs text-text-muted mb-1">
               <span>Sende Einladungen...</span>
               <span className="font-mono">{progress.sent}/{progress.total}</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-secondary rounded-full overflow-hidden">
               <div
-                className="h-full bg-orange-500 rounded-full transition-all duration-300"
+                className="h-full bg-status-warning rounded-full transition-all duration-300"
                 style={{ width: `${progress.total > 0 ? (progress.sent / progress.total) * 100 : 0}%` }}
               />
             </div>
             {progress.failed > 0 && (
-              <div className="text-xs text-red-500 mt-1 flex items-center gap-1">
+              <div className="text-xs text-status-offline mt-1 flex items-center gap-1">
                 <AlertCircle size={10} /> {progress.failed} fehlgeschlagen
               </div>
             )}
@@ -195,13 +195,13 @@ function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, pr
 
         <div className="flex gap-3 p-5 border-t border-gray-100">
           <button onClick={onCancel} disabled={inviting}
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors">
+            className="flex-1 px-4 py-2.5 border border-border-secondary rounded-xl text-text-primary hover:bg-surface-secondary disabled:opacity-50 transition-colors">
             Abbrechen
           </button>
           <button
             onClick={() => onConfirm(withPhone)}
             disabled={inviting || withPhone.length === 0}
-            className="flex-1 px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium flex items-center justify-center gap-2 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-status-warning text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium flex items-center justify-center gap-2 transition-colors"
           >
             {inviting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
             {inviting ? `${progress?.sent || 0}/${progress?.total || 0}` : `${withPhone.length} einladen`}
@@ -310,14 +310,14 @@ function InvitationHistorySection({ bookings, routes }) {
 
   if (historyGroups.length === 0) {
     return (
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-8 shadow-sm">
-        <div className="flex flex-col items-center justify-center text-gray-400 gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center">
-            <History size={28} className="text-gray-300" />
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-8 shadow-sm">
+        <div className="flex flex-col items-center justify-center text-text-muted gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-surface-secondary flex items-center justify-center">
+            <History size={28} className="text-text-muted" />
           </div>
           <div className="text-center">
-            <p className="font-medium text-gray-600">Keine Einladungs-Historie</p>
-            <p className="text-xs text-gray-400 mt-1">Sobald Einladungen gesendet werden, erscheinen sie hier.</p>
+            <p className="font-medium text-text-secondary">Keine Einladungs-Historie</p>
+            <p className="text-xs text-text-muted mt-1">Sobald Einladungen gesendet werden, erscheinen sie hier.</p>
           </div>
         </div>
       </div>
@@ -327,7 +327,7 @@ function InvitationHistorySection({ bookings, routes }) {
   const totalInvitations = historyGroups.reduce((sum, g) => sum + g.items.length, 0);
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl shadow-sm overflow-hidden">
       {/* Section Header */}
       <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -336,8 +336,8 @@ function InvitationHistorySection({ bookings, routes }) {
               <History size={18} className="text-indigo-600" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">Einladungs-Historie</h3>
-              <p className="text-xs text-gray-500">
+              <h3 className="text-base font-bold text-text-primary">Einladungs-Historie</h3>
+              <p className="text-xs text-text-muted">
                 {totalInvitations} Einladung{totalInvitations !== 1 ? 'en' : ''} in {historyGroups.length} Tour{historyGroups.length !== 1 ? 'en' : ''}
               </p>
             </div>
@@ -348,23 +348,23 @@ function InvitationHistorySection({ bookings, routes }) {
               Alle oeffnen
             </button>
             <button onClick={collapseAll}
-              className="px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+              className="px-2.5 py-1.5 text-xs font-medium text-text-secondary bg-surface-secondary border border-border-secondary rounded-lg hover:bg-surface-secondary transition-colors">
               Alle schliessen
             </button>
           </div>
         </div>
         {/* History Search */}
         <div className="relative mt-3">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={historySearch}
             onChange={(e) => setHistorySearch(e.target.value)}
             placeholder="Historie durchsuchen (Stadt, Team, Standort...)"
-            className="w-full pl-9 pr-4 py-2 bg-white/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-sm transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-surface-primary border border-border-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-sm transition-all"
           />
           {historySearch && (
-            <button onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary">
               <X size={14} />
             </button>
           )}
@@ -382,20 +382,20 @@ function InvitationHistorySection({ bookings, routes }) {
             <div key={group.key}>
               <button
                 onClick={() => toggleGroup(group.key)}
-                className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/80 transition-colors text-left"
+                className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-surface-secondary/80 transition-colors text-left"
               >
-                <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${isExpanded ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                  {isExpanded ? <ChevronDown size={14} className="text-indigo-600" /> : <ChevronRight size={14} className="text-gray-500" />}
+                <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${isExpanded ? 'bg-indigo-100' : 'bg-surface-secondary'}`}>
+                  {isExpanded ? <ChevronDown size={14} className="text-indigo-600" /> : <ChevronRight size={14} className="text-text-muted" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm text-gray-900">{fmtDateDot(group.date)}</span>
-                    <span className="text-sm text-gray-400">&mdash;</span>
-                    <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                      <MapPin size={12} className="text-gray-400 shrink-0" /> Tour {group.city}
+                    <span className="font-semibold text-sm text-text-primary">{fmtDateDot(group.date)}</span>
+                    <span className="text-sm text-text-muted">&mdash;</span>
+                    <span className="text-sm font-medium text-text-primary flex items-center gap-1">
+                      <MapPin size={12} className="text-text-muted shrink-0" /> Tour {group.city}
                     </span>
                     {group.team && (
-                      <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-full font-medium">
+                      <span className="text-xs px-2 py-0.5 bg-brand-purple/10 text-purple-700 border border-brand-purple/20 rounded-full font-medium">
                         {group.team}
                       </span>
                     )}
@@ -403,36 +403,36 @@ function InvitationHistorySection({ bookings, routes }) {
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {(sCounts.booked || sCounts.confirmed) ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-[10px] font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-status-online/10 text-green-700 border border-status-online/20 rounded-full text-[10px] font-medium">
                       <CheckCircle size={10} /> {(sCounts.booked || 0) + (sCounts.confirmed || 0)}
                     </span>
                   ) : null}
                   {sCounts.pending ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-full text-[10px] font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-status-warning/10 text-yellow-700 border border-status-warning/20 rounded-full text-[10px] font-medium">
                       <Clock size={10} /> {sCounts.pending}
                     </span>
                   ) : null}
                   {sCounts.cancelled ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-[10px] font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-status-offline/10 text-red-700 border border-status-offline/20 rounded-full text-[10px] font-medium">
                       <XCircle size={10} /> {sCounts.cancelled}
                     </span>
                   ) : null}
-                  <span className="text-xs text-gray-400 font-mono ml-1">{group.items.length} Einl.</span>
+                  <span className="text-xs text-text-muted font-mono ml-1">{group.items.length} Einl.</span>
                 </div>
               </button>
 
               {isExpanded && (
                 <div className="px-5 pb-4">
-                  <div className="bg-gray-50/80 rounded-xl border border-gray-100 overflow-hidden">
+                  <div className="bg-surface-secondary/80 rounded-xl border border-gray-100 overflow-hidden">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-gray-200/60">
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Standort</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Stadt</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Kontakt</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Telefon</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Eingeladen um</th>
+                        <tr className="border-b border-border-secondary/60">
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Standort</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Stadt</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Kontakt</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Telefon</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Status</th>
+                          <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider">Eingeladen um</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -440,19 +440,19 @@ function InvitationHistorySection({ bookings, routes }) {
                           const stCfg = STATUS_BADGES[b.status] || STATUS_BADGES.not_invited;
                           const StIcon = stCfg.icon;
                           return (
-                            <tr key={b.id} className="hover:bg-white/60 transition-colors">
+                            <tr key={b.id} className="hover:bg-surface-secondary transition-colors">
                               <td className="px-4 py-2.5">
-                                <div className="text-sm font-medium text-gray-900 truncate max-w-[180px]">{b.location_name || 'Unbekannt'}</div>
+                                <div className="text-sm font-medium text-text-primary truncate max-w-[180px]">{b.location_name || 'Unbekannt'}</div>
                               </td>
                               <td className="px-4 py-2.5">
-                                <div className="text-sm text-gray-600 flex items-center gap-1">
-                                  <MapPin size={11} className="text-gray-400 shrink-0" /> {b.city || '--'}
+                                <div className="text-sm text-text-secondary flex items-center gap-1">
+                                  <MapPin size={11} className="text-text-muted shrink-0" /> {b.city || '--'}
                                 </div>
                               </td>
-                              <td className="px-4 py-2.5"><div className="text-sm text-gray-700">{b.contact_name || '--'}</div></td>
+                              <td className="px-4 py-2.5"><div className="text-sm text-text-primary">{b.contact_name || '--'}</div></td>
                               <td className="px-4 py-2.5">
-                                <div className="text-xs text-gray-500 font-mono flex items-center gap-1">
-                                  <Phone size={10} className="text-gray-400" /> {b.contact_phone || '--'}
+                                <div className="text-xs text-text-muted font-mono flex items-center gap-1">
+                                  <Phone size={10} className="text-text-muted" /> {b.contact_phone || '--'}
                                 </div>
                               </td>
                               <td className="px-4 py-2.5">
@@ -462,9 +462,9 @@ function InvitationHistorySection({ bookings, routes }) {
                               </td>
                               <td className="px-4 py-2.5">
                                 <div className="flex items-center gap-1.5">
-                                  <Calendar size={11} className="text-gray-400 shrink-0" />
-                                  <span className="text-xs text-gray-500 font-mono">{fmtDateDot(b.whatsapp_sent_at?.slice(0, 10))}</span>
-                                  <span className="text-xs text-gray-400 font-mono">{fmtTime(b.whatsapp_sent_at)}</span>
+                                  <Calendar size={11} className="text-text-muted shrink-0" />
+                                  <span className="text-xs text-text-muted font-mono">{fmtDateDot(b.whatsapp_sent_at?.slice(0, 10))}</span>
+                                  <span className="text-xs text-text-muted font-mono">{fmtTime(b.whatsapp_sent_at)}</span>
                                 </div>
                               </td>
                             </tr>
@@ -481,8 +481,8 @@ function InvitationHistorySection({ bookings, routes }) {
       </div>
 
       {historySearch && filteredGroups.length === 0 && (
-        <div className="px-5 py-8 text-center text-gray-400">
-          <Search size={20} className="mx-auto mb-2 text-gray-300" />
+        <div className="px-5 py-8 text-center text-text-muted">
+          <Search size={20} className="mx-auto mb-2 text-text-muted" />
           <p className="text-sm">Keine Ergebnisse fuer &quot;{historySearch}&quot;</p>
         </div>
       )}
@@ -1021,11 +1021,11 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-[60] flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-fade-in ${
-          toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'
+          toast.type === 'error' ? 'bg-status-offline text-white' : 'bg-emerald-600 text-white'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
           {toast.message}
-          <button onClick={() => setToast(null)} className="ml-2 p-0.5 hover:bg-white/20 rounded">
+          <button onClick={() => setToast(null)} className="ml-2 p-0.5 hover:bg-surface-primary/20 rounded">
             <X size={14} />
           </button>
         </div>
@@ -1034,14 +1034,14 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Standorte einladen</h2>
-          <p className="text-gray-500 mt-1">Installationsbereite Standorte per WhatsApp zur Terminbuchung einladen.</p>
+          <h2 className="text-2xl font-bold text-text-primary">Standorte einladen</h2>
+          <p className="text-text-muted mt-1">Installationsbereite Standorte per WhatsApp zur Terminbuchung einladen.</p>
         </div>
         <div className="flex items-center gap-2">
           {selected.size > 0 && (
             <button
               onClick={() => setShowBatchModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 font-medium shadow-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-status-warning text-white rounded-xl hover:bg-orange-600 font-medium shadow-sm transition-colors"
             >
               <Send size={16} />
               {selected.size} einladen
@@ -1050,7 +1050,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
           <button
             onClick={handleRefresh}
             disabled={loading || syncing}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl hover:bg-white/80 text-gray-700 text-sm transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-surface-primary border border-border-secondary rounded-xl hover:bg-surface-secondary text-text-primary text-sm transition-colors disabled:opacity-50"
           >
             {(loading || syncing) ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             Aktualisieren
@@ -1062,8 +1062,8 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
       {inviteResult && (
         <div className={`flex items-start gap-3 px-4 py-3 rounded-xl text-sm border animate-fade-in ${
           inviteResult.failed === 0
-            ? 'bg-green-50 text-green-700 border-green-200'
-            : 'bg-amber-50 text-amber-700 border-amber-200'
+            ? 'bg-status-online/10 text-green-700 border-status-online/20'
+            : 'bg-status-warning/10 text-amber-700 border-status-warning/20'
         }`}>
           <div className="shrink-0 mt-0.5">
             {inviteResult.failed === 0 ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
@@ -1087,8 +1087,8 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
 
       {/* WhatsApp Status Banner */}
       {whatsappEnabled === false && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm">
-          <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3 bg-status-warning/10 border border-status-warning/20 rounded-xl text-sm">
+          <AlertTriangle size={16} className="text-status-warning shrink-0" />
           <div>
             <span className="font-medium text-amber-800">WhatsApp ist deaktiviert.</span>{' '}
             <span className="text-amber-700">Einladungen werden erstellt, aber <strong>keine WhatsApp-Nachrichten</strong> gesendet. Aktiviere WhatsApp im Header-Toggle.</span>
@@ -1096,8 +1096,8 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
         </div>
       )}
       {whatsappEnabled === true && (
-        <div className="flex items-center gap-3 px-4 py-2.5 bg-green-50 border border-green-200 rounded-xl text-sm">
-          <CheckCircle size={16} className="text-green-600 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-status-online/10 border border-status-online/20 rounded-xl text-sm">
+          <CheckCircle size={16} className="text-status-online shrink-0" />
           <span className="text-green-800"><strong>WhatsApp aktiv</strong> — Einladungen werden per WhatsApp an Kunden gesendet.</span>
         </div>
       )}
@@ -1127,20 +1127,20 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: 'Bereit (gesamt)', value: kpis.totalReady, color: 'text-blue-600', bgColor: 'bg-blue-100', icon: Building, onClick: () => setFilterStatus('all') },
-          { label: 'Nicht eingeladen', value: kpis.notInvited, color: 'text-slate-600', bgColor: 'bg-slate-100', icon: Clock, onClick: () => setFilterStatus('not_invited') },
-          { label: 'Eingeladen', value: kpis.invited, color: 'text-yellow-600', bgColor: 'bg-yellow-100', icon: Send, onClick: () => setFilterStatus('invited') },
-          { label: 'Termin gebucht', value: kpis.booked, color: 'text-green-600', bgColor: 'bg-green-100', icon: CheckCircle, onClick: () => setFilterStatus('booked') },
-          { label: 'Nachterminierung', value: kpis.reschedule, color: 'text-orange-600', bgColor: 'bg-orange-100', icon: History, onClick: () => setFilterStatus('reschedule'), highlight: kpis.reschedule > 0 },
-          { label: 'Ohne Telefon', value: kpis.noPhone, color: 'text-red-600', bgColor: 'bg-red-100', icon: AlertTriangle, onClick: () => {} },
+          { label: 'Bereit (gesamt)', value: kpis.totalReady, color: 'text-accent', bgColor: 'bg-accent-light', icon: Building, onClick: () => setFilterStatus('all') },
+          { label: 'Nicht eingeladen', value: kpis.notInvited, color: 'text-text-secondary', bgColor: 'bg-surface-secondary', icon: Clock, onClick: () => setFilterStatus('not_invited') },
+          { label: 'Eingeladen', value: kpis.invited, color: 'text-status-warning', bgColor: 'bg-status-warning/10', icon: Send, onClick: () => setFilterStatus('invited') },
+          { label: 'Termin gebucht', value: kpis.booked, color: 'text-status-online', bgColor: 'bg-status-online/10', icon: CheckCircle, onClick: () => setFilterStatus('booked') },
+          { label: 'Nachterminierung', value: kpis.reschedule, color: 'text-status-warning', bgColor: 'bg-status-warning/10', icon: History, onClick: () => setFilterStatus('reschedule'), highlight: kpis.reschedule > 0 },
+          { label: 'Ohne Telefon', value: kpis.noPhone, color: 'text-status-offline', bgColor: 'bg-status-offline/10', icon: AlertTriangle, onClick: () => {} },
         ].map(k => {
           const Icon = k.icon;
           return (
             <button
               key={k.label}
               onClick={k.onClick}
-              className={`backdrop-blur-xl rounded-2xl p-4 text-left hover:shadow-md transition-all ${
-                k.highlight ? 'bg-orange-50/80 border-2 border-orange-300 ring-1 ring-orange-200' : 'bg-white/60 border border-slate-200/60 hover:bg-white/80'
+              className={`rounded-2xl p-4 text-left hover:shadow-md transition-all ${
+                k.highlight ? 'bg-status-warning/10/80 border-2 border-orange-300 ring-1 ring-orange-200' : 'bg-surface-primary border border-border-secondary hover:bg-surface-secondary'
               }`}
             >
               <div className="flex items-center gap-2 mb-2">
@@ -1149,7 +1149,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                 </div>
               </div>
               <div className={`text-2xl font-bold ${k.color}`}>{k.value}</div>
-              <div className="text-xs text-gray-500 font-medium">{k.label}</div>
+              <div className="text-xs text-text-muted font-medium">{k.label}</div>
             </button>
           );
         })}
@@ -1158,7 +1158,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         {/* Status tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+        <div className="flex gap-1 bg-surface-secondary rounded-xl p-1">
           {[
             { id: 'not_invited', label: 'Nicht eingeladen', count: kpis.notInvited },
             { id: 'invited', label: 'Eingeladen', count: kpis.invited },
@@ -1171,13 +1171,13 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
               onClick={() => { setFilterStatus(tab.id); setSelected(new Set()); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 filterStatus === tab.id
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface-primary text-text-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-primary'
               }`}
             >
               {tab.label}
               {tab.count !== undefined && (
-                <span className={`ml-1 ${tab.warn ? 'text-orange-600 font-bold' : 'opacity-60'}`}>({tab.count})</span>
+                <span className={`ml-1 ${tab.warn ? 'text-status-warning font-bold' : 'opacity-60'}`}>({tab.count})</span>
               )}
             </button>
           ))}
@@ -1185,16 +1185,16 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
 
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Suche nach Name, Stadt, PLZ, JET-ID..."
-            className="w-full pl-10 pr-4 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 text-sm transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-surface-primary border border-border-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 text-sm transition-all"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary">
               <X size={14} />
             </button>
           )}
@@ -1205,7 +1205,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
           <select
             value={filterCity}
             onChange={(e) => setFilterCity(e.target.value)}
-            className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
+            className="bg-surface-primary border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
           >
             <option value="">Alle Staedte</option>
             {cities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -1213,7 +1213,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
           {filterCity && filterStatus === 'ready' && (
             <button
               onClick={() => selectAllInCity(filterCity)}
-              className="px-2.5 py-2 text-xs font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded-xl hover:bg-orange-100 transition-colors whitespace-nowrap"
+              className="px-2.5 py-2 text-xs font-medium text-status-warning bg-status-warning/10 border border-status-warning/20 rounded-xl hover:bg-status-warning/10 transition-colors whitespace-nowrap"
               title={`Alle in ${filterCity} auswaehlen`}
             >
               <CheckSquare size={14} />
@@ -1225,7 +1225,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
         <select
           value={filterMountType}
           onChange={(e) => setFilterMountType(e.target.value)}
-          className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
+          className="bg-surface-primary border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
         >
           {MOUNT_TYPES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
@@ -1234,7 +1234,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
         <select
           value={filterContract}
           onChange={(e) => setFilterContract(e.target.value)}
-          className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
+          className="bg-surface-primary border border-border-secondary rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all"
         >
           <option value="">Alle Vertraege</option>
           <option value="yes">Mit Vertrag</option>
@@ -1244,14 +1244,14 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
 
       {/* Results count + Selection actions */}
       <div className="flex items-center justify-between">
-        <div className="text-xs text-gray-400 font-mono">
+        <div className="text-xs text-text-muted font-mono">
           {filtered.length} Standorte gefunden
           {selected.size > 0 && ` | ${selected.size} ausgewaehlt`}
         </div>
         {selected.size > 0 && (
           <button
             onClick={() => setSelected(new Set())}
-            className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+            className="text-xs text-text-muted hover:text-text-primary flex items-center gap-1"
           >
             <X size={12} /> Auswahl aufheben
           </button>
@@ -1259,27 +1259,27 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
       </div>
 
       {/* Table */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden shadow-sm">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
-            <Loader2 size={24} className="animate-spin text-orange-500" />
+          <div className="flex flex-col items-center justify-center h-64 text-text-muted gap-3">
+            <Loader2 size={24} className="animate-spin text-status-warning" />
             <p className="text-sm">Standorte werden geladen...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
-            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
-              <Inbox size={32} className="text-gray-300" />
+          <div className="flex flex-col items-center justify-center h-64 text-text-muted gap-3">
+            <div className="w-16 h-16 rounded-2xl bg-surface-secondary flex items-center justify-center">
+              <Inbox size={32} className="text-text-muted" />
             </div>
             <div className="text-center">
-              <p className="font-medium text-gray-600">Keine Standorte gefunden</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="font-medium text-text-secondary">Keine Standorte gefunden</p>
+              <p className="text-xs text-text-muted mt-1">
                 {filterStatus === 'ready' ? 'Alle Standorte wurden bereits eingeladen.' : 'Versuche andere Filter.'}
               </p>
             </div>
             {filterStatus === 'ready' && (
               <button
                 onClick={() => setFilterStatus('all')}
-                className="px-4 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-status-warning bg-status-warning/10 rounded-xl hover:bg-status-warning/10 transition-colors"
               >
                 Alle Standorte anzeigen
               </button>
@@ -1289,22 +1289,22 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
+                <tr className="border-b border-gray-100 bg-surface-secondary/50">
                   <th className="px-4 py-3 w-10">
                     <input
                       type="checkbox"
                       checked={selected.size === filtered.length && filtered.length > 0}
                       onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400"
+                      className="w-4 h-4 rounded border-border-primary text-status-warning focus:ring-orange-400"
                     />
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Standort</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Stadt</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kontakt</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Montage</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Vertrag</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Aktionen</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Standort</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Stadt</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Kontakt</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Montage</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Vertrag</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Aktionen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1317,7 +1317,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                   return (
                     <tr
                       key={s.id}
-                      className={`hover:bg-white/80 cursor-pointer transition-colors ${isSelected ? 'bg-orange-50/50' : ''}`}
+                      className={`hover:bg-surface-secondary cursor-pointer transition-colors ${isSelected ? 'bg-status-warning/10/50' : ''}`}
                       onClick={() => setDetailStandort(s)}
                     >
                       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
@@ -1325,7 +1325,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelect(s.id)}
-                          className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400"
+                          className="w-4 h-4 rounded border-border-primary text-status-warning focus:ring-orange-400"
                         />
                       </td>
                       <td className="px-4 py-3">
@@ -1333,46 +1333,46 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                           onClick={(e) => { e.stopPropagation(); setDetailStandort(s); }}
                           className="text-left group"
                         >
-                          <div className="font-medium text-gray-900 text-sm truncate max-w-[200px] group-hover:text-orange-600 transition-colors">{s.locationName || '--'}</div>
-                          <div className="text-xs text-gray-400 truncate">
+                          <div className="font-medium text-text-primary text-sm truncate max-w-[200px] group-hover:text-status-warning transition-colors">{s.locationName || '--'}</div>
+                          <div className="text-xs text-text-muted truncate">
                             {s.street} {s.streetNumber}{s.postalCode ? `, ${s.postalCode}` : ''}
                           </div>
                         </button>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 text-sm text-gray-700">
-                          <MapPin size={13} className="text-gray-400 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-sm text-text-primary">
+                          <MapPin size={13} className="text-text-muted shrink-0" />
                           {(s.city || []).join(', ') || '--'}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm text-gray-900">{s.contactPerson || '--'}</div>
+                        <div className="text-sm text-text-primary">{s.contactPerson || '--'}</div>
                         {s.contactPhone ? (
-                          <div className="text-xs text-gray-400 flex items-center gap-1 font-mono">
+                          <div className="text-xs text-text-muted flex items-center gap-1 font-mono">
                             <Phone size={10} /> {s.contactPhone}
                           </div>
                         ) : (
-                          <div className="text-xs text-red-400 flex items-center gap-1">
+                          <div className="text-xs text-status-offline flex items-center gap-1">
                             <AlertCircle size={10} /> Keine Nummer
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-text-primary">
                         {s.mountType || '--'}
                       </td>
                       <td className="px-4 py-3">
                         {(s.vertragVorhanden === 'true' || s.vertragVorhanden === true || s.vertragVorhanden === 'YES' || s.vertragVorhanden === 'yes' || s.vertragVorhanden === 'checked') ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-medium">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-status-online/10 text-green-700 border border-status-online/20 rounded-lg text-xs font-medium">
                             <CheckCircle size={10} /> Ja
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400">Nein</span>
+                          <span className="text-xs text-text-muted">Nein</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={bookStatus} />
                         {booking?.whatsapp_sent_at && (
-                          <div className="text-[10px] text-gray-400 mt-0.5">
+                          <div className="text-[10px] text-text-muted mt-0.5">
                             {formatDateTime(booking.whatsapp_sent_at)}
                           </div>
                         )}
@@ -1382,7 +1382,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                           <button
                             onClick={(e) => { e.stopPropagation(); sendInvites([s]); }}
                             disabled={inviting}
-                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-100 disabled:opacity-50 transition-colors"
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-status-warning/10 text-orange-700 border border-status-warning/20 rounded-lg hover:bg-status-warning/10 disabled:opacity-50 transition-colors"
                           >
                             {inviting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Einladen
                           </button>
@@ -1390,7 +1390,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
                         {bookStatus !== 'not_invited' && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setDetailStandort(s); }}
-                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-surface-secondary text-text-secondary border border-border-secondary rounded-lg hover:bg-surface-secondary transition-colors"
                           >
                             <Eye size={12} /> Details
                           </button>
@@ -1407,24 +1407,24 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
 
       {/* Recent Invites Section */}
       {recentInvites.length > 0 && filterStatus !== 'ready' && (
-        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
-            <History size={16} className="text-gray-400" /> Letzte Einladungen
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
+            <History size={16} className="text-text-muted" /> Letzte Einladungen
           </h3>
           <div className="space-y-2">
             {recentInvites.map(b => (
-              <div key={b.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+              <div key={b.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-secondary transition-colors">
                 <div className={`w-2 h-2 rounded-full shrink-0 ${
-                  b.status === 'booked' || b.status === 'confirmed' ? 'bg-green-500' :
-                  b.status === 'pending' ? 'bg-yellow-500' :
-                  b.status === 'cancelled' ? 'bg-red-500' : 'bg-gray-400'
+                  b.status === 'booked' || b.status === 'confirmed' ? 'bg-status-online' :
+                  b.status === 'pending' ? 'bg-status-warning' :
+                  b.status === 'cancelled' ? 'bg-status-offline' : 'bg-gray-400'
                 }`} />
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-gray-900 truncate">{b.location_name || 'Unbekannt'}</div>
-                  <div className="text-xs text-gray-400">{b.city} | {b.contact_name}</div>
+                  <div className="text-sm font-medium text-text-primary truncate">{b.location_name || 'Unbekannt'}</div>
+                  <div className="text-xs text-text-muted">{b.city} | {b.contact_name}</div>
                 </div>
                 <StatusBadge status={b.status} />
-                <span className="text-[10px] text-gray-400 font-mono shrink-0">
+                <span className="text-[10px] text-text-muted font-mono shrink-0">
                   {formatDateTime(b.whatsapp_sent_at)}
                 </span>
               </div>

@@ -527,10 +527,10 @@ const DATA_SOURCES = [
 ];
 
 const CATEGORY_INFO = {
-  core: { label: 'Stammdaten', color: '#3b82f6', icon: Database },
-  operations: { label: 'Operations', color: '#8b5cf6', icon: Layers },
+  core: { label: 'Stammdaten', color: '#007AFF', icon: Database },
+  operations: { label: 'Operations', color: '#AF52DE', icon: Layers },
   sales: { label: 'Sales / Akquise', color: '#10b981', icon: Zap },
-  hardware: { label: 'Hardware', color: '#f59e0b', icon: Code },
+  hardware: { label: 'Hardware', color: '#FF9500', icon: Code },
   programmatic: { label: 'Programmatic', color: '#ec4899', icon: FileSpreadsheet },
   monitoring: { label: 'Monitoring', color: '#06b6d4', icon: Wifi },
 };
@@ -730,9 +730,9 @@ const INSTALL_KPI_AUDIT_DATA = [
 ];
 
 const KPI_CATEGORY_INFO = {
-  core: { label: 'Kern-KPIs', color: '#3b82f6' },
-  status: { label: 'Status-KPIs', color: '#f59e0b' },
-  tracking: { label: 'Tracking', color: '#8b5cf6' },
+  core: { label: 'Kern-KPIs', color: '#007AFF' },
+  status: { label: 'Status-KPIs', color: '#FF9500' },
+  tracking: { label: 'Tracking', color: '#AF52DE' },
   operations: { label: 'Operations', color: '#06b6d4' },
   revenue: { label: 'Revenue', color: '#10b981' },
   predicates: { label: 'Predicates (Source of Truth)', color: '#ec4899' },
@@ -941,14 +941,14 @@ export default function DataMappingPanel() {
           value={DATA_SOURCES.length}
           sub={`${stats.airtableSources} Airtable + 1 Google Sheets`}
           icon={Database}
-          color="#3b82f6"
+          color="#007AFF"
         />
         <StatCard
           label="Felder gesamt"
           value={stats.totalFields}
           sub={`${stats.syncedFields} synced / ${stats.totalFields - stats.syncedFields} verfuegbar`}
           icon={Table2}
-          color="#8b5cf6"
+          color="#AF52DE"
         />
         <StatCard
           label="Records"
@@ -962,14 +962,14 @@ export default function DataMappingPanel() {
           value={stats.lastSync ? formatTimeAgo(stats.lastSync) || formatTimestamp(stats.lastSync) : 'Kein Sync'}
           sub={stats.lastSync ? formatTimestamp(stats.lastSync) : 'sync_metadata leer'}
           icon={Clock}
-          color={stats.lastSync ? '#f59e0b' : '#ef4444'}
+          color={stats.lastSync ? '#FF9500' : '#FF3B30'}
         />
         <StatCard
           label="Sync-Fehler"
           value={stats.failedSyncs}
           sub={stats.failedSyncs === 0 ? 'Alle OK' : `${stats.failedSyncs} Tabelle(n)`}
           icon={stats.failedSyncs === 0 ? CheckCircle2 : AlertTriangle}
-          color={stats.failedSyncs === 0 ? '#10b981' : '#ef4444'}
+          color={stats.failedSyncs === 0 ? '#10b981' : '#FF3B30'}
         />
       </div>
 
@@ -977,7 +977,7 @@ export default function DataMappingPanel() {
       <div className="flex items-center gap-2 flex-wrap">
         <button
           onClick={exportAllSourcesCSV}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-white/60 backdrop-blur-xl text-slate-600 border border-slate-200/60 hover:bg-emerald-50/80 hover:text-emerald-700 hover:border-emerald-200/60 transition-all"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-surface-primary text-text-secondary border border-border-secondary hover:bg-emerald-50/80 hover:text-emerald-700 hover:border-emerald-200/60 transition-all"
           title="Alle Datenquellen als CSV exportieren"
         >
           <Download size={13} />
@@ -987,23 +987,23 @@ export default function DataMappingPanel() {
           onClick={() => setShowKPIAudit(!showKPIAudit)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
             showKPIAudit
-              ? 'bg-blue-50/80 text-blue-700 border border-blue-200/60 shadow-sm'
-              : 'bg-white/60 backdrop-blur-xl text-slate-600 border border-slate-200/60 hover:bg-white/80 hover:text-slate-800'
+              ? 'bg-accent-light/80 text-blue-700 border border-accent/20/60 shadow-sm'
+              : 'bg-surface-primary text-text-secondary border border-border-secondary hover:bg-surface-secondary hover:text-text-primary'
           }`}
         >
           <BarChart3 size={16} />
           KPI Audit
-          <span className={`font-mono text-xs px-1.5 py-0.5 rounded ${showKPIAudit ? 'bg-blue-100 text-blue-600' : 'bg-slate-100/80 text-slate-400'}`}>
+          <span className={`font-mono text-xs px-1.5 py-0.5 rounded ${showKPIAudit ? 'bg-accent-light text-accent' : 'bg-surface-secondary/80 text-text-muted'}`}>
             {KPI_AUDIT_DATA.length + INSTALL_KPI_AUDIT_DATA.length}
           </span>
           <ChevronDown size={14} className={`transition-transform ${showKPIAudit ? 'rotate-180' : ''}`} />
         </button>
 
         {showKPIAudit && (
-          <div className="mt-3 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm shadow-black/[0.03] space-y-4">
+          <div className="mt-3 bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                <BarChart3 size={16} className="text-blue-500" />
+              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                <BarChart3 size={16} className="text-accent" />
                 KPI Audit &mdash; Formeln, Datenquellen &amp; bekannte Probleme
               </h3>
               <div className="flex gap-1.5">
@@ -1027,38 +1027,38 @@ export default function DataMappingPanel() {
                   </h4>
                   <div className="grid gap-2">
                     {kpis.map((kpi) => (
-                      <div key={kpi.id} className="bg-white/70 rounded-xl border border-slate-200/40 p-4 space-y-2.5">
+                      <div key={kpi.id} className="bg-surface-primary rounded-xl border border-border-secondary/40 p-4 space-y-2.5">
                         {/* KPI Header */}
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold text-slate-900">{kpi.label}</span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100/80 text-slate-500">
+                          <span className="text-sm font-semibold text-text-primary">{kpi.label}</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary/80 text-text-muted">
                             {kpi.component}
                           </span>
-                          <span className="text-[10px] text-slate-400">{kpi.location}</span>
+                          <span className="text-[10px] text-text-muted">{kpi.location}</span>
                         </div>
 
                         {/* Formula */}
-                        <div className="font-mono text-xs bg-slate-100/80 rounded-lg p-2 text-slate-700 leading-relaxed">
+                        <div className="font-mono text-xs bg-surface-secondary/80 rounded-lg p-2 text-text-primary leading-relaxed">
                           {kpi.formula}
                           {kpi.formulaDetail && (
-                            <div className="mt-1 text-slate-500 text-[10px]">{kpi.formulaDetail}</div>
+                            <div className="mt-1 text-text-muted text-[10px]">{kpi.formulaDetail}</div>
                           )}
                         </div>
 
                         {/* Data Source & Fields */}
                         <div className="flex items-center gap-2 flex-wrap text-xs">
-                          <span className="text-slate-400">Quelle:</span>
-                          <span className="font-mono text-blue-700 bg-blue-50/60 px-1.5 py-0.5 rounded">{kpi.dataSource}</span>
-                          <span className="text-slate-300">|</span>
+                          <span className="text-text-muted">Quelle:</span>
+                          <span className="font-mono text-blue-700 bg-accent-light/60 px-1.5 py-0.5 rounded">{kpi.dataSource}</span>
+                          <span className="text-text-muted">|</span>
                           {kpi.fields.map((f, i) => (
-                            <span key={i} className="font-mono text-slate-600 bg-slate-100/60 px-1.5 py-0.5 rounded text-[10px]">
+                            <span key={i} className="font-mono text-text-secondary bg-surface-secondary/60 px-1.5 py-0.5 rounded text-[10px]">
                               {f}
                             </span>
                           ))}
                         </div>
 
                         {/* Interpretation */}
-                        <p className="text-xs text-slate-600 leading-relaxed">
+                        <p className="text-xs text-text-secondary leading-relaxed">
                           {kpi.interpretation}
                         </p>
 
@@ -1066,7 +1066,7 @@ export default function DataMappingPanel() {
                         {kpi.issues && kpi.issues.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {kpi.issues.map((issue, i) => (
-                              <span key={i} className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50/80 border border-amber-200/40 px-2 py-0.5 rounded-full">
+                              <span key={i} className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-status-warning/10/80 border border-status-warning/20/40 px-2 py-0.5 rounded-full">
                                 <AlertTriangle size={10} className="shrink-0" />
                                 {issue}
                               </span>
@@ -1076,7 +1076,7 @@ export default function DataMappingPanel() {
 
                         {/* Mobile Note */}
                         {kpi.mobileNote && (
-                          <div className="flex items-start gap-1.5 text-[10px] text-purple-700 bg-purple-50/60 border border-purple-200/30 rounded-lg px-2.5 py-1.5">
+                          <div className="flex items-start gap-1.5 text-[10px] text-purple-700 bg-brand-purple/10/60 border border-brand-purple/20/30 rounded-lg px-2.5 py-1.5">
                             <Info size={10} className="shrink-0 mt-0.5" />
                             {kpi.mobileNote}
                           </div>
@@ -1094,16 +1094,16 @@ export default function DataMappingPanel() {
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Suche nach Tabelle, Feld, Beschreibung..."
-            className="w-full bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400/60 transition-colors"
+            className="w-full bg-surface-primary border border-border-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-blue-400/60 transition-colors"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary">
               <XCircle size={14} />
             </button>
           )}
@@ -1136,12 +1136,12 @@ export default function DataMappingPanel() {
           return (
             <div
               key={src.id}
-              className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm shadow-black/[0.03] transition-all"
+              className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden shadow-card transition-all"
             >
               {/* Source Header (clickable) */}
               <button
                 onClick={() => setExpandedSource(isExpanded ? null : src.id)}
-                className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-50/50 transition-colors"
+                className="w-full flex items-center gap-3 p-4 text-left hover:bg-surface-secondary/50 transition-colors"
               >
                 {/* Category Dot */}
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: catInfo.color }} />
@@ -1157,19 +1157,19 @@ export default function DataMappingPanel() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-900 truncate">{src.name}</span>
-                    <span className="text-xs font-mono text-slate-400 bg-slate-100/80 px-1.5 py-0.5 rounded shrink-0">
+                    <span className="text-sm font-semibold text-text-primary truncate">{src.name}</span>
+                    <span className="text-xs font-mono text-text-muted bg-surface-secondary/80 px-1.5 py-0.5 rounded shrink-0">
                       {src.supabaseTable}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5 truncate">{src.description}</p>
+                  <p className="text-xs text-text-muted mt-0.5 truncate">{src.description}</p>
                 </div>
 
                 {/* Badges */}
                 <div className="hidden sm:flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-mono bg-slate-100/80 text-slate-600 px-2 py-1 rounded-lg">
+                  <span className="text-xs font-mono bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg">
                     {syncedCount}
-                    {availableCount > 0 && <span className="text-slate-400">+{availableCount}</span>}
+                    {availableCount > 0 && <span className="text-text-muted">+{availableCount}</span>}
                     {' '}Felder
                   </span>
                   {rowCount != null && (
@@ -1182,13 +1182,13 @@ export default function DataMappingPanel() {
 
                 {/* Expand Icon */}
                 <div className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
-                  <ChevronRight size={16} className="text-slate-400" />
+                  <ChevronRight size={16} className="text-text-muted" />
                 </div>
               </button>
 
               {/* Expanded Detail */}
               {isExpanded && (
-                <div className="border-t border-slate-200/60 bg-slate-50/30 p-4 space-y-4">
+                <div className="border-t border-border-secondary bg-surface-secondary/30 p-4 space-y-4">
                   {/* Meta Row */}
                   <div className="flex flex-wrap gap-2 text-xs">
                     {src.tableId && (
@@ -1198,7 +1198,7 @@ export default function DataMappingPanel() {
                     <MetaChip label="PK" value={src.primaryKey} />
                     <MetaChip label="Kategorie" value={catInfo.label} />
                     {src.source === 'google_sheets' && (
-                      <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded-lg font-mono">
+                      <span className="inline-flex items-center gap-1 bg-status-online/10 text-green-700 px-2 py-1 rounded-lg font-mono">
                         <FileSpreadsheet size={11} />
                         Google Sheets
                       </span>
@@ -1208,43 +1208,43 @@ export default function DataMappingPanel() {
                   {/* Sync, Rights & Usage Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Sync Info */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
+                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <RefreshCw size={12} />
                         Sync
                       </h4>
                       <div className="space-y-1.5 text-xs">
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Frequenz</span>
-                          <span className="font-mono text-slate-700">{src.syncFrequency}</span>
+                          <span className="text-text-muted">Frequenz</span>
+                          <span className="font-mono text-text-primary">{src.syncFrequency}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Methode</span>
-                          <span className="font-mono text-slate-700 text-right">{src.syncMethod}</span>
+                          <span className="text-text-muted">Methode</span>
+                          <span className="font-mono text-text-primary text-right">{src.syncMethod}</span>
                         </div>
                         {syncInfo ? (
                           <>
                             <div className="flex justify-between">
-                              <span className="text-slate-400">Letzter Sync</span>
-                              <span className="font-mono text-slate-700">{formatTimestamp(syncInfo.last_sync_timestamp)}</span>
+                              <span className="text-text-muted">Letzter Sync</span>
+                              <span className="font-mono text-text-primary">{formatTimestamp(syncInfo.last_sync_timestamp)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-slate-400">Dauer</span>
-                              <span className="font-mono text-slate-700">{formatDuration(syncInfo.last_sync_duration_ms)}</span>
+                              <span className="text-text-muted">Dauer</span>
+                              <span className="font-mono text-text-primary">{formatDuration(syncInfo.last_sync_duration_ms)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-slate-400">Fetched / Upserted</span>
-                              <span className="font-mono text-slate-700">{syncInfo.records_fetched ?? '\u2013'} / {syncInfo.records_upserted ?? '\u2013'}</span>
+                              <span className="text-text-muted">Fetched / Upserted</span>
+                              <span className="font-mono text-text-primary">{syncInfo.records_fetched ?? '\u2013'} / {syncInfo.records_upserted ?? '\u2013'}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-slate-400">Status</span>
-                              <span className={`font-mono ${syncInfo.last_sync_status === 'success' ? 'text-emerald-700' : syncInfo.last_sync_status === 'error' ? 'text-red-600' : 'text-amber-600'}`}>
+                              <span className="text-text-muted">Status</span>
+                              <span className={`font-mono ${syncInfo.last_sync_status === 'success' ? 'text-emerald-700' : syncInfo.last_sync_status === 'error' ? 'text-status-offline' : 'text-status-warning'}`}>
                                 {syncInfo.last_sync_status === 'success' ? '\u2705 OK' : syncInfo.last_sync_status === 'error' ? '\u274c Fehler' : syncInfo.last_sync_status || 'pending'}
                               </span>
                             </div>
                           </>
                         ) : (
-                          <div className="text-slate-400 italic mt-1">
+                          <div className="text-text-muted italic mt-1">
                             Kein Sync-Eintrag in sync_metadata
                           </div>
                         )}
@@ -1252,41 +1252,41 @@ export default function DataMappingPanel() {
                     </div>
 
                     {/* Rights */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
+                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <Shield size={12} />
                         Rechte
                       </h4>
                       <div className="space-y-2 text-xs">
                         <div>
-                          <div className="text-slate-400 mb-1">Quelle ({src.source === 'google_sheets' ? 'Google Sheets' : 'Airtable'})</div>
+                          <div className="text-text-muted mb-1">Quelle ({src.source === 'google_sheets' ? 'Google Sheets' : 'Airtable'})</div>
                           <div className="flex items-center gap-1.5">
-                            <Eye size={12} className="text-blue-500" />
-                            <span className="font-mono text-slate-700">READ-ONLY</span>
+                            <Eye size={12} className="text-accent" />
+                            <span className="font-mono text-text-primary">READ-ONLY</span>
                           </div>
                           {src.source !== 'google_sheets' && (
-                            <div className="text-slate-400 mt-0.5 text-[10px]">
+                            <div className="text-text-muted mt-0.5 text-[10px]">
                               Auth: Personal Access Token (PAT)
                             </div>
                           )}
                         </div>
                         <div>
-                          <div className="text-slate-400 mb-1">Supabase</div>
+                          <div className="text-text-muted mb-1">Supabase</div>
                           <div className="flex items-center gap-1.5">
                             <Pencil size={12} className="text-emerald-500" />
-                            <span className="font-mono text-slate-700">READ + WRITE</span>
+                            <span className="font-mono text-text-primary">READ + WRITE</span>
                           </div>
-                          <div className="text-slate-400 mt-0.5 text-[10px]">
+                          <div className="text-text-muted mt-0.5 text-[10px]">
                             Service Role Key (Server-side)
                           </div>
                         </div>
-                        <div className="border-t border-slate-200/40 pt-1.5 mt-1.5">
-                          <div className="text-slate-400 mb-1">Frontend</div>
+                        <div className="border-t border-border-secondary/40 pt-1.5 mt-1.5">
+                          <div className="text-text-muted mb-1">Frontend</div>
                           <div className="flex items-center gap-1.5">
-                            <Eye size={12} className="text-blue-500" />
-                            <span className="font-mono text-slate-700">READ-ONLY</span>
+                            <Eye size={12} className="text-accent" />
+                            <span className="font-mono text-text-primary">READ-ONLY</span>
                           </div>
-                          <div className="text-slate-400 mt-0.5 text-[10px]">
+                          <div className="text-text-muted mt-0.5 text-[10px]">
                             Anon Key + RLS Policies
                           </div>
                         </div>
@@ -1294,28 +1294,28 @@ export default function DataMappingPanel() {
                     </div>
 
                     {/* Usage */}
-                    <div className="bg-white/70 rounded-xl border border-slate-200/40 p-3">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="bg-surface-primary rounded-xl border border-border-secondary/40 p-3">
+                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <Code size={12} />
                         Verwendet in
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
                         {(src.usedIn || []).map((comp, i) => (
-                          <span key={i} className="inline-flex items-center text-xs font-mono bg-blue-50/80 text-blue-700 px-2 py-1 rounded-lg">
+                          <span key={i} className="inline-flex items-center text-xs font-mono bg-accent-light/80 text-blue-700 px-2 py-1 rounded-lg">
                             {comp}
                           </span>
                         ))}
                         {(!src.usedIn || src.usedIn.length === 0) && (
-                          <span className="text-slate-400 italic text-xs">Keine direkte Nutzung</span>
+                          <span className="text-text-muted italic text-xs">Keine direkte Nutzung</span>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Field Mapping Table */}
-                  <div className="bg-white/70 rounded-xl border border-slate-200/40 overflow-hidden">
-                    <div className="px-3 py-2 border-b border-slate-200/40 flex items-center justify-between">
-                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="bg-surface-primary rounded-xl border border-border-secondary/40 overflow-hidden">
+                    <div className="px-3 py-2 border-b border-border-secondary/40 flex items-center justify-between">
+                      <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
                         <ArrowRight size={12} />
                         Field Mapping ({syncedCount} synced{availableCount > 0 ? ` + ${availableCount} verfuegbar` : ''})
                       </h4>
@@ -1324,7 +1324,7 @@ export default function DataMappingPanel() {
                           <button
                             onClick={() => setShowOnlySynced(!showOnlySynced)}
                             className={`text-xs px-2 py-1 rounded-lg font-medium transition-colors ${
-                              showOnlySynced ? 'bg-blue-50 text-blue-700' : 'bg-slate-100/80 text-slate-500 hover:text-slate-700'
+                              showOnlySynced ? 'bg-accent-light text-blue-700' : 'bg-surface-secondary/80 text-text-muted hover:text-text-primary'
                             }`}
                           >
                             {showOnlySynced ? 'Nur Synced' : 'Alle zeigen'}
@@ -1332,7 +1332,7 @@ export default function DataMappingPanel() {
                         )}
                         <button
                           onClick={(e) => { e.stopPropagation(); exportSourceCSV(src); }}
-                          className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium bg-slate-100/80 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                          className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium bg-surface-secondary/80 text-text-muted hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                           title={`${src.name} als CSV exportieren`}
                         >
                           <Download size={11} />
@@ -1343,47 +1343,47 @@ export default function DataMappingPanel() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="border-b border-slate-200/40 bg-slate-50/50">
-                            <th className="text-center px-2 py-2 w-8 font-semibold text-slate-500"></th>
-                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Airtable Field</th>
-                            <th className="text-center px-2 py-2 text-slate-400">\u2192</th>
-                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Supabase Column</th>
-                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Typ</th>
+                          <tr className="border-b border-border-secondary/40 bg-surface-secondary/50">
+                            <th className="text-center px-2 py-2 w-8 font-semibold text-text-muted"></th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Airtable Field</th>
+                            <th className="text-center px-2 py-2 text-text-muted">\u2192</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Supabase Column</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Typ</th>
                             {src.fields.some(f => f.interpretation) && (
-                              <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Bedeutung</th>
+                              <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Bedeutung</th>
                             )}
-                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-wider">Hinweis</th>
+                            <th className="text-left px-3 py-2 font-semibold text-text-muted uppercase tracking-wider">Hinweis</th>
                           </tr>
                         </thead>
                         <tbody>
                           {src.fields
                             .filter(f => !showOnlySynced || f.synced)
                             .map((field, i) => (
-                            <tr key={i} className={`border-b border-slate-100/60 ${
-                              field.quirk ? 'bg-amber-50/30' :
-                              !field.synced ? 'bg-slate-50/40' : ''
+                            <tr key={i} className={`border-b border-border-secondary/60 ${
+                              field.quirk ? 'bg-status-warning/10/30' :
+                              !field.synced ? 'bg-surface-secondary/40' : ''
                             }`}>
                               <td className="text-center px-2 py-2">
                                 {field.synced ? (
                                   <CircleDot size={14} className="text-emerald-500 mx-auto" title="Synced" />
                                 ) : (
-                                  <Circle size={14} className="text-slate-300 mx-auto" title="Verfuegbar, nicht synced" />
+                                  <Circle size={14} className="text-text-muted mx-auto" title="Verfuegbar, nicht synced" />
                                 )}
                               </td>
-                              <td className={`px-3 py-2 font-mono ${field.synced ? 'text-slate-700' : 'text-slate-400'}`}>
+                              <td className={`px-3 py-2 font-mono ${field.synced ? 'text-text-primary' : 'text-text-muted'}`}>
                                 {field.airtable}
                               </td>
-                              <td className="text-center px-2 py-2 text-slate-300">
-                                {field.synced ? <ArrowRight size={12} /> : <span className="text-slate-200">\u2013</span>}
+                              <td className="text-center px-2 py-2 text-text-muted">
+                                {field.synced ? <ArrowRight size={12} /> : <span className="text-text-muted">\u2013</span>}
                               </td>
-                              <td className={`px-3 py-2 font-mono ${field.synced ? 'text-blue-700' : 'text-slate-300'}`}>
+                              <td className={`px-3 py-2 font-mono ${field.synced ? 'text-blue-700' : 'text-text-muted'}`}>
                                 {field.supabase}
                               </td>
                               <td className="px-3 py-2">
                                 <TypeBadge type={field.type} dimmed={!field.synced} />
                               </td>
                               {src.fields.some(f => f.interpretation) && (
-                                <td className="px-3 py-2 text-slate-500 max-w-xs">
+                                <td className="px-3 py-2 text-text-muted max-w-xs">
                                   {field.interpretation && (
                                     <span className="text-[11px] leading-relaxed">{field.interpretation}</span>
                                   )}
@@ -1391,13 +1391,13 @@ export default function DataMappingPanel() {
                               )}
                               <td className="px-3 py-2">
                                 {field.quirk && (
-                                  <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-100/60 px-1.5 py-0.5 rounded mr-1">
+                                  <span className="inline-flex items-center gap-1 text-amber-700 bg-status-warning/10/60 px-1.5 py-0.5 rounded mr-1">
                                     <AlertTriangle size={10} />
                                     {field.quirk}
                                   </span>
                                 )}
                                 {field.note && (
-                                  <span className="inline-flex items-center gap-1 text-blue-600 bg-blue-50/60 px-1.5 py-0.5 rounded">
+                                  <span className="inline-flex items-center gap-1 text-accent bg-accent-light/60 px-1.5 py-0.5 rounded">
                                     <Info size={10} />
                                     {field.note}
                                   </span>
@@ -1409,9 +1409,9 @@ export default function DataMappingPanel() {
                       </table>
                     </div>
                     {/* Legend */}
-                    <div className="px-3 py-2 border-t border-slate-200/40 flex items-center gap-4 text-[10px] text-slate-400">
+                    <div className="px-3 py-2 border-t border-border-secondary/40 flex items-center gap-4 text-[10px] text-text-muted">
                       <span className="flex items-center gap-1"><CircleDot size={10} className="text-emerald-500" /> Wird synchronisiert</span>
-                      <span className="flex items-center gap-1"><Circle size={10} className="text-slate-300" /> In Airtable verfuegbar, nicht synced</span>
+                      <span className="flex items-center gap-1"><Circle size={10} className="text-text-muted" /> In Airtable verfuegbar, nicht synced</span>
                     </div>
                   </div>
                 </div>
@@ -1421,38 +1421,38 @@ export default function DataMappingPanel() {
         })}
 
         {filteredSources.length === 0 && (
-          <div className="text-center py-12 text-slate-400 text-sm">
+          <div className="text-center py-12 text-text-muted text-sm">
             Keine Datenquellen gefunden fuer &quot;{searchQuery}&quot;
           </div>
         )}
       </div>
 
       {/* Known Quirks Section */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm shadow-black/[0.03]">
-        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
-          <AlertTriangle size={16} className="text-amber-500" />
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
+          <AlertTriangle size={16} className="text-status-warning" />
           Bekannte Airtable-Feldprobleme
         </h3>
-        <p className="text-xs text-slate-500 mb-3">
+        <p className="text-xs text-text-muted mb-3">
           Diese Felder haben Sonderzeichen, Tippfehler oder Leerzeichen im Airtable-Feldnamen. Sie werden im Sync korrekt behandelt.
         </p>
         <div className="grid gap-2">
           {KNOWN_QUIRKS.map((q, i) => (
             <div key={i} className="flex items-start gap-2 text-xs">
               <span className={`mt-0.5 shrink-0 ${
-                q.severity === 'error' ? 'text-red-500' :
-                q.severity === 'warning' ? 'text-amber-500' : 'text-blue-400'
+                q.severity === 'error' ? 'text-status-offline' :
+                q.severity === 'warning' ? 'text-status-warning' : 'text-accent'
               }`}>
                 {q.severity === 'error' ? <XCircle size={12} /> :
                  q.severity === 'warning' ? <AlertTriangle size={12} /> :
                  <Info size={12} />}
               </span>
               <div>
-                <span className="font-mono text-slate-700 bg-slate-100/80 px-1 rounded">{q.field}</span>
-                <span className="text-slate-400 mx-1">in</span>
-                <span className="text-slate-600">{q.table}</span>
-                <span className="text-slate-400 mx-1">\u2014</span>
-                <span className="text-slate-500">{q.issue}</span>
+                <span className="font-mono text-text-primary bg-surface-secondary/80 px-1 rounded">{q.field}</span>
+                <span className="text-text-muted mx-1">in</span>
+                <span className="text-text-secondary">{q.table}</span>
+                <span className="text-text-muted mx-1">\u2014</span>
+                <span className="text-text-muted">{q.issue}</span>
               </div>
             </div>
           ))}
@@ -1460,12 +1460,12 @@ export default function DataMappingPanel() {
       </div>
 
       {/* Sync Architecture & Rights Overview */}
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-sm shadow-black/[0.03]">
-        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
-          <Layers size={16} className="text-blue-500" />
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
+          <Layers size={16} className="text-accent" />
           Architektur & Berechtigungen
         </h3>
-        <div className="font-mono text-xs text-slate-600 leading-relaxed bg-slate-50/80 rounded-xl p-4 border border-slate-200/40 overflow-x-auto">
+        <div className="font-mono text-xs text-text-secondary leading-relaxed bg-surface-secondary/80 rounded-xl p-4 border border-border-secondary/40 overflow-x-auto">
           <pre className="whitespace-pre">{`Airtable (13 Tabellen)  \u2500\u2500\u25B6  sync-airtable.js  \u2500\u2500\u25B6  Supabase (14 Tabellen)
    READ-ONLY (PAT)            Netlify Scheduled        Inkrementeller Sync
                                Alle 2 Stunden           LAST_MODIFIED_TIME()
@@ -1485,7 +1485,7 @@ Supabase  \u2500\u2500\u25B6  React Frontend (App.jsx)
 
         {/* Rights Summary */}
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-200/30">
+          <div className="bg-accent-light/50 rounded-xl p-3 border border-accent/20/30">
             <div className="flex items-center gap-2 text-xs font-semibold text-blue-800 mb-1.5">
               <Eye size={14} />
               Airtable (Quelle)
@@ -1509,7 +1509,7 @@ Supabase  \u2500\u2500\u25B6  React Frontend (App.jsx)
               <div>\u2022 Lokaler Read-Cache \u2014 kein Master</div>
             </div>
           </div>
-          <div className="bg-purple-50/50 rounded-xl p-3 border border-purple-200/30">
+          <div className="bg-brand-purple/10/50 rounded-xl p-3 border border-brand-purple/20/30">
             <div className="flex items-center gap-2 text-xs font-semibold text-purple-800 mb-1.5">
               <Shield size={14} />
               Google Sheets
@@ -1523,8 +1523,8 @@ Supabase  \u2500\u2500\u25B6  React Frontend (App.jsx)
           </div>
         </div>
 
-        <div className="mt-3 flex items-start gap-2 text-xs text-slate-500">
-          <Info size={12} className="text-blue-400 mt-0.5 shrink-0" />
+        <div className="mt-3 flex items-start gap-2 text-xs text-text-muted">
+          <Info size={12} className="text-accent mt-0.5 shrink-0" />
           <span>
             <strong>Grundregel:</strong> Wir lesen NUR von externen Quellen (Airtable, Google Sheets).
             Wir schreiben NIEMALS zurueck. Supabase ist unser lokaler Cache.
@@ -1539,15 +1539,15 @@ Supabase  \u2500\u2500\u25B6  React Frontend (App.jsx)
 
 function StatCard({ label, value, sub, icon: Icon, color }) {
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4 shadow-card">
       <div className="flex items-center gap-2 mb-2">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '12' }}>
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-xl font-bold font-mono text-slate-900">{value}</div>
-      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
-      <div className="text-xs text-slate-400 font-mono mt-0.5">{sub}</div>
+      <div className="text-xl font-bold font-mono text-text-primary">{value}</div>
+      <div className="text-xs text-text-muted mt-0.5">{label}</div>
+      <div className="text-xs text-text-muted font-mono mt-0.5">{sub}</div>
     </div>
   );
 }
@@ -1558,15 +1558,15 @@ function FilterChip({ active, onClick, label, count, color }) {
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
         active
-          ? 'bg-white/80 text-slate-900 shadow-sm border border-slate-200/60'
-          : 'bg-white/30 text-slate-500 hover:text-slate-600 border border-transparent'
+          ? 'bg-surface-primary text-text-primary shadow-sm border border-border-secondary'
+          : 'bg-surface-primary/40 text-text-muted hover:text-text-secondary border border-transparent'
       }`}
     >
       {color && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />}
       {label}
       {count != null && (
         <span className={`font-mono px-1 py-0.5 rounded text-xs ${
-          active ? 'bg-blue-50 text-blue-600' : 'bg-slate-100/60 text-slate-400'
+          active ? 'bg-accent-light text-accent' : 'bg-surface-secondary/60 text-text-muted'
         }`}>
           {count}
         </span>
@@ -1577,7 +1577,7 @@ function FilterChip({ active, onClick, label, count, color }) {
 
 function SyncStatusBadge({ syncInfo }) {
   if (!syncInfo) return (
-    <span className="text-xs font-mono bg-slate-100/80 text-slate-400 px-2 py-1 rounded-lg flex items-center gap-1">
+    <span className="text-xs font-mono bg-surface-secondary/80 text-text-muted px-2 py-1 rounded-lg flex items-center gap-1">
       <Clock size={10} />
       Kein Sync
     </span>
@@ -1591,13 +1591,13 @@ function SyncStatusBadge({ syncInfo }) {
     </span>
   );
   if (status === 'error') return (
-    <span className="text-xs font-mono bg-red-50 text-red-700 px-2 py-1 rounded-lg flex items-center gap-1">
+    <span className="text-xs font-mono bg-status-offline/10 text-red-700 px-2 py-1 rounded-lg flex items-center gap-1">
       <XCircle size={10} />
       Fehler
     </span>
   );
   return (
-    <span className="text-xs font-mono bg-amber-50 text-amber-700 px-2 py-1 rounded-lg flex items-center gap-1">
+    <span className="text-xs font-mono bg-status-warning/10 text-amber-700 px-2 py-1 rounded-lg flex items-center gap-1">
       <Clock size={10} />
       {status || 'pending'}
     </span>
@@ -1606,11 +1606,11 @@ function SyncStatusBadge({ syncInfo }) {
 
 function MetaChip({ label, value, onCopy, copied }) {
   return (
-    <span className="inline-flex items-center gap-1 bg-slate-100/80 text-slate-600 px-2 py-1 rounded-lg font-mono">
-      <span className="text-slate-400 font-sans">{label}:</span>
-      <span className="text-slate-700">{value}</span>
+    <span className="inline-flex items-center gap-1 bg-surface-secondary/80 text-text-secondary px-2 py-1 rounded-lg font-mono">
+      <span className="text-text-muted font-sans">{label}:</span>
+      <span className="text-text-primary">{value}</span>
       {onCopy && (
-        <button onClick={() => onCopy(value)} className="text-slate-300 hover:text-slate-500 ml-0.5">
+        <button onClick={() => onCopy(value)} className="text-text-muted hover:text-text-muted ml-0.5">
           {copied ? <CheckCircle2 size={10} className="text-emerald-500" /> : <Copy size={10} />}
         </button>
       )}
@@ -1620,17 +1620,17 @@ function MetaChip({ label, value, onCopy, copied }) {
 
 function TypeBadge({ type, dimmed }) {
   const colors = {
-    text: 'bg-blue-50 text-blue-700',
-    date: 'bg-purple-50 text-purple-700',
-    number: 'bg-green-50 text-green-700',
-    int: 'bg-green-50 text-green-700',
-    timestamptz: 'bg-purple-50 text-purple-700',
-    array: 'bg-orange-50 text-orange-700',
+    text: 'bg-accent-light text-blue-700',
+    date: 'bg-brand-purple/10 text-purple-700',
+    number: 'bg-status-online/10 text-green-700',
+    int: 'bg-status-online/10 text-green-700',
+    timestamptz: 'bg-brand-purple/10 text-purple-700',
+    array: 'bg-status-warning/10 text-orange-700',
     attachment: 'bg-pink-50 text-pink-700',
     link: 'bg-cyan-50 text-cyan-700',
   };
   return (
-    <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${dimmed ? 'bg-slate-50 text-slate-400' : (colors[type] || 'bg-slate-50 text-slate-600')}`}>
+    <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${dimmed ? 'bg-surface-secondary text-text-muted' : (colors[type] || 'bg-surface-secondary text-text-secondary')}`}>
       {type}
     </span>
   );

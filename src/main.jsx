@@ -24,7 +24,7 @@ class GlobalErrorBoundary extends Component {
             </p>
             <button
               onClick={() => { sessionStorage.clear(); localStorage.removeItem('jet_dashboard_cache'); window.location.reload(); }}
-              style={{ padding: '10px 20px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+              style={{ padding: '10px 20px', background: '#007AFF', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
             >
               Cache leeren & neu laden
             </button>

@@ -60,7 +60,7 @@ function renderMarkdown(text) {
         <ul key={`list-${listKey++}`} className="ml-4 space-y-1 my-1">
           {listItems.map((item, i) => (
             <li key={i} className="flex gap-2 items-start">
-              <span className="text-slate-500 mt-0.5 select-none">&#8226;</span>
+              <span className="text-text-muted mt-0.5 select-none">&#8226;</span>
               <span>{inlineFormat(item)}</span>
             </li>
           ))}
@@ -105,7 +105,7 @@ function renderMarkdown(text) {
 
       if (matchType === 'bold') {
         parts.push(
-          <strong key={partKey++} className="font-semibold text-slate-100">
+          <strong key={partKey++} className="font-semibold text-text-primary">
             {firstMatch[1]}
           </strong>
         );
@@ -113,7 +113,7 @@ function renderMarkdown(text) {
         parts.push(
           <code
             key={partKey++}
-            className="bg-slate-700/60 text-violet-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
+            className="bg-surface-tertiary text-violet-300 px-1.5 py-0.5 rounded text-[13px] font-mono"
           >
             {firstMatch[1]}
           </code>
@@ -157,9 +157,9 @@ function renderMarkdown(text) {
 function BouncingDots() {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce [animation-delay:0ms]" />
-      <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce [animation-delay:150ms]" />
-      <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce [animation-delay:300ms]" />
+      <span className="w-2 h-2 rounded-full bg-text-muted animate-bounce [animation-delay:0ms]" />
+      <span className="w-2 h-2 rounded-full bg-text-muted animate-bounce [animation-delay:150ms]" />
+      <span className="w-2 h-2 rounded-full bg-text-muted animate-bounce [animation-delay:300ms]" />
     </span>
   );
 }
@@ -202,36 +202,36 @@ function FeedbackCard({ feedback, onConfirm, onDiscard }) {
   const isBug = feedback.type === 'bug';
 
   return (
-    <div className="mx-1 my-2 rounded-xl border border-slate-700/60 bg-slate-800/90 backdrop-blur-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/40">
+    <div className="mx-1 my-2 rounded-xl border border-border-secondary bg-surface-primary/90 overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border-secondary">
         {isBug ? (
-          <Bug size={18} className="text-red-400 shrink-0" />
+          <Bug size={18} className="text-status-offline shrink-0" />
         ) : (
           <Lightbulb size={18} className="text-amber-400 shrink-0" />
         )}
-        <span className="text-base font-medium text-slate-200">
+        <span className="text-base font-medium text-text-muted">
           {isBug ? 'Bug-Report' : 'Feature-Request'}
         </span>
       </div>
       <div className="px-4 py-3 space-y-1">
-        <p className="text-base font-medium text-slate-100">{feedback.title}</p>
+        <p className="text-base font-medium text-text-primary">{feedback.title}</p>
         {feedback.description && (
-          <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">
+          <p className="text-sm text-text-muted leading-relaxed line-clamp-3">
             {feedback.description}
           </p>
         )}
       </div>
-      <div className="flex border-t border-slate-700/40">
+      <div className="flex border-t border-border-secondary">
         <button
           onClick={onConfirm}
           className="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-base font-medium text-emerald-400 hover:bg-emerald-500/10 active:bg-emerald-500/20 transition-colors cursor-pointer"
         >
           <span>&#10003;</span> Aufnehmen
         </button>
-        <div className="w-px bg-slate-700/40" />
+        <div className="w-px bg-surface-tertiary" />
         <button
           onClick={onDiscard}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-base font-medium text-slate-400 hover:bg-slate-700/30 active:bg-slate-700/50 transition-colors cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-base font-medium text-text-muted hover:bg-surface-tertiary active:bg-surface-tertiary transition-colors cursor-pointer"
         >
           <span>&#10007;</span> Verwerfen
         </button>
@@ -244,48 +244,48 @@ function FeedbackCard({ feedback, onConfirm, onDiscard }) {
 
 function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
   return (
-    <div className="mx-1 my-2 rounded-xl border border-slate-700/60 bg-slate-800/90 backdrop-blur-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/40">
-        <span className="text-blue-400 shrink-0 text-lg">{'\u{1F4CB}'}</span>
-        <span className="text-base font-medium text-slate-200">Neuer Task</span>
+    <div className="mx-1 my-2 rounded-xl border border-border-secondary bg-surface-primary/90 overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border-secondary">
+        <span className="text-accent shrink-0 text-lg">{'\u{1F4CB}'}</span>
+        <span className="text-base font-medium text-text-muted">Neuer Task</span>
         {task.priority && (
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ml-auto ${
             task.priority === 'High' || task.priority === 'Urgent'
-              ? 'bg-red-500/20 text-red-300'
+              ? 'bg-status-offline/20 text-red-300'
               : task.priority === 'Medium'
-              ? 'bg-amber-500/20 text-amber-300'
-              : 'bg-slate-600/40 text-slate-400'
+              ? 'bg-status-warning/20 text-amber-300'
+              : 'bg-surface-tertiary text-text-muted'
           }`}>
             {task.priority}
           </span>
         )}
       </div>
       <div className="px-4 py-3 space-y-1.5">
-        <p className="text-base font-medium text-slate-100">{task.title}</p>
+        <p className="text-base font-medium text-text-primary">{task.title}</p>
         {task.description && (
-          <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">
+          <p className="text-sm text-text-muted leading-relaxed line-clamp-3">
             {task.description}
           </p>
         )}
         <div className="flex flex-wrap gap-2 mt-1">
           {task.partner && (
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">
+            <span className="text-xs px-2 py-0.5 rounded bg-surface-tertiary text-text-muted">
               Partner: {task.partner}
             </span>
           )}
           {task.status && (
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">
+            <span className="text-xs px-2 py-0.5 rounded bg-surface-tertiary text-text-muted">
               Status: {task.status}
             </span>
           )}
           {task.dueDate && (
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">
+            <span className="text-xs px-2 py-0.5 rounded bg-surface-tertiary text-text-muted">
               Fällig: {task.dueDate}
             </span>
           )}
         </div>
       </div>
-      <div className="flex border-t border-slate-700/40">
+      <div className="flex border-t border-border-secondary">
         <button
           onClick={onConfirm}
           disabled={isCreating}
@@ -297,11 +297,11 @@ function TaskCard({ task, onConfirm, onDiscard, isCreating }) {
             <><span>&#10003;</span> Task erstellen</>
           )}
         </button>
-        <div className="w-px bg-slate-700/40" />
+        <div className="w-px bg-surface-tertiary" />
         <button
           onClick={onDiscard}
           disabled={isCreating}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-base font-medium text-slate-400 hover:bg-slate-700/30 active:bg-slate-700/50 transition-colors cursor-pointer disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-base font-medium text-text-muted hover:bg-surface-tertiary active:bg-surface-tertiary transition-colors cursor-pointer disabled:opacity-50"
         >
           <span>&#10007;</span> Verwerfen
         </button>
@@ -340,20 +340,20 @@ function VoiceSettingsPanel({ settings, onClose }) {
   return (
     <div className="fixed inset-0 z-[60] bg-black/60 flex items-end justify-center animate-fade-in" onClick={onClose}>
       <div
-        className="w-full max-w-lg bg-slate-800 rounded-t-2xl border-t border-slate-700/60 p-6 space-y-5 animate-slide-up-full"
+        className="w-full max-w-lg bg-surface-primary rounded-t-2xl border-t border-border-secondary p-6 space-y-5 animate-slide-up-full"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-100">Sprach-Einstellungen</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 cursor-pointer">
+          <h3 className="text-lg font-semibold text-text-primary">Sprach-Einstellungen</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-muted cursor-pointer">
             <X size={20} />
           </button>
         </div>
 
         {/* Speech Speed */}
         <div>
-          <label className="text-sm text-slate-400 mb-2 block">Sprechgeschwindigkeit</label>
+          <label className="text-sm text-text-muted mb-2 block">Sprechgeschwindigkeit</label>
           <div className="flex gap-2">
             {SPEED_OPTIONS.map(opt => (
               <button
@@ -362,7 +362,7 @@ function VoiceSettingsPanel({ settings, onClose }) {
                 className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                   speechRate === opt.value
                     ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-500/20'
-                    : 'bg-slate-700/60 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+                    : 'bg-surface-tertiary text-text-muted hover:bg-surface-tertiary hover:text-text-muted'
                 }`}
               >
                 {opt.label}
@@ -374,17 +374,17 @@ function VoiceSettingsPanel({ settings, onClose }) {
         {/* Auto Conversation */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-200">Auto-Gesprächsmodus</p>
-            <p className="text-xs text-slate-500">Nach AI-Antwort automatisch zuhören</p>
+            <p className="text-sm font-medium text-text-muted">Auto-Gesprächsmodus</p>
+            <p className="text-xs text-text-muted">Nach AI-Antwort automatisch zuhören</p>
           </div>
           <button
             onClick={() => setAutoConversation(!autoConversation)}
             className={`w-12 h-7 rounded-full transition-colors cursor-pointer relative ${
-              autoConversation ? 'bg-violet-600' : 'bg-slate-600'
+              autoConversation ? 'bg-violet-600' : 'bg-[#48484A]'
             }`}
           >
             <span
-              className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${
+              className={`absolute top-0.5 w-6 h-6 rounded-full bg-surface-primary shadow transition-transform ${
                 autoConversation ? 'translate-x-5.5' : 'translate-x-0.5'
               }`}
             />
@@ -394,12 +394,12 @@ function VoiceSettingsPanel({ settings, onClose }) {
         {/* Voice Selection */}
         {voices.length > 1 && (
           <div>
-            <label className="text-sm text-slate-400 mb-2 block">Stimme</label>
-            <div className="space-y-1 max-h-32 overflow-y-auto rounded-xl bg-slate-900/50 p-2">
+            <label className="text-sm text-text-muted mb-2 block">Stimme</label>
+            <div className="space-y-1 max-h-32 overflow-y-auto rounded-xl bg-surface-primary/50 p-2">
               <button
                 onClick={() => setVoiceName('')}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors ${
-                  !voiceName ? 'bg-violet-600/20 text-violet-300' : 'text-slate-400 hover:bg-slate-700/50'
+                  !voiceName ? 'bg-violet-600/20 text-violet-300' : 'text-text-muted hover:bg-surface-tertiary'
                 }`}
               >
                 Automatisch (beste Stimme)
@@ -409,7 +409,7 @@ function VoiceSettingsPanel({ settings, onClose }) {
                   key={v.name}
                   onClick={() => setVoiceName(v.name)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors ${
-                    voiceName === v.name ? 'bg-violet-600/20 text-violet-300' : 'text-slate-400 hover:bg-slate-700/50'
+                    voiceName === v.name ? 'bg-violet-600/20 text-violet-300' : 'text-text-muted hover:bg-surface-tertiary'
                   }`}
                 >
                   {v.name}
@@ -438,27 +438,27 @@ function ConversationOverlay({
     listening: {
       label: 'Ich höre zu...',
       color: 'emerald',
-      bgClass: 'bg-slate-900/95',
+      bgClass: 'bg-surface-primary/95',
     },
     thinking: {
       label: 'Denke nach...',
       color: 'violet',
-      bgClass: 'bg-slate-900/97',
+      bgClass: 'bg-surface-primary/97',
     },
     speaking: {
       label: 'Spreche...',
       color: 'violet',
-      bgClass: 'bg-slate-900/93',
+      bgClass: 'bg-surface-primary/93',
     },
     idle: {
       label: 'Bereit',
       color: 'slate',
-      bgClass: 'bg-slate-900/95',
+      bgClass: 'bg-surface-primary/95',
     },
     silencePrompt: {
       label: 'Noch da?',
       color: 'amber',
-      bgClass: 'bg-slate-900/95',
+      bgClass: 'bg-surface-primary/95',
     },
   };
 
@@ -468,15 +468,15 @@ function ConversationOverlay({
     emerald: 'text-emerald-400',
     amber: 'text-amber-400',
     violet: 'text-violet-400',
-    blue: 'text-blue-400',
-    slate: 'text-slate-400',
+    blue: 'text-accent',
+    slate: 'text-text-muted',
   };
 
   const ringColorMap = {
     emerald: 'ring-emerald-500/40',
     amber: 'ring-amber-500/40',
     violet: 'ring-violet-500/40',
-    blue: 'ring-blue-500/40',
+    blue: 'ring-accent/40',
     slate: 'ring-slate-500/40',
   };
 
@@ -494,7 +494,7 @@ function ConversationOverlay({
       <div className="absolute top-0 left-0 right-0 h-14 flex items-center justify-between px-4 safe-top">
         <button
           onClick={onEndConversation}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 active:bg-red-500/40 transition-colors cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-status-offline/20 text-status-offline hover:bg-status-offline/30 active:bg-status-offline/40 transition-colors cursor-pointer"
         >
           <PhoneOff size={16} />
           <span className="text-sm font-medium">Gespräch beenden</span>
@@ -522,7 +522,7 @@ function ConversationOverlay({
                 ? 'bg-gradient-to-br from-violet-500 to-indigo-600'
                 : conversationState === 'thinking'
                 ? 'bg-gradient-to-br from-violet-500 to-purple-600'
-                : 'bg-slate-600'
+                : 'bg-[#48484A]'
             }`}
           >
             {conversationState === 'thinking' ? (
@@ -551,15 +551,15 @@ function ConversationOverlay({
 
         {/* Interim transcript while user speaks */}
         {conversationState === 'listening' && interimText && (
-          <div className="max-w-[80%] px-4 py-2 rounded-xl bg-slate-800/60 border border-slate-700/40">
-            <p className="text-sm text-slate-300 italic text-center">{interimText}</p>
+          <div className="max-w-[80%] px-4 py-2 rounded-xl bg-surface-primary/60 border border-border-secondary">
+            <p className="text-sm text-text-muted italic text-center">{interimText}</p>
           </div>
         )}
 
         {/* Last AI response text (shown while speaking) — markdown stripped */}
         {conversationState === 'speaking' && lastAIResponse && (
-          <div className="max-w-[85%] max-h-32 overflow-y-auto px-4 py-3 rounded-xl bg-slate-800/40 border border-slate-700/30">
-            <p className="text-sm text-slate-400 leading-relaxed line-clamp-4">
+          <div className="max-w-[85%] max-h-32 overflow-y-auto px-4 py-3 rounded-xl bg-surface-primary/40 border border-border-secondary">
+            <p className="text-sm text-text-muted leading-relaxed line-clamp-4">
               {processForVoice(lastAIResponse, { maxWords: 60 }).spokenText}
             </p>
           </div>
@@ -568,7 +568,7 @@ function ConversationOverlay({
         {/* Silence prompt */}
         {conversationState === 'silencePrompt' && (
           <div className="flex flex-col items-center gap-3">
-            <p className="text-sm text-slate-400">Sag etwas oder tippe um fortzufahren</p>
+            <p className="text-sm text-text-muted">Sag etwas oder tippe um fortzufahren</p>
             <button
               onClick={onResume}
               className="px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-medium hover:from-violet-500 hover:to-indigo-500 active:from-violet-700 active:to-indigo-700 transition-all cursor-pointer shadow-sm shadow-violet-500/20"
@@ -849,7 +849,7 @@ export default function MobileAgentView({ onClose, engine }) {
 
   return (
     <div
-      className="fixed inset-x-0 top-0 z-40 bg-slate-900 text-slate-100 flex flex-col animate-slide-up-full safe-top"
+      className="fixed inset-x-0 top-0 z-40 bg-surface-primary text-text-primary flex flex-col animate-slide-up-full safe-top"
       style={{ bottom: 'calc(56px + max(env(safe-area-inset-bottom, 0px), 8px))' }}
       onClick={warmUpTTS}
     >
@@ -879,7 +879,7 @@ export default function MobileAgentView({ onClose, engine }) {
       <div className="flex items-center justify-between h-14 px-4 bg-gradient-to-r from-slate-800/90 via-slate-800/80 to-violet-900/20 border-b border-violet-500/20 shrink-0">
         <button
           onClick={onClose}
-          className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-slate-100 active:bg-slate-700/50 transition-colors cursor-pointer"
+          className="w-10 h-10 flex items-center justify-center rounded-xl text-text-muted hover:text-text-primary active:bg-surface-tertiary transition-colors cursor-pointer"
           aria-label="Zurück"
         >
           <ArrowLeft size={22} />
@@ -903,7 +903,7 @@ export default function MobileAgentView({ onClose, engine }) {
           {/* Settings gear */}
           <button
             onClick={() => setShowSettings(true)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-text-muted hover:text-text-muted transition-colors cursor-pointer"
             aria-label="Sprach-Einstellungen"
           >
             <Settings size={18} />
@@ -915,8 +915,8 @@ export default function MobileAgentView({ onClose, engine }) {
               onClick={toggleMute}
               className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors cursor-pointer ${
                 isMuted
-                  ? 'text-slate-500 hover:text-slate-300'
-                  : 'text-slate-300 hover:text-slate-100'
+                  ? 'text-text-muted hover:text-text-muted'
+                  : 'text-text-muted hover:text-text-primary'
               }`}
               aria-label={isMuted ? 'Sprache aktivieren' : 'Sprache stumm schalten'}
             >
@@ -936,7 +936,7 @@ export default function MobileAgentView({ onClose, engine }) {
 
       {/* ── Quick Actions (text mode) ── */}
       {!conversationMode && (
-        <div className="flex gap-2 px-4 py-2.5 overflow-x-auto border-b border-slate-800/50 shrink-0 scrollbar-none snap-x snap-mandatory">
+        <div className="flex gap-2 px-4 py-2.5 overflow-x-auto border-b border-border-secondary shrink-0 scrollbar-none snap-x snap-mandatory">
           {QUICK_ACTIONS.map((action) => (
             <button
               key={action.label}
@@ -944,10 +944,10 @@ export default function MobileAgentView({ onClose, engine }) {
               disabled={isStreaming}
               className="
                 whitespace-nowrap text-xs px-4 py-2 rounded-full snap-start
-                bg-slate-800/70 text-slate-300
-                border border-slate-700/40
-                hover:bg-slate-700/70 hover:text-slate-100 hover:border-slate-600/50
-                active:bg-slate-700/90
+                bg-surface-primary/70 text-text-muted
+                border border-border-secondary
+                hover:bg-surface-tertiary hover:text-text-primary hover:border-border-primary
+                active:bg-surface-tertiary
                 disabled:opacity-40 disabled:cursor-not-allowed
                 transition-colors cursor-pointer shrink-0
               "
@@ -975,7 +975,7 @@ export default function MobileAgentView({ onClose, engine }) {
                   ? 'bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-2xl rounded-br-sm max-w-[90%] ml-auto shadow-sm shadow-violet-500/20'
                   : msg.isError
                   ? 'bg-red-900/30 text-red-200 border border-red-700/40 rounded-2xl rounded-bl-sm max-w-[90%]'
-                  : 'bg-slate-800/80 text-slate-200 border border-slate-700/40 rounded-2xl rounded-bl-sm max-w-[90%]'}
+                  : 'bg-surface-primary/80 text-text-muted border border-border-secondary rounded-2xl rounded-bl-sm max-w-[90%]'}
               `}
             >
               {msg.role === 'assistant' && msg.content === '' && isStreaming ? (
@@ -983,14 +983,14 @@ export default function MobileAgentView({ onClose, engine }) {
               ) : msg.role === 'assistant' && msg.isError ? (
                 <div className="space-y-2">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle size={16} className="text-red-400 mt-0.5 shrink-0" />
+                    <AlertTriangle size={16} className="text-status-offline mt-0.5 shrink-0" />
                     <div className="space-y-1">{renderMarkdown(msg.content)}</div>
                   </div>
                   {lastError?.canRetry && (
                     <button
                       onClick={retryLastMessage}
                       disabled={isStreaming}
-                      className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 active:bg-amber-500/30 transition-colors cursor-pointer disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-300 bg-status-warning/10 border border-status-warning/20 rounded-lg hover:bg-status-warning/20 active:bg-status-warning/30 transition-colors cursor-pointer disabled:opacity-50"
                     >
                       <RotateCcw size={14} />
                       Erneut versuchen
@@ -1030,7 +1030,7 @@ export default function MobileAgentView({ onClose, engine }) {
 
       {/* ── Model info footer ── */}
       {lastUsedModel && !conversationMode && (
-        <div className="px-4 py-1 text-[10px] text-slate-600 text-center border-t border-slate-800/30">
+        <div className="px-4 py-1 text-[10px] text-text-secondary text-center border-t border-border-secondary">
           Modell: {lastUsedModel}
         </div>
       )}
@@ -1038,13 +1038,13 @@ export default function MobileAgentView({ onClose, engine }) {
       {/* ── Voice Quick Prompts (shown when idle, not in conversation mode) ── */}
       {!conversationMode && !isStreaming && !isListening && messages.length <= 2 && (
         <div className="px-4 pb-2 shrink-0">
-          <p className="text-xs text-slate-500 mb-2">Schnellaktionen per Sprache:</p>
+          <p className="text-xs text-text-muted mb-2">Schnellaktionen per Sprache:</p>
           <div className="flex flex-wrap gap-2">
             {VOICE_PROMPTS.map((prompt) => (
               <button
                 key={prompt.label}
                 onClick={() => handleSend(prompt.message)}
-                className="text-xs px-3 py-1.5 rounded-full bg-slate-800/50 text-slate-400 border border-slate-700/30 hover:bg-slate-700/50 hover:text-slate-200 active:bg-slate-700 transition-colors cursor-pointer"
+                className="text-xs px-3 py-1.5 rounded-full bg-surface-primary/50 text-text-muted border border-border-secondary hover:bg-surface-tertiary hover:text-text-muted active:bg-surface-tertiary transition-colors cursor-pointer"
               >
                 {prompt.label}
               </button>
@@ -1054,7 +1054,7 @@ export default function MobileAgentView({ onClose, engine }) {
       )}
 
       {/* ── Input Area ── */}
-      <div className="border-t border-slate-700/50 px-4 py-2 shrink-0">
+      <div className="border-t border-border-primary px-4 py-2 shrink-0">
         <div className="flex items-end gap-2">
           {/* Conversation mode button */}
           {isSupported && !conversationMode && (
@@ -1089,13 +1089,13 @@ export default function MobileAgentView({ onClose, engine }) {
             disabled={isStreaming}
             rows={1}
             className={`
-              flex-1 resize-none bg-slate-800/60 text-slate-100
-              border border-slate-700/50 rounded-xl px-4 py-3
-              text-base placeholder:text-slate-500
+              flex-1 resize-none bg-surface-primary/60 text-text-primary
+              border border-border-primary rounded-xl px-4 py-3
+              text-base placeholder:text-text-muted
               focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-colors
-              ${interimText && !inputValue ? 'placeholder:text-slate-300 placeholder:italic' : ''}
+              ${interimText && !inputValue ? 'placeholder:text-text-muted placeholder:italic' : ''}
             `}
             style={{ maxHeight: '120px' }}
           />
@@ -1111,7 +1111,7 @@ export default function MobileAgentView({ onClose, engine }) {
                 transition-all cursor-pointer
                 disabled:opacity-40 disabled:cursor-not-allowed
                 ${isListening
-                  ? 'bg-red-500 text-white animate-voice-pulse'
+                  ? 'bg-status-offline text-white animate-voice-pulse'
                   : isSpeaking
                   ? 'bg-violet-500/60 text-white ring-2 ring-violet-400/40'
                   : 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white hover:from-violet-400 hover:to-indigo-500 active:from-violet-600 active:to-indigo-700 shadow-sm shadow-violet-500/20'}
@@ -1128,9 +1128,9 @@ export default function MobileAgentView({ onClose, engine }) {
               onClick={cancelStream}
               className="
                 w-12 h-12 shrink-0 rounded-xl
-                bg-red-600 text-white
+                bg-status-offline text-white
                 flex items-center justify-center
-                hover:bg-red-500 active:bg-red-700
+                hover:bg-status-offline active:bg-red-700
                 transition-colors cursor-pointer
               "
               aria-label="Antwort abbrechen"
@@ -1148,7 +1148,7 @@ export default function MobileAgentView({ onClose, engine }) {
                 hover:from-violet-500 hover:to-indigo-500
                 active:from-violet-700 active:to-indigo-700
                 shadow-sm shadow-violet-500/20
-                disabled:bg-slate-700 disabled:text-slate-500 disabled:from-slate-700 disabled:to-slate-700 disabled:shadow-none
+                disabled:bg-surface-tertiary disabled:text-text-muted disabled:from-surface-tertiary disabled:to-surface-tertiary disabled:shadow-none
                 disabled:cursor-not-allowed
                 transition-all cursor-pointer
               "
@@ -1164,7 +1164,7 @@ export default function MobileAgentView({ onClose, engine }) {
           <div className="mt-1.5 flex justify-center">
             <button
               onClick={voiceSettings.cycleSpeechRate}
-              className="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+              className="text-xs text-text-muted hover:text-text-muted transition-colors cursor-pointer"
             >
               Geschwindigkeit: {speechRate}x
             </button>

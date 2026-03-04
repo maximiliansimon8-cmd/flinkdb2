@@ -11,16 +11,16 @@ import { supabase } from '../utils/authService';
 /* ─── Status Config ─── */
 const STATUS_CONFIG = {
   pending:          { label: 'Ausstehend',     color: '#64748b', bg: '#64748b12', icon: Clock },
-  template_sent:    { label: 'Template gesendet', color: '#3b82f6', bg: '#3b82f612', icon: Send },
-  in_conversation:  { label: 'Im Gespräch',    color: '#8b5cf6', bg: '#8b5cf612', icon: MessageSquare },
-  interested:       { label: 'Interessiert',    color: '#f59e0b', bg: '#f59e0b12', icon: Zap },
-  qualified:        { label: 'Qualifiziert',    color: '#22c55e', bg: '#22c55e12', icon: CheckCircle2 },
+  template_sent:    { label: 'Template gesendet', color: '#007AFF', bg: '#007AFF12', icon: Send },
+  in_conversation:  { label: 'Im Gespräch',    color: '#AF52DE', bg: '#AF52DE12', icon: MessageSquare },
+  interested:       { label: 'Interessiert',    color: '#FF9500', bg: '#FF950012', icon: Zap },
+  qualified:        { label: 'Qualifiziert',    color: '#34C759', bg: '#34C75912', icon: CheckCircle2 },
   convinced:        { label: 'Überzeugt',       color: '#059669', bg: '#05966912', icon: CheckCircle2 },
-  signed:           { label: 'Unterschrieben',  color: '#16a34a', bg: '#16a34a12', icon: CheckCircle2 },
-  declined:         { label: 'Abgelehnt',       color: '#ef4444', bg: '#ef444412', icon: XCircle },
+  signed:           { label: 'Unterschrieben',  color: '#34C759', bg: '#34C75912', icon: CheckCircle2 },
+  declined:         { label: 'Abgelehnt',       color: '#FF3B30', bg: '#FF3B3012', icon: XCircle },
   disqualified:     { label: 'Disqualifiziert', color: '#f97316', bg: '#f9731612', icon: AlertTriangle },
   unresponsive:     { label: 'Keine Antwort',   color: '#94a3b8', bg: '#94a3b812', icon: Clock },
-  error:            { label: 'Fehler',          color: '#ef4444', bg: '#ef444412', icon: AlertTriangle },
+  error:            { label: 'Fehler',          color: '#FF3B30', bg: '#FF3B3012', icon: AlertTriangle },
 };
 
 const getStatusConfig = (status) => STATUS_CONFIG[status] || { label: status, color: '#64748b', bg: '#64748b12', icon: Clock };
@@ -42,17 +42,17 @@ async function akquiseApi(action, data = {}) {
 }
 
 /* ─── Stat Card ─── */
-function StatCard({ label, value, icon: Icon, color = '#3b82f6', sub }) {
+function StatCard({ label, value, icon: Icon, color = '#007AFF', sub }) {
   return (
-    <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-4">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-1">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}15` }}>
           <Icon size={14} style={{ color }} />
         </div>
-        <span className="text-xs text-slate-500 font-medium">{label}</span>
+        <span className="text-xs text-text-muted font-medium">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-slate-900 font-mono">{value}</div>
-      {sub && <div className="text-[10px] text-slate-400 mt-0.5">{sub}</div>}
+      <div className="text-2xl font-bold text-text-primary font-mono">{value}</div>
+      {sub && <div className="text-[10px] text-text-muted mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -74,23 +74,23 @@ function ConversationRow({ conv, onSelect }) {
   return (
     <button
       onClick={() => onSelect(conv)}
-      className="w-full text-left px-4 py-3 hover:bg-slate-50/80 transition-colors border-b border-slate-100/60 flex items-center gap-3"
+      className="w-full text-left px-4 py-3 hover:bg-surface-secondary/80 transition-colors border-b border-border-secondary/60 flex items-center gap-3"
     >
-      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
+      <div className="w-8 h-8 rounded-full bg-surface-secondary flex items-center justify-center text-xs font-bold text-text-muted shrink-0">
         {(conv.contact_name || '?')[0]?.toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-slate-900 truncate">{conv.location_name || 'Unbekannt'}</span>
+          <span className="text-sm font-medium text-text-primary truncate">{conv.location_name || 'Unbekannt'}</span>
           <StatusBadge status={conv.status} />
         </div>
-        <div className="flex items-center gap-3 mt-0.5 text-[11px] text-slate-400">
+        <div className="flex items-center gap-3 mt-0.5 text-[11px] text-text-muted">
           <span className="flex items-center gap-0.5"><Phone size={9} />{conv.contact_phone}</span>
           {conv.city && <span className="flex items-center gap-0.5"><MapPin size={9} />{conv.city}</span>}
           <span>{new Date(conv.updated_at).toLocaleDateString('de-DE')}</span>
         </div>
       </div>
-      <ChevronRight size={14} className="text-slate-300 shrink-0" />
+      <ChevronRight size={14} className="text-text-muted shrink-0" />
     </button>
   );
 }
@@ -113,15 +113,15 @@ function ConversationDetail({ conv, onBack }) {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-slate-200/60 bg-white/60">
+      <div className="px-4 py-3 border-b border-border-secondary bg-surface-primary">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-slate-400 hover:text-slate-600 text-sm">← Zurück</button>
+          <button onClick={onBack} className="text-text-muted hover:text-text-secondary text-sm">← Zurück</button>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-900">{conv.location_name || 'Unbekannt'}</span>
+              <span className="font-semibold text-text-primary">{conv.location_name || 'Unbekannt'}</span>
               <StatusBadge status={conv.status} />
             </div>
-            <div className="text-xs text-slate-400 mt-0.5">
+            <div className="text-xs text-text-muted mt-0.5">
               {conv.contact_name} · {conv.contact_phone} · {conv.city}
             </div>
           </div>
@@ -132,17 +132,17 @@ function ConversationDetail({ conv, onBack }) {
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+            <Loader2 className="w-5 h-5 animate-spin text-text-muted" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="text-center text-sm text-slate-400 py-12">Keine Nachrichten</div>
+          <div className="text-center text-sm text-text-muted py-12">Keine Nachrichten</div>
         ) : (
           messages.map(msg => (
             <div key={msg.id} className={`flex ${msg.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
                 msg.direction === 'outbound'
-                  ? 'bg-blue-500 text-white rounded-br-md'
-                  : 'bg-slate-100 text-slate-800 rounded-bl-md'
+                  ? 'bg-accent text-white rounded-br-md'
+                  : 'bg-surface-secondary text-text-primary rounded-bl-md'
               }`}>
                 <div className="text-[10px] opacity-60 mb-0.5 font-medium">
                   {msg.sender === 'ai' ? '🤖 KI-Bot' : msg.sender === 'bot' ? '📤 Template' : msg.sender === 'prospect' ? '👤 Standort' : msg.sender}
@@ -159,7 +159,7 @@ function ConversationDetail({ conv, onBack }) {
 
       {/* Info Footer */}
       {conv.error_message && (
-        <div className="px-4 py-2 bg-red-50 border-t border-red-200/40 text-xs text-red-600">
+        <div className="px-4 py-2 bg-status-offline/10 border-t border-status-offline/20/40 text-xs text-status-offline">
           <AlertTriangle size={10} className="inline mr-1" />
           {conv.error_message}
         </div>
@@ -306,8 +306,8 @@ export default function AkquiseAutomationDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-        <span className="ml-2 text-sm text-slate-500">Lade Akquise-Automation...</span>
+        <Loader2 className="w-6 h-6 animate-spin text-accent" />
+        <span className="ml-2 text-sm text-text-muted">Lade Akquise-Automation...</span>
       </div>
     );
   }
@@ -315,7 +315,7 @@ export default function AkquiseAutomationDashboard() {
   // Detail view
   if (selectedConv) {
     return (
-      <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl overflow-hidden" style={{ minHeight: 500 }}>
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden" style={{ minHeight: 500 }}>
         <ConversationDetail conv={selectedConv} onBack={() => setSelectedConv(null)} />
       </div>
     );
@@ -326,7 +326,7 @@ export default function AkquiseAutomationDashboard() {
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium animate-fade-in ${
-          toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'
+          toast.type === 'error' ? 'bg-status-offline text-white' : 'bg-emerald-500 text-white'
         }`}>
           {toast.msg}
         </div>
@@ -339,17 +339,17 @@ export default function AkquiseAutomationDashboard() {
             <Bot size={18} className="text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900">KI-Akquise Automation</h2>
-            <p className="text-xs text-slate-500">WhatsApp-Outreach für neue Standorte</p>
+            <h2 className="text-lg font-bold text-text-primary">KI-Akquise Automation</h2>
+            <p className="text-xs text-text-muted">WhatsApp-Outreach für neue Standorte</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={loadData} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={loadData} className="p-2 rounded-lg hover:bg-surface-secondary text-text-muted hover:text-text-secondary transition-colors">
             <RefreshCw size={14} />
           </button>
           <button
             onClick={() => setShowNewCampaign(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 text-white rounded-xl text-xs font-medium hover:bg-blue-600 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-xl text-xs font-medium hover:bg-accent transition-colors"
           >
             <Plus size={12} />
             Neue Kampagne
@@ -360,9 +360,9 @@ export default function AkquiseAutomationDashboard() {
       {/* Stats Row */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Konversationen" value={stats.totalConversations} icon={MessageSquare} color="#3b82f6" />
-          <StatCard label="Heute gesendet" value={stats.sentToday} icon={Send} color="#8b5cf6" sub={`Limit: ${stats.maxDailySends || 50}/Tag`} />
-          <StatCard label="Aktive Kampagnen" value={stats.activeCampaigns} icon={Play} color="#22c55e" />
+          <StatCard label="Konversationen" value={stats.totalConversations} icon={MessageSquare} color="#007AFF" />
+          <StatCard label="Heute gesendet" value={stats.sentToday} icon={Send} color="#AF52DE" sub={`Limit: ${stats.maxDailySends || 50}/Tag`} />
+          <StatCard label="Aktive Kampagnen" value={stats.activeCampaigns} icon={Play} color="#34C759" />
           <StatCard
             label="Conversion"
             value={`${stats.statusBreakdown?.signed || 0}`}
@@ -375,8 +375,8 @@ export default function AkquiseAutomationDashboard() {
 
       {/* Status Funnel */}
       {stats?.statusBreakdown && Object.keys(stats.statusBreakdown).length > 0 && (
-        <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-4">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Status-Funnel</h3>
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4">
+          <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Status-Funnel</h3>
           <div className="flex flex-wrap gap-2">
             {Object.entries(stats.statusBreakdown)
               .sort((a, b) => b[1] - a[1])
@@ -403,28 +403,28 @@ export default function AkquiseAutomationDashboard() {
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left: New Leads (eligible for outreach) */}
-        <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100/60">
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-border-secondary/60">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                <Building2 size={14} className="text-blue-500" />
+              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
+                <Building2 size={14} className="text-accent" />
                 Neue Leads ({newLeads.length})
               </h3>
-              {leadsLoading && <Loader2 size={12} className="animate-spin text-slate-400" />}
+              {leadsLoading && <Loader2 size={12} className="animate-spin text-text-muted" />}
             </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Lead Status = New Lead, mit Telefonnummer</p>
+            <p className="text-[10px] text-text-muted mt-0.5">Lead Status = New Lead, mit Telefonnummer</p>
           </div>
           <div className="max-h-[400px] overflow-y-auto divide-y divide-slate-100/60">
             {newLeads.length === 0 ? (
-              <div className="p-6 text-center text-sm text-slate-400">
+              <div className="p-6 text-center text-sm text-text-muted">
                 {leadsLoading ? 'Lade...' : 'Keine neuen Leads verfügbar'}
               </div>
             ) : (
               newLeads.slice(0, 50).map(lead => (
-                <div key={lead.airtable_id} className="px-4 py-2.5 flex items-center gap-2 hover:bg-slate-50/80 transition-colors">
+                <div key={lead.airtable_id} className="px-4 py-2.5 flex items-center gap-2 hover:bg-surface-secondary/80 transition-colors">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800 truncate">{lead.location_name || 'Unbekannt'}</div>
-                    <div className="text-[10px] text-slate-400 flex items-center gap-2">
+                    <div className="text-sm font-medium text-text-primary truncate">{lead.location_name || 'Unbekannt'}</div>
+                    <div className="text-[10px] text-text-muted flex items-center gap-2">
                       <span>{lead.contact_person || '–'}</span>
                       {lead.city && <span className="flex items-center gap-0.5"><MapPin size={8} />{lead.city}</span>}
                     </div>
@@ -432,7 +432,7 @@ export default function AkquiseAutomationDashboard() {
                   <button
                     onClick={() => sendSingle(lead)}
                     disabled={sending || !campaigns.length}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-medium hover:bg-blue-100 transition-colors disabled:opacity-40"
+                    className="flex items-center gap-1 px-2 py-1 bg-accent-light text-accent rounded-lg text-[10px] font-medium hover:bg-accent-light transition-colors disabled:opacity-40"
                   >
                     {sending ? <Loader2 size={10} className="animate-spin" /> : <Send size={10} />}
                     Senden
@@ -444,28 +444,28 @@ export default function AkquiseAutomationDashboard() {
         </div>
 
         {/* Right: Conversations */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100/60">
+        <div className="lg:col-span-2 bg-surface-primary border border-border-secondary rounded-2xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-border-secondary/60">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                <MessageSquare size={14} className="text-purple-500" />
+              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
+                <MessageSquare size={14} className="text-brand-purple" />
                 Konversationen ({filteredConversations.length})
               </h3>
               <div className="relative">
-                <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-300" />
+                <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   placeholder="Suche..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="pl-6 pr-2 py-1 text-xs border border-slate-200/60 rounded-lg w-36 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                  className="pl-6 pr-2 py-1 text-xs border border-border-secondary rounded-lg w-36 focus:outline-none focus:ring-1 focus:ring-blue-300"
                 />
               </div>
             </div>
           </div>
           <div className="max-h-[500px] overflow-y-auto">
             {filteredConversations.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-400">
+              <div className="p-8 text-center text-sm text-text-muted">
                 {statusFilter ? 'Keine Konversationen mit diesem Status' : 'Noch keine Konversationen. Sende ein Template an einen Lead!'}
               </div>
             ) : (
@@ -479,19 +479,19 @@ export default function AkquiseAutomationDashboard() {
 
       {/* Campaigns */}
       {campaigns.length > 0 && (
-        <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-4">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Kampagnen</h3>
+        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-4">
+          <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Kampagnen</h3>
           <div className="space-y-2">
             {campaigns.map(camp => (
-              <div key={camp.id} className="flex items-center gap-3 p-3 bg-slate-50/60 rounded-xl">
-                <div className={`w-2 h-2 rounded-full ${camp.status === 'active' ? 'bg-green-500' : camp.status === 'draft' ? 'bg-amber-400' : 'bg-slate-300'}`} />
+              <div key={camp.id} className="flex items-center gap-3 p-3 bg-surface-secondary/60 rounded-xl">
+                <div className={`w-2 h-2 rounded-full ${camp.status === 'active' ? 'bg-status-online' : camp.status === 'draft' ? 'bg-amber-400' : 'bg-surface-tertiary'}`} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-800">{camp.name}</div>
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-sm font-medium text-text-primary">{camp.name}</div>
+                  <div className="text-[10px] text-text-muted">
                     {camp.sent_count || 0} gesendet · {camp.response_count || 0} Antworten · {camp.conversion_count || 0} Conversions
                   </div>
                 </div>
-                <div className="text-[10px] text-slate-400 shrink-0">
+                <div className="text-[10px] text-text-muted shrink-0">
                   Template: {camp.template_id?.slice(0, 15)}...
                 </div>
               </div>
@@ -502,48 +502,48 @@ export default function AkquiseAutomationDashboard() {
 
       {/* New Campaign Modal */}
       {showNewCampaign && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowNewCampaign(false)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Neue Kampagne erstellen</h3>
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setShowNewCampaign(false)}>
+          <div className="bg-surface-primary rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-text-primary mb-4">Neue Kampagne erstellen</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-slate-600 mb-1 block">Kampagnenname</label>
+                <label className="text-xs font-medium text-text-secondary mb-1 block">Kampagnenname</label>
                 <input
                   type="text"
                   value={newCampaign.name}
                   onChange={e => setNewCampaign(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="z.B. Berlin Q1 2026"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border border-border-secondary rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 mb-1 block">WhatsApp Template ID</label>
+                <label className="text-xs font-medium text-text-secondary mb-1 block">WhatsApp Template ID</label>
                 <input
                   type="text"
                   value={newCampaign.templateId}
                   onChange={e => setNewCampaign(prev => ({ ...prev, templateId: e.target.value }))}
                   placeholder="tn_..."
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border border-border-secondary rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">SuperChat Template-ID (muss von Meta genehmigt sein)</p>
+                <p className="text-[10px] text-text-muted mt-1">SuperChat Template-ID (muss von Meta genehmigt sein)</p>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 mb-1 block">Beschreibung (optional)</label>
+                <label className="text-xs font-medium text-text-secondary mb-1 block">Beschreibung (optional)</label>
                 <textarea
                   value={newCampaign.description}
                   onChange={e => setNewCampaign(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Beschreibung der Kampagne..."
                   rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border border-border-secondary rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setShowNewCampaign(false)} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700">Abbrechen</button>
+              <button onClick={() => setShowNewCampaign(false)} className="px-4 py-2 text-sm text-text-muted hover:text-text-primary">Abbrechen</button>
               <button
                 onClick={createCampaign}
                 disabled={!newCampaign.name || !newCampaign.templateId}
-                className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 disabled:opacity-40 transition-colors"
+                className="px-4 py-2 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent disabled:opacity-40 transition-colors"
               >
                 Erstellen
               </button>

@@ -42,9 +42,9 @@ export const STATUS_COLORS = {
 // ─── Status Hex Colors (for Recharts — ExecutiveDashboard) ─────
 export const STATUS_HEX = {
   pending:   '#eab308',
-  booked:    '#22c55e',
+  booked:    '#34C759',
   completed: '#10b981',
-  cancelled: '#ef4444',
+  cancelled: '#FF3B30',
   no_show:   '#6b7280',
 };
 
