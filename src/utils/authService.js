@@ -73,27 +73,56 @@ export const ALL_TABS = [
   { id: 'installations',           label: 'Installationen',      parent: null },
   { id: 'installations.calendar',  label: 'Routen-Kalender',     parent: 'installations' },
   { id: 'installations.bookings',  label: 'Buchungen',           parent: 'installations' },
-  { id: 'akquise-automation',      label: 'KI-Akquise Automation', parent: null },
+  { id: 'acquisition',             label: 'Akquise',                parent: null },
+  { id: 'acquisition.netzwerk',    label: 'Netzwerk',               parent: 'acquisition' },
+  { id: 'acquisition.pipeline',    label: 'Pipeline',               parent: 'acquisition' },
+  { id: 'acquisition.storno',      label: 'Storno',                 parent: 'acquisition' },
+  { id: 'akquise-automation',      label: 'KI-Akquise Automation',  parent: null },
+  { id: 'akquise-app',             label: 'Akquise App',            parent: null },
+  { id: 'programmatic',            label: 'Programmatic',           parent: null },
+  { id: 'contacts',                label: 'Kontakte',               parent: null },
+  { id: 'activities',              label: 'Aktivitäten',            parent: null },
+  { id: 'map',                     label: 'Karte',                  parent: null },
   { id: 'admin',             label: 'Admin',               parent: null },
 ];
 
 export const ALL_ACTIONS = [
+  // Allgemein
   { id: 'view',           label: 'Dashboard anzeigen',     category: 'Allgemein' },
   { id: 'export',         label: 'Daten exportieren',      category: 'Allgemein' },
-  { id: 'view_contacts',  label: 'Kontaktdaten einsehen',  category: 'Allgemein' },
-  { id: 'view_revenue',   label: 'Umsätze einsehen',       category: 'Allgemein' },
+  // Sichtbarkeit — Feld-Level
+  { id: 'view_contacts',  label: 'Kontaktdaten einsehen',  category: 'Sichtbarkeit' },
+  { id: 'view_revenue',   label: 'Umsätze einsehen',       category: 'Sichtbarkeit' },
+  { id: 'view_contracts', label: 'Verträge einsehen',      category: 'Sichtbarkeit' },
+  { id: 'view_financial', label: 'Finanzdaten einsehen',   category: 'Sichtbarkeit' },
+  { id: 'view_leasing',   label: 'Leasing-Daten einsehen', category: 'Sichtbarkeit' },
+  { id: 'view_identities', label: 'Ausweise/IDs einsehen', category: 'Sichtbarkeit' },
+  { id: 'view_frequency', label: 'Frequenzdaten einsehen', category: 'Sichtbarkeit' },
+  { id: 'view_sim_details', label: 'SIM-Details einsehen', category: 'Sichtbarkeit' },
+  // Tasks
   { id: 'create_task',    label: 'Task erstellen',         category: 'Tasks' },
   { id: 'edit_task',      label: 'Task bearbeiten',        category: 'Tasks' },
   { id: 'delete_task',    label: 'Task löschen',           category: 'Tasks' },
+  // Kommunikation
   { id: 'send_message',   label: 'Nachrichten senden',     category: 'Kommunikation' },
   { id: 'view_messages',  label: 'Nachrichten lesen',      category: 'Kommunikation' },
+  // Installationen
   { id: 'manage_schedule',     label: 'Routen verwalten',         category: 'Installationen' },
   { id: 'manage_bookings',    label: 'Buchungen verwalten',      category: 'Installationen' },
   { id: 'send_booking_invite', label: 'Buchungseinladung senden', category: 'Installationen' },
+  // Hardware
   { id: 'manage_hardware',     label: 'Hardware verwalten',        category: 'Hardware' },
   { id: 'manage_warehouse',    label: 'Wareneingang verwalten',    category: 'Hardware' },
   { id: 'manage_qr',           label: 'QR-Codes verwalten',        category: 'Hardware' },
-  { id: 'manage_akquise_automation', label: 'KI-Akquise verwalten', category: 'Akquise' },
+  { id: 'initiate_swap',       label: 'Hardware-Tausch starten',   category: 'Hardware' },
+  { id: 'initiate_deinstall',  label: 'Deinstallation starten',    category: 'Hardware' },
+  // Displays
+  { id: 'change_display_status', label: 'Display-Status ändern',  category: 'Displays' },
+  // Akquise & Account Management
+  { id: 'manage_akquise',           label: 'Akquise verwalten',         category: 'Akquise' },
+  { id: 'manage_akquise_automation', label: 'KI-Akquise verwalten',     category: 'Akquise' },
+  { id: 'manage_accounts',          label: 'Bestandskunden verwalten',  category: 'Account Management' },
+  // Admin
   { id: 'manage_users',   label: 'Benutzer verwalten',     category: 'Admin' },
   { id: 'manage_groups',  label: 'Gruppen verwalten',      category: 'Admin' },
   { id: 'settings',       label: 'Einstellungen ändern',   category: 'Admin' },
@@ -627,11 +656,22 @@ export async function fetchGroups() {
 function getDefaultGroups() {
   return [
     { id: 'grp_admin', name: 'Admin', description: 'Vollzugriff', color: '#3b82f6', icon: 'Shield', tabs: [], actions: [], memberCount: 0 },
-    { id: 'grp_operations', name: 'Operations', description: 'Display-Management & Tasks', color: '#22c55e', icon: 'Wrench', tabs: [], actions: [], memberCount: 0 },
-    { id: 'grp_sales', name: 'Sales', description: 'Übersicht & Kommunikation', color: '#f59e0b', icon: 'TrendingUp', tabs: [], actions: [], memberCount: 0 },
-    { id: 'grp_management', name: 'Management', description: 'Berichte', color: '#a855f7', icon: 'BarChart3', tabs: [], actions: [], memberCount: 0 },
-    { id: 'grp_tech', name: 'Tech', description: 'Technische Tasks', color: '#06b6d4', icon: 'Code', tabs: [], actions: [], memberCount: 0 },
-    { id: 'grp_scheduling', name: 'Terminierung', description: 'Installationstermine planen', color: '#f97316', icon: 'CalendarCheck', tabs: ['installations', 'installations.calendar', 'installations.bookings'], actions: ['manage_schedule', 'manage_bookings', 'send_booking_invite'], memberCount: 0 },
+    { id: 'grp_operations', name: 'Operations', description: 'Display-Management, Hardware & Tasks', color: '#22c55e', icon: 'Wrench',
+      tabs: ['displays', 'displays.overview', 'displays.list', 'displays.cities', 'hardware', 'hardware.inventory', 'hardware.wareneingang', 'hardware.qr-codes', 'hardware.positionen', 'hardware.bestellwesen', 'hardware.lager-versand', 'hardware.tracking', 'tasks', 'communication', 'map'],
+      actions: ['view', 'export', 'view_contacts', 'view_leasing', 'view_identities', 'view_sim_details', 'create_task', 'edit_task', 'delete_task', 'change_display_status', 'initiate_swap', 'initiate_deinstall', 'manage_hardware', 'send_message', 'view_messages'], memberCount: 0 },
+    { id: 'grp_akquise', name: 'Akquise', description: 'Neukundengewinnung & Pipeline', color: '#f59e0b', icon: 'Target',
+      tabs: ['displays', 'displays.overview', 'displays.list', 'displays.cities', 'acquisition', 'acquisition.netzwerk', 'acquisition.pipeline', 'acquisition.storno', 'akquise-app', 'contacts', 'activities', 'map', 'communication'],
+      actions: ['view', 'export', 'view_contacts', 'view_contracts', 'view_frequency', 'create_task', 'manage_akquise', 'manage_akquise_automation', 'send_message', 'view_messages'], memberCount: 0 },
+    { id: 'grp_account_management', name: 'Account Management', description: 'Bestandskundenbetreuung & Renewals', color: '#8b5cf6', icon: 'Users',
+      tabs: ['displays', 'displays.overview', 'displays.list', 'displays.cities', 'acquisition', 'acquisition.netzwerk', 'contacts', 'activities', 'communication', 'tasks', 'programmatic', 'map'],
+      actions: ['view', 'export', 'view_contacts', 'view_contracts', 'view_revenue', 'view_leasing', 'view_frequency', 'manage_accounts', 'create_task', 'send_message', 'view_messages'], memberCount: 0 },
+    { id: 'grp_management', name: 'Management', description: 'Berichte & Finanzen', color: '#a855f7', icon: 'BarChart3',
+      tabs: ['displays', 'displays.overview', 'displays.list', 'displays.cities', 'programmatic', 'acquisition', 'acquisition.netzwerk', 'acquisition.pipeline'],
+      actions: ['view', 'export', 'view_revenue', 'view_contracts', 'view_financial', 'view_leasing', 'view_frequency'], memberCount: 0 },
+    { id: 'grp_tech', name: 'Tech', description: 'Technische Tasks & Hardware', color: '#06b6d4', icon: 'Code',
+      tabs: ['displays', 'displays.overview', 'displays.list', 'hardware', 'hardware.inventory', 'hardware.positionen', 'hardware.tracking', 'tasks'],
+      actions: ['view', 'view_sim_details', 'create_task', 'edit_task', 'change_display_status', 'initiate_swap', 'manage_hardware'], memberCount: 0 },
+    { id: 'grp_scheduling', name: 'Terminierung', description: 'Installationstermine planen', color: '#f97316', icon: 'CalendarCheck', tabs: ['installations', 'installations.calendar', 'installations.bookings'], actions: ['manage_schedule', 'manage_bookings', 'send_booking_invite', 'view_contacts', 'send_message'], memberCount: 0 },
     { id: 'grp_partner', name: 'Partner / Logistik', description: 'Installations- und Hardware-Logistik Partner', color: '#10b981', icon: 'Truck', tabs: ['hardware', 'hardware.inventory', 'hardware.wareneingang', 'hardware.qr-codes', 'hardware.positionen', 'hardware.bestellwesen', 'hardware.lager-versand', 'hardware.tracking', 'installations', 'installations.calendar', 'installations.bookings'], actions: ['view', 'manage_hardware', 'manage_warehouse', 'manage_qr', 'manage_bookings'], memberCount: 0 },
     { id: 'grp_monteur', name: 'Monteur', description: 'Installations-Monteur — Tagesroute & Standort-Details', color: '#f97316', icon: 'Wrench', tabs: ['monteur'], actions: ['monteur:view_route', 'monteur:send_status'], memberCount: 0 },
   ];

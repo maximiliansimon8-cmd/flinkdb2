@@ -1694,7 +1694,7 @@ function HardwareHistoryModal({ isOpen, onClose, snType, snValue, label }) {
 
 // ─── Leasing Panel ───────────────────────────────────────────────────────────
 
-function LeasingPanel({ leaseData, loading }) {
+function LeasingPanel({ leaseData, loading, canViewFinancial }) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4 justify-center">
@@ -1770,10 +1770,10 @@ function LeasingPanel({ leaseData, loading }) {
           {startValid && (
             <InfoRow icon={Calendar} label="Laufzeit" value={`${fmtDate(startRaw)} → ${endValid ? fmtDate(endRaw) : '–'}${totalMonths ? ` (${totalMonths} Mon.)` : ''}`} mono />
           )}
-          {bank?.monthlyPrice != null && (
+          {canViewFinancial && bank?.monthlyPrice != null && (
             <InfoRow icon={TrendingUp} label="Monatspreis" value={`${bank.monthlyPrice.toFixed(2).replace('.', ',')}€`} mono />
           )}
-          {chg?.paymentReleasedOn && (
+          {canViewFinancial && chg?.paymentReleasedOn && (
             <InfoRow icon={CheckCircle2} label="Zahlung freigeg." value={`${fmtDate(chg.paymentReleasedOn)}${chg.paymentReleasedBy ? ` von ${chg.paymentReleasedBy}` : ''}`} />
           )}
           {chg?.chgCertificate && (
@@ -2705,10 +2705,10 @@ function DisplayDetailInner({ display, onClose }) {
           </div>
         )}
 
-        {/* Leasing (CHG + Bank TESMA) */}
-        {(leaseLoading || leaseData) && (
+        {/* Leasing (CHG + Bank TESMA) — nur mit Berechtigung */}
+        {hasPermission('view_leasing') && (leaseLoading || leaseData) && (
           <div className="p-5 border-b border-slate-200/60">
-            <LeasingPanel leaseData={leaseData} loading={leaseLoading} />
+            <LeasingPanel leaseData={leaseData} loading={leaseLoading} canViewFinancial={hasPermission('view_financial')} />
           </div>
         )}
 
@@ -2716,23 +2716,27 @@ function DisplayDetailInner({ display, onClose }) {
         {(hwHistoryLoading || swapHistory.length > 0 || deinstallHistory.length > 0 || hardwareSet) && (
           <div className="p-5 border-b border-slate-200/60">
             <SwapHistoryPanel swaps={swapHistory} deinstalls={deinstallHistory} loading={hwHistoryLoading} />
-            {/* Hardware Action Buttons */}
+            {/* Hardware Action Buttons — nur mit Berechtigung */}
             {!hwHistoryLoading && airtableDisplay && (
               <div className="flex items-center gap-2 mt-3">
-                <button
-                  onClick={() => setShowSwapModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs font-medium text-amber-700 transition-colors"
-                >
-                  <ArrowLeftRight size={12} />
-                  Tausch initiieren
-                </button>
-                <button
-                  onClick={() => setShowDeinstallModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-medium text-red-600 transition-colors"
-                >
-                  <Package size={12} />
-                  Deinstallation
-                </button>
+                {hasPermission('initiate_swap') && (
+                  <button
+                    onClick={() => setShowSwapModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs font-medium text-amber-700 transition-colors"
+                  >
+                    <ArrowLeftRight size={12} />
+                    Tausch initiieren
+                  </button>
+                )}
+                {hasPermission('initiate_deinstall') && (
+                  <button
+                    onClick={() => setShowDeinstallModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-medium text-red-600 transition-colors"
+                  >
+                    <Package size={12} />
+                    Deinstallation
+                  </button>
+                )}
               </div>
             )}
           </div>
