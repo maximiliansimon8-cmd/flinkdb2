@@ -9,8 +9,13 @@ import { supabase } from '../utils/authService';
 /** Top 5 Grossstaedte fuer Akquise-Freigabe Filter */
 const TOP5_CITIES = ['berlin', 'hamburg', 'münchen', 'muenchen', 'munich', 'köln', 'koeln', 'cologne', 'frankfurt'];
 
-/** Fields to compare for change detection — all core data fields */
-const COMPARE_FIELDS = [
+/** Critical fields — require individual review before import (Name, Firma, Chain) */
+const CRITICAL_FIELDS = new Set([
+  'name', 'account_name', 'jet_chain',
+]);
+
+/** All possible comparison fields */
+const ALL_COMPARE_FIELDS = [
   'name', 'street', 'street_number', 'postcode', 'city',
   'phone', 'email', 'contact_name', 'contact_email', 'contact_phone',
   'account_name', 'lega_entity_adress', 'location_categories', 'jet_chain',
@@ -34,6 +39,46 @@ const FIELD_LABELS = {
   regular_open_time: 'Oeffnungszeit', regular_close_time_weekdays: 'Schluss Mo-Fr',
   regular_close_time_weekdend: 'Schluss Sa-So', weekend_close_time: 'Schluss Wochenende',
   closed_days: 'Ruhetage',
+};
+
+/** Map Airtable CSV header names → internal keys (covers JET SEARCH export) */
+const CSV_HEADER_MAP = {
+  'JET ID': 'id',
+  'Location Name': 'name',
+  'Street': 'street',
+  'Street Number': 'street_number',
+  'Postal Code': 'postcode',
+  'City': 'city',
+  'Location Phone': 'phone',
+  'Location Email': 'email',
+  'Contact Person': 'contact_name',
+  'Contact Email': 'contact_email',
+  'Contact Phone': 'contact_phone',
+  'Legal Entity': 'account_name',
+  'Lega Entity Adress': 'lega_entity_adress',
+  'Location Categories': 'location_categories',
+  'JET Chain': 'jet_chain',
+  'Restaurant Website': 'restaurant_website',
+  'Brands_listed': 'brands_listed',
+  'Latitude': 'latitude',
+  'Longitude': 'longitude',
+  'Formatted Germany Mobile Phone': 'formatted_phone',
+  'regular_open_time': 'regular_open_time',
+  'regular_close_time_weekdays': 'regular_close_time_weekdays',
+  'regular_close_time_weekdend': 'regular_close_time_weekdend',
+  'weekend_close_time': 'weekend_close_time',
+  'closed_days': 'closed_days',
+  'superchat_id': 'superchat_id',
+  'email': 'email',
+  'phone': 'phone',
+  // Also accept already-normalized keys (e.g. from a pre-mapped CSV)
+  'id': 'id', 'name': 'name', 'street': 'street', 'street_number': 'street_number',
+  'postcode': 'postcode', 'city': 'city', 'contact_name': 'contact_name',
+  'contact_email': 'contact_email', 'contact_phone': 'contact_phone',
+  'account_name': 'account_name', 'lega_entity_adress': 'lega_entity_adress',
+  'location_categories': 'location_categories', 'jet_chain': 'jet_chain',
+  'restaurant_website': 'restaurant_website', 'brands_listed': 'brands_listed',
+  'latitude': 'latitude', 'longitude': 'longitude', 'formatted_phone': 'formatted_phone',
 };
 
 /** Parse CSV text into array of objects */
@@ -102,11 +147,18 @@ export default function StammdatenImport() {
   const [expandedId, setExpandedId] = useState(null);
   const [fileName, setFileName] = useState('');
 
+  // CSV fields actually present in the upload
+  const [csvFields, setCsvFields] = useState(new Set());
+
   // Import flow state
   const [importStep, setImportStep] = useState(null); // null | 'validating' | 'review' | 'importing' | 'done'
   const [validationResult, setValidationResult] = useState(null);
   const [importResult, setImportResult] = useState(null);
   const [importProgress, setImportProgress] = useState(null);
+
+  // Selective approval state
+  const [approvedNonCritical, setApprovedNonCritical] = useState(false); // bulk approve unkritische
+  const [approvedCriticalIds, setApprovedCriticalIds] = useState(new Set()); // individual IDs approved
 
   /** Fetch all Stammdaten from Supabase (synced from Airtable every 5 min) */
   const fetchStammdaten = useCallback(async () => {
@@ -224,12 +276,33 @@ export default function StammdatenImport() {
         const text = ev.target.result;
         const rows = parseCSV(text);
         if (rows.length === 0) throw new Error('Keine Daten in der CSV gefunden');
-        // Normalize: ensure id is string
-        const normalized = rows.map(r => ({
-          ...r,
-          id: String(r.id || '').trim(),
-        })).filter(r => r.id);
+
+        // Detect which CSV headers map to our internal keys
+        const sampleKeys = rows.length > 0 ? Object.keys(rows[0]) : [];
+        const headerMapping = {};
+        for (const csvKey of sampleKeys) {
+          const mapped = CSV_HEADER_MAP[csvKey] || CSV_HEADER_MAP[csvKey.trim()];
+          if (mapped) headerMapping[csvKey] = mapped;
+        }
+
+        // Normalize rows: remap headers + determine which compare fields exist
+        const csvFieldsPresent = new Set();
+        const normalized = rows.map(r => {
+          const out = {};
+          for (const [csvKey, intKey] of Object.entries(headerMapping)) {
+            out[intKey] = r[csvKey] || '';
+            if (intKey !== 'id' && ALL_COMPARE_FIELDS.includes(intKey)) {
+              csvFieldsPresent.add(intKey);
+            }
+          }
+          // Fallback: try direct keys if no mapping found
+          if (!out.id) out.id = String(r.id || r['JET ID'] || '').trim();
+          else out.id = String(out.id).trim();
+          return out;
+        }).filter(r => r.id);
+
         setCsvData(normalized);
+        setCsvFields(csvFieldsPresent);
         setActiveTab('summary');
       } catch (err) {
         setError(`CSV-Fehler: ${err.message}`);
@@ -240,6 +313,12 @@ export default function StammdatenImport() {
     reader.onerror = () => { setError('Datei konnte nicht gelesen werden'); setLoading(false); };
     reader.readAsText(file, 'UTF-8');
   }, []);
+
+  /** Determine which fields to compare — only fields that actually exist in the CSV */
+  const compareFields = useMemo(() => {
+    if (csvFields.size === 0) return ALL_COMPARE_FIELDS; // fallback
+    return ALL_COMPARE_FIELDS.filter(f => csvFields.has(f));
+  }, [csvFields]);
 
   /** Run comparison */
   const comparison = useMemo(() => {
@@ -270,19 +349,31 @@ export default function StammdatenImport() {
       }
     }
 
-    // 1. Match by ID
+    // 1. Match by ID — only compare fields present in CSV
     for (const row of csvData) {
       const existing = airtableData.get(row.id);
       if (existing) {
         const changes = [];
-        for (const field of COMPARE_FIELDS) {
+        for (const field of compareFields) {
           const csvVal = norm(row[field]);
           const atVal = norm(existing[field]);
           if (csvVal !== atVal) {
-            changes.push({ field, label: FIELD_LABELS[field] || field, csvVal: row[field] || '', atVal: existing[field] || '' });
+            const isCritical = CRITICAL_FIELDS.has(field);
+            changes.push({
+              field, label: FIELD_LABELS[field] || field,
+              csvVal: row[field] || '', atVal: existing[field] || '',
+              critical: isCritical,
+            });
           }
         }
-        matched.push({ id: row.id, csv: row, airtable: existing, changes, hasChanges: changes.length > 0 });
+        const criticalChanges = changes.filter(c => c.critical);
+        const nonCriticalChanges = changes.filter(c => !c.critical);
+        matched.push({
+          id: row.id, csv: row, airtable: existing,
+          changes, criticalChanges, nonCriticalChanges,
+          hasChanges: changes.length > 0,
+          hasCritical: criticalChanges.length > 0,
+        });
       } else {
         newEntries.push(row);
       }
@@ -295,18 +386,23 @@ export default function StammdatenImport() {
       }
     }
 
-    // 3. Address conflicts: same address but different IDs
+    // 3. Address conflicts: same address but different IDs — deduplicated (pair only once)
+    const conflictSeen = new Set();
     for (const [addr, csvRows] of csvByAddr) {
       const atRows = atByAddr.get(addr) || [];
       for (const csvRow of csvRows) {
         for (const atRow of atRows) {
           if (csvRow.id !== atRow.id) {
+            // Deduplicate: sort IDs so A↔B is same as B↔A
+            const pairKey = [csvRow.id, atRow.id].sort().join('|');
+            if (conflictSeen.has(pairKey)) continue;
+            conflictSeen.add(pairKey);
             addrConflicts.push({
               csvId: csvRow.id,
               airtableId: atRow.id,
               csvName: csvRow.name,
               airtableName: atRow.name,
-              address: `${csvRow.street} ${csvRow.street_number}, ${csvRow.postcode} ${csvRow.city}`,
+              address: `${csvRow.street || atRow.street} ${csvRow.street_number || atRow.street_number}, ${csvRow.postcode || atRow.postcode} ${csvRow.city || atRow.city}`,
             });
           }
         }
@@ -318,24 +414,27 @@ export default function StammdatenImport() {
       const ak = addrKey(row);
       const atRows = atByAddr.get(ak) || [];
       for (const atRow of atRows) {
-        // Already captured above, but let's ensure
-        const alreadyFound = addrConflicts.some(c => c.csvId === row.id && c.airtableId === atRow.id);
-        if (!alreadyFound) {
-          addrConflicts.push({
-            csvId: row.id,
-            airtableId: atRow.id,
-            csvName: row.name,
-            airtableName: atRow.name,
-            address: `${row.street} ${row.street_number}, ${row.postcode} ${row.city}`,
-          });
-        }
+        const pairKey = [row.id, atRow.id].sort().join('|');
+        if (conflictSeen.has(pairKey)) continue;
+        conflictSeen.add(pairKey);
+        addrConflicts.push({
+          csvId: row.id,
+          airtableId: atRow.id,
+          csvName: row.name,
+          airtableName: atRow.name,
+          address: `${row.street} ${row.street_number}, ${row.postcode} ${row.city}`,
+        });
       }
     }
 
     const withChanges = matched.filter(m => m.hasChanges);
     const unchanged = matched.filter(m => !m.hasChanges);
 
-    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts };
+    // Split: records with only non-critical changes vs those with critical
+    const withCritical = withChanges.filter(m => m.hasCritical);
+    const onlyNonCritical = withChanges.filter(m => !m.hasCritical);
+
+    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical };
   }, [csvData, airtableData]);
 
   /** Filter results by search */
@@ -386,30 +485,45 @@ export default function StammdatenImport() {
     URL.revokeObjectURL(url);
   }, [comparison]);
 
-  /** Build import records from comparison results */
+  /** Build import records from comparison results — respects approval state */
   const buildImportRecords = useCallback(() => {
     if (!comparison) return [];
     const records = [];
 
-    // Updates: records with changes that have an airtable_id
+    // Updates: only include approved changes
     for (const m of comparison.withChanges) {
       if (!m.airtable?.airtable_id) continue;
       const fields = {};
+
       for (const c of m.changes) {
-        fields[c.field] = c.csvVal;
+        if (c.critical) {
+          // Critical change: only include if individually approved
+          if (approvedCriticalIds.has(`${m.id}:${c.field}`)) {
+            fields[c.field] = c.csvVal;
+          }
+        } else {
+          // Non-critical: include if bulk-approved
+          if (approvedNonCritical) {
+            fields[c.field] = c.csvVal;
+          }
+        }
       }
-      records.push({
-        airtable_id: m.airtable.airtable_id,
-        jet_id: m.id,
-        mode: 'update',
-        fields,
-      });
+
+      // Only add record if there are approved fields to update
+      if (Object.keys(fields).length > 0) {
+        records.push({
+          airtable_id: m.airtable.airtable_id,
+          jet_id: m.id,
+          mode: 'update',
+          fields,
+        });
+      }
     }
 
     // Creates: new entries (no airtable match)
     for (const row of comparison.newEntries) {
       const fields = {};
-      for (const field of COMPARE_FIELDS) {
+      for (const field of compareFields) {
         if (row[field]) fields[field] = row[field];
       }
       records.push({
@@ -508,6 +622,8 @@ export default function StammdatenImport() {
     setValidationResult(null);
     setImportResult(null);
     setImportProgress(null);
+    setApprovedNonCritical(false);
+    setApprovedCriticalIds(new Set());
   }, []);
 
   // ── Akquise-Freigabe state ──
@@ -575,11 +691,13 @@ export default function StammdatenImport() {
 
   /** Count of importable records */
   const importableCount = useMemo(() => {
-    if (!comparison) return { updates: 0, creates: 0, total: 0 };
-    const updates = comparison.withChanges.filter(m => m.airtable?.airtable_id).length;
-    const creates = comparison.newEntries.length;
-    return { updates, creates, total: updates + creates };
-  }, [comparison]);
+    if (!comparison) return { updates: 0, creates: 0, total: 0, hasApproval: false };
+    const records = buildImportRecords();
+    const updates = records.filter(r => r.mode === 'update').length;
+    const creates = records.filter(r => r.mode === 'create').length;
+    const hasApproval = approvedNonCritical || approvedCriticalIds.size > 0;
+    return { updates, creates, total: updates + creates, hasApproval };
+  }, [comparison, buildImportRecords, approvedNonCritical, approvedCriticalIds]);
 
   return (
     <div className="space-y-5">
@@ -669,8 +787,16 @@ export default function StammdatenImport() {
       {/* Results */}
       {comparison && (
         <>
+          {/* CSV-detected fields info */}
+          {csvFields.size > 0 && (
+            <div className="bg-blue-50/60 border border-blue-200/40 rounded-xl px-4 py-2 flex items-center gap-2 text-xs text-blue-700">
+              <Eye size={12} />
+              <span>Vergleiche {csvFields.size} Felder aus CSV: {[...csvFields].map(f => FIELD_LABELS[f] || f).join(', ')}</span>
+            </div>
+          )}
+
           {/* Summary Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
             <button onClick={() => setActiveTab('summary')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'summary' ? 'bg-gray-900 text-white' : 'bg-white/60 border border-slate-200/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Gesamt CSV</p>
               <p className="text-2xl font-bold">{csvData.length}</p>
@@ -679,9 +805,15 @@ export default function StammdatenImport() {
               <p className="text-[11px] font-medium opacity-70">Unveraendert</p>
               <p className={`text-2xl font-bold ${activeTab === 'unchanged' ? '' : 'text-emerald-700'}`}>{comparison.unchanged.length}</p>
             </button>
-            <button onClick={() => setActiveTab('changed')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'changed' ? 'bg-amber-600 text-white' : 'bg-amber-50/80 border border-amber-200/60'}`}>
-              <p className="text-[11px] font-medium opacity-70">Geaendert</p>
-              <p className={`text-2xl font-bold ${activeTab === 'changed' ? '' : 'text-amber-700'}`}>{comparison.withChanges.length}</p>
+            <button onClick={() => setActiveTab('noncritical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'noncritical' ? 'bg-amber-600 text-white' : 'bg-amber-50/80 border border-amber-200/60'}`}>
+              <p className="text-[11px] font-medium opacity-70">Unkritisch</p>
+              <p className={`text-2xl font-bold ${activeTab === 'noncritical' ? '' : 'text-amber-700'}`}>{comparison.onlyNonCritical.length}</p>
+              <p className="text-[9px] opacity-60">Tel, Email, Geo...</p>
+            </button>
+            <button onClick={() => setActiveTab('critical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'critical' ? 'bg-red-600 text-white' : 'bg-red-50/80 border border-red-200/60'}`}>
+              <p className="text-[11px] font-medium opacity-70">Kritisch</p>
+              <p className={`text-2xl font-bold ${activeTab === 'critical' ? '' : 'text-red-700'}`}>{comparison.withCritical.length}</p>
+              <p className="text-[9px] opacity-60">Name, Firma, Chain</p>
             </button>
             <button onClick={() => setActiveTab('new')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'new' ? 'bg-blue-600 text-white' : 'bg-blue-50/80 border border-blue-200/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Neu (nur CSV)</p>
@@ -729,7 +861,8 @@ export default function StammdatenImport() {
                   <p><Badge color="gray">{csvData.length}</Badge> Eintraege im JET-Export</p>
                   <p><Badge color="gray">{airtableData.size}</Badge> Eintraege in Supabase (Airtable-Sync)</p>
                   <p><Badge color="green">{comparison.unchanged.length}</Badge> unveraendert (ID match, alle Felder identisch)</p>
-                  <p><Badge color="amber">{comparison.withChanges.length}</Badge> mit Aenderungen (ID match, Felder weichen ab)</p>
+                  <p><Badge color="amber">{comparison.onlyNonCritical.length}</Badge> unkritische Aenderungen (Tel, Email, Kontakt, Geo — gesammelt freigeben)</p>
+                  <p><Badge color="red">{comparison.withCritical.length}</Badge> kritische Aenderungen (Name, Firma, Chain — einzeln pruefen)</p>
                   <p><Badge color="blue">{comparison.newEntries.length}</Badge> neue Standorte (ID nur im CSV)</p>
                   <p><Badge color="red">{comparison.missing.length}</Badge> fehlend im Export (ID nur in Airtable)</p>
                   <p><Badge color="purple">{comparison.addrConflicts.length}</Badge> Adress-Konflikte (gleiche Anschrift, andere ID)</p>
@@ -753,47 +886,163 @@ export default function StammdatenImport() {
               </div>
             )}
 
-            {/* Changed entries */}
-            {activeTab === 'changed' && (
-              <div className="divide-y divide-slate-100">
-                {filteredResults.withChanges.length === 0 ? (
-                  <div className="p-8 text-center text-sm text-gray-400">Keine geaenderten Eintraege</div>
-                ) : filteredResults.withChanges.map(m => (
-                  <div key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                    <button
-                      onClick={() => setExpandedId(expandedId === m.id ? null : m.id)}
-                      className="w-full px-4 py-3 flex items-center gap-3 text-left"
-                    >
-                      <Badge color="amber">{m.changes.length}</Badge>
-                      <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{m.id}</span>
-                      <span className="text-sm font-medium text-gray-900 flex-1 truncate">{m.csv.name}</span>
-                      <span className="text-xs text-gray-400">{m.csv.city}</span>
-                      <ChevronDown size={14} className={`text-gray-400 transition-transform ${expandedId === m.id ? 'rotate-180' : ''}`} />
-                    </button>
-                    {expandedId === m.id && (
-                      <div className="px-4 pb-3">
-                        <table className="w-full text-xs">
-                          <thead>
-                            <tr className="text-gray-500 uppercase">
-                              <th className="text-left py-1 px-2 font-medium">Feld</th>
-                              <th className="text-left py-1 px-2 font-medium">JET Export (neu)</th>
-                              <th className="text-left py-1 px-2 font-medium">Airtable (aktuell)</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {m.changes.map(c => (
-                              <tr key={c.field} className="border-t border-slate-100">
-                                <td className="py-1.5 px-2 font-medium text-gray-700">{c.label}</td>
-                                <td className="py-1.5 px-2 text-blue-700 bg-blue-50/50 font-mono">{c.csvVal || <span className="text-gray-300 italic">leer</span>}</td>
-                                <td className="py-1.5 px-2 text-gray-500 font-mono">{c.atVal || <span className="text-gray-300 italic">leer</span>}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+            {/* Non-critical changes — bulk approvable */}
+            {activeTab === 'noncritical' && (
+              <div>
+                {/* Bulk approve header */}
+                <div className="px-4 py-3 bg-amber-50/80 border-b border-amber-200/40 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800">
+                      {comparison.onlyNonCritical.length} Standorte mit unkritischen Aenderungen
+                    </p>
+                    <p className="text-[10px] text-amber-600">
+                      Telefon, E-Mail, Kontakt, Geo, Oeffnungszeiten, Website — gesammelt freigeben
+                    </p>
                   </div>
-                ))}
+                  <button
+                    onClick={() => setApprovedNonCritical(!approvedNonCritical)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      approvedNonCritical
+                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                        : 'bg-amber-600 text-white hover:bg-amber-700'
+                    }`}
+                  >
+                    {approvedNonCritical ? (
+                      <><CheckCircle2 size={14} /> Freigegeben</>
+                    ) : (
+                      <><Shield size={14} /> Alle {comparison.onlyNonCritical.length + comparison.withCritical.length} freigeben</>
+                    )}
+                  </button>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {comparison.onlyNonCritical.length === 0 ? (
+                    <div className="p-8 text-center text-sm text-gray-400">Keine unkritischen Aenderungen</div>
+                  ) : comparison.onlyNonCritical.slice(0, 200).map(m => (
+                    <div key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                      <button
+                        onClick={() => setExpandedId(expandedId === m.id ? null : m.id)}
+                        className="w-full px-4 py-3 flex items-center gap-3 text-left"
+                      >
+                        <Badge color="amber">{m.changes.length}</Badge>
+                        <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{m.id}</span>
+                        <span className="text-sm font-medium text-gray-900 flex-1 truncate">{m.csv.name}</span>
+                        <span className="text-xs text-gray-400">{m.csv.city}</span>
+                        {approvedNonCritical && <CheckCircle2 size={14} className="text-emerald-500" />}
+                        <ChevronDown size={14} className={`text-gray-400 transition-transform ${expandedId === m.id ? 'rotate-180' : ''}`} />
+                      </button>
+                      {expandedId === m.id && (
+                        <div className="px-4 pb-3">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="text-gray-500 uppercase">
+                                <th className="text-left py-1 px-2 font-medium">Feld</th>
+                                <th className="text-left py-1 px-2 font-medium">JET Export (neu)</th>
+                                <th className="text-left py-1 px-2 font-medium">Airtable (aktuell)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {m.changes.map(c => (
+                                <tr key={c.field} className="border-t border-slate-100">
+                                  <td className="py-1.5 px-2 font-medium text-gray-700">{c.label}</td>
+                                  <td className="py-1.5 px-2 text-blue-700 bg-blue-50/50 font-mono">{c.csvVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 text-gray-500 font-mono">{c.atVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {comparison.onlyNonCritical.length > 200 && (
+                    <div className="p-3 text-center text-xs text-gray-400">... und {comparison.onlyNonCritical.length - 200} weitere</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Critical changes — individual approval */}
+            {activeTab === 'critical' && (
+              <div>
+                <div className="px-4 py-3 bg-red-50/80 border-b border-red-200/40">
+                  <p className="text-sm font-semibold text-red-800">
+                    {comparison.withCritical.length} Standorte mit kritischen Aenderungen
+                  </p>
+                  <p className="text-[10px] text-red-600">
+                    Name, Firma/Entity, JET Chain — einzeln pruefen und freigeben
+                  </p>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {comparison.withCritical.length === 0 ? (
+                    <div className="p-8 text-center text-sm text-gray-400">Keine kritischen Aenderungen</div>
+                  ) : comparison.withCritical.map(m => (
+                    <div key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                      <button
+                        onClick={() => setExpandedId(expandedId === `crit-${m.id}` ? null : `crit-${m.id}`)}
+                        className="w-full px-4 py-3 flex items-center gap-3 text-left"
+                      >
+                        <Badge color="red">{m.criticalChanges.length}</Badge>
+                        {m.nonCriticalChanges.length > 0 && <Badge color="amber">+{m.nonCriticalChanges.length}</Badge>}
+                        <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{m.id}</span>
+                        <span className="text-sm font-medium text-gray-900 flex-1 truncate">{m.csv.name}</span>
+                        <span className="text-xs text-gray-400">{m.csv.city}</span>
+                        <ChevronDown size={14} className={`text-gray-400 transition-transform ${expandedId === `crit-${m.id}` ? 'rotate-180' : ''}`} />
+                      </button>
+                      {expandedId === `crit-${m.id}` && (
+                        <div className="px-4 pb-3 space-y-2">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="text-gray-500 uppercase">
+                                <th className="text-left py-1 px-2 font-medium w-8"></th>
+                                <th className="text-left py-1 px-2 font-medium">Feld</th>
+                                <th className="text-left py-1 px-2 font-medium">JET Export (neu)</th>
+                                <th className="text-left py-1 px-2 font-medium">Airtable (aktuell)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {m.criticalChanges.map(c => {
+                                const approvalKey = `${m.id}:${c.field}`;
+                                const isApproved = approvedCriticalIds.has(approvalKey);
+                                return (
+                                  <tr key={c.field} className="border-t border-red-100 bg-red-50/30">
+                                    <td className="py-1.5 px-2">
+                                      <button
+                                        onClick={() => {
+                                          const next = new Set(approvedCriticalIds);
+                                          if (isApproved) next.delete(approvalKey);
+                                          else next.add(approvalKey);
+                                          setApprovedCriticalIds(next);
+                                        }}
+                                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                                          isApproved ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-red-300 hover:border-red-500'
+                                        }`}
+                                      >
+                                        {isApproved && <CheckCircle2 size={12} />}
+                                      </button>
+                                    </td>
+                                    <td className="py-1.5 px-2 font-semibold text-red-700">{c.label}</td>
+                                    <td className="py-1.5 px-2 text-blue-700 bg-blue-50/50 font-mono">{c.csvVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                    <td className="py-1.5 px-2 text-gray-500 font-mono">{c.atVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                  </tr>
+                                );
+                              })}
+                              {m.nonCriticalChanges.map(c => (
+                                <tr key={c.field} className="border-t border-slate-100">
+                                  <td className="py-1.5 px-2">
+                                    {approvedNonCritical ? <CheckCircle2 size={12} className="text-emerald-500" /> : <span className="text-[10px] text-gray-400">auto</span>}
+                                  </td>
+                                  <td className="py-1.5 px-2 font-medium text-gray-700">{c.label}</td>
+                                  <td className="py-1.5 px-2 text-blue-700 bg-blue-50/50 font-mono">{c.csvVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                  <td className="py-1.5 px-2 text-gray-500 font-mono">{c.atVal || <span className="text-gray-300 italic">leer</span>}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -1036,6 +1285,20 @@ export default function StammdatenImport() {
           {airtableData && freigabeEligible.length === 0 && !comparison && (
             <div className="bg-gray-50/60 border border-slate-200/60 rounded-2xl p-4 text-center">
               <p className="text-xs text-gray-500">Keine Standorte fuer Akquise-Freigabe gefunden (Non-Chain + Top-5-Stadt + noch nicht freigegeben)</p>
+            </div>
+          )}
+
+          {/* Approval hint when nothing approved yet */}
+          {comparison && comparison.withChanges.length > 0 && !importableCount.hasApproval && !importStep && (
+            <div className="bg-amber-50/80 border border-amber-200/60 rounded-2xl p-4 flex items-start gap-3">
+              <Shield size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-amber-800">Aenderungen muessen freigegeben werden</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Oeffne den Tab <strong>Unkritisch</strong> fuer Bulk-Freigabe (Tel, Email, Geo etc.) oder <strong>Kritisch</strong> fuer Einzelpruefung (Name, Firma, Chain).
+                  Erst nach Freigabe kann der Import gestartet werden.
+                </p>
+              </div>
             </div>
           )}
 
