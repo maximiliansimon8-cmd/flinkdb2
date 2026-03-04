@@ -61,6 +61,9 @@ import ChangePasswordModal from './components/ChangePasswordModal';
 import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
 import { KPI_FILTERS } from './constants/kpiFilters';
 import DateRangePicker from './components/DateRangePicker';
+import { Sidebar } from './components/layout/Sidebar';
+import { ContentHeader } from './components/layout/ContentHeader';
+import { useTheme } from './hooks/useTheme';
 
 // Lazy-loaded components — split into separate chunks for faster initial load
 const KPICards = lazy(() => import('./components/KPICards'));
@@ -1871,10 +1874,10 @@ function App() {
   // Session recovery in progress — show brief loading state
   if (authRecovering) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-surface-secondary">
         <div className="text-center">
-          <Loader2 size={24} className="animate-spin text-slate-400 mx-auto mb-2" />
-          <p className="text-sm text-slate-500">Session wird geladen…</p>
+          <Loader2 size={24} className="animate-spin text-text-muted mx-auto mb-2" />
+          <p className="text-sm text-text-muted">Session wird geladen…</p>
         </div>
       </div>
     );
@@ -1882,19 +1885,21 @@ function App() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-full max-w-sm">
-          <form onSubmit={handleLogin} className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-8 shadow-sm shadow-black/[0.03]">
-            <div className="flex flex-col items-center mb-6">
-              <img
-                src="/dimension-outdoor-logo.png"
-                alt="Dimension Outdoor"
-                className="h-10 w-auto mb-4 brightness-0 opacity-80"
-              />
-              <h1 className="text-sm font-bold text-slate-900 tracking-wide">
-                JET GERMANY
+      <div className="min-h-screen flex items-center justify-center bg-surface-secondary">
+        <div className="w-full max-w-[360px] px-6">
+          <form onSubmit={handleLogin} className="bg-surface-primary border border-border-secondary rounded-2xl p-8 shadow-lg">
+            <div className="flex flex-col items-center mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-gray-900 flex items-center justify-center mb-5 shadow-md">
+                <img
+                  src="/dimension-outdoor-logo.png"
+                  alt="Dimension Outdoor"
+                  className="h-8 w-auto invert opacity-90"
+                />
+              </div>
+              <h1 className="text-[20px] font-semibold text-text-primary tracking-[-0.4px]">
+                JET Germany
               </h1>
-              <p className="text-xs text-slate-500 font-mono mt-1">
+              <p className="text-[13px] text-text-muted mt-1">
                 Display Network Monitor
               </p>
             </div>
@@ -1902,19 +1907,19 @@ function App() {
             <div className="space-y-4">
               {/* Email / Username Field */}
               <div>
-                <label className="text-xs text-slate-500 block mb-1.5">E-Mail / Benutzername</label>
+                <label className="text-[13px] font-medium text-text-secondary block mb-1.5">E-Mail oder Benutzername</label>
                 <div className="relative">
-                  <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
                     value={emailInput}
                     onChange={(e) => { setEmailInput(e.target.value); setAuthError(''); }}
                     placeholder="name@dimension-outdoor.com"
                     autoFocus
-                    className={`w-full bg-slate-50/80 border rounded-lg pl-9 pr-3 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none transition-colors ${
+                    className={`w-full bg-surface-secondary border rounded-[var(--radius-md)] pl-10 pr-3.5 py-3 text-[15px] text-text-primary placeholder-text-muted focus:outline-none focus:ring-3 focus:ring-accent/12 transition-all ${
                       authError
-                        ? 'border-[#ef4444] focus:border-[#ef4444]'
-                        : 'border-slate-200/60 focus:border-[#3b82f6]'
+                        ? 'border-status-offline focus:border-status-offline'
+                        : 'border-border-primary focus:border-accent'
                     }`}
                   />
                 </div>
@@ -1922,23 +1927,23 @@ function App() {
 
               {/* Password Field */}
               <div>
-                <label className="text-xs text-slate-500 block mb-1.5">Passwort</label>
+                <label className="text-[13px] font-medium text-text-secondary block mb-1.5">Passwort</label>
                 <div className="relative">
-                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="password"
                     value={passwordInput}
                     onChange={(e) => { setPasswordInput(e.target.value); setAuthError(''); }}
-                    placeholder="Passwort eingeben..."
-                    className={`w-full bg-slate-50/80 border rounded-lg pl-9 pr-3 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none transition-colors ${
+                    placeholder="Passwort eingeben"
+                    className={`w-full bg-surface-secondary border rounded-[var(--radius-md)] pl-10 pr-3.5 py-3 text-[15px] text-text-primary placeholder-text-muted focus:outline-none focus:ring-3 focus:ring-accent/12 transition-all ${
                       authError
-                        ? 'border-[#ef4444] focus:border-[#ef4444]'
-                        : 'border-slate-200/60 focus:border-[#3b82f6]'
+                        ? 'border-status-offline focus:border-status-offline'
+                        : 'border-border-primary focus:border-accent'
                     }`}
                   />
                 </div>
                 {authError && (
-                  <p className="text-[#ef4444] text-xs mt-1.5 font-mono">
+                  <p className="text-status-offline text-[13px] mt-2">
                     {authError}
                   </p>
                 )}
@@ -1946,7 +1951,7 @@ function App() {
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors"
+                className="w-full py-3 rounded-[var(--radius-md)] text-[15px] font-semibold bg-accent text-white hover:bg-accent-hover active:brightness-90 transition-all shadow-sm"
               >
                 Anmelden
               </button>
@@ -1954,7 +1959,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => { setShowResetForm(true); setResetEmail(emailInput); setResetStatus(''); }}
-                className="w-full text-xs text-slate-500 hover:text-[#3b82f6] transition-colors mt-2 font-mono"
+                className="w-full text-[13px] text-accent hover:text-accent-hover transition-colors mt-1"
               >
                 Passwort vergessen?
               </button>
@@ -1963,41 +1968,41 @@ function App() {
 
           {/* Password Reset Modal */}
           {showResetForm && (
-            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-              <div className="bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-6 shadow-lg shadow-black/5 w-full max-w-sm">
+            <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+              <div className="bg-surface-primary border border-border-secondary rounded-[var(--radius-xl)] p-6 shadow-float w-full max-w-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-bold text-slate-900">Passwort zurücksetzen</h2>
+                  <h2 className="text-[15px] font-semibold text-text-primary">Passwort zurücksetzen</h2>
                   <button
                     onClick={() => setShowResetForm(false)}
-                    className="p-1 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-600 transition-colors"
+                    className="w-7 h-7 rounded-full bg-surface-secondary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"
                   >
-                    <X size={16} />
+                    <X size={14} />
                   </button>
                 </div>
 
                 {resetStatus === 'sent' ? (
                   <div className="text-center py-4">
-                    <div className="w-10 h-10 rounded-full bg-[#22c55e]/10 flex items-center justify-center mx-auto mb-3">
-                      <Mail size={18} className="text-[#22c55e]" />
+                    <div className="w-12 h-12 rounded-full bg-status-online/10 flex items-center justify-center mx-auto mb-3">
+                      <Mail size={20} className="text-status-online" />
                     </div>
-                    <p className="text-sm text-slate-700 font-medium mb-1">E-Mail gesendet!</p>
-                    <p className="text-xs text-slate-500 font-mono leading-relaxed">
+                    <p className="text-[15px] text-text-primary font-semibold mb-1">E-Mail gesendet!</p>
+                    <p className="text-[13px] text-text-muted leading-relaxed">
                       Falls ein Account mit dieser E-Mail existiert, erhältst du einen Link zum Zurücksetzen deines Passworts.
                     </p>
                     <button
                       onClick={() => setShowResetForm(false)}
-                      className="mt-4 px-4 py-2 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                      className="mt-4 px-5 py-2.5 rounded-[var(--radius-md)] text-[13px] font-semibold bg-surface-secondary text-text-secondary hover:bg-surface-tertiary transition-colors"
                     >
                       Schließen
                     </button>
                   </div>
                 ) : (
                   <form onSubmit={handlePasswordReset}>
-                    <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                    <p className="text-[13px] text-text-muted mb-4 leading-relaxed">
                       Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen deines Passworts.
                     </p>
                     <div className="relative mb-4">
-                      <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
                       <input
                         type="email"
                         value={resetEmail}
@@ -2005,11 +2010,11 @@ function App() {
                         placeholder="name@dimension-outdoor.com"
                         autoFocus
                         required
-                        className="w-full bg-slate-50/80 border border-slate-200/60 rounded-lg pl-9 pr-3 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#3b82f6] transition-colors"
+                        className="w-full bg-surface-secondary border border-border-primary rounded-[var(--radius-md)] pl-10 pr-3.5 py-3 text-[15px] text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-3 focus:ring-accent/12 transition-all"
                       />
                     </div>
                     {resetStatus === 'error' && (
-                      <p className="text-[#ef4444] text-xs mb-3 font-mono">
+                      <p className="text-status-offline text-[13px] mb-3">
                         Fehler beim Senden. Bitte versuche es erneut.
                       </p>
                     )}
@@ -2017,14 +2022,14 @@ function App() {
                       <button
                         type="button"
                         onClick={() => setShowResetForm(false)}
-                        className="flex-1 py-2.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                        className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] font-semibold bg-surface-secondary text-text-secondary hover:bg-surface-tertiary transition-colors"
                       >
                         Abbrechen
                       </button>
                       <button
                         type="submit"
                         disabled={resetStatus === 'sending'}
-                        className="flex-1 py-2.5 rounded-lg text-xs font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors disabled:opacity-50"
+                        className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] font-semibold bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-40"
                       >
                         {resetStatus === 'sending' ? 'Sende...' : 'Link senden'}
                       </button>
@@ -2051,11 +2056,11 @@ function App() {
         <div className="text-center">
           <img src="/dimension-outdoor-logo.png" alt="Dimension Outdoor" className="h-10 w-auto brightness-0 opacity-60 mx-auto mb-4" />
           <div className="w-48 mx-auto">
-            <div className="h-1 bg-slate-200/80 rounded-full overflow-hidden">
+            <div className="h-1 bg-surface-tertiary rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-progress-glow" style={{ width: '60%' }} />
             </div>
           </div>
-          <p className="text-xs text-slate-400 font-mono mt-3">Lade Dashboard...</p>
+          <p className="text-xs text-text-muted font-mono mt-3">Lade Dashboard...</p>
         </div>
       </div>
     );
@@ -2067,8 +2072,8 @@ function App() {
       <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6">
         <div className="text-center">
           <AlertCircle size={32} className="text-red-400 mx-auto mb-3" />
-          <p className="text-sm text-slate-700 mb-1">Verbindungsfehler</p>
-          <p className="text-xs text-slate-500 mb-4">{error}</p>
+          <p className="text-sm text-text-primary mb-1">Verbindungsfehler</p>
+          <p className="text-xs text-text-muted mb-4">{error}</p>
           <button onClick={() => loadData(true)} className="px-4 py-2 bg-blue-500 text-white text-sm rounded-xl">Erneut versuchen</button>
         </div>
       </div>
@@ -2082,100 +2087,38 @@ function App() {
 
   if (loading && !isMobile && !cachedSnapshot) {
     return (
-      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-        {/* Animated background orbs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-32 -left-32 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl animate-float" />
-          <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-violet-200/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
-          <div className="absolute top-1/4 right-1/4 w-48 h-48 bg-sky-200/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '0.8s' }} />
-        </div>
-
-        <div className="text-center relative z-10">
-          {/* Logo with float animation */}
+      <div className="min-h-screen flex items-center justify-center bg-surface-secondary">
+        <div className="text-center">
+          {/* Logo */}
           <div className="animate-slide-up">
-            <div className="relative inline-block mb-6">
+            <div className="w-16 h-16 rounded-2xl bg-gray-900 flex items-center justify-center mx-auto mb-6 shadow-md">
               <img
                 src="/dimension-outdoor-logo.png"
                 alt="Dimension Outdoor"
-                className="h-14 w-auto brightness-0 opacity-80 mx-auto animate-float"
+                className="h-8 w-auto invert opacity-90"
               />
-              {/* Shimmer line under logo */}
-              <div className="mt-3 h-px w-full animate-shimmer rounded-full" />
             </div>
           </div>
 
           {/* Title */}
-          <div className="animate-slide-up" style={{ animationDelay: '0.15s', opacity: 0 }}>
-            <h1 className="text-lg font-bold text-slate-900 tracking-wider mb-1">
-              JET GERMANY
+          <div className="animate-slide-up" style={{ animationDelay: '0.1s', opacity: 0 }}>
+            <h1 className="text-[20px] font-semibold text-text-primary tracking-[-0.4px] mb-1">
+              JET Germany
             </h1>
-            <p className="text-xs text-slate-500 font-mono tracking-widest uppercase">
+            <p className="text-[13px] text-text-muted">
               Display Network Monitor
             </p>
           </div>
 
-          {/* Progress bar */}
-          <div className="animate-slide-up mt-8 w-56 mx-auto" style={{ animationDelay: '0.3s', opacity: 0 }}>
-            <div className="h-1 bg-slate-100/80 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 rounded-full animate-progress-glow"
-                style={{ width: loadProgress?.includes('Verarbeite') ? '85%' : '45%', transition: 'width 1.5s ease-in-out' }}
+          {/* Progress bar — thin Apple style */}
+          <div className="animate-slide-up mt-8 w-48 mx-auto" style={{ animationDelay: '0.2s', opacity: 0 }}>
+            <div className="h-[3px] bg-surface-tertiary rounded-full overflow-hidden">
+              <div className="h-full bg-accent rounded-full transition-all duration-1000 ease-out"
+                style={{ width: loadProgress?.includes('Verarbeite') ? '85%' : '45%' }}
               />
             </div>
-          </div>
-
-          {/* Status text with bouncing dots */}
-          <div className="animate-slide-up mt-4" style={{ animationDelay: '0.45s', opacity: 0 }}>
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="text-xs text-slate-500 font-mono">
-                {loadProgress || 'Initialisiere'}
-              </span>
-              <span className="flex gap-0.5">
-                <span className="loading-dot w-1 h-1 bg-blue-400 rounded-full inline-block" />
-                <span className="loading-dot w-1 h-1 bg-blue-400 rounded-full inline-block" />
-                <span className="loading-dot w-1 h-1 bg-blue-400 rounded-full inline-block" />
-              </span>
-            </div>
-          </div>
-
-          {/* Cached KPI preview — show last known data while loading */}
-          {cachedSnapshot && (
-            <div className="animate-slide-up mt-6 w-64 mx-auto" style={{ animationDelay: '0.5s', opacity: 0 }}>
-              <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-xl p-3 text-center">
-                <div className="text-xs font-mono text-slate-500 mb-1">Letzte bekannte Daten</div>
-                <div className="flex items-center justify-center gap-3">
-                  <div>
-                    <div className="text-lg font-mono font-bold text-emerald-600">{cachedSnapshot.kpis?.healthRate}%</div>
-                    <div className="text-xs font-mono text-slate-500">Health Rate</div>
-                  </div>
-                  <div className="w-px h-8 bg-slate-200" />
-                  <div>
-                    <div className="text-lg font-mono font-bold text-blue-600">{cachedSnapshot.displayCount}</div>
-                    <div className="text-xs font-mono text-slate-500">Displays</div>
-                  </div>
-                </div>
-                <div className="text-xs font-mono text-slate-500 mt-1">
-                  {cachedSnapshot.latestTimestamp ? `Stand: ${new Date(cachedSnapshot.latestTimestamp).toLocaleString('de-DE')}` : ''}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Subtle grid pattern hint */}
-          <div className="animate-slide-up mt-10" style={{ animationDelay: cachedSnapshot ? '0.7s' : '0.6s', opacity: 0 }}>
-            <div className="flex items-center justify-center gap-1.5">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-1 rounded-full bg-slate-200/60"
-                  style={{
-                    animationDelay: `${i * 0.15}s`,
-                    opacity: 0.3 + (i === 2 ? 0.4 : 0),
-                  }}
-                />
-              ))}
-            </div>
-            <p className="text-xs text-slate-500 font-mono mt-2">
-              powered by dimension outdoor
+            <p className="text-[12px] text-text-muted mt-3">
+              {loadProgress || 'Laden...'}
             </p>
           </div>
         </div>
@@ -2189,14 +2132,14 @@ function App() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md">
-          <AlertCircle size={40} className="text-[#ef4444] mx-auto mb-4" />
-          <div className="text-slate-900 text-sm font-medium mb-2">
+          <AlertCircle size={40} className="text-status-offline mx-auto mb-4" />
+          <div className="text-text-primary text-sm font-medium mb-2">
             Fehler beim Laden
           </div>
-          <div className="text-slate-500 text-xs font-mono mb-4">{error || 'Ein unerwarteter Fehler ist aufgetreten.'}</div>
+          <div className="text-text-muted text-xs font-mono mb-4">{error || 'Ein unerwarteter Fehler ist aufgetreten.'}</div>
           <button
             onClick={() => loadData(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-lg text-xs text-slate-600 hover:border-[#3b82f6] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-surface-primary border border-border-secondary rounded-lg text-xs text-text-secondary hover:border-accent transition-colors"
           >
             <RefreshCw size={14} />
             Erneut versuchen
@@ -2248,11 +2191,11 @@ function App() {
               {/* Skeleton Loading — App-Feeling */}
               <div className="w-full flex gap-3 overflow-hidden">
                 {[1,2,3].map(i => (
-                  <div key={i} className="w-[72%] shrink-0 h-24 rounded-2xl bg-slate-200/60 animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+                  <div key={i} className="w-[72%] shrink-0 h-24 rounded-2xl bg-surface-tertiary animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
                 ))}
               </div>
               {[1,2,3].map(i => (
-                <div key={i} className="w-full h-16 rounded-xl bg-slate-200/40 animate-pulse" style={{ animationDelay: `${(i + 3) * 80}ms` }} />
+                <div key={i} className="w-full h-16 rounded-xl bg-border-secondary/40 animate-pulse" style={{ animationDelay: `${(i + 3) * 80}ms` }} />
               ))}
             </div>
           }>
@@ -2297,16 +2240,16 @@ function App() {
                       <Search size={20} className="text-white" />
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="text-sm font-semibold text-slate-900">QR / Barcode Scanner</div>
-                      <div className="text-[11px] text-slate-500">Hardware per Kamera oder Seriennummer finden</div>
+                      <div className="text-sm font-semibold text-text-primary">QR / Barcode Scanner</div>
+                      <div className="text-[11px] text-text-muted">Hardware per Kamera oder Seriennummer finden</div>
                     </div>
-                    <ChevronDown size={16} className="text-slate-400 -rotate-90" />
+                    <ChevronDown size={16} className="text-text-muted -rotate-90" />
                   </button>
                 </div>
                 {rawData ? (
                   <HardwareDashboard comparisonData={comparisonData || {}} rawData={rawData} />
                 ) : (
-                  <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
+                  <div className="flex items-center justify-center h-64 text-text-muted text-sm">
                     <Loader2 className="w-5 h-5 animate-spin mr-2" />Daten werden geladen...
                   </div>
                 )}
@@ -2337,7 +2280,7 @@ function App() {
         {showQRScanner && (userIsAdmin || isFeatureEnabled('tab_qr_scanner')) && (
           <Suspense fallback={
             <div className="fixed inset-0 z-[9999] bg-black/20 backdrop-blur-sm flex items-end justify-center">
-              <div className="w-full max-w-lg bg-white/90 rounded-t-3xl p-8 flex items-center justify-center">
+              <div className="w-full max-w-lg bg-surface-primary rounded-t-3xl p-8 flex items-center justify-center">
                 <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
               </div>
             </div>
@@ -2372,7 +2315,7 @@ function App() {
 
         {/* Session Timeout Warning Banner */}
         {sessionWarning && (
-          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-xl bg-amber-50/95 backdrop-blur-xl border border-amber-200/60 shadow-lg animate-fade-in">
+          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-xl bg-status-warning/10 border border-status-warning/20 shadow-lg animate-fade-in">
             <AlertTriangle size={16} className="text-amber-600 shrink-0" />
             <div>
               <p className="text-sm font-medium text-amber-800">Session laeuft ab</p>
@@ -2487,306 +2430,94 @@ function App() {
   // Display-related tabs that need the date range picker
   const displayTabs = ['overview', 'displays-list', 'cities'];
 
+  // Page title for content header
+  const activeTabObj = mainTabs.find(t => t.id === activeMainTab);
+  const pageTitle = activeTabObj?.label || 'Dashboard';
+
+  // Theme hook
+  const { isDark, toggleTheme } = useTheme();
+
+  // Sidebar collapsed state (read from localStorage for content margin)
+  const sidebarCollapsed = localStorage.getItem('jet-sidebar-collapsed') === 'true';
+
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b border-slate-200/60 bg-white/60 backdrop-blur-xl safe-top">
-        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 py-2 sm:py-3">
-          <div className="flex items-center justify-between gap-2">
-            {/* Left: Logo + Branding */}
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-              <img
-                src="/dimension-outdoor-logo.png"
-                alt="Dimension Outdoor"
-                className="h-6 sm:h-8 w-auto brightness-0 opacity-80 shrink-0"
-              />
-              <div className="w-px h-5 sm:h-6 bg-slate-200 hidden sm:block" />
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <Monitor size={18} className="text-[#3b82f6] shrink-0 hidden sm:block" />
-                <div className="min-w-0">
-                  <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-wide truncate">
-                    JET GERMANY
-                  </h1>
-                  <p className="text-xs text-slate-500 font-mono hidden sm:block">
-                    Display Network Monitor
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-screen bg-surface-secondary">
+      {/* Sidebar Navigation */}
+      <Sidebar
+        tabGroups={visibleGroups}
+        activeTab={activeMainTab}
+        onTabChange={setActiveMainTab}
+        currentUser={currentUser}
+        userGroup={userGroup}
+        globalSearch={globalSearch}
+        onSearchChange={(val) => { setGlobalSearch(val); setGlobalSearchOpen(true); }}
+        globalSearchOpen={globalSearchOpen}
+        globalSearchResults={globalSearchResults}
+        onSearchResultClick={(r) => {
+          if (r.display) {
+            setSelectedDisplay(r.display);
+          } else {
+            const loc = comparisonData?.airtable?.locationMap?.get(r.id);
+            setSelectedDisplay({
+              displayId: r.id,
+              locationName: r.label || r.id,
+              city: loc?.city || '–',
+              status: 'unknown',
+              jetId: r.jetId || loc?.jetId || null,
+              serialNumber: '',
+              daysOffline: null,
+              _stammdatenOnly: true,
+            });
+          }
+          setGlobalSearchOpen(false);
+          setGlobalSearch('');
+        }}
+        onSearchFocus={() => globalSearch.length >= 2 && setGlobalSearchOpen(true)}
+        onSearchClear={() => { setGlobalSearch(''); setGlobalSearchOpen(false); }}
+        globalSearchRef={globalSearchRef}
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        onPasswordChange={() => setShowPasswordModal(true)}
+        onLogout={handleLogout}
+        getInitials={getInitials}
+      />
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
-              {/* Last data timestamp — desktop only */}
-              {(() => {
-                const dataAgeHours = displayRawData.latestTimestamp
-                  ? (Date.now() - new Date(displayRawData.latestTimestamp).getTime()) / (1000 * 60 * 60)
-                  : Infinity;
-                const isStale = dataAgeHours > 24;
-                const isVeryStale = dataAgeHours > 72;
-                return (
-                  <div className={`text-right hidden lg:block ${isStale ? 'relative group' : ''}`}>
-                    <div className={`text-[10px] font-mono flex items-center gap-1 justify-end ${isVeryStale ? 'text-red-500' : isStale ? 'text-amber-500' : 'text-slate-400'}`}>
-                      {isStale && <AlertTriangle size={9} />}
-                      Letzter Datenstand {formatDateTime(displayRawData.latestTimestamp)}
-                    </div>
-                    {isStale && (
-                      <div className="absolute top-full right-0 mt-1 px-3 py-2 bg-slate-800 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 max-w-[280px]">
-                        {isVeryStale
-                          ? `Daten sind ${Math.round(dataAgeHours / 24)} Tage veraltet! Heartbeat-Pipeline pruefen.`
-                          : `Daten sind ${Math.round(dataAgeHours)}h alt. Sync-Button klicken oder Pipeline pruefen.`}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
+      {/* Content Area — offset by sidebar width */}
+      <div className={`transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] ${sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
+        {/* Content Header */}
+        <ContentHeader
+          pageTitle={pageTitle}
+          displayRawData={displayRawData}
+          totalRowsGlobal={totalRowsGlobal}
+          onRefresh={() => loadData(true)}
+          onSync={triggerSync}
+          syncing={syncing}
+          syncResult={syncResult}
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          dataEarliest={dataEarliest}
+          dataLatest={dataLatest}
+          onRangeChange={handleRangeChange}
+          rangeLabel={rangeLabel}
+          displayTabs={displayTabs}
+          activeMainTab={activeMainTab}
+          DateRangePicker={DateRangePicker}
+          formatDateTime={formatDateTime}
+          comparisonData={comparisonData}
+          onPasswordChange={() => setShowPasswordModal(true)}
+          onLogout={handleLogout}
+          currentUser={currentUser}
+          userGroup={userGroup}
+          getInitials={getInitials}
+          sidebarCollapsed={sidebarCollapsed}
+        />
 
-              {/* Display count badge — Navori + Dayn total */}
-              <div
-                className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50/60 border border-emerald-200/40 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 relative group"
-                title={`${displayRawData.displays?.length || 0} Navori${comparisonData?.dayn?.total ? ` + ${comparisonData.dayn.total} Dayn` : ''} — alle Displays mit Heartbeat (inkl. deinstallierte)`}
-              >
-                <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-[#22c55e] animate-pulse-glow" />
-                <span className="text-[10px] sm:text-xs font-mono font-medium text-emerald-700">
-                  {(displayRawData.displays?.length || 0) + (comparisonData?.dayn?.total || 0)} Displays
-                </span>
-              </div>
-
-              {/* Refresh + Sync — larger touch targets on mobile */}
-              <button
-                onClick={() => loadData(true)}
-                className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors"
-                title="Daten neu laden"
-              >
-                <RefreshCw size={16} className="sm:w-[14px] sm:h-[14px]" />
-              </button>
-              <button
-                onClick={triggerSync}
-                disabled={syncing}
-                className={`relative p-2 sm:p-1.5 rounded-lg sm:rounded-md transition-colors ${
-                  syncing
-                    ? 'bg-blue-50 text-blue-500'
-                    : syncResult?.success
-                      ? 'bg-emerald-50 text-emerald-500'
-                      : syncResult && !syncResult.success
-                        ? 'bg-red-50 text-red-500'
-                        : 'hover:bg-blue-50/60 text-slate-500 hover:text-blue-600'
-                }`}
-                title={syncing ? 'Sync läuft...' : 'Airtable → Supabase Sync'}
-              >
-                <Database size={16} className={`sm:w-[14px] sm:h-[14px] ${syncing ? 'animate-pulse' : ''}`} />
-                {syncResult?.success && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center">
-                    <span className="text-[7px] text-white font-bold">✓</span>
-                  </span>
-                )}
-              </button>
-
-              {/* User Info + Logout */}
-              {currentUser && (
-                <>
-                  <div className="w-px h-5 sm:h-6 bg-slate-200 hidden sm:block" />
-                  <div className="flex items-center gap-1.5 sm:gap-2.5">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                      style={{ backgroundColor: userGroup?.color || '#64748b' }}
-                    >
-                      {getInitials(currentUser.name)}
-                    </div>
-                    <div className="hidden md:block text-right">
-                      <div className="text-xs font-medium text-slate-900 leading-tight">
-                        {currentUser.name}
-                      </div>
-                      <div
-                        className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border"
-                        style={{
-                          color: userGroup?.color || '#64748b',
-                          backgroundColor: (userGroup?.color || '#64748b') + '18',
-                          borderColor: (userGroup?.color || '#64748b') + '40',
-                        }}
-                      >
-                        {userGroup?.name || 'Unbekannt'}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowPasswordModal(true)}
-                      className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-amber-50/60 text-slate-500 hover:text-amber-600 transition-colors hidden sm:flex"
-                      title="Passwort ändern"
-                    >
-                      <Key size={14} />
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-red-50/60 text-slate-500 hover:text-red-500 transition-colors"
-                      title="Abmelden"
-                    >
-                      <LogOut size={16} className="sm:w-[14px] sm:h-[14px]" />
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Navigation — 2-level grouped menu */}
-      <nav className="border-b border-slate-200/60 bg-white/40 backdrop-blur-sm">
-        <div className="max-w-[1600px] mx-auto px-0 sm:px-4">
-          {/* Level 1: Group headers */}
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between">
-              <div className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory">
-                {visibleGroups.map((g) => {
-                  const isGroupActive = activeGroup === g.group;
-                  return (
-                    <button
-                      key={g.group}
-                      onClick={() => {
-                        // Clicking a group switches to the first tab of that group
-                        // (unless already in that group, then do nothing)
-                        if (!isGroupActive) {
-                          setActiveMainTab(g.tabs[0].id);
-                        }
-                      }}
-                      className={`flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all border-b-[3px] whitespace-nowrap snap-start shrink-0 ${
-                        isGroupActive
-                          ? 'text-[#3b82f6] border-[#3b82f6] bg-white/30'
-                          : 'text-slate-500 border-transparent hover:text-slate-600 hover:bg-white/20'
-                      }`}
-                    >
-                      {g.group}
-                      {g.tabs.length > 1 && (
-                        <ChevronDown size={12} className={`transition-transform ${isGroupActive ? 'rotate-180' : ''}`} />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Global Search */}
-              <div className="flex items-center gap-2 px-3 sm:px-0 py-1.5 sm:py-0">
-              <div className="relative" ref={globalSearchRef}>
-                <div className="relative">
-                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <input
-                    type="text"
-                    placeholder="Standort, JET-ID, Display-ID..."
-                    value={globalSearch}
-                    onChange={e => { setGlobalSearch(e.target.value); setGlobalSearchOpen(true); }}
-                    onFocus={() => globalSearch.length >= 2 && setGlobalSearchOpen(true)}
-                    className="w-48 sm:w-64 pl-8 pr-3 py-1.5 text-xs font-mono bg-white/70 border border-slate-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 placeholder:text-slate-500"
-                  />
-                  {globalSearch && (
-                    <button onClick={() => { setGlobalSearch(''); setGlobalSearchOpen(false); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-500">
-                      <X size={12} />
-                    </button>
-                  )}
-                </div>
-                {/* Search Results Dropdown */}
-                {globalSearchOpen && globalSearchResults.length > 0 && (
-                  <div className="absolute top-full left-0 mt-1 w-80 sm:w-96 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto">
-                    <div className="p-1.5">
-                      {globalSearchResults.map(r => (
-                        <button
-                          key={r.id}
-                          onClick={() => {
-                            if (r.display) {
-                              setSelectedDisplay(r.display);
-                            } else {
-                              // Stammdaten only — create a minimal display object to open detail view
-                              const loc = comparisonData?.airtable?.locationMap?.get(r.id);
-                              setSelectedDisplay({
-                                displayId: r.id,
-                                locationName: r.label || r.id,
-                                city: loc?.city || '–',
-                                status: 'unknown',
-                                jetId: r.jetId || loc?.jetId || null,
-                                serialNumber: '',
-                                daysOffline: null,
-                                _stammdatenOnly: true,
-                              });
-                            }
-                            setGlobalSearchOpen(false);
-                            setGlobalSearch('');
-                          }}
-                          className="w-full flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-blue-50/60 transition-colors text-left"
-                        >
-                          <div className="flex-shrink-0 mt-0.5">
-                            {r.type === 'display' ? (
-                              <Monitor size={14} className="text-blue-500" />
-                            ) : (
-                              <MapPin size={14} className="text-slate-500" />
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="text-xs font-medium text-slate-700 truncate">{r.label}</div>
-                            <div className="text-xs text-slate-500 font-mono truncate">{r.sublabel}</div>
-                          </div>
-                          <div className="flex-shrink-0">
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${r.type === 'display' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
-                              {r.type === 'display' ? 'Live' : 'Stamm'}
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                    <div className="px-3 py-1.5 border-t border-slate-100 text-xs text-slate-500 text-center">
-                      {globalSearchResults.length} Ergebnisse
-                    </div>
-                  </div>
-                )}
-                {globalSearchOpen && globalSearch.length >= 2 && globalSearchResults.length === 0 && (
-                  <div className="absolute top-full left-0 mt-1 w-80 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl z-50 p-4 text-center">
-                    <span className="text-xs text-slate-500">Keine Ergebnisse für "{globalSearch}"</span>
-                  </div>
-                )}
-              </div>
-
-              {displayTabs.includes(activeMainTab) && (
-                <DateRangePicker
-                  rangeStart={rangeStart}
-                  rangeEnd={rangeEnd}
-                  dataEarliest={dataEarliest}
-                  dataLatest={dataLatest}
-                  onRangeChange={handleRangeChange}
-                />
-              )}
-            </div>
-            </div>
-
-            {/* Level 2: Sub-tabs within active group */}
-            {visibleGroups.find(g => g.group === activeGroup)?.tabs.length > 1 && (
-              <div className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory border-t border-slate-100/60 bg-slate-50/30">
-                {visibleGroups.find(g => g.group === activeGroup)?.tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeMainTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveMainTab(tab.id)}
-                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-medium transition-all whitespace-nowrap snap-start shrink-0 border-b-2 ${
-                        isActive
-                          ? 'text-[#3b82f6] border-[#3b82f6] bg-white/50'
-                          : 'text-slate-500 border-transparent hover:text-slate-600 hover:bg-white/30'
-                      }`}
-                    >
-                      <Icon size={12} className="sm:w-3.5 sm:h-3.5" />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Content */}
-      <main className="max-w-[1600px] mx-auto px-2 sm:px-4 py-3 sm:py-5 space-y-3 sm:space-y-5">
+        {/* Content */}
+        <main className="px-5 py-5 space-y-5">
         {/* Overview */}
         {activeMainTab === 'overview' && (
           <TabErrorBoundary name="Overview">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Overview...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Overview...</span></div>}>
             <KPICards
               kpis={displayKpis}
               activeFilter={kpiFilter}
@@ -2798,20 +2529,20 @@ function App() {
 
             {/* KPI Drill-Down Panel */}
             {kpiFilter && kpiFilteredDisplays && (
-              <div className="bg-white/60 backdrop-blur-xl border border-blue-300/40 rounded-2xl shadow-sm shadow-black/[0.03] animate-fade-in">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60">
+              <div className="bg-surface-primary border border-accent/30 rounded-2xl shadow-card animate-fade-in">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border-secondary">
                   <div className="flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full bg-[#3b82f6]" />
-                    <h3 className="text-sm font-medium text-slate-900">
+                    <div className="w-1 h-4 rounded-full bg-accent" />
+                    <h3 className="text-sm font-medium text-text-primary">
                       {KPI_FILTER_LABELS[kpiFilter]}
                     </h3>
-                    <span className="text-xs font-mono text-slate-500 bg-slate-50/80 px-2 py-0.5 rounded">
+                    <span className="text-xs font-mono text-text-muted bg-surface-secondary px-2 py-0.5 rounded">
                       {kpiFilteredDisplays.length}
                     </span>
                   </div>
                   <button
                     onClick={() => setKpiFilter(null)}
-                    className="p-1 rounded hover:bg-slate-100/60 text-slate-500 hover:text-slate-900 transition-colors"
+                    className="p-1 rounded hover:bg-surface-secondary text-text-muted hover:text-text-primary transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -2868,15 +2599,15 @@ function App() {
                 ) : isBackgroundRefreshing && (
                   <>
                     {/* Skeleton placeholders while fresh data loads */}
-                    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-6 animate-pulse">
-                      <div className="h-4 bg-slate-200/60 rounded w-48 mb-4" />
-                      <div className="h-64 bg-slate-100/60 rounded-xl" />
+                    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-6 animate-pulse">
+                      <div className="h-4 bg-surface-tertiary rounded w-48 mb-4" />
+                      <div className="h-64 bg-surface-secondary rounded-xl" />
                     </div>
                     {displayRawData?.cityData?.length > 0 && (
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-6 animate-pulse">
-                          <div className="h-4 bg-slate-200/60 rounded w-40 mb-4" />
-                          <div className="h-48 bg-slate-100/60 rounded-xl" />
+                        <div className="bg-surface-primary border border-border-secondary rounded-2xl p-6 animate-pulse">
+                          <div className="h-4 bg-surface-tertiary rounded w-40 mb-4" />
+                          <div className="h-48 bg-surface-secondary rounded-xl" />
                         </div>
                         <CityHealthChart cityData={displayRawData.cityData} />
                       </div>
@@ -2892,7 +2623,7 @@ function App() {
         {/* Displays List */}
         {activeMainTab === 'displays-list' && (
           <TabErrorBoundary name="Displays">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Displays...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Displays...</span></div>}>
             {rawData ? (
               <DisplayTable
                 displays={rawData.displays}
@@ -2902,8 +2633,8 @@ function App() {
               />
             ) : (
               <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
-                <span className="ml-2 text-sm text-slate-500">Lade Display-Daten...</span>
+                <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
+                <span className="ml-2 text-sm text-text-muted">Lade Display-Daten...</span>
               </div>
             )}
           </Suspense>
@@ -2913,7 +2644,7 @@ function App() {
         {/* Tasks Main Tab */}
         {activeMainTab === 'tasks' && (
           <TabErrorBoundary name="Tasks">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Tasks...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Tasks...</span></div>}>
             <TaskDashboard />
           </Suspense>
           </TabErrorBoundary>
@@ -2922,7 +2653,7 @@ function App() {
         {/* Installationen Main Tab */}
         {activeMainTab === 'installations' && (
           <TabErrorBoundary name="Installationen">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Installationen...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Installationen...</span></div>}>
             <InstallationsDashboard initialSection={activeSubTab} onSectionChange={updateSubTab} isAdmin={isAdmin()} />
           </Suspense>
           </TabErrorBoundary>
@@ -2931,7 +2662,7 @@ function App() {
         {/* Kommunikation Main Tab */}
         {activeMainTab === 'communication' && (
           <TabErrorBoundary name="Kommunikation">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Kommunikation...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Kommunikation...</span></div>}>
             <CommunicationDashboard />
           </Suspense>
           </TabErrorBoundary>
@@ -2940,7 +2671,7 @@ function App() {
         {/* Admin Main Tab */}
         {activeMainTab === 'admin' && canAccessTab('admin') && (
           <TabErrorBoundary name="Admin">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Admin...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Admin...</span></div>}>
             <AdminPanel initialSection={activeSubTab} onSectionChange={updateSubTab} />
           </Suspense>
           </TabErrorBoundary>
@@ -2949,7 +2680,7 @@ function App() {
         {/* Programmatic Dashboard */}
         {activeMainTab === 'programmatic' && (
           <TabErrorBoundary name="Programmatic">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Programmatic...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Programmatic...</span></div>}>
             <ProgrammaticDashboard />
           </Suspense>
           </TabErrorBoundary>
@@ -2958,11 +2689,11 @@ function App() {
         {/* Hardware Dashboard (includes Datenqualität as sub-tab) */}
         {activeMainTab === 'hardware' && (
           <TabErrorBoundary name="Hardware">
-          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Hardware...</span></div>}>
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Hardware...</span></div>}>
             {rawData ? (
               <HardwareDashboard comparisonData={comparisonData} rawData={rawData} initialSection={activeSubTab} onSectionChange={updateSubTab} />
             ) : (
-              <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Hardware-Daten...</span></div>
+              <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Hardware-Daten...</span></div>
             )}
           </Suspense>
           </TabErrorBoundary>
@@ -2971,7 +2702,7 @@ function App() {
         {/* Acquisition Pipeline */}
         {activeMainTab === 'acquisition' && (
           <TabErrorBoundary name="Akquise">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Akquise...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Akquise...</span></div>}>
               <AcquisitionDashboard onOpenAkquiseApp={isMobile ? () => setShowAkquiseApp(true) : undefined} initialSection={activeSubTab} onSectionChange={updateSubTab} />
             </Suspense>
           </TabErrorBoundary>
@@ -2980,7 +2711,7 @@ function App() {
         {/* FAW Check (Frequency Approval) */}
         {activeMainTab === 'faw' && (
           <TabErrorBoundary name="FAW Check">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade FAW Check...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade FAW Check...</span></div>}>
               <FAWCheckApp />
             </Suspense>
           </TabErrorBoundary>
@@ -2989,11 +2720,11 @@ function App() {
         {/* Display Map */}
         {activeMainTab === 'map' && (
           <TabErrorBoundary name="Karte">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Karte...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Karte...</span></div>}>
               {rawData ? (
                 <DisplayMap rawData={rawData} comparisonData={comparisonData} onSelectDisplay={setSelectedDisplay} />
               ) : (
-                <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Kartendaten...</span></div>
+                <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Kartendaten...</span></div>
               )}
             </Suspense>
           </TabErrorBoundary>
@@ -3002,7 +2733,7 @@ function App() {
         {/* Contact Directory */}
         {activeMainTab === 'contacts' && (
           <TabErrorBoundary name="Kontakte">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Kontakte...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Kontakte...</span></div>}>
               <ContactDirectory />
             </Suspense>
           </TabErrorBoundary>
@@ -3011,7 +2742,7 @@ function App() {
         {/* Display Trends */}
         {activeMainTab === 'display-trends' && (
           <TabErrorBoundary name="Display Trends">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Trends...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Trends...</span></div>}>
               <DisplayTrends onSelectDisplay={setSelectedDisplay} />
             </Suspense>
           </TabErrorBoundary>
@@ -3020,7 +2751,7 @@ function App() {
         {/* Cities */}
         {activeMainTab === 'cities' && (
           <TabErrorBoundary name="Staedte">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Staedte...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Staedte...</span></div>}>
               <CityDashboard
                 cityData={displayRawData.cityData}
                 displays={displayRawData.displays}
@@ -3034,11 +2765,11 @@ function App() {
         {/* Activity Feed */}
         {activeMainTab === 'activities' && (
           <TabErrorBoundary name="Aktivitäten">
-            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Aktivitäten...</span></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Aktivitäten...</span></div>}>
               {rawData ? (
                 <ActivityFeed rawData={rawData} />
               ) : (
-                <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Aktivitäten...</span></div>
+                <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /><span className="ml-2 text-sm text-text-muted">Lade Aktivitäten...</span></div>
               )}
             </Suspense>
           </TabErrorBoundary>
@@ -3046,7 +2777,7 @@ function App() {
 
         {/* Data summary footer */}
         <div className="text-center py-4">
-          <div className="text-[10px] text-slate-400 font-mono">
+          <div className="text-xs text-text-muted font-mono">
             {rawData ? (
               <>
                 {rawData.displays.length} Displays mit Heartbeat •{' '}
@@ -3058,6 +2789,7 @@ function App() {
           </div>
         </div>
       </main>
+      </div>{/* end content area */}
 
       {/* AI Chat Assistant — floating button, available on all tabs */}
       {(userIsAdmin || isFeatureEnabled('tab_chat_assistant')) && (
@@ -3073,7 +2805,7 @@ function App() {
 
       {/* Session Timeout Warning Banner */}
       {sessionWarning && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-xl bg-amber-50/95 backdrop-blur-xl border border-amber-200/60 shadow-lg animate-fade-in">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-xl bg-status-warning/10 border border-status-warning/20 shadow-lg animate-fade-in">
           <AlertTriangle size={16} className="text-amber-600 shrink-0" />
           <div>
             <p className="text-sm font-medium text-amber-800">Session läuft bald ab</p>

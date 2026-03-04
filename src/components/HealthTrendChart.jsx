@@ -40,22 +40,22 @@ function CustomTooltip({ active, payload }) {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
   return (
-    <div className="bg-white/90 backdrop-blur-xl border border-slate-300/40 rounded-lg px-3 py-2 text-xs font-mono shadow-sm shadow-black/[0.03]">
-      <div className="text-slate-600 mb-1">{data.date}</div>
-      <div className="text-[#3b82f6] font-bold">
+    <div className="bg-surface-elevated border border-border-secondary rounded-[var(--radius-md)] px-3.5 py-2.5 text-xs shadow-lg">
+      <div className="text-text-muted mb-1 font-medium">{data.date}</div>
+      <div className="text-accent font-bold text-[13px]">
         {data.healthRate}% Betriebszeit
       </div>
-      <div className="text-slate-500">
+      <div className="text-text-secondary mt-0.5">
         {data.totalOnlineHours != null
           ? `${data.totalOnlineHours}h / ${data.totalExpectedHours}h (06\u201322 Uhr)`
           : `${data.online}/${data.total} Displays`}
       </div>
-      <div className="text-slate-500">
+      <div className="text-text-secondary">
         {data.total} Displays
       </div>
       {data.compHealthRate != null && (
-        <div className="text-violet-600 mt-1 border-t border-slate-200/60 pt-1">
-          {data.compDate && <span className="text-slate-500">{data.compDate}: </span>}
+        <div className="text-status-purple mt-1.5 border-t border-border-secondary pt-1.5">
+          {data.compDate && <span className="text-text-muted">{data.compDate}: </span>}
           Vorperiode: {data.compHealthRate}%
         </div>
       )}
@@ -100,11 +100,11 @@ export default function HealthTrendChart({
 
   if (!trendData || trendData.length === 0) {
     return (
-      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
-        <h3 className="text-sm font-medium text-slate-600 mb-4 uppercase tracking-wider">
+      <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card">
+        <h3 className="text-[13px] font-medium text-text-secondary mb-4">
           Health Trend ({rangeLabel})
         </h3>
-        <div className="h-48 flex items-center justify-center text-slate-500">
+        <div className="h-48 flex items-center justify-center text-text-muted">
           Keine Trenddaten verfügbar
         </div>
       </div>
@@ -201,31 +201,39 @@ export default function HealthTrendChart({
 
   const hasComparison = comparisonTrendData && comparisonTrendData.length > 0;
 
+  // Read CSS custom properties for chart colors
+  const accentColor = '#007AFF';
+  const gridColor = '#E8E8ED';
+  const tickColor = '#8E8E93';
+  const greenColor = '#34C759';
+  const orangeColor = '#FF9500';
+  const purpleColor = '#AF52DE';
+
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-black/[0.03]">
+    <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5 shadow-card">
       {/* Header row: title + comparison legend */}
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-medium text-slate-600 uppercase tracking-wider">
+        <h3 className="text-[13px] font-medium text-text-secondary">
           Health Trend
         </h3>
         {/* Comparison legend - always show when data exists */}
         {comparisonHealthRate != null && (
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
-              <div className="w-5 h-[2px] bg-[#3b82f6] rounded-full" />
-              <span className="text-xs font-mono text-slate-500">Aktuell</span>
+              <div className="w-5 h-[2px] rounded-full" style={{ backgroundColor: accentColor }} />
+              <span className="text-[11px] font-mono text-text-muted">Aktuell</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-5 h-[2px] bg-violet-400 rounded-full opacity-60" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #8b5cf6 0, #8b5cf6 4px, transparent 4px, transparent 7px)' }} />
-              <span className="text-xs font-mono text-violet-600 font-medium">
+              <div className="w-5 h-[2px] rounded-full opacity-60" style={{ backgroundImage: `repeating-linear-gradient(90deg, ${purpleColor} 0, ${purpleColor} 4px, transparent 4px, transparent 7px)` }} />
+              <span className="text-[11px] font-mono text-status-purple font-medium">
                 Vorperiode {'\u00D8'} {comparisonHealthRate}%
               </span>
             </div>
             {diffLabel && (
-              <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
-                diffLabel.startsWith('+') ? 'text-emerald-700 bg-emerald-50 border border-emerald-200/60' :
-                diffLabel.startsWith('-') ? 'text-red-600 bg-red-50 border border-red-200/60' :
-                'text-slate-500 bg-slate-50 border border-slate-200/60'
+              <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                diffLabel.startsWith('+') ? 'text-status-online bg-status-online/10 border border-status-online/20' :
+                diffLabel.startsWith('-') ? 'text-status-offline bg-status-offline/10 border border-status-offline/20' :
+                'text-text-muted bg-surface-secondary border border-border-secondary'
               }`}>
                 {diffLabel}
               </span>
@@ -237,7 +245,7 @@ export default function HealthTrendChart({
       {/* Inline date range picker */}
       {onRangeChange && (
         <div className="flex items-center gap-2 flex-wrap mb-4">
-          <Calendar size={14} className="text-slate-500 flex-shrink-0" />
+          <Calendar size={14} className="text-text-muted flex-shrink-0" />
 
           {/* Preset buttons */}
           <div className="flex gap-1">
@@ -245,10 +253,10 @@ export default function HealthTrendChart({
               <button
                 key={p.label}
                 onClick={() => handlePreset(p.days)}
-                className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
+                className={`px-2.5 py-1 rounded-lg text-[12px] font-mono transition-all duration-150 ${
                   activePreset?.label === p.label
-                    ? 'bg-[#3b82f6] text-white'
-                    : 'bg-slate-50/80 border border-slate-200/60 text-slate-600 hover:border-[#3b82f6] hover:text-slate-900'
+                    ? 'bg-accent text-white shadow-sm'
+                    : 'bg-surface-secondary border border-border-secondary text-text-secondary hover:border-accent hover:text-text-primary'
                 }`}
               >
                 {p.label}
@@ -257,10 +265,10 @@ export default function HealthTrendChart({
             {/* Custom button */}
             <button
               onClick={() => setShowCustomDate(!showCustomDate)}
-              className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
+              className={`px-2.5 py-1 rounded-lg text-[12px] font-mono transition-all duration-150 ${
                 isCustomActive || showCustomDate
-                  ? 'bg-[#3b82f6] text-white'
-                  : 'bg-slate-50/80 border border-slate-200/60 text-slate-600 hover:border-[#3b82f6] hover:text-slate-900'
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'bg-surface-secondary border border-border-secondary text-text-secondary hover:border-accent hover:text-text-primary'
               }`}
             >
               Custom
@@ -270,7 +278,7 @@ export default function HealthTrendChart({
           {/* Custom date inputs */}
           {(showCustomDate || isCustomActive) && (
             <>
-              <div className="w-px h-5 bg-slate-200 mx-1" />
+              <div className="w-px h-5 bg-border-secondary mx-1" />
               <div className="flex items-center gap-1.5">
                 <input
                   type="date"
@@ -278,23 +286,23 @@ export default function HealthTrendChart({
                   min={toInputValue(dataEarliest)}
                   max={toInputValue(rangeEnd || dataLatest)}
                   onChange={(e) => onRangeChange(fromInputValue(e.target.value), rangeEnd)}
-                  className="bg-slate-50/80 border border-slate-200/60 rounded px-2 py-1 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#3b82f6] [color-scheme:light]"
+                  className="bg-surface-secondary border border-border-secondary rounded-lg px-2 py-1 text-[12px] font-mono text-text-primary focus:outline-none focus:border-accent"
                 />
-                <span className="text-slate-500 text-xs">{'\u2013'}</span>
+                <span className="text-text-muted text-xs">{'\u2013'}</span>
                 <input
                   type="date"
                   value={toInputValue(rangeEnd)}
                   min={toInputValue(rangeStart || dataEarliest)}
                   max={toInputValue(dataLatest)}
                   onChange={(e) => onRangeChange(rangeStart, fromInputValue(e.target.value))}
-                  className="bg-slate-50/80 border border-slate-200/60 rounded px-2 py-1 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#3b82f6] [color-scheme:light]"
+                  className="bg-surface-secondary border border-border-secondary rounded-lg px-2 py-1 text-[12px] font-mono text-text-primary focus:outline-none focus:border-accent"
                 />
               </div>
             </>
           )}
 
           {/* Current range label */}
-          <span className="text-xs font-mono text-slate-500 ml-auto">
+          <span className="text-[12px] font-mono text-text-muted ml-auto">
             {rangeLabel}
           </span>
         </div>
@@ -302,21 +310,21 @@ export default function HealthTrendChart({
 
       {/* Trend summary banner */}
       {trendSummary && (
-        <div className="flex items-center gap-3 mb-3 px-3 py-2 bg-slate-50/80 rounded-lg border border-slate-200/40">
-          <div className="flex items-center gap-2 text-sm font-mono">
-            <span className="text-slate-500">{trendSummary.startDate}</span>
-            <span className="text-slate-900 font-semibold">{trendSummary.startRate}%</span>
+        <div className="flex items-center gap-3 mb-3 px-3.5 py-2.5 bg-surface-secondary rounded-xl border border-border-secondary">
+          <div className="flex items-center gap-2 text-[13px] font-mono">
+            <span className="text-text-muted">{trendSummary.startDate}</span>
+            <span className="text-text-primary font-semibold">{trendSummary.startRate}%</span>
           </div>
-          <div className="text-slate-400">{'\u2192'}</div>
-          <div className="flex items-center gap-2 text-sm font-mono">
-            <span className="text-slate-500">{trendSummary.endDate}</span>
-            <span className="text-slate-900 font-semibold">{trendSummary.endRate}%</span>
+          <div className="text-text-muted">{'\u2192'}</div>
+          <div className="flex items-center gap-2 text-[13px] font-mono">
+            <span className="text-text-muted">{trendSummary.endDate}</span>
+            <span className="text-text-primary font-semibold">{trendSummary.endRate}%</span>
           </div>
           {trendSummary.delta !== 0 && (
-            <div className={`flex items-center gap-1 ml-auto px-2.5 py-1 rounded-full text-xs font-mono font-bold ${
+            <div className={`flex items-center gap-1 ml-auto px-2.5 py-1 rounded-full text-[11px] font-mono font-bold ${
               trendSummary.isPositive
-                ? 'text-emerald-700 bg-emerald-50 border border-emerald-200/60'
-                : 'text-red-600 bg-red-50 border border-red-200/60'
+                ? 'text-status-online bg-status-online/10 border border-status-online/20'
+                : 'text-status-offline bg-status-offline/10 border border-status-offline/20'
             }`}>
               {trendSummary.isPositive
                 ? <TrendingUp size={14} />
@@ -333,39 +341,39 @@ export default function HealthTrendChart({
           <AreaChart data={mergedData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
             <defs>
               <linearGradient id="healthGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+                <stop offset="5%" stopColor={accentColor} stopOpacity={0.15} />
+                <stop offset="95%" stopColor={accentColor} stopOpacity={0.01} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis
               dataKey="ts"
               type="number"
               domain={['dataMin', 'dataMax']}
               tickFormatter={(ts) => formatXAxis(ts)}
-              tick={{ fill: '#64748b', fontSize: 11 }}
-              stroke="#e2e8f0"
+              tick={{ fill: tickColor, fontSize: 11 }}
+              stroke={gridColor}
             />
             <YAxis
               domain={yDomain}
-              tick={{ fill: '#64748b', fontSize: 11 }}
-              stroke="#e2e8f0"
+              tick={{ fill: tickColor, fontSize: 11 }}
+              stroke={gridColor}
               tickFormatter={(v) => `${v}%`}
             />
             <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine y={90} stroke="#22c55e" strokeDasharray="3 3" strokeOpacity={0.3} />
-            <ReferenceLine y={70} stroke="#f59e0b" strokeDasharray="3 3" strokeOpacity={0.3} />
+            <ReferenceLine y={90} stroke={greenColor} strokeDasharray="3 3" strokeOpacity={0.3} />
+            <ReferenceLine y={70} stroke={orangeColor} strokeDasharray="3 3" strokeOpacity={0.3} />
             {/* Comparison period line (behind current) */}
             {hasComparison && (
               <Line
                 type="monotone"
                 dataKey="compHealthRate"
-                stroke="#8b5cf6"
+                stroke={purpleColor}
                 strokeWidth={1.5}
                 strokeDasharray="6 3"
                 strokeOpacity={0.5}
                 dot={false}
-                activeDot={{ r: 3, fill: '#8b5cf6', stroke: '#ffffff', strokeWidth: 1.5 }}
+                activeDot={{ r: 3, fill: purpleColor, stroke: '#ffffff', strokeWidth: 1.5 }}
                 connectNulls
               />
             )}
@@ -373,11 +381,11 @@ export default function HealthTrendChart({
             <Area
               type="monotone"
               dataKey="healthRate"
-              stroke="#3b82f6"
+              stroke={accentColor}
               strokeWidth={2}
               fill="url(#healthGradient)"
               dot={false}
-              activeDot={{ r: 4, fill: '#3b82f6', stroke: '#ffffff', strokeWidth: 2 }}
+              activeDot={{ r: 4, fill: accentColor, stroke: '#ffffff', strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>

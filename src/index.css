@@ -1,71 +1,204 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #f8fafc;
-  --color-bg-secondary: #f1f5f9;
-  --color-bg-card: rgba(255, 255, 255, 0.60);
-  --color-bg-card-hover: rgba(255, 255, 255, 0.80);
-  --color-border: rgba(148, 163, 184, 0.25);
-  --color-border-light: rgba(148, 163, 184, 0.15);
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-  --color-status-online: #16a34a;
-  --color-status-warning: #d97706;
-  --color-status-offline: #dc2626;
-  --color-status-critical: #b91c1c;
-  --color-accent: #3b82f6;
-  --color-accent-dim: #2563eb;
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* ═══ Typography ═══ */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  /* ═══ Apple Neutral Gray Scale ═══ */
+  --color-gray-50:  #FBFBFD;
+  --color-gray-100: #F5F5F7;
+  --color-gray-200: #E8E8ED;
+  --color-gray-300: #D2D2D7;
+  --color-gray-400: #AEAEB2;
+  --color-gray-500: #8E8E93;
+  --color-gray-600: #636366;
+  --color-gray-700: #48484A;
+  --color-gray-800: #3A3A3C;
+  --color-gray-900: #1D1D1F;
+
+  /* ═══ Semantic Surface Colors ═══ */
+  --color-surface-primary:   #FFFFFF;
+  --color-surface-secondary: #F5F5F7;
+  --color-surface-tertiary:  #EFEFF4;
+  --color-surface-elevated:  #FFFFFF;
+
+  /* ═══ Semantic Text Colors ═══ */
+  --color-text-primary:   #1D1D1F;
+  --color-text-secondary: #636366;
+  --color-text-muted:     #8E8E93;
+  --color-text-inverted:  #FFFFFF;
+
+  /* ═══ Border Colors ═══ */
+  --color-border-primary:   #D2D2D7;
+  --color-border-secondary: #E8E8ED;
+
+  /* ═══ Apple System Accent Colors ═══ */
+  --color-accent:        #007AFF;
+  --color-accent-hover:  #0066CC;
+  --color-accent-light:  #E8F0FE;
+  --color-accent-dim:    #0066CC;
+
+  /* ═══ Status Colors (Apple System) ═══ */
+  --color-status-online:   #34C759;
+  --color-status-warning:  #FF9500;
+  --color-status-offline:  #FF3B30;
+  --color-status-critical: #FF3B30;
+  --color-status-muted:    #8E8E93;
+  --color-status-purple:   #AF52DE;
+  --color-status-teal:     #5AC8FA;
+  --color-status-indigo:   #5856D6;
+
+  /* ═══ Legacy aliases (backward compat during migration) ═══ */
+  --color-bg-primary: #FBFBFD;
+  --color-bg-secondary: #F5F5F7;
+  --color-bg-card: #FFFFFF;
+  --color-bg-card-hover: #FFFFFF;
+  --color-border: #D2D2D7;
+  --color-border-light: #E8E8ED;
+
+  /* ═══ Shadows ═══ */
+  --shadow-card:  0 0.5px 1px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+  --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-lg:    0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-xl:    0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  /* ═══ Radii ═══ */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  24px;
+
+  /* ═══ Motion ═══ */
+  --ease-spring:     cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --duration-fast:   150ms;
+  --duration-normal: 250ms;
+  --duration-slow:   400ms;
+}
+
+/* ═══════ Dark Mode Overrides ═══════ */
+:root.dark {
+  --color-gray-50:  #1C1C1E;
+  --color-gray-100: #2C2C2E;
+  --color-gray-200: #3A3A3C;
+  --color-gray-300: #48484A;
+  --color-gray-400: #636366;
+  --color-gray-500: #8E8E93;
+  --color-gray-600: #AEAEB2;
+  --color-gray-700: #D1D1D6;
+  --color-gray-800: #E5E5EA;
+  --color-gray-900: #F2F2F7;
+
+  --color-surface-primary:   #1C1C1E;
+  --color-surface-secondary: #2C2C2E;
+  --color-surface-tertiary:  #3A3A3C;
+  --color-surface-elevated:  #2C2C2E;
+
+  --color-text-primary:   #F2F2F7;
+  --color-text-secondary: #AEAEB2;
+  --color-text-muted:     #8E8E93;
+  --color-text-inverted:  #1D1D1F;
+
+  --color-border-primary:   #3A3A3C;
+  --color-border-secondary: #2C2C2E;
+
+  --color-accent:        #0A84FF;
+  --color-accent-hover:  #409CFF;
+  --color-accent-light:  rgba(10, 132, 255, 0.15);
+  --color-accent-dim:    #409CFF;
+
+  --color-status-online:   #30D158;
+  --color-status-warning:  #FF9F0A;
+  --color-status-offline:  #FF453A;
+  --color-status-critical: #FF453A;
+  --color-status-purple:   #BF5AF2;
+  --color-status-teal:     #64D2FF;
+  --color-status-indigo:   #5E5CE6;
+
+  --color-bg-primary: #1C1C1E;
+  --color-bg-secondary: #2C2C2E;
+  --color-bg-card: #2C2C2E;
+  --color-bg-card-hover: #3A3A3C;
+  --color-border: #3A3A3C;
+  --color-border-light: #2C2C2E;
+
+  --shadow-card:  none;
+  --shadow-md:    none;
+  --shadow-lg:    none;
+  --shadow-xl:    none;
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #D2D2D7 transparent;
+}
+
+:root.dark * {
+  scrollbar-color: #48484A transparent;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 30%, #f5f3ff 70%, #faf5ff 100%);
-  background-attachment: fixed;
-  color: #0f172a;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* Glass card utilities */
-.glass-card {
-  background: rgba(255, 255, 255, 0.60);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.40);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+/* ═══════ Card Utilities (Apple Style) ═══════ */
+
+/* Legacy glass-card — now solid Apple card */
+.glass-card,
+.apple-card {
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-lg);
 }
 
-.glass-card-strong {
-  background: rgba(255, 255, 255, 0.80);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.60);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+.glass-card-strong,
+.apple-card-elevated {
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
 }
+
+:root.dark .glass-card,
+:root.dark .apple-card {
+  border-color: var(--color-border-primary);
+  box-shadow: none;
+}
+
+:root.dark .glass-card-strong,
+:root.dark .apple-card-elevated {
+  border-color: var(--color-border-primary);
+  box-shadow: none;
+}
+
+/* ═══════ Recharts (Apple Style) ═══════ */
 
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: #e2e8f0;
+  stroke: var(--color-border-secondary);
 }
 
 .recharts-text {
-  fill: #64748b !important;
+  fill: var(--color-text-muted) !important;
   font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
 }
 
 .recharts-tooltip-wrapper {
@@ -560,14 +693,15 @@ body {
 
 /* Ensure Leaflet popups render nicely with Tailwind */
 .leaflet-popup-content-wrapper {
-  border-radius: 12px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-  border: 1px solid rgba(148, 163, 184, 0.15) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-surface-elevated) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid var(--color-border-secondary) !important;
 }
 
 .leaflet-popup-content {
   margin: 12px 14px !important;
-  font-family: 'DM Sans', system-ui, sans-serif !important;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif !important;
 }
 
 .leaflet-popup-tip {
