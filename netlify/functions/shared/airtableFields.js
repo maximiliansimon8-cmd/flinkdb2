@@ -43,23 +43,92 @@ export const TABLES = {
 //  These are the exact Airtable API field names.
 // ═══════════════════════════════════════════════
 
-/** JET Stammdaten fields */
+/** JET Stammdaten fields — ALL Airtable fields mapped to named columns */
 export const STAMMDATEN_FIELDS = {
+  // ── Core identifiers ──
   JET_ID:              'JET ID',
   DISPLAY_ID:          'Display ID',
+  RECORD_ID:           'recordID',
+  // ── Location info ──
   LOCATION_NAME:       'Location Name',
+  LOCATION_CATEGORIES: 'Location Categories',
+  JET_CHAIN:           'JET Chain',
+  LEGAL_ENTITY:        'Legal Entity',
+  LEGA_ENTITY_ADRESS:  'Lega Entity Adress',           // ⚠️ Typo in Airtable original
+  RESTAURANT_WEBSITE:  'Restaurant Website',
+  BRANDS_LISTED:       'Brands_listed',
+  // ── Address ──
+  STREET:              'Street',
+  STREET_NUMBER:       'Street Number',
+  POSTAL_CODE:         'Postal Code',
+  CITY:                'City',
+  // ── Geo ──
+  LATITUDE:            'Latitude',
+  LONGITUDE:           'Longitude',
+  KOORDINATEN:         'Koordinaten',
+  STREETVIEW_LINK:     'Streetview Link',
+  IMAGE_LINK:          'Image Link',
+  // ── Contact ──
   CONTACT_PERSON:      'Contact Person',
   CONTACT_EMAIL:       'Contact Email',
   CONTACT_PHONE:       'Contact Phone',
   LOCATION_EMAIL:      'Location Email',
   LOCATION_PHONE:      'Location Phone',
-  LEGAL_ENTITY:        'Legal Entity',
-  STREET:              'Street',
-  STREET_NUMBER:       'Street Number',
-  POSTAL_CODE:         'Postal Code',
-  CITY:                'City',
-  LEAD_STATUS_LOOKUP:  'Lead Status  (from Akquise)',  // ⚠️ DOUBLE SPACE!
-  // REMOVED: 'Status' — does not exist in Airtable Stammdaten
+  FORMATTED_PHONE:     'Formatted Germany Mobile Phone',
+  EMAIL:               'email',
+  PHONE:               'phone',
+  SUPERCHAT_ID:        'superchat_id',
+  // ── Opening hours ──
+  REGULAR_OPEN_TIME:           'regular_open_time',
+  REGULAR_CLOSE_TIME_WEEKDAYS: 'regular_close_time_weekdays',
+  REGULAR_CLOSE_TIME_WEEKDEND: 'regular_close_time_weekdend',  // ⚠️ Typo in Airtable original
+  WEEKEND_CLOSE_TIME:          'weekend_close_time',
+  CLOSED_DAYS:                 'closed_days',
+  // ── Akquise ──
+  LEAD_STATUS_LOOKUP:          'Lead Status  (from Akquise)',   // ⚠️ DOUBLE SPACE!
+  AKQUISE:                     'Akquise',
+  ZUR_AKQUISE_FREIGEGEBEN:     'Zur Akquise freigegeben?',
+  AKQUISE_FREIGABEDATUM:       'Akquise Freigabedatum',
+  AKQUISE_FREIGEGEBEN_VON:     'Akquise Freigegeben von',
+  ACQUISITION_UPDATE:          'Acquisition Update',
+  VERTRAG_PDF_FROM_AKQUISE:    'Vertrag (PDF) (from Akquise)',
+  // ── Installations ──
+  INSTALLATIONEN:              'Installationen',
+  RECORD_ID_FROM_INSTALLATIONEN: 'recordID (from Installationen)',
+  COUNT_INSTALLATIONEN:        'Count (Installationen)',
+  STATUS_INSTALLATION:         'Status Installation (from Installationen)',
+  INSTALLATIONSTERMINE:        'Installationstermine',
+  // ── Displays ──
+  DISPLAYS:                    'Displays',
+  DISPLAYS_COPY:               'Displays copy',
+  LIVE_DISPLAY_LOCATIONS_COPY: 'Live Display Locations copy',
+  OPS_NR_FROM_DISPLAYS:        'OPS NR (from Displays)',
+  OPS_SN_FROM_DISPLAYS:        'OPS-SN (from OPS_Player_inventory) (from Displays)',
+  ONLINE_STATUS_FROM_DISPLAYS: 'Online Status  (from Displays)',  // ⚠️ DOUBLE SPACE!
+  LIVE_SINCE_FROM_DISPLAYS:    'Live since (from Displays)',
+  // ── Tasks ──
+  RELATED_TASKS:               'Related Tasks',
+  TASKS:                       'Tasks',
+  TASKS_COPY:                  'Tasks copy',
+  ASSIGNED_FROM_TASKS:         'Assigned (from Related Tasks)',
+  // ── Hardware ──
+  OPS_PLAYER_INVENTORY:        'OPS_Player_inventory',
+  DEINSTALLATION_RUECKNAHME:   'Deinstallation & Rücknahme Display-Equipment',
+  CHG_APPROVAL:                'CHG Approval',
+  // ── Frequency ──
+  WEISCHER_30M_FREQUENCY:      'Weischer 30m Frequency',
+  // ── Other ──
+  JET_SEARCH:                  'JET SEARCH',
+  JET_SEARCH_2:                'JET SEARCH 2',
+  LOCATION:                    'Location',
+  LOCATION_SEARCH:             'Location Search',
+  ATTACHMENTS:                 'Attachments',
+  CREATED:                     'Created',
+  CREATED_BY:                  'Created By',
+  DATE_FIRST_ONLINE:           'date_first_online',
+  IMPORTED:                    'imported',
+  IMPORTED_TABLE:              'Imported table',
+  CALLER_FEEDBACK:             'caller_feedback_locations',
 };
 
 /** Live Display Locations fields */

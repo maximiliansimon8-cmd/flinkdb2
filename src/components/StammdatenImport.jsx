@@ -6,14 +6,31 @@ import {
 } from 'lucide-react';
 import { supabase } from '../utils/authService';
 
-/** Fields to compare for change detection */
-const COMPARE_FIELDS = ['name', 'street', 'street_number', 'postcode', 'city', 'phone', 'email', 'contact_name', 'contact_email', 'account_name'];
+/** Fields to compare for change detection — all core data fields */
+const COMPARE_FIELDS = [
+  'name', 'street', 'street_number', 'postcode', 'city',
+  'phone', 'email', 'contact_name', 'contact_email', 'contact_phone',
+  'account_name', 'lega_entity_adress', 'location_categories', 'jet_chain',
+  'restaurant_website', 'brands_listed',
+  'latitude', 'longitude',
+  'formatted_phone', 'superchat_id',
+  'regular_open_time', 'regular_close_time_weekdays', 'regular_close_time_weekdend',
+  'weekend_close_time', 'closed_days',
+];
 
 /** Labels for display */
 const FIELD_LABELS = {
   name: 'Name', street: 'Strasse', street_number: 'Hausnr.', postcode: 'PLZ',
   city: 'Stadt', phone: 'Telefon', email: 'E-Mail', contact_name: 'Kontakt',
-  contact_email: 'Kontakt-Email', account_name: 'Firma/Entity',
+  contact_email: 'Kontakt-Email', contact_phone: 'Kontakt-Telefon',
+  account_name: 'Firma/Entity', lega_entity_adress: 'Firmenadresse',
+  location_categories: 'Kategorie', jet_chain: 'JET Chain',
+  restaurant_website: 'Website', brands_listed: 'Marken',
+  latitude: 'Breitengrad', longitude: 'Laengengrad',
+  formatted_phone: 'Mobilnr. (DE)', superchat_id: 'SuperChat ID',
+  regular_open_time: 'Oeffnungszeit', regular_close_time_weekdays: 'Schluss Mo-Fr',
+  regular_close_time_weekdend: 'Schluss Sa-So', weekend_close_time: 'Schluss Wochenende',
+  closed_days: 'Ruhetage',
 };
 
 /** Parse CSV text into array of objects */
@@ -106,7 +123,7 @@ export default function StammdatenImport() {
         });
       }
 
-      // 2. Fetch all stammdaten from Supabase incl. extra_fields (paginated, 1000 per page)
+      // 2. Fetch all stammdaten from Supabase — all columns (paginated, 1000 per page)
       const allRows = [];
       const PAGE_SIZE = 1000;
       let from = 0;
@@ -115,7 +132,7 @@ export default function StammdatenImport() {
       while (hasMore) {
         const { data, error: fetchErr } = await supabase
           .from('stammdaten')
-          .select('airtable_id,jet_id,display_ids,location_name,street,street_number,postal_code,city,location_phone,location_email,contact_person,contact_email,contact_phone,legal_entity,lead_status,extra_fields')
+          .select('*')
           .range(from, from + PAGE_SIZE - 1);
         if (fetchErr) throw new Error(`Supabase Fehler: ${fetchErr.message}`);
         allRows.push(...(data || []));
@@ -123,15 +140,9 @@ export default function StammdatenImport() {
         from += PAGE_SIZE;
       }
 
-      // 3. Collect all extra_fields keys across all records
-      const extraKeysSet = new Set();
-      for (const row of allRows) {
-        if (row.extra_fields) {
-          Object.keys(row.extra_fields).forEach(k => extraKeysSet.add(k));
-        }
-      }
-      const extraFieldKeys = [...extraKeysSet].sort();
-      setSyncInfo(prev => prev ? { ...prev, extraFieldKeys, totalRecords: allRows.length } : { extraFieldKeys, totalRecords: allRows.length });
+      // 3. Collect column names from first record for field overview
+      const allColumns = allRows.length > 0 ? Object.keys(allRows[0]).sort() : [];
+      setSyncInfo(prev => prev ? { ...prev, allColumns, totalRecords: allRows.length } : { allColumns, totalRecords: allRows.length });
 
       // 4. Map to comparison format keyed by JET ID
       const map = new Map();
@@ -141,20 +152,42 @@ export default function StammdatenImport() {
         map.set(String(jetId), {
           airtable_id: row.airtable_id || '',
           id: String(jetId),
+          // Core
           name: row.location_name || '',
           street: row.street || '',
           street_number: row.street_number || '',
           postcode: row.postal_code || '',
           city: row.city || '',
+          // Contact
           phone: row.location_phone || '',
           email: row.location_email || '',
           contact_name: row.contact_person || '',
           contact_email: row.contact_email || '',
           contact_phone: row.contact_phone || '',
+          formatted_phone: row.formatted_germany_mobile_phone || '',
+          superchat_id: row.superchat_id || '',
+          // Entity
           account_name: row.legal_entity || '',
+          lega_entity_adress: row.lega_entity_adress || '',
+          location_categories: row.location_categories || '',
+          jet_chain: row.jet_chain || '',
+          restaurant_website: row.restaurant_website || '',
+          brands_listed: row.brands_listed || '',
+          // Geo
+          latitude: row.latitude != null ? String(row.latitude) : '',
+          longitude: row.longitude != null ? String(row.longitude) : '',
+          // Opening hours
+          regular_open_time: row.regular_open_time || '',
+          regular_close_time_weekdays: row.regular_close_time_weekdays || '',
+          regular_close_time_weekdend: row.regular_close_time_weekdend || '',
+          weekend_close_time: row.weekend_close_time || '',
+          closed_days: row.closed_days || '',
+          // Linked records (for display, not comparison)
           display_ids: row.display_ids || [],
           lead_status: row.lead_status || [],
-          extra_fields: row.extra_fields || null,
+          displays: row.displays || [],
+          installationen: row.installationen || [],
+          online_status_from_displays: row.online_status_from_displays || [],
         });
       }
       setAirtableData(map);
@@ -401,34 +434,16 @@ export default function StammdatenImport() {
         </div>
       </div>
 
-      {/* Field Overview — shows all synced fields after loading */}
-      {syncInfo?.extraFieldKeys && (
+      {/* Field Overview — shows all columns after loading */}
+      {syncInfo?.allColumns && (
         <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Alle Airtable-Felder in Supabase ({syncInfo.totalRecords} Records)</h3>
-          <div className="space-y-2">
-            <div>
-              <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Benannte Spalten (14)</p>
-              <div className="flex flex-wrap gap-1">
-                {['jet_id', 'display_ids', 'location_name', 'street', 'street_number', 'postal_code', 'city',
-                  'contact_person', 'contact_email', 'contact_phone', 'location_email', 'location_phone',
-                  'legal_entity', 'lead_status'].map(f => (
-                  <span key={f} className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-mono">{f}</span>
-                ))}
-              </div>
-            </div>
-            {syncInfo.extraFieldKeys.length > 0 && (
-              <div>
-                <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Extra Fields (JSONB) — {syncInfo.extraFieldKeys.length} Felder</p>
-                <div className="flex flex-wrap gap-1">
-                  {syncInfo.extraFieldKeys.map(f => (
-                    <span key={f} className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-mono">{f}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {syncInfo.extraFieldKeys.length === 0 && (
-              <p className="text-xs text-amber-600">Keine extra_fields gefunden — entweder alle Felder sind gemappt oder extra_fields ist leer.</p>
-            )}
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            Supabase Spalten ({syncInfo.allColumns.length}) — {syncInfo.totalRecords} Records
+          </h3>
+          <div className="flex flex-wrap gap-1">
+            {syncInfo.allColumns.filter(c => c !== 'extra_fields').map(f => (
+              <span key={f} className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-mono">{f}</span>
+            ))}
           </div>
         </div>
       )}
