@@ -92,30 +92,48 @@ export default function StammdatenImport() {
   const [airtableData, setAirtableData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingAirtable, setLoadingAirtable] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState('');
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('summary');
   const [expandedId, setExpandedId] = useState(null);
   const [fileName, setFileName] = useState('');
 
-  /** Fetch all Stammdaten from Airtable via proxy */
+  /** Fetch all Stammdaten from Airtable via proxy (with rate-limit handling) */
   const fetchAirtableStammdaten = useCallback(async () => {
     setLoadingAirtable(true);
+    setLoadingProgress('Starte...');
     setError(null);
     try {
       const records = [];
       let offset = null;
       const fields = Object.values(FIELD_MAP);
       const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
+      let page = 0;
 
       do {
         let url = `/api/airtable/${AIRTABLE_BASE}/${STAMMDATEN_TABLE}?pageSize=100&${fieldParams}`;
         if (offset) url += `&offset=${encodeURIComponent(offset)}`;
-        const res = await fetch(url);
+
+        // Retry loop for rate limiting (429)
+        let res;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          res = await fetch(url);
+          if (res.status !== 429) break;
+          const wait = Math.pow(2, attempt) * 1000;
+          setLoadingProgress(`Rate-Limit erreicht, warte ${wait / 1000}s...`);
+          await new Promise(r => setTimeout(r, wait));
+        }
         if (!res.ok) throw new Error(`Airtable Fehler: ${res.status}`);
+
         const data = await res.json();
         records.push(...(data.records || []));
         offset = data.offset || null;
+        page++;
+        setLoadingProgress(`${records.length} Eintraege geladen...`);
+
+        // Throttle: 250ms pause between requests to stay under Airtable's 5 req/s limit
+        if (offset) await new Promise(r => setTimeout(r, 250));
       } while (offset);
 
       // Map to simple objects keyed by JET ID
@@ -140,9 +158,11 @@ export default function StammdatenImport() {
         });
       }
       setAirtableData(map);
+      setLoadingProgress('');
       return map;
     } catch (err) {
       setError(`Airtable-Laden fehlgeschlagen: ${err.message}`);
+      setLoadingProgress('');
       return null;
     } finally {
       setLoadingAirtable(false);
@@ -369,7 +389,7 @@ export default function StammdatenImport() {
               <RefreshCw size={24} className="text-slate-400" />
             )}
             <span className="text-sm text-slate-500">
-              {loadingAirtable ? 'Lade aus Airtable...' : airtableData ? `${airtableData.size} Stammdaten geladen` : 'Klicken zum Laden'}
+              {loadingAirtable ? (loadingProgress || 'Lade aus Airtable...') : airtableData ? `${airtableData.size} Stammdaten geladen` : 'Klicken zum Laden'}
             </span>
             {airtableData && <span className="text-xs text-emerald-600 font-medium">Bereit zum Abgleich</span>}
           </button>
