@@ -162,6 +162,9 @@ export default function StammdatenImport() {
   // CSV fields actually present in the upload
   const [csvFields, setCsvFields] = useState(new Set());
 
+  // Single-record sync state: { [jetId]: 'syncing' | 'done' | 'error' }
+  const [syncStatus, setSyncStatus] = useState({});
+
   // Import flow state
   const [importStep, setImportStep] = useState(null); // null | 'validating' | 'review' | 'importing' | 'done'
   const [validationResult, setValidationResult] = useState(null);
@@ -171,6 +174,39 @@ export default function StammdatenImport() {
   // Selective approval state
   const [approvedNonCritical, setApprovedNonCritical] = useState(false); // bulk approve unkritische
   const [approvedCriticalIds, setApprovedCriticalIds] = useState(new Set()); // individual IDs approved
+
+  /** Sync a single new record to Airtable */
+  const syncToAirtable = useCallback(async (row) => {
+    const jetId = row.id;
+    setSyncStatus(prev => ({ ...prev, [jetId]: 'syncing' }));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Nicht eingeloggt');
+
+      const res = await fetch('/.netlify/functions/stammdaten-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'import',
+          records: [{
+            jet_id: jetId,
+            fields: { ...row, id: undefined },
+          }],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.createResults?.[0]?.ok === false) {
+        throw new Error(data.error || data.createResults?.[0]?.error || 'Sync fehlgeschlagen');
+      }
+      setSyncStatus(prev => ({ ...prev, [jetId]: 'done' }));
+    } catch (err) {
+      console.error(`[syncToAirtable] ${jetId}:`, err.message);
+      setSyncStatus(prev => ({ ...prev, [jetId]: 'error' }));
+    }
+  }, []);
 
   /** Fetch all Stammdaten from Supabase (synced from Airtable every 5 min) */
   const fetchStammdaten = useCallback(async () => {
@@ -366,10 +402,16 @@ export default function StammdatenImport() {
       const existing = airtableData.get(row.id);
       if (existing) {
         const changes = [];
+        const unsyncedFields = []; // CSV has value but Supabase is null (not yet synced)
         for (const field of compareFields) {
           const csvVal = norm(row[field]);
           const atVal = norm(existing[field]);
           if (csvVal !== atVal) {
+            // Supabase has no value but CSV does → field was never synced, not a real change
+            if (!atVal && csvVal) {
+              unsyncedFields.push({ field, label: FIELD_LABELS[field] || field, csvVal: row[field] || '' });
+              continue;
+            }
             const isCritical = CRITICAL_FIELDS.has(field);
             changes.push({
               field, label: FIELD_LABELS[field] || field,
@@ -382,9 +424,10 @@ export default function StammdatenImport() {
         const nonCriticalChanges = changes.filter(c => !c.critical);
         matched.push({
           id: row.id, csv: row, airtable: existing,
-          changes, criticalChanges, nonCriticalChanges,
+          changes, criticalChanges, nonCriticalChanges, unsyncedFields,
           hasChanges: changes.length > 0,
           hasCritical: criticalChanges.length > 0,
+          hasUnsynced: unsyncedFields.length > 0,
         });
       } else {
         newEntries.push(row);
@@ -486,14 +529,29 @@ export default function StammdatenImport() {
       }
     }
 
-    const withChanges = matched.filter(m => m.hasChanges);
+    // Only show changes for Standorte that have a Vertrag (Won/Signed) or a Display
+    // Others are irrelevant — both versions can exist, nobody cares about diffs
+    const isRelevant = (m) => {
+      const at = m.airtable;
+      const ls = Array.isArray(at.lead_status) ? at.lead_status : [at.lead_status].filter(Boolean);
+      const hasVertrag = ls.some(s => s === 'Won / Signed');
+      const hasDisplay = (Array.isArray(at.display_ids) ? at.display_ids : []).length > 0
+        || (Array.isArray(at.displays) ? at.displays : []).length > 0;
+      return hasVertrag || hasDisplay;
+    };
+
+    const relevantWithChanges = matched.filter(m => m.hasChanges && isRelevant(m));
+    const irrelevantWithChanges = matched.filter(m => m.hasChanges && !isRelevant(m));
+    const withChanges = relevantWithChanges;
     const unchanged = matched.filter(m => !m.hasChanges);
+    const withUnsynced = matched.filter(m => m.hasUnsynced);
+    const totalUnsyncedFields = matched.reduce((sum, m) => sum + (m.unsyncedFields?.length || 0), 0);
 
     // Split: records with only non-critical changes vs those with critical
     const withCritical = withChanges.filter(m => m.hasCritical);
     const onlyNonCritical = withChanges.filter(m => !m.hasCritical);
 
-    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical, newWithConflicts, newClean };
+    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical, newWithConflicts, newClean, withUnsynced, totalUnsyncedFields, irrelevantWithChanges };
   }, [csvData, airtableData]);
 
   /** Filter results by search */
@@ -854,25 +912,37 @@ export default function StammdatenImport() {
             </div>
           )}
 
+          {/* Primary Card: Neue Standorte */}
+          {comparison.newEntries.length > 0 && (
+            <button onClick={() => setActiveTab('new')} className={`w-full rounded-xl px-5 py-4 text-left transition-colors border-2 ${activeTab === 'new' ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-50 border-blue-300 hover:border-blue-400'}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${activeTab === 'new' ? 'opacity-80' : 'text-blue-600'}`}>Neue Standorte</p>
+                  <p className={`text-3xl font-bold ${activeTab === 'new' ? '' : 'text-blue-700'}`}>{comparison.newEntries.length}</p>
+                  <p className={`text-xs mt-0.5 ${activeTab === 'new' ? 'opacity-70' : 'text-blue-600'}`}>
+                    neue JET IDs zum Anlegen{comparison.newWithConflicts.length > 0 ? ` (${comparison.newWithConflicts.length} mit Konflikten)` : ''}
+                  </p>
+                </div>
+                <Plus size={28} className={activeTab === 'new' ? 'opacity-60' : 'text-blue-400'} />
+              </div>
+            </button>
+          )}
+
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
             <button onClick={() => setActiveTab('summary')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'summary' ? 'bg-gray-900 text-white' : 'bg-surface-primary border border-border-secondary'}`}>
               <p className="text-[11px] font-medium opacity-70">Gesamt CSV</p>
               <p className="text-2xl font-bold">{csvData.length}</p>
             </button>
-            <button onClick={() => setActiveTab('unchanged')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'unchanged' ? 'bg-emerald-600 text-white' : 'bg-emerald-50/80 border border-emerald-200/60'}`}>
-              <p className="text-[11px] font-medium opacity-70">Unveraendert</p>
-              <p className={`text-2xl font-bold ${activeTab === 'unchanged' ? '' : 'text-emerald-700'}`}>{comparison.unchanged.length}</p>
-            </button>
             <button onClick={() => setActiveTab('noncritical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'noncritical' ? 'bg-amber-600 text-white' : 'bg-status-warning/10/80 border border-status-warning/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Unkritisch</p>
               <p className={`text-2xl font-bold ${activeTab === 'noncritical' ? '' : 'text-amber-700'}`}>{comparison.onlyNonCritical.length}</p>
-              <p className="text-[9px] opacity-60">Tel, Email, Geo...</p>
+              <p className="text-[9px] opacity-60">Mit Vertrag/Display</p>
             </button>
             <button onClick={() => setActiveTab('critical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'critical' ? 'bg-status-offline text-white' : 'bg-status-offline/10/80 border border-status-offline/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Kritisch</p>
               <p className={`text-2xl font-bold ${activeTab === 'critical' ? '' : 'text-red-700'}`}>{comparison.withCritical.length}</p>
-              <p className="text-[9px] opacity-60">Name, Firma, Chain</p>
+              <p className="text-[9px] opacity-60">Name, Chain</p>
             </button>
             <button onClick={() => setActiveTab('new')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'new' ? 'bg-accent text-white' : 'bg-accent-light/80 border border-accent/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Neu (nur CSV)</p>
@@ -889,6 +959,11 @@ export default function StammdatenImport() {
             <button onClick={() => setActiveTab('conflicts')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'conflicts' ? 'bg-brand-purple text-white' : 'bg-brand-purple/10/80 border border-brand-purple/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Adress-Konflikte</p>
               <p className={`text-2xl font-bold ${activeTab === 'conflicts' ? '' : 'text-purple-700'}`}>{comparison.addrConflicts.length}</p>
+            </button>
+            <button onClick={() => setActiveTab('ignored')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'ignored' ? 'bg-slate-600 text-white' : 'bg-slate-50/80 border border-slate-200/60'}`}>
+              <p className="text-[11px] font-medium opacity-70">Ignoriert</p>
+              <p className={`text-2xl font-bold ${activeTab === 'ignored' ? '' : 'text-slate-500'}`}>{(comparison.irrelevantWithChanges?.length || 0) + comparison.unchanged.length}</p>
+              <p className="text-[9px] opacity-60">Ohne Vertrag/Display</p>
             </button>
           </div>
 
@@ -929,6 +1004,9 @@ export default function StammdatenImport() {
                   <p><Badge color="blue">{comparison.newEntries.length}</Badge> neue Standorte (ID nur im CSV)</p>
                   <p><Badge color="gray">{comparison.missing.length}</Badge> in DB ohne Aenderungen (ID nur in Airtable, nicht im CSV)</p>
                   <p><Badge color="purple">{comparison.addrConflicts.length}</Badge> Adress-Konflikte (gleiche Anschrift, andere ID)</p>
+                  {comparison.withUnsynced.length > 0 && (
+                    <p className="mt-1 pt-1 border-t border-slate-100"><Badge color="gray">{comparison.withUnsynced.length}</Badge> Standorte mit {comparison.totalUnsyncedFields} nicht-gesyncten Feldern (CSV hat Wert, Supabase leer — ignoriert)</p>
+                  )}
                 </div>
                 {comparison.withChanges.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-border-secondary">
@@ -1159,9 +1237,18 @@ export default function StammdatenImport() {
                                       <span className="text-text-muted ml-auto">{h.detail}</span>
                                     </div>
                                   ))}
-                                  <p className="text-[10px] text-text-muted pt-1">
-                                    Moeglich: JET ID geaendert, Standort verkauft/neuer Vertragspartner, oder tatsaechlich neu.
-                                  </p>
+                                  <div className="flex items-center gap-2 pt-2">
+                                    <p className="text-[10px] text-text-muted flex-1">
+                                      Moeglich: JET ID geaendert, Standort verkauft/neuer Vertragspartner, oder tatsaechlich neu.
+                                    </p>
+                                    {syncStatus[row.id] === 'done' ? (
+                                      <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12} /> Angelegt</span>
+                                    ) : syncStatus[row.id] === 'syncing' ? (
+                                      <Loader2 size={14} className="text-accent animate-spin" />
+                                    ) : (
+                                      <button onClick={(e) => { e.stopPropagation(); syncToAirtable(row); }} className="text-xs bg-accent text-white px-2.5 py-1 rounded-lg hover:bg-accent/90 transition-colors flex-shrink-0">Trotzdem anlegen</button>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -1186,6 +1273,15 @@ export default function StammdatenImport() {
                               <span className="text-sm font-medium text-text-primary flex-1 truncate">{row.name}</span>
                               <span className="text-xs text-text-muted">{row.street} {row.street_number}</span>
                               <span className="text-xs text-text-muted">{row.postcode} {row.city}</span>
+                              {syncStatus[row.id] === 'done' ? (
+                                <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12} /> Angelegt</span>
+                              ) : syncStatus[row.id] === 'syncing' ? (
+                                <Loader2 size={14} className="text-accent animate-spin flex-shrink-0" />
+                              ) : syncStatus[row.id] === 'error' ? (
+                                <button onClick={() => syncToAirtable(row)} className="text-xs text-status-offline font-medium hover:underline">Fehler — nochmal</button>
+                              ) : (
+                                <button onClick={() => syncToAirtable(row)} className="text-xs bg-accent text-white px-2.5 py-1 rounded-lg hover:bg-accent/90 transition-colors flex-shrink-0">Anlegen</button>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -1229,6 +1325,32 @@ export default function StammdatenImport() {
                 {comparison.unchanged.length > 100 && (
                   <div className="p-3 text-center text-xs text-text-muted">... und {comparison.unchanged.length - 100} weitere</div>
                 )}
+              </div>
+            )}
+
+            {/* Ignored: Standorte ohne Vertrag/Display mit Aenderungen + Unchanged */}
+            {activeTab === 'ignored' && (
+              <div>
+                <div className="px-4 py-3 bg-slate-50/80 border-b border-slate-200/40">
+                  <p className="text-xs text-slate-600">
+                    <span className="font-semibold">{comparison.irrelevantWithChanges?.length || 0}</span> Standorte mit Aenderungen aber ohne Vertrag/Display — irrelevant.
+                    {' '}<span className="font-semibold">{comparison.unchanged.length}</span> ohne Aenderungen.
+                  </p>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {[...(comparison.irrelevantWithChanges || []), ...comparison.unchanged].slice(0, 100).map(m => (
+                    <div key={m.id} className="px-4 py-2.5 flex items-center gap-3">
+                      <Minus size={14} className="text-slate-300 flex-shrink-0" />
+                      <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{m.id}</span>
+                      <span className="text-sm text-gray-500 flex-1 truncate">{m.csv.name}</span>
+                      <span className="text-xs text-gray-400">{m.csv.city}</span>
+                      {m.hasChanges && <span className="text-[10px] text-slate-400">{m.changes.length} Aend.</span>}
+                    </div>
+                  ))}
+                  {((comparison.irrelevantWithChanges?.length || 0) + comparison.unchanged.length) > 100 && (
+                    <div className="p-3 text-center text-xs text-gray-400">... und {(comparison.irrelevantWithChanges?.length || 0) + comparison.unchanged.length - 100} weitere</div>
+                  )}
+                </div>
               </div>
             )}
 
