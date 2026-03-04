@@ -9,9 +9,9 @@ import { supabase } from '../utils/authService';
 /** Top 5 Grossstaedte fuer Akquise-Freigabe Filter */
 const TOP5_CITIES = ['berlin', 'hamburg', 'münchen', 'muenchen', 'munich', 'köln', 'koeln', 'cologne', 'frankfurt'];
 
-/** Critical fields — require individual review before import (Name, Firma, Chain) */
+/** Critical fields — require individual review before import (Name, Chain) */
 const CRITICAL_FIELDS = new Set([
-  'name', 'account_name', 'jet_chain',
+  'name', 'jet_chain',
 ]);
 
 /** All possible comparison fields */
