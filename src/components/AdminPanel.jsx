@@ -47,6 +47,7 @@ import {
   Server,
   MapPin,
   Globe,
+  Upload,
 } from 'lucide-react';
 import {
   getAllUsers,
@@ -74,6 +75,7 @@ import { useFeatureFlags } from '../hooks/useFeatureFlags';
 
 const DataMappingPanel = lazy(() => import('./DataMappingPanel'));
 const APIOverviewPanel = lazy(() => import('./APIOverviewPanel'));
+const StammdatenImport = lazy(() => import('./StammdatenImport'));
 
 /* ─── Group Icon Map ─── */
 
@@ -1093,6 +1095,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
     { id: 'feature-flags', label: 'Feature Flags', icon: ToggleLeft, count: Object.keys(featureFlagMap).length || null },
     { id: 'data-mapping', label: 'Data Mapping', icon: Database, count: 14 },
     { id: 'api-overview', label: 'API Overview', icon: Globe, count: 7 },
+    { id: 'stammdaten-import', label: 'Stammdaten Import', icon: Upload },
   ];
 
   return (
@@ -2536,6 +2539,16 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
           </div>
         }>
           <APIOverviewPanel />
+        </Suspense>
+      )}
+
+      {activeSection === 'stammdaten-import' && (
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64">
+            <RefreshCw size={20} className="animate-spin text-slate-400" />
+          </div>
+        }>
+          <StammdatenImport />
         </Suspense>
       )}
 

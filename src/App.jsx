@@ -237,7 +237,7 @@ function App() {
   const [selectedDisplay, setSelectedDisplay] = useState(null);
   // Hash-based routing: read initial tab from URL hash (supports #main/sub format)
   const SUB_TAB_DEFAULTS = useMemo(() => ({
-    admin:         { valid: ['users','groups','audit','feedback','api-usage','attachments','feature-flags','data-mapping','api-overview'], default: 'users' },
+    admin:         { valid: ['users','groups','audit','feedback','api-usage','attachments','feature-flags','data-mapping','api-overview','stammdaten-import'], default: 'users' },
     hardware:      { valid: ['ops','completeness','leasing','orders','bestellwesen','wareneingang','lager-versand','qr-codes','positionen','tracking','nocodb','timeline','fehler','data-quality'], default: 'ops' },
     acquisition:   { valid: ['netzwerk','overview','pipeline','storno','automation'], default: 'netzwerk' },
     installations: { valid: ['executive','calendar','invite','phone','bookings'], default: 'executive' },
