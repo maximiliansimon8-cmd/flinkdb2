@@ -111,10 +111,10 @@ export default function HealthTrendChart({
   const hasComparison = comparisonTrendData && comparisonTrendData.length > 0;
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-[#E8E8ED]">
+    <div className="bg-white rounded-2xl p-6 border border-[#E8E8ED]/60 shadow-card">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-[15px] font-semibold text-[#1D1D1F]">
+        <h3 className="text-[17px] font-semibold text-[#1D1D1F]">
           Health Trend
         </h3>
 
@@ -153,8 +153,8 @@ export default function HealthTrendChart({
           <AreaChart data={mergedData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
             <defs>
               <linearGradient id="healthGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#007AFF" stopOpacity={0.12} />
-                <stop offset="95%" stopColor="#007AFF" stopOpacity={0.01} />
+                <stop offset="5%" stopColor="#007AFF" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#007AFF" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#F5F5F7" />

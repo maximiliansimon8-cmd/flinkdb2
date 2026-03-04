@@ -24,48 +24,110 @@ function TrendIndicator({ current, previous, inverted }) {
   }
   const isPositive = inverted ? diff < 0 : diff > 0;
   const color = isPositive ? '#34C759' : '#FF3B30';
-  const bgColor = isPositive ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 59, 48, 0.1)';
+  const bgColor = isPositive ? 'rgba(52, 199, 89, 0.12)' : 'rgba(255, 59, 48, 0.12)';
   const Icon = diff > 0 ? TrendingUp : TrendingDown;
   const sign = diff > 0 ? '+' : '';
   const displayDiff = Number.isInteger(diff) ? diff : diff.toFixed(1);
 
   return (
     <span
-      className="inline-flex items-center gap-0.5 text-[12px] font-semibold px-1.5 py-0.5 rounded-md"
+      className="inline-flex items-center gap-0.5 text-[12px] font-semibold px-2 py-0.5 rounded-full"
       style={{ color, backgroundColor: bgColor }}
     >
-      <Icon size={12} />
+      <Icon size={11} />
       <span>{sign}{displayDiff}</span>
     </span>
   );
 }
 
-function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, active, trend, avgLabel }) {
+function HeroCard({ label, value, icon: Icon, color, subtitle, onClick, active, trend, avgLabel }) {
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl p-5 transition-all duration-200 shadow-card ${
-        large ? 'col-span-1 md:col-span-2 lg:col-span-1' : ''
+      className={`relative overflow-hidden rounded-2xl p-6 transition-all duration-200 col-span-2 md:col-span-2 lg:col-span-2 ${
+        onClick ? 'cursor-pointer hover:shadow-xl hover:-translate-y-0.5' : ''
       } ${
+        active ? 'ring-2 ring-white/50 shadow-xl' : 'shadow-lg'
+      }`}
+      style={{
+        background: `linear-gradient(135deg, ${color}, ${color}DD)`,
+      }}
+    >
+      {/* Decorative circle */}
+      <div
+        className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-15"
+        style={{ background: 'white' }}
+      />
+      <div
+        className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full opacity-10"
+        style={{ background: 'white' }}
+      />
+
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[14px] text-white/80 font-medium">
+            {label}
+          </span>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20">
+            <Icon size={20} className="text-white" />
+          </div>
+        </div>
+        <div className="flex items-end gap-3">
+          <div className="text-[42px] leading-none font-bold tracking-tight text-white">
+            {value}
+          </div>
+          {trend && (
+            <span className="inline-flex items-center gap-0.5 text-[13px] font-semibold px-2.5 py-1 rounded-full bg-white/20 text-white mb-1">
+              {trend.props.current != null && trend.props.previous != null && (
+                <>
+                  {trend.props.current - trend.props.previous > 0 ? <TrendingUp size={12} /> : trend.props.current - trend.props.previous < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
+                  <span>
+                    {trend.props.current - trend.props.previous > 0 ? '+' : ''}
+                    {Number.isInteger(trend.props.current - trend.props.previous)
+                      ? trend.props.current - trend.props.previous
+                      : (trend.props.current - trend.props.previous).toFixed(1)}
+                  </span>
+                </>
+              )}
+            </span>
+          )}
+        </div>
+        {(subtitle || avgLabel) && (
+          <div className="flex items-center gap-2 mt-3">
+            {subtitle && (
+              <span className="text-white/60 text-[13px]">{subtitle}</span>
+            )}
+            {avgLabel && (
+              <span className="text-white/80 text-[12px] bg-white/15 px-2.5 py-0.5 rounded-full font-medium">
+                {avgLabel}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function KPICard({ label, value, icon: Icon, color, subtitle, onClick, active, trend, avgLabel }) {
+  return (
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-2xl p-5 transition-all duration-200 border border-[#E8E8ED]/60 ${
         onClick ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5' : ''
       } ${
-        active ? 'ring-2 ring-[#007AFF] shadow-lg' : ''
+        active ? 'ring-2 ring-[#007AFF] shadow-lg border-transparent' : 'shadow-card'
       }`}
     >
       <div className="flex items-center justify-between mb-3">
         <span className="text-[13px] text-[#86868B] font-medium">
           {label}
         </span>
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ backgroundColor: color + '20' }}
-        >
-          <Icon size={17} style={{ color }} />
-        </div>
+        <Icon size={18} style={{ color }} />
       </div>
-      <div className="flex items-end gap-2.5">
+      <div className="flex items-end gap-2">
         <div
-          className={`font-bold tracking-tight ${large ? 'text-[36px] leading-none' : 'text-[28px] leading-none'}`}
+          className="text-[28px] leading-none font-bold tracking-tight"
           style={{ color: '#1D1D1F' }}
         >
           {value}
@@ -73,12 +135,12 @@ function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, ac
         {trend}
       </div>
       {(subtitle || avgLabel) && (
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center gap-2 mt-2.5">
           {subtitle && (
             <span className="text-[#AEAEB2] text-[12px]">{subtitle}</span>
           )}
           {avgLabel && (
-            <span className="text-[#86868B] text-[11px] bg-[#F2F2F7] px-2 py-0.5 rounded-md font-medium">
+            <span className="text-[#86868B] text-[11px] bg-[#F2F2F7] px-2 py-0.5 rounded-full font-medium">
               {avgLabel}
             </span>
           )}
@@ -122,15 +184,14 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
           Letzte bekannte Daten{kpis._cachedTimestamp ? ` · ${new Date(kpis._cachedTimestamp).toLocaleString('de-DE')}` : ''}
         </div>
       )}
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-      <KPICard
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4">
+      <HeroCard
         label="Health Rate"
         value={`${kpis.healthRate}%`}
         icon={Activity}
         color={healthColor}
         subtitle={kpis.snapshotCount > 0 ? `Ø ${kpis.snapshotCount} Tage` : undefined}
         avgLabel={rangeLabel || undefined}
-        large
         trend={
           hasRange ? (
             <TrendIndicator
@@ -147,10 +208,10 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         color="#007AFF"
         subtitle={
           useAvg
-            ? `Aktuell: ${kpis.installed || kpis.totalActive}${kpis.daynTotal ? ` (${(kpis.installed || kpis.totalActive) - kpis.daynTotal} + ${kpis.daynTotal} Dayn)` : ''}`
+            ? `Aktuell: ${kpis.installed || kpis.totalActive}`
             : (kpis.daynTotal
-                ? `${kpis.heartbeatTotal || ((kpis.installed || kpis.totalActive) - (kpis.daynTotal || 0))} Navori + ${kpis.daynTotal} Dayn`
-                : 'Laut Airtable')
+                ? `${kpis.heartbeatTotal || ((kpis.installed || kpis.totalActive) - (kpis.daynTotal || 0))} + ${kpis.daynTotal} Dayn`
+                : undefined)
         }
         avgLabel={useAvg ? `Ø ${rangeLabel}` : undefined}
         onClick={() => toggle(KPI_FILTERS.ACTIVE)}

@@ -46,7 +46,7 @@ export function Sidebar({
   return (
     <aside
       className={`fixed top-0 left-0 h-full z-40 flex flex-col transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)]
-        bg-surface-secondary border-r border-border-secondary
+        bg-[#F6F6F8] border-r border-[#E5E5EA]
         ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}
     >
       {/* Logo */}

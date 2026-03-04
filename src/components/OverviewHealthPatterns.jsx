@@ -156,7 +156,7 @@ function WeekdayBar({ stats, rangeLabel }) {
 
   return (
     <div>
-      <h3 className="text-[15px] font-semibold text-[#1D1D1F] mb-4">
+      <h3 className="text-[17px] font-semibold text-[#1D1D1F] mb-4">
         Nach Wochentag
         {rangeLabel && <span className="text-[#86868B] font-normal text-[13px] ml-2">{rangeLabel}</span>}
       </h3>
@@ -194,7 +194,7 @@ function HourGrid({ stats, rangeLabel }) {
 
   return (
     <div>
-      <h3 className="text-[15px] font-semibold text-[#1D1D1F] mb-4">
+      <h3 className="text-[17px] font-semibold text-[#1D1D1F] mb-4">
         Nach Tageszeit
         {rangeLabel && <span className="text-[#86868B] font-normal text-[13px] ml-2">{rangeLabel}</span>}
       </h3>
@@ -241,7 +241,7 @@ function Heatmap({ grid, rangeLabel }) {
 
   return (
     <div>
-      <h3 className="text-[15px] font-semibold text-[#1D1D1F] mb-4">
+      <h3 className="text-[17px] font-semibold text-[#1D1D1F] mb-4">
         Wochentag × Tageszeit
         {rangeLabel && <span className="text-[#86868B] font-normal text-[13px] ml-2">{rangeLabel}</span>}
       </h3>
@@ -303,7 +303,7 @@ export default function OverviewHealthPatterns({ trendData, rangeLabel }) {
   if (!trendData || trendData.length === 0) return null;
 
   return (
-    <div className="bg-white border border-[#E8E8ED] rounded-2xl p-6 space-y-8">
+    <div className="bg-white border border-[#E8E8ED]/60 rounded-2xl p-6 space-y-8 shadow-card">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <WeekdayBar stats={weekdayStats} rangeLabel={rangeLabel} />
         <HourGrid stats={hourStats} rangeLabel={rangeLabel} />

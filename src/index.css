@@ -145,7 +145,7 @@
 body {
   margin: 0;
   padding: 0;
-  background: var(--color-surface-secondary);
+  background: #F0F0F5;
   color: var(--color-text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;

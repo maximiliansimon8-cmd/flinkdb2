@@ -2516,7 +2516,7 @@ function App() {
         />
 
         {/* Content */}
-        <main className="px-5 py-5 space-y-5">
+        <main className="px-6 py-6 space-y-6">
         {/* Overview */}
         {activeMainTab === 'overview' && (
           <TabErrorBoundary name="Overview">
