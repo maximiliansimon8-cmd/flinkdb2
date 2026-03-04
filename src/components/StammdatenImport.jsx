@@ -106,7 +106,7 @@ export default function StammdatenImport() {
         });
       }
 
-      // 2. Fetch all stammdaten from Supabase (paginated, 1000 per page)
+      // 2. Fetch all stammdaten from Supabase incl. extra_fields (paginated, 1000 per page)
       const allRows = [];
       const PAGE_SIZE = 1000;
       let from = 0;
@@ -115,7 +115,7 @@ export default function StammdatenImport() {
       while (hasMore) {
         const { data, error: fetchErr } = await supabase
           .from('stammdaten')
-          .select('airtable_id,jet_id,location_name,street,street_number,postal_code,city,location_phone,location_email,contact_person,contact_email,legal_entity')
+          .select('airtable_id,jet_id,display_ids,location_name,street,street_number,postal_code,city,location_phone,location_email,contact_person,contact_email,contact_phone,legal_entity,lead_status,extra_fields')
           .range(from, from + PAGE_SIZE - 1);
         if (fetchErr) throw new Error(`Supabase Fehler: ${fetchErr.message}`);
         allRows.push(...(data || []));
@@ -123,7 +123,17 @@ export default function StammdatenImport() {
         from += PAGE_SIZE;
       }
 
-      // 3. Map to comparison format keyed by JET ID
+      // 3. Collect all extra_fields keys across all records
+      const extraKeysSet = new Set();
+      for (const row of allRows) {
+        if (row.extra_fields) {
+          Object.keys(row.extra_fields).forEach(k => extraKeysSet.add(k));
+        }
+      }
+      const extraFieldKeys = [...extraKeysSet].sort();
+      setSyncInfo(prev => prev ? { ...prev, extraFieldKeys, totalRecords: allRows.length } : { extraFieldKeys, totalRecords: allRows.length });
+
+      // 4. Map to comparison format keyed by JET ID
       const map = new Map();
       for (const row of allRows) {
         const jetId = row.jet_id;
@@ -140,7 +150,11 @@ export default function StammdatenImport() {
           email: row.location_email || '',
           contact_name: row.contact_person || '',
           contact_email: row.contact_email || '',
+          contact_phone: row.contact_phone || '',
           account_name: row.legal_entity || '',
+          display_ids: row.display_ids || [],
+          lead_status: row.lead_status || [],
+          extra_fields: row.extra_fields || null,
         });
       }
       setAirtableData(map);
@@ -386,6 +400,38 @@ export default function StammdatenImport() {
           </button>
         </div>
       </div>
+
+      {/* Field Overview — shows all synced fields after loading */}
+      {syncInfo?.extraFieldKeys && (
+        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Alle Airtable-Felder in Supabase ({syncInfo.totalRecords} Records)</h3>
+          <div className="space-y-2">
+            <div>
+              <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Benannte Spalten (14)</p>
+              <div className="flex flex-wrap gap-1">
+                {['jet_id', 'display_ids', 'location_name', 'street', 'street_number', 'postal_code', 'city',
+                  'contact_person', 'contact_email', 'contact_phone', 'location_email', 'location_phone',
+                  'legal_entity', 'lead_status'].map(f => (
+                  <span key={f} className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-mono">{f}</span>
+                ))}
+              </div>
+            </div>
+            {syncInfo.extraFieldKeys.length > 0 && (
+              <div>
+                <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Extra Fields (JSONB) — {syncInfo.extraFieldKeys.length} Felder</p>
+                <div className="flex flex-wrap gap-1">
+                  {syncInfo.extraFieldKeys.map(f => (
+                    <span key={f} className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-mono">{f}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {syncInfo.extraFieldKeys.length === 0 && (
+              <p className="text-xs text-amber-600">Keine extra_fields gefunden — entweder alle Felder sind gemappt oder extra_fields ist leer.</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
