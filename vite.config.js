@@ -178,6 +178,8 @@ export default defineConfig(({ mode }) => {
           install: resolve(__dirname, 'install.html'),
           booking: resolve(__dirname, 'booking/index.html'),
           scheduling: resolve(__dirname, 'scheduling/index.html'),
+          inspection: resolve(__dirname, 'inspection/index.html'),
+          faw: resolve(__dirname, 'faw/index.html'),
         },
       },
     },

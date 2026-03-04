@@ -70,6 +70,7 @@ import {
   getSessionTimeoutMinutes,
   supabase,
 } from '../utils/authService';
+import { useFeatureFlags } from '../hooks/useFeatureFlags';
 
 const DataMappingPanel = lazy(() => import('./DataMappingPanel'));
 const APIOverviewPanel = lazy(() => import('./APIOverviewPanel'));
@@ -525,9 +526,122 @@ function GroupEditModal({ group, onClose, onSave }) {
   );
 }
 
+/* ─── Feature Flags Section ─── */
+
+function FeatureFlagsSection({ featureFlags, setFeatureFlags, flagsLoading, setFlagsLoading, refetchFlags, showToast }) {
+  const [toggling, setToggling] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setFlagsLoading(true);
+    supabase
+      .from('feature_flags')
+      .select('key, enabled, description, updated_at, updated_by')
+      .order('key')
+      .then(({ data, error }) => {
+        if (!cancelled) {
+          if (error) {
+            console.error('[FeatureFlags] Fetch error:', error.message);
+            showToast('Fehler beim Laden der Feature Flags', 'error');
+          } else {
+            setFeatureFlags(data || []);
+          }
+          setFlagsLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleFlag = async (key, currentEnabled) => {
+    setToggling(key);
+    const currentUser = getCurrentUser();
+    const { error } = await supabase
+      .from('feature_flags')
+      .update({
+        enabled: !currentEnabled,
+        updated_at: new Date().toISOString(),
+        updated_by: currentUser?.email || currentUser?.name || 'admin',
+      })
+      .eq('key', key);
+
+    if (error) {
+      console.error('[FeatureFlags] Toggle error:', error.message);
+      showToast(`Fehler: ${error.message}`, 'error');
+    } else {
+      setFeatureFlags(prev =>
+        prev.map(f => f.key === key ? { ...f, enabled: !currentEnabled, updated_at: new Date().toISOString(), updated_by: currentUser?.email || 'admin' } : f)
+      );
+      refetchFlags();
+      showToast(`${key} ${!currentEnabled ? 'aktiviert' : 'deaktiviert'}`, 'success');
+    }
+    setToggling(null);
+  };
+
+  if (flagsLoading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <RefreshCw size={20} className="animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-slate-500">
+          Feature Flags steuern die Sichtbarkeit von Dashboard-Bereichen. Deaktivierte Features sind für alle Benutzer ausgeblendet.
+        </p>
+      </div>
+      <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl divide-y divide-slate-100/60 shadow-sm shadow-black/[0.03]">
+        {featureFlags.map((flag) => (
+          <div key={flag.key} className="flex items-center gap-4 px-5 py-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-900 font-mono">{flag.key}</span>
+                {flag.enabled ? (
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60">Aktiv</span>
+                ) : (
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-50 text-slate-500 border border-slate-200/60">Aus</span>
+                )}
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">{flag.description || '—'}</div>
+              {flag.updated_at && (
+                <div className="text-[10px] text-slate-400 mt-1 font-mono">
+                  Aktualisiert: {new Date(flag.updated_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  {flag.updated_by ? ` von ${flag.updated_by}` : ''}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => toggleFlag(flag.key, flag.enabled)}
+              disabled={toggling === flag.key}
+              className="flex-shrink-0 transition-colors"
+              title={flag.enabled ? 'Deaktivieren' : 'Aktivieren'}
+            >
+              {flag.enabled ? (
+                <ToggleRight size={32} className={`text-emerald-500 ${toggling === flag.key ? 'opacity-50' : 'hover:text-emerald-600'}`} />
+              ) : (
+                <ToggleLeft size={32} className={`text-slate-300 ${toggling === flag.key ? 'opacity-50' : 'hover:text-slate-400'}`} />
+              )}
+            </button>
+          </div>
+        ))}
+        {featureFlags.length === 0 && (
+          <div className="px-5 py-8 text-center text-sm text-slate-500">
+            Keine Feature Flags vorhanden
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main Admin Panel ─── */
 
 export default function AdminPanel({ initialSection, onSectionChange }) {
+  const { flags: featureFlagMap, refetch: refetchFlags } = useFeatureFlags();
+  const [featureFlags, setFeatureFlags] = useState([]);
+  const [flagsLoading, setFlagsLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState(() => getAllGroups());
   const [activeSection, setActiveSectionRaw] = useState(initialSection || 'users');
@@ -976,6 +1090,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
     { id: 'feedback', label: 'Feedback', icon: Lightbulb, count: feedbackItems.length },
     { id: 'api-usage', label: 'API Usage', icon: Zap, count: apiStats.totalCalls },
     { id: 'attachments', label: 'Attachments', icon: Server },
+    { id: 'feature-flags', label: 'Feature Flags', icon: ToggleLeft, count: Object.keys(featureFlagMap).length || null },
     { id: 'data-mapping', label: 'Data Mapping', icon: Database, count: 14 },
     { id: 'api-overview', label: 'API Overview', icon: Globe, count: 7 },
   ];
@@ -2400,6 +2515,18 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
         }>
           <DataMappingPanel />
         </Suspense>
+      )}
+
+      {/* ═══════ FEATURE FLAGS SECTION ═══════ */}
+      {activeSection === 'feature-flags' && (
+        <FeatureFlagsSection
+          featureFlags={featureFlags}
+          setFeatureFlags={setFeatureFlags}
+          flagsLoading={flagsLoading}
+          setFlagsLoading={setFlagsLoading}
+          refetchFlags={refetchFlags}
+          showToast={(msg, type) => { setToast({ message: msg, type }); setTimeout(() => setToast(null), 3000); }}
+        />
       )}
 
       {activeSection === 'api-overview' && (

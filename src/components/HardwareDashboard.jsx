@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useFeatureFlags } from '../hooks/useFeatureFlags';
 import {
   Cpu, Monitor, Wifi, HardDrive, Package, Search, Filter,
   Loader2, RefreshCw, ArrowLeftRight, PackageX, ChevronDown, ChevronUp,
@@ -18,6 +19,7 @@ const BestellwesenTab = React.lazy(() => import('./BestellwesenTab'));
 const LagerVersandTab = React.lazy(() => import('./LagerVersandTab'));
 const TrackingDashboard = React.lazy(() => import('./TrackingDashboard'));
 const NocoDBPanel = React.lazy(() => import('./NocoDBPanel'));
+const InstallationInspection = React.lazy(() => import('./InstallationInspection'));
 import HardwareComponentDetail from './HardwareComponentDetail';
 import {
   fetchAllOpsInventory,
@@ -99,6 +101,7 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }) {
 /* ──────────────────────── MAIN COMPONENT ──────────────────────── */
 
 export default function HardwareDashboard({ comparisonData, rawData, initialSection, onSectionChange }) {
+  const { isEnabled: isFeatureEnabled } = useFeatureFlags();
   const [opsData, setOpsData] = useState([]);
   const [leaseData, setLeaseData] = useState({ chg: [], bank: [] });
   const [swaps, setSwaps] = useState([]);
@@ -1176,9 +1179,10 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
           { id: 'tracking', label: 'Tracking', icon: Eye, count: null },
           { id: 'timeline', label: 'Timeline', icon: History, count: timelineEvents.length },
           { id: 'fehler', label: 'Fehler', icon: ShieldAlert, count: hwMismatches.length || null },
-          { id: 'nocodb', label: 'NocoDB', icon: Database, count: null },
+          { id: 'nocodb', label: 'NocoDB', icon: Database, count: null, featureFlag: 'tab_nocodb' },
           { id: 'data-quality', label: 'Datenqualität', icon: Database, count: null },
-        ].map((tab) => {
+          { id: 'freigabe', label: 'Freigabe', icon: ClipboardCheck, count: null, featureFlag: 'tab_installation_inspection' },
+        ].filter(tab => !tab.featureFlag || isFeatureEnabled(tab.featureFlag)).map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSection === tab.id;
           return (
@@ -2194,6 +2198,13 @@ export default function HardwareDashboard({ comparisonData, rawData, initialSect
       {activeSection === 'data-quality' && (
         <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Datenqualität...</span></div>}>
           <DataQualityDashboard comparisonData={comparisonData} rawData={rawData} />
+        </React.Suspense>
+      )}
+
+      {/* ═══ FREIGABE / INSPECTION ═══ */}
+      {activeSection === 'freigabe' && (
+        <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Freigabe...</span></div>}>
+          <InstallationInspection />
         </React.Suspense>
       )}
 

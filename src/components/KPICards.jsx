@@ -89,7 +89,7 @@ function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, ac
 import { KPI_FILTERS } from '../constants/kpiFilters';
 export { KPI_FILTERS };
 
-export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel, comparisonKPIs }) {
+export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel, comparisonKPIs, isRefreshing }) {
   const healthColor =
     kpis.healthRate >= 90
       ? '#22c55e'
@@ -105,6 +105,18 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
   const showAvg = hasRange;
 
   return (
+    <div className="relative">
+      {isRefreshing && (
+        <div className="flex items-center justify-center gap-2 mb-2 py-1.5 px-3 bg-blue-50/80 border border-blue-200/40 rounded-xl text-xs text-blue-600 font-mono animate-fade-in">
+          <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+          Aktualisiere Daten...
+        </div>
+      )}
+      {kpis._cached && (
+        <div className="flex items-center justify-center gap-1.5 mb-2 py-1 px-3 text-[10px] text-slate-400 font-mono">
+          Letzte bekannte Daten{kpis._cachedTimestamp ? ` · ${new Date(kpis._cachedTimestamp).toLocaleString('de-DE')}` : ''}
+        </div>
+      )}
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
       <KPICard
         label="Health Rate"
@@ -124,17 +136,21 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
         }
       />
       <KPICard
-        label="Aktive Displays"
-        value={kpis.totalActive}
+        label="Installierte Displays"
+        value={kpis.installed || kpis.totalActive}
         icon={Monitor}
         color="#3b82f6"
-        subtitle={showAvg && kpis.avgTotal !== kpis.totalActive ? `Ø ${kpis.avgTotal}` : undefined}
+        subtitle={
+          kpis.daynTotal
+            ? `${kpis.heartbeatTotal || ((kpis.installed || kpis.totalActive) - (kpis.daynTotal || 0))} Navori + ${kpis.daynTotal} Dayn`
+            : (showAvg && kpis.avgTotal !== (kpis.installed || kpis.totalActive) ? `Ø ${kpis.avgTotal}` : 'Laut Airtable')
+        }
         onClick={() => toggle(KPI_FILTERS.ACTIVE)}
         active={activeFilter === KPI_FILTERS.ACTIVE}
         trend={
           hasRange ? (
             <TrendIndicator
-              current={kpis.totalActive}
+              current={kpis.installed || kpis.totalActive}
               previous={kpis.firstTotal}
             />
           ) : null
@@ -252,6 +268,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
           ) : null
         }
       />
+    </div>
     </div>
   );
 }

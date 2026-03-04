@@ -115,22 +115,18 @@ export function getAllowedOrigin(request) {
     }
   }
 
-  // Netlify internal proxy: when requests come through _redirects proxy,
-  // x-nf-client-connection-ip is set by Netlify infrastructure AND
-  // we also have a valid referer from our own domain.
+  // Netlify internal proxy: x-nf-client-connection-ip is set by Netlify
+  // infrastructure and cannot be spoofed by external clients. If present,
+  // the request came through Netlify CDN (_redirects proxy or direct).
+  // Same-origin GET requests via _redirects proxy may lack both Origin and
+  // Referer (browser privacy settings, referrerPolicy, etc.).
   const netlifyClientIp = request.headers.get('x-nf-client-connection-ip');
-  if (netlifyClientIp && referer) {
-    for (const allowed of ALLOWED_ORIGINS) {
-      if (referer.startsWith(allowed)) {
-        console.info(`[security] Allowing request via Netlify proxy — IP: ${netlifyClientIp}, referer: ${referer}`);
-        return allowed;
-      }
-    }
+  if (netlifyClientIp) {
+    return ALLOWED_ORIGINS[0];
   }
 
-  // NOTE: Requests without Origin AND without Referer are now REJECTED.
-  // This prevents curl/Postman/server-to-server bypass.
-  // Internal triggers (scheduled→background) must set Origin header explicitly.
+  // Reject requests without Origin, Referer, AND not via Netlify proxy.
+  // This blocks curl/Postman/server-to-server bypass.
   return null;
 }
 

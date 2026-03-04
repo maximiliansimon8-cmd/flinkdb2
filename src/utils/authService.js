@@ -73,6 +73,7 @@ export const ALL_TABS = [
   { id: 'installations',           label: 'Installationen',      parent: null },
   { id: 'installations.calendar',  label: 'Routen-Kalender',     parent: 'installations' },
   { id: 'installations.bookings',  label: 'Buchungen',           parent: 'installations' },
+  { id: 'akquise-automation',      label: 'KI-Akquise Automation', parent: null },
   { id: 'admin',             label: 'Admin',               parent: null },
 ];
 
@@ -92,6 +93,7 @@ export const ALL_ACTIONS = [
   { id: 'manage_hardware',     label: 'Hardware verwalten',        category: 'Hardware' },
   { id: 'manage_warehouse',    label: 'Wareneingang verwalten',    category: 'Hardware' },
   { id: 'manage_qr',           label: 'QR-Codes verwalten',        category: 'Hardware' },
+  { id: 'manage_akquise_automation', label: 'KI-Akquise verwalten', category: 'Akquise' },
   { id: 'manage_users',   label: 'Benutzer verwalten',     category: 'Admin' },
   { id: 'manage_groups',  label: 'Gruppen verwalten',      category: 'Admin' },
   { id: 'settings',       label: 'Einstellungen ändern',   category: 'Admin' },

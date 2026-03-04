@@ -26,6 +26,8 @@ import {
   Search,
   CalendarCheck,
   ChevronDown,
+  Eye,
+  TrendingUp,
 } from 'lucide-react';
 
 import {
@@ -86,9 +88,13 @@ const MobileDashboard = lazy(() => import('./components/MobileDashboard'));
 const MobileDisplayCards = lazy(() => import('./components/MobileDisplayCards'));
 const MobileActivityFeed = lazy(() => import('./components/MobileActivityFeed'));
 const QRHardwareScanner = lazy(() => import('./components/QRHardwareScanner'));
+const FAWCheckApp = lazy(() => import('./components/FAWCheckApp'));
+const DisplayTrends = lazy(() => import('./components/DisplayTrends'));
+// InstallationInspection moved to HardwareDashboard as sub-tab "Freigabe"
 import MobileBottomNav from './components/MobileBottomNav';
 import { fetchVenuePerformance } from './utils/vistarService';
 import useIsMobile from './hooks/useIsMobile';
+import { useFeatureFlags } from './hooks/useFeatureFlags';
 
 const SHEET_URL = '/api/sheets';
 
@@ -105,7 +111,7 @@ const KPI_FILTER_LABELS = {
 
 /* ─── KPI Cache for Instant-Load ─── */
 const CACHE_KEY = 'jet_dashboard_cache';
-const CACHE_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 hours
+const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours — stale KPIs shown instantly while fresh data loads in background
 
 function saveToCache(data) {
   try {
@@ -229,9 +235,9 @@ function App() {
   const [selectedDisplay, setSelectedDisplay] = useState(null);
   // Hash-based routing: read initial tab from URL hash (supports #main/sub format)
   const SUB_TAB_DEFAULTS = useMemo(() => ({
-    admin:         { valid: ['users','groups','audit','feedback','api-usage','attachments','data-mapping','api-overview'], default: 'users' },
+    admin:         { valid: ['users','groups','audit','feedback','api-usage','attachments','feature-flags','data-mapping','api-overview'], default: 'users' },
     hardware:      { valid: ['ops','completeness','leasing','orders','bestellwesen','wareneingang','lager-versand','qr-codes','positionen','tracking','nocodb','timeline','fehler','data-quality'], default: 'ops' },
-    acquisition:   { valid: ['netzwerk','overview','pipeline','storno'], default: 'netzwerk' },
+    acquisition:   { valid: ['netzwerk','overview','pipeline','storno','automation'], default: 'netzwerk' },
     installations: { valid: ['executive','calendar','invite','phone','bookings'], default: 'executive' },
   }), []);
   const validTabs = useMemo(() => ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app'], []);
@@ -269,6 +275,7 @@ function App() {
 
   /* ─── Mobile UI State ─── */
   const isMobile = useIsMobile(768);
+  const { isEnabled: isFeatureEnabled } = useFeatureFlags();
   const [showAkquiseApp, setShowAkquiseApp] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [mobileTab, setMobileTab] = useState('mobile-home');
@@ -363,32 +370,35 @@ function App() {
         setLoading(true);
       }
 
-      // 2. Single RPC call — all KPIs computed server-side (get_kpi_summary replaces get_mobile_kpis)
+      // 2. Single RPC call — all KPIs computed server-side (get_dashboard_kpis)
       try {
-        const rpcPromise = supabase.rpc('get_kpi_summary', { days_back: 14 });
+        const rpcPromise = supabase.rpc('get_dashboard_kpis', { days_back: 14 });
         // Timeout after 8s to avoid endless spinner
         const timeoutPromise = new Promise((_, rej) =>
           setTimeout(() => rej(new Error('RPC timeout after 8s')), 8000)
         );
 
-        const { data, error: rpcError } = await Promise.race([rpcPromise, timeoutPromise]);
+        const rpcResult = await Promise.race([rpcPromise, timeoutPromise]);
+        let data = rpcResult.data;
+        const rpcError = rpcResult.error;
+
+        // Handle string response (PostgREST may return string for JSON functions)
+        if (typeof data === 'string') {
+          try { data = JSON.parse(data); } catch (_) { data = null; }
+        }
 
         if (rpcError || !data) {
-          console.warn('[mobile] RPC failed:', rpcError?.message || 'no data returned');
+          console.warn('[mobile] RPC failed:', rpcError?.message || 'no data returned', rpcError?.code, rpcError?.hint);
           if (hasCachedData) {
             setLoading(false);
             return;
           }
         } else {
-          // Map get_kpi_summary response to mobile KPI format
-          const snap = data.latestSnapshot || {};
+          console.log('[mobile] RPC SUCCESS:', { healthRate: data.healthRate, installed: data.installed });
+          // Map get_dashboard_kpis response to mobile KPI format
           const trend = data.trend || [];
-          const cityData = {};
-          for (const c of (data.byCity || [])) {
-            cityData[c.city] = { total: c.total, online: c.online, offline: c.offline };
-          }
           const topOffline = (data.displays || [])
-            .filter(d => d.status !== 'online' && d.status !== 'never_online')
+            .filter(d => d.status !== 'online')
             .sort((a, b) => (b.daysOffline || 0) - (a.daysOffline || 0))
             .slice(0, 10)
             .map(d => ({
@@ -400,17 +410,20 @@ function App() {
             }));
 
           const kpiData = {
-            healthRate: snap.healthRate || 0,
-            totalActive: snap.totalDisplays || 0,
-            onlineCount: snap.onlineCount || 0,
-            warningCount: snap.warningCount || 0,
-            criticalCount: snap.criticalCount || 0,
-            permanentOfflineCount: snap.permanentOfflineCount || 0,
-            neverOnlineCount: snap.neverOnlineCount || 0,
+            healthRate: data.healthRate || 0,
+            installed: data.installed || 0,
+            totalActive: (data.installed || 0) - (data.permanentOffline || 0),
+            onlineCount: data.online || 0,
+            warningCount: data.warning || 0,
+            criticalCount: data.critical || 0,
+            permanentOfflineCount: data.permanentOffline || 0,
+            neverOnlineCount: 0,
             newlyInstalled: 0,
             deinstalled: 0,
+            daynTotal: data.daynTotal || 0,
+            daynOnline: data.daynOnline || 0,
             topOffline,
-            byCity: cityData,
+            byCity: {},
             trend: trend.map(t => ({
               date: t.day,
               total: t.total,
@@ -673,28 +686,46 @@ function App() {
       setLoadProgress('Lade Display-Daten...');
 
       // Fast path: Try server-side KPI aggregation (RPC) — returns ~5KB instead of 30MB
-      // Use 30 days to avoid Supabase statement timeout (178K rows in display_heartbeats)
-      // Trend data for 30 days is enough for the overview; detail views load separately
-      const RPC_DAYS = isMobile ? 14 : 30;
+      // 180 Tage für Desktop damit alle Zeitraum-Buttons (7T bis 180T) Daten haben
+      const RPC_DAYS = isMobile ? 14 : 180;
       const DATA_WINDOW_DAYS = isMobile ? 90 : 180;
       try {
         setLoadProgress('Lade KPI-Daten...');
-        const rpcResult = await supabase.rpc('get_kpi_summary', { days_back: RPC_DAYS });
+        const rpcPromise = supabase.rpc('get_dashboard_kpis', { days_back: RPC_DAYS });
+        const rpcTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error('RPC timeout 15s')), 15000));
+        const rpcResult = await Promise.race([rpcPromise, rpcTimeout]);
+        if (rpcResult.error) {
+          console.warn('[loadData] RPC get_dashboard_kpis error:', rpcResult.error.message, '| code:', rpcResult.error.code, '| hint:', rpcResult.error.hint, '| details:', rpcResult.error.details);
+        }
         if (!rpcResult.error && rpcResult.data) {
-          const kpiData = rpcResult.data;
+          // Handle both parsed JSON and string responses (PostgREST may return string for JSON functions)
+          let kpiData = rpcResult.data;
+          if (typeof kpiData === 'string') {
+            try { kpiData = JSON.parse(kpiData); } catch (e) {
+              console.warn('[loadData] RPC returned unparseable string:', kpiData?.substring?.(0, 200));
+              kpiData = null;
+            }
+          }
+          if (!kpiData) {
+            console.warn('[loadData] RPC returned null/empty data');
+          }
+          if (kpiData) {
+            console.log('[loadData] RPC get_dashboard_kpis SUCCESS:', {
+              installed: kpiData.installed,
+              online: kpiData.online,
+              healthRate: kpiData.healthRate,
+              trendDays: kpiData.trend?.length,
+              displays: kpiData.displays?.length,
+            });
           // Convert RPC displays to the format processRawRows expects
           if (kpiData.displays && kpiData.displays.length > 0) {
             // Ensure timestamp is ISO 8601 with T (parseGermanDate requires it)
-            const snapDate = kpiData.latestSnapshot?.date;
+            const snapDate = kpiData.snapshotTimestamp;
             const isoTimestamp = snapDate
               ? (snapDate.includes('T') ? snapDate : snapDate + 'T12:00:00')
               : new Date().toISOString();
 
-            // Build fake heartbeat timestamp for online displays:
-            // 'Status' field is parsed by parseGermanDate() as the last-heartbeat time.
-            // For online displays, set it to (snapshot - 1min) so offlineHours ≈ 0 → status=online.
-            // For airtable/dayn displays without heartbeat data, this is the ONLY way
-            // to make aggregateData() classify them correctly.
+            // Build fake heartbeat timestamp for online displays
             const fakeHeartbeat = snapDate
               ? (snapDate.includes('T') ? snapDate.replace('T12:', 'T11:59:') : snapDate + 'T11:59:00')
               : new Date(Date.now() - 60000).toISOString();
@@ -739,18 +770,27 @@ function App() {
               online: t.online || 0,
               offline: (t.total || 0) - (t.online || 0),
               healthRate: t.healthRate || 0,
-              totalOnlineHours: t.totalOnlineHours || 0,
-              totalExpectedHours: t.totalExpectedHours || 0,
               warningCount: t.warning || 0,
               criticalCount: t.critical || 0,
               permanentOfflineCount: t.permanentOffline || 0,
-              neverOnlineCount: t.neverOnline || 0,
             }));
 
             // Inject pre-computed RPC data so KPI calculation uses server-side values
             csvCacheRef._rpcTrendData = rpcTrendData;
-            csvCacheRef._rpcByCity = kpiData.byCity || [];
-            csvCacheRef._rpcSnapshot = kpiData.latestSnapshot || null;
+            csvCacheRef._rpcByCity = null; // get_dashboard_kpis doesn't include byCity
+            csvCacheRef._rpcSnapshot = {
+              installed: kpiData.installed,
+              online: kpiData.online,
+              warning: kpiData.warning,
+              critical: kpiData.critical,
+              permanentOffline: kpiData.permanentOffline,
+              healthRate: kpiData.healthRate,
+              heartbeatTotal: kpiData.heartbeatTotal,
+              daynTotal: kpiData.daynTotal,
+              daynOnline: kpiData.daynOnline,
+              totalOnlineHours: kpiData.totalOnlineHours,
+              totalExpectedHours: kpiData.totalExpectedHours,
+            };
             csvCacheRef.current = fakeRows;
             csvCacheRef._firstSeen = null;
 
@@ -766,10 +806,146 @@ function App() {
             }, 50);
             return;
           }
+          } // end if (kpiData)
         }
-        console.warn('[loadData] RPC kpi_summary unavailable, falling back to heartbeats');
+        console.warn('[loadData] RPC get_dashboard_kpis unavailable, falling back to snapshot');
       } catch (rpcErr) {
-        console.warn('[loadData] RPC failed:', rpcErr.message, '→ fallback');
+        console.warn('[loadData] RPC failed:', rpcErr.message, '→ snapshot fallback');
+      }
+
+      // Fast fallback: lightweight snapshot (latest heartbeat per display, ~350 rows instead of 143K)
+      // This replaces the slow full-pagination path with a single query + client-side dedup
+      try {
+        setLoadProgress('Lade Display-Snapshot...');
+        const snapshotResult = await supabase
+          .from('display_heartbeats')
+          .select('display_id, raw_display_id, days_offline, is_alive, display_status, location_name, serial_number, heartbeat, last_online_date, timestamp')
+          .order('timestamp_parsed', { ascending: false })
+          .limit(2000);
+
+        if (!snapshotResult.error && snapshotResult.data && snapshotResult.data.length > 0) {
+          // Deduplicate by display_id (first occurrence = latest heartbeat)
+          const seen = new Set();
+          const uniqueDisplays = [];
+          for (const row of snapshotResult.data) {
+            if (row.display_id && !seen.has(row.display_id)) {
+              seen.add(row.display_id);
+              uniqueDisplays.push(row);
+            }
+          }
+
+          console.log(`[loadData] Lightweight snapshot: ${uniqueDisplays.length} unique displays from ${snapshotResult.data.length} rows`);
+
+          // Build fake rows in processRawRows format (same pattern as RPC fast path)
+          const now = new Date();
+          const isoTimestamp = now.toISOString();
+          const fakeRows = uniqueDisplays.map(d => {
+            const daysOffline = parseInt(d.days_offline) || 0;
+            const isOnline = d.is_alive === 'TRUE' || d.is_alive === true || daysOffline < 1;
+
+            // Build heartbeat timestamp for correct offline-bucket placement
+            let heartbeatTs = '';
+            if (isOnline) {
+              heartbeatTs = new Date(now.getTime() - 60000).toISOString();
+            } else if (daysOffline > 0) {
+              heartbeatTs = new Date(now.getTime() - daysOffline * 24 * 60 * 60 * 1000).toISOString();
+            }
+
+            return {
+              'Timestamp': isoTimestamp,
+              'Display ID': d.raw_display_id || d.display_id || '',
+              'Location Name': d.location_name || '',
+              'Serial Number': d.serial_number || '',
+              'Date': '',
+              'Status': heartbeatTs,
+              'Is Alive': isOnline ? 'TRUE' : 'FALSE',
+              'Display Status': d.display_status || '',
+              'Last Online Date': d.last_online_date || '',
+              'Days Offline': d.days_offline != null ? String(d.days_offline) : '',
+            };
+          });
+
+          csvCacheRef.current = fakeRows;
+          csvCacheRef._firstSeen = null;
+          csvCacheRef._rpcByCity = null;
+
+          // ── Try to load trend data separately via simpler RPC ──
+          // Without trend data, the dashboard shows "Ø 1 Tage" and empty charts.
+          // get_daily_trend is a lightweight function (no display list, no health agg).
+          let trendLoaded = false;
+          try {
+            setLoadProgress('Lade Trend-Daten...');
+            const trendRpc = await Promise.race([
+              supabase.rpc('get_daily_trend', { days_back: 30 }),
+              new Promise((_, rej) => setTimeout(() => rej(new Error('trend RPC timeout')), 10000)),
+            ]);
+            let trendArr = trendRpc.data;
+            if (typeof trendArr === 'string') {
+              try { trendArr = JSON.parse(trendArr); } catch (_) { trendArr = null; }
+            }
+            if (!trendRpc.error && trendArr && Array.isArray(trendArr) && trendArr.length > 0) {
+              console.log('[loadData] get_daily_trend SUCCESS:', trendArr.length, 'days');
+              csvCacheRef._rpcTrendData = trendArr.map(t => ({
+                dayKey: t.day,
+                date: t.day ? t.day.split('-').reverse().join('.') : '',
+                total: t.total || 0,
+                online: t.online || 0,
+                offline: (t.total || 0) - (t.online || 0),
+                healthRate: t.healthRate || 0,
+                warningCount: t.warning || 0,
+                criticalCount: t.critical || 0,
+                permanentOfflineCount: t.permanentOffline || 0,
+              }));
+              trendLoaded = true;
+            } else {
+              console.warn('[loadData] get_daily_trend failed:', trendRpc.error?.message || 'no data');
+              csvCacheRef._rpcTrendData = null;
+            }
+          } catch (trendErr) {
+            console.warn('[loadData] Trend RPC failed:', trendErr.message);
+            csvCacheRef._rpcTrendData = null;
+          }
+
+          // ── Try to load installed count + Dayn count for accurate KPIs ──
+          try {
+            const [installedResult, daynResult] = await Promise.all([
+              supabase.from('airtable_displays').select('display_id', { count: 'exact', head: true })
+                .in('online_status', ['Live', 'Installed & online']),
+              supabase.from('dayn_screens').select('do_screen_id', { count: 'exact', head: true })
+                .not('do_screen_id', 'is', null),
+            ]);
+            const installedCount = installedResult.count || 0;
+            const daynCount = daynResult.count || 0;
+            if (installedCount > 0 || daynCount > 0) {
+              console.log('[loadData] Installed:', installedCount, '| Dayn:', daynCount);
+              csvCacheRef._rpcSnapshot = {
+                installed: installedCount,
+                daynTotal: daynCount,
+                daynOnline: Math.round(daynCount * 0.9),
+              };
+            } else {
+              csvCacheRef._rpcSnapshot = null;
+            }
+          } catch (countErr) {
+            console.warn('[loadData] Count queries failed:', countErr.message);
+            csvCacheRef._rpcSnapshot = null;
+          }
+
+          setLoadProgress(`Verarbeite ${fakeRows.length} Displays...`);
+          setTimeout(() => {
+            try {
+              processRawRows(fakeRows, null);
+            } catch (e) {
+              console.error('[loadData] Snapshot processing error:', e);
+              setError('Fehler bei der Datenverarbeitung. Bitte neu laden.');
+              setLoading(false);
+            }
+          }, 50);
+          return;
+        }
+        console.warn('[loadData] Snapshot query empty, falling back to full pagination');
+      } catch (snapErr) {
+        console.warn('[loadData] Snapshot fallback error:', snapErr.message, '→ full pagination');
       }
 
       // Step 1: Quick permission check on heartbeats — try direct Supabase first, then proxy
@@ -1081,20 +1257,42 @@ function App() {
     const rpcByCity = csvCacheRef._rpcByCity;
 
     if (rpcTrend && rpcTrend.length > 0) {
-      // Merge RPC trend data: use RPC values but add timestamp objects for chart compatibility.
-      // IMPORTANT: Expand each daily data point into multiple hourly snapshots (06:00-22:00)
-      // so that computeHourHealth() and computeHeatmap() in OverviewHealthPatterns can
-      // produce meaningful data across all hours, not just hour 12.
+      // Filter RPC trend data by selected date range (rangeStart/rangeEnd)
+      // Without this, changing 7T/14T/30T/etc. has no effect on the displayed data.
+      let filteredTrend = rpcTrend;
+      if (rangeStart) {
+        const startMs = rangeStart.getTime();
+        filteredTrend = filteredTrend.filter(t => {
+          const [y, m, d] = (t.dayKey || '').split('-').map(Number);
+          return y && m && d && new Date(y, m - 1, d, 23, 59, 59).getTime() >= startMs;
+        });
+      }
+      if (rangeEnd) {
+        const endMs = rangeEnd.getTime();
+        filteredTrend = filteredTrend.filter(t => {
+          const [y, m, d] = (t.dayKey || '').split('-').map(Number);
+          return y && m && d && new Date(y, m - 1, d).getTime() <= endMs;
+        });
+      }
+
+      // Expand each daily data point into hourly snapshots (06:00-22:00)
+      // so that computeHourHealth() and computeHeatmap() in OverviewHealthPatterns work.
       const expanded = [];
-      rpcTrend.forEach(t => {
+      filteredTrend.forEach(t => {
         const [y, m, d] = (t.dayKey || '').split('-').map(Number);
         if (!y || !m || !d) return;
-        // Create one entry per operating hour (06:00 – 22:00 = 17 hours)
         for (let hour = 6; hour <= 22; hour++) {
-          expanded.push({ ...t, timestamp: new Date(y, m - 1, d, hour, 0) });
+          expanded.push({
+            ...t,
+            timestamp: new Date(y, m - 1, d, hour, 0),
+            totalOnlineHours: t.online || 0,
+            totalExpectedHours: t.total || 0,
+          });
         }
       });
       base.trendData = expanded;
+      // Store actual day count for correct "Ø X Tage" display
+      base._rpcDayCount = filteredTrend.length;
     }
 
     if (rpcByCity && rpcByCity.length > 0) {
@@ -1175,20 +1373,76 @@ function App() {
     // needed for correct offline-hours calculation (airtable/dayn displays
     // have no heartbeat data), so we override computeKPIs output with RPC values.
     const rpcSnapshot = csvCacheRef._rpcSnapshot;
+    const rpcTrend = csvCacheRef._rpcTrendData;
     const isRpcPath = !!rpcSnapshot;
+    // Full RPC = get_dashboard_kpis succeeded (has healthRate + totalExpectedHours)
+    const isFullRpc = isRpcPath && rpcSnapshot.totalExpectedHours != null;
 
     const base = computeKPIs(rawData.displays, rawData.latestTimestamp, globalFirstSeen, rawData.trendData, rangeStart);
     if (!base) return null;
 
+    // Fix snapshotCount: expanded hourly entries inflate the count (31 days × 17h = 527)
+    // Use actual day count from RPC trend data
+    if (rawData._rpcDayCount) {
+      base.snapshotCount = rawData._rpcDayCount;
+    }
+
     if (isRpcPath) {
-      // Override with RPC-computed values (these include all 3 sources correctly)
-      base.healthRate = rpcSnapshot.healthRate ?? base.healthRate;
-      base.totalActive = rpcSnapshot.totalDisplays ?? base.totalActive;
-      base.onlineCount = rpcSnapshot.onlineCount ?? base.onlineCount;
-      base.warningCount = rpcSnapshot.warningCount ?? base.warningCount;
-      base.criticalCount = rpcSnapshot.criticalCount ?? base.criticalCount;
-      base.permanentOfflineCount = rpcSnapshot.permanentOfflineCount ?? base.permanentOfflineCount;
-      base.neverOnlineCount = rpcSnapshot.neverOnlineCount ?? base.neverOnlineCount;
+      const daynTotal = rpcSnapshot.daynTotal ?? 0;
+      const daynOnline = rpcSnapshot.daynOnline ?? 0;
+
+      if (isFullRpc) {
+        // Full RPC path: use server-computed health rate with Dayn blending
+        const hbHealthRate = rpcSnapshot.healthRate ?? base.healthRate;
+        const hbExpected = rpcSnapshot.totalExpectedHours ?? 0;
+        const hbOnline = rpcSnapshot.totalOnlineHours ?? 0;
+        if (daynTotal > 0 && hbExpected > 0) {
+          const hbTotal = rpcSnapshot.heartbeatTotal ?? 1;
+          const avgRecordsPerDisplay = hbExpected / Math.max(hbTotal, 1);
+          const daynExpectedScaled = daynTotal * avgRecordsPerDisplay;
+          const daynOnlineScaled = daynOnline * avgRecordsPerDisplay;
+          const blendedOnline = hbOnline + daynOnlineScaled;
+          const blendedExpected = hbExpected + daynExpectedScaled;
+          base.healthRate = blendedExpected > 0
+            ? Math.round((blendedOnline / blendedExpected * 100) * 10) / 10
+            : hbHealthRate;
+        } else {
+          base.healthRate = hbHealthRate;
+        }
+        base.onlineCount = rpcSnapshot.online ?? base.onlineCount;
+        base.warningCount = rpcSnapshot.warning ?? base.warningCount;
+        base.criticalCount = rpcSnapshot.critical ?? base.criticalCount;
+        base.permanentOfflineCount = rpcSnapshot.permanentOffline ?? base.permanentOfflineCount;
+      } else {
+        // Partial RPC: snapshot fallback + trend data from get_daily_trend
+        // Health rate is already computed by computeKPIs from expanded trendData
+        // (which now has totalOnlineHours/totalExpectedHours set correctly).
+        // Blend in Dayn screens proportionally.
+        if (daynTotal > 0 && rpcTrend && rpcTrend.length > 0) {
+          const hbOnline = rpcTrend.reduce((s, t) => s + (t.online || 0), 0);
+          const hbTotal = rpcTrend.reduce((s, t) => s + (t.total || 0), 0);
+          const days = rpcTrend.length;
+          const totalOnlineWithDayn = hbOnline + (daynOnline * days);
+          const totalWithDayn = hbTotal + (daynTotal * days);
+          base.healthRate = totalWithDayn > 0
+            ? Math.round((totalOnlineWithDayn / totalWithDayn * 100) * 10) / 10
+            : base.healthRate;
+        }
+      }
+
+      base.installed = rpcSnapshot.installed ?? base.totalActive;
+      base.heartbeatTotal = rpcSnapshot.heartbeatTotal ?? (base.installed - daynTotal);
+      base.totalActive = (rpcSnapshot.installed ?? base.totalActive) - (base.permanentOfflineCount ?? 0);
+      base.neverOnlineCount = 0;
+      base.daynTotal = daynTotal;
+      base.daynOnline = daynOnline;
+
+      // WICHTIG: Online darf nicht > Installed sein!
+      // Heartbeat-Displays können deinstallierte enthalten die noch senden.
+      if (base.onlineCount > base.installed) {
+        base.onlineCount = base.installed - (base.warningCount || 0) - (base.criticalCount || 0) - (base.permanentOfflineCount || 0);
+        if (base.onlineCount < 0) base.onlineCount = 0;
+      }
       // Also fix the display lists used for drill-down
       base.onlineDisplays = rawData.displays.filter(d => d.status === 'online');
       base.warningDisplays = rawData.displays.filter(d => d.status === 'warning');
@@ -1196,14 +1450,13 @@ function App() {
       base.permanentOfflineDisplays = rawData.displays.filter(d => d.status === 'permanent_offline');
       base.neverOnlineDisplays = rawData.displays.filter(d => d.status === 'never_online');
       // Averages from RPC trend data
-      const rpcTrend = csvCacheRef._rpcTrendData;
       if (rpcTrend && rpcTrend.length > 0) {
         base.avgTotal = Math.round(rpcTrend.reduce((s, t) => s + (t.total || 0), 0) / rpcTrend.length);
         base.avgOnline = Math.round(rpcTrend.reduce((s, t) => s + (t.online || 0), 0) / rpcTrend.length);
         base.avgWarning = Math.round(rpcTrend.reduce((s, t) => s + (t.warningCount || 0), 0) / rpcTrend.length);
         base.avgCritical = Math.round(rpcTrend.reduce((s, t) => s + (t.criticalCount || 0), 0) / rpcTrend.length);
         base.avgPermanentOffline = Math.round(rpcTrend.reduce((s, t) => s + (t.permanentOfflineCount || 0), 0) / rpcTrend.length);
-        base.avgNeverOnline = Math.round(rpcTrend.reduce((s, t) => s + (t.neverOnlineCount || 0), 0) / rpcTrend.length);
+        base.avgNeverOnline = 0;
       }
     } else {
       // Non-RPC fallback: Dayn screens are separate, add them manually
@@ -1252,16 +1505,32 @@ function App() {
   // Save KPIs to localStorage cache for instant-load on next visit
   useEffect(() => {
     if (kpis && rawData) {
-      // Use totalActive (active displays only) + Dayn screens for accurate count
-      const daynTotal = comparisonData?.dayn?.total || 0;
       saveToCache({
         kpis,
-        displayCount: (kpis.totalActive || 0) + daynTotal,
+        displayCount: kpis.installed || kpis.totalActive || 0,
         cityData: rawData.cityData,
         latestTimestamp: rawData.latestTimestamp?.toISOString(),
       });
     }
-  }, [kpis, rawData, comparisonData]);
+  }, [kpis, rawData]);
+
+  /* ─── Stale-While-Revalidate: show cached data instantly, refresh in background ─── */
+  const isBackgroundRefreshing = loading && !!cachedSnapshot && !isMobile;
+  const displayKpis = kpis || (cachedSnapshot?.kpis ? {
+    ...cachedSnapshot.kpis,
+    _cached: true,
+    _cachedTimestamp: cachedSnapshot.timestamp,
+    _lists: {},
+  } : null);
+  const displayRawData = rawData || (cachedSnapshot ? {
+    latestTimestamp: cachedSnapshot.latestTimestamp ? new Date(cachedSnapshot.latestTimestamp) : new Date(),
+    displays: [],
+    trendData: [],
+    cityData: cachedSnapshot.cityData || [],
+    totalParsedRows: 0,
+    snapshotTrendData: null,
+    _cached: true,
+  } : null);
 
   // Vistar venue performance data (loaded once, cached in service)
   const [vistarData, setVistarData] = useState(null);
@@ -1434,8 +1703,14 @@ function App() {
   const rangeLabel = useMemo(() => {
     if (!rangeStart && !rangeEnd) return 'Gesamter Zeitraum';
     if (rangeStart && !rangeEnd && dataLatest) {
+      // Normalize to midnight to avoid ±1 day rounding errors
+      // (rangeStart is midnight but dataLatest may have time like 19:00)
+      const latestMidnight = new Date(dataLatest);
+      latestMidnight.setHours(0, 0, 0, 0);
+      const startMidnight = new Date(rangeStart);
+      startMidnight.setHours(0, 0, 0, 0);
       const diffDays = Math.round(
-        (dataLatest.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24)
+        (latestMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24)
       );
       if (diffDays <= 7) return '7 Tage';
       if (diffDays <= 14) return '14 Tage';
@@ -1786,9 +2061,9 @@ function App() {
   // Mobile WITH mobileKPIs → skip everything below, go straight to mobile layout (line ~1365)
   // (this means: skip desktop loading screen, skip rawData/kpis null check)
 
-  /* ─── DESKTOP Loading Screen ─── */
+  /* ─── DESKTOP Loading Screen (only when no cache available) ─── */
 
-  if (loading && !isMobile) {
+  if (loading && !isMobile && !cachedSnapshot) {
     return (
       <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
         {/* Animated background orbs */}
@@ -1914,8 +2189,8 @@ function App() {
     );
   }
 
-  // Desktop needs rawData + kpis. Mobile only needs mobileKPIs.
-  if (!isMobile && (!rawData || !kpis)) return null;
+  // Desktop needs rawData + kpis (or cached fallbacks). Mobile only needs mobileKPIs.
+  if (!isMobile && (!displayRawData || !displayKpis)) return null;
 
   /* ─── Standalone Akquise App Mode (/#akquise-app) ─── */
   if (activeMainTab === 'akquise-app') {
@@ -2039,7 +2314,7 @@ function App() {
         />
 
         {/* QR Hardware Scanner Overlay */}
-        {showQRScanner && (
+        {showQRScanner && isFeatureEnabled('tab_qr_scanner') && (
           <Suspense fallback={
             <div className="fixed inset-0 z-[9999] bg-black/20 backdrop-blur-sm flex items-end justify-center">
               <div className="w-full max-w-lg bg-white/90 rounded-t-3xl p-8 flex items-center justify-center">
@@ -2052,16 +2327,18 @@ function App() {
         )}
 
         {/* AI Chat Assistant — opens as overlay on mobile when J.E.T. tab is active */}
-        <Suspense fallback={null}>
-          <ChatAssistant
-            rawData={rawData || { displays: [], cityData: [], tasks: [], trendData: [] }}
-            kpis={kpis || mobileKPIs || {}}
-            comparisonData={comparisonData || {}}
-            currentUser={currentUser}
-            forceOpen={showMobileChat}
-            onClose={() => { setShowMobileChat(false); if (mobileTab === 'mobile-jet') setMobileTab('mobile-home'); }}
-          />
-        </Suspense>
+        {isFeatureEnabled('tab_chat_assistant') && (
+          <Suspense fallback={null}>
+            <ChatAssistant
+              rawData={rawData || { displays: [], cityData: [], tasks: [], trendData: [] }}
+              kpis={kpis || mobileKPIs || {}}
+              comparisonData={comparisonData || {}}
+              currentUser={currentUser}
+              forceOpen={showMobileChat}
+              onClose={() => { setShowMobileChat(false); if (mobileTab === 'mobile-jet') setMobileTab('mobile-home'); }}
+            />
+          </Suspense>
+        )}
 
         {/* Display Detail Modal */}
         {selectedDisplay && (
@@ -2130,6 +2407,7 @@ function App() {
       tabs: [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard, access: 'displays' },
         { id: 'displays-list', label: 'Displays', icon: Monitor, access: 'displays' },
+        { id: 'display-trends', label: 'Trends', icon: TrendingUp, access: 'displays', featureFlag: 'tab_display_trends' },
         { id: 'cities', label: 'Städte', icon: MapPin, access: 'displays' },
         { id: 'hardware', label: 'Hardware', icon: HardDrive, access: 'hardware' },
       ],
@@ -2138,6 +2416,7 @@ function App() {
       group: 'Vertrieb',
       tabs: [
         { id: 'acquisition', label: 'Akquise', icon: Target, access: 'displays' },
+        { id: 'faw', label: 'FAW Check', icon: Eye, access: 'faw', featureFlag: 'tab_faw_check' },
         { id: 'installations', label: 'Installationen', icon: CalendarCheck, access: 'installations' },
         { id: 'map', label: 'Karte', icon: MapIcon, access: 'displays' },
         { id: 'contacts', label: 'Kontakte', icon: BookUser, access: 'displays' },
@@ -2146,7 +2425,7 @@ function App() {
     {
       group: 'Analytics',
       tabs: [
-        { id: 'programmatic', label: 'Programmatic', icon: BarChart3, access: 'displays' },
+        { id: 'programmatic', label: 'Programmatic', icon: BarChart3, access: 'displays', featureFlag: 'tab_programmatic' },
         { id: 'activities', label: 'Aktivitäten', icon: Activity, access: 'displays' },
       ],
     },
@@ -2165,9 +2444,11 @@ function App() {
     },
   ];
 
-  // Filter tabs by user permissions and remove empty groups
+  // Filter tabs by user permissions + feature flags, remove empty groups
   const visibleGroups = tabGroups
-    .map(g => ({ ...g, tabs: g.tabs.filter(t => canAccessTab(t.access)) }))
+    .map(g => ({ ...g, tabs: g.tabs.filter(t =>
+      canAccessTab(t.access) && (!t.featureFlag || isFeatureEnabled(t.featureFlag))
+    ) }))
     .filter(g => g.tabs.length > 0);
 
   // Flat list for compatibility (used in hash routing validation etc.)
@@ -2210,8 +2491,8 @@ function App() {
             <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
               {/* API check + data points — desktop only */}
               {(() => {
-                const dataAgeHours = rawData.latestTimestamp
-                  ? (Date.now() - new Date(rawData.latestTimestamp).getTime()) / (1000 * 60 * 60)
+                const dataAgeHours = displayRawData.latestTimestamp
+                  ? (Date.now() - new Date(displayRawData.latestTimestamp).getTime()) / (1000 * 60 * 60)
                   : Infinity;
                 const isStale = dataAgeHours > 24;
                 const isVeryStale = dataAgeHours > 72;
@@ -2223,7 +2504,7 @@ function App() {
                         Letzter API-Check
                       </div>
                       <div className={`text-sm font-mono ${isVeryStale ? 'text-red-600 font-semibold' : isStale ? 'text-amber-600' : 'text-slate-600'}`}>
-                        {formatDateTime(rawData.latestTimestamp)}
+                        {formatDateTime(displayRawData.latestTimestamp)}
                       </div>
                       {isStale && (
                         <div className="absolute top-full right-0 mt-1 px-3 py-2 bg-slate-800 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 max-w-[280px]">
@@ -2249,7 +2530,7 @@ function App() {
               <div className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50/60 border border-emerald-200/40 rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
                 <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-[#22c55e] animate-pulse-glow" />
                 <span className="text-xs sm:text-sm font-mono font-medium text-emerald-700">
-                  {rawData.displays.length + (comparisonData?.dayn?.total || 0)}
+                  {(displayRawData.displays?.length || 0) + (comparisonData?.dayn?.total || 0)}
                 </span>
               </div>
 
@@ -2490,11 +2771,12 @@ function App() {
           <TabErrorBoundary name="Overview">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Overview...</span></div>}>
             <KPICards
-              kpis={kpis}
+              kpis={displayKpis}
               activeFilter={kpiFilter}
               onFilterClick={handleKpiFilterClick}
               rangeLabel={rangeLabel}
               comparisonKPIs={comparisonKPIs}
+              isRefreshing={isBackgroundRefreshing}
             />
 
             {/* KPI Drill-Down Panel */}
@@ -2528,39 +2810,60 @@ function App() {
 
             {!kpiFilter && (
               <>
-                {/* Visualizations first */}
-                <HealthTrendChart
-                  trendData={rawData.trendData}
-                  rangeLabel={rangeLabel}
-                  comparisonHealthRate={comparisonHealthRate}
-                  comparisonTrendData={comparisonTrendData}
-                  rangeStart={rangeStart}
-                  rangeEnd={rangeEnd}
-                  dataEarliest={dataEarliest}
-                  dataLatest={dataLatest}
-                  onRangeChange={handleRangeChange}
-                />
+                {rawData ? (
+                  <>
+                    {/* Visualizations first */}
+                    <HealthTrendChart
+                      trendData={rawData.trendData}
+                      rangeLabel={rangeLabel}
+                      comparisonHealthRate={comparisonHealthRate}
+                      comparisonTrendData={comparisonTrendData}
+                      rangeStart={rangeStart}
+                      rangeEnd={rangeEnd}
+                      dataEarliest={dataEarliest}
+                      dataLatest={dataLatest}
+                      onRangeChange={handleRangeChange}
+                    />
 
-                <OverviewHealthPatterns trendData={csvCacheRef._rpcTrendData ? rawData.trendData : (rawData.snapshotTrendData || rawData.trendData)} rangeLabel={rangeLabel} />
+                    <OverviewHealthPatterns trendData={csvCacheRef._rpcTrendData ? rawData.trendData : (rawData.snapshotTrendData || rawData.trendData)} rangeLabel={rangeLabel} />
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <OfflineDistributionChart distribution={distribution} />
-                  <CityHealthChart cityData={rawData.cityData} />
-                </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                      <OfflineDistributionChart distribution={distribution} />
+                      <CityHealthChart cityData={rawData.cityData} />
+                    </div>
 
-                {/* Lists below visualizations */}
-                <NewDisplayWatchlist
-                  watchlist={watchlist}
-                  onSelectDisplay={setSelectedDisplay}
-                  webhookUrl={webhookUrl}
-                  onWebhookUrlChange={handleWebhookUrlChange}
-                />
+                    {/* Lists below visualizations */}
+                    <NewDisplayWatchlist
+                      watchlist={watchlist}
+                      onSelectDisplay={setSelectedDisplay}
+                      webhookUrl={webhookUrl}
+                      onWebhookUrlChange={handleWebhookUrlChange}
+                    />
 
-                <DisplayTable
-                  displays={rawData.displays}
-                  onSelectDisplay={setSelectedDisplay}
-                  comparisonData={comparisonData}
-                />
+                    <DisplayTable
+                      displays={rawData.displays}
+                      onSelectDisplay={setSelectedDisplay}
+                      comparisonData={comparisonData}
+                    />
+                  </>
+                ) : isBackgroundRefreshing && (
+                  <>
+                    {/* Skeleton placeholders while fresh data loads */}
+                    <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-6 animate-pulse">
+                      <div className="h-4 bg-slate-200/60 rounded w-48 mb-4" />
+                      <div className="h-64 bg-slate-100/60 rounded-xl" />
+                    </div>
+                    {displayRawData?.cityData?.length > 0 && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-6 animate-pulse">
+                          <div className="h-4 bg-slate-200/60 rounded w-40 mb-4" />
+                          <div className="h-48 bg-slate-100/60 rounded-xl" />
+                        </div>
+                        <CityHealthChart cityData={displayRawData.cityData} />
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </Suspense>
@@ -2571,12 +2874,19 @@ function App() {
         {activeMainTab === 'displays-list' && (
           <TabErrorBoundary name="Displays">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Displays...</span></div>}>
-            <DisplayTable
-              displays={rawData.displays}
-              onSelectDisplay={setSelectedDisplay}
-              vistarData={vistarData}
-              comparisonData={comparisonData}
-            />
+            {rawData ? (
+              <DisplayTable
+                displays={rawData.displays}
+                onSelectDisplay={setSelectedDisplay}
+                vistarData={vistarData}
+                comparisonData={comparisonData}
+              />
+            ) : (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
+                <span className="ml-2 text-sm text-slate-500">Lade Display-Daten...</span>
+              </div>
+            )}
           </Suspense>
           </TabErrorBoundary>
         )}
@@ -2630,7 +2940,11 @@ function App() {
         {activeMainTab === 'hardware' && (
           <TabErrorBoundary name="Hardware">
           <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Hardware...</span></div>}>
-            <HardwareDashboard comparisonData={comparisonData} rawData={rawData} initialSection={activeSubTab} onSectionChange={updateSubTab} />
+            {rawData ? (
+              <HardwareDashboard comparisonData={comparisonData} rawData={rawData} initialSection={activeSubTab} onSectionChange={updateSubTab} />
+            ) : (
+              <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Hardware-Daten...</span></div>
+            )}
           </Suspense>
           </TabErrorBoundary>
         )}
@@ -2644,11 +2958,24 @@ function App() {
           </TabErrorBoundary>
         )}
 
+        {/* FAW Check (Frequency Approval) */}
+        {activeMainTab === 'faw' && (
+          <TabErrorBoundary name="FAW Check">
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade FAW Check...</span></div>}>
+              <FAWCheckApp />
+            </Suspense>
+          </TabErrorBoundary>
+        )}
+
         {/* Display Map */}
         {activeMainTab === 'map' && (
           <TabErrorBoundary name="Karte">
             <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Karte...</span></div>}>
-              <DisplayMap rawData={rawData} comparisonData={comparisonData} onSelectDisplay={setSelectedDisplay} />
+              {rawData ? (
+                <DisplayMap rawData={rawData} comparisonData={comparisonData} onSelectDisplay={setSelectedDisplay} />
+              ) : (
+                <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Kartendaten...</span></div>
+              )}
             </Suspense>
           </TabErrorBoundary>
         )}
@@ -2662,14 +2989,23 @@ function App() {
           </TabErrorBoundary>
         )}
 
+        {/* Display Trends */}
+        {activeMainTab === 'display-trends' && (
+          <TabErrorBoundary name="Display Trends">
+            <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Trends...</span></div>}>
+              <DisplayTrends onSelectDisplay={setSelectedDisplay} />
+            </Suspense>
+          </TabErrorBoundary>
+        )}
+
         {/* Cities */}
         {activeMainTab === 'cities' && (
           <TabErrorBoundary name="Staedte">
             <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Staedte...</span></div>}>
               <CityDashboard
-                cityData={rawData.cityData}
-                displays={rawData.displays}
-                trendData={rawData.trendData}
+                cityData={displayRawData.cityData}
+                displays={displayRawData.displays}
+                trendData={displayRawData.trendData}
                 onSelectDisplay={setSelectedDisplay}
               />
             </Suspense>
@@ -2680,7 +3016,11 @@ function App() {
         {activeMainTab === 'activities' && (
           <TabErrorBoundary name="Aktivitäten">
             <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Aktivitäten...</span></div>}>
-              <ActivityFeed rawData={rawData} />
+              {rawData ? (
+                <ActivityFeed rawData={rawData} />
+              ) : (
+                <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade Aktivitäten...</span></div>
+              )}
             </Suspense>
           </TabErrorBoundary>
         )}
@@ -2688,22 +3028,30 @@ function App() {
         {/* Data summary footer */}
         <div className="text-center py-4">
           <div className="text-xs text-slate-500 font-mono">
-            {rawData.totalParsedRows.toLocaleString('de-DE')} Datenpunkte •{' '}
-            {rawData.displays.length} Displays erkannt •{' '}
-            {rawData.trendData.length} Trend-Snapshots
+            {rawData ? (
+              <>
+                {rawData.totalParsedRows.toLocaleString('de-DE')} Datenpunkte •{' '}
+                {rawData.displays.length} Displays erkannt •{' '}
+                {rawData.trendData.length} Trend-Snapshots
+              </>
+            ) : isBackgroundRefreshing ? (
+              <>Daten werden aktualisiert...</>
+            ) : null}
           </div>
         </div>
       </main>
 
       {/* AI Chat Assistant — floating button, available on all tabs */}
-      <Suspense fallback={null}>
-        <ChatAssistant
-          rawData={rawData}
-          kpis={kpis}
-          comparisonData={comparisonData}
-          currentUser={currentUser}
-        />
-      </Suspense>
+      {isFeatureEnabled('tab_chat_assistant') && (
+        <Suspense fallback={null}>
+          <ChatAssistant
+            rawData={rawData || displayRawData}
+            kpis={displayKpis}
+            comparisonData={comparisonData}
+            currentUser={currentUser}
+          />
+        </Suspense>
+      )}
 
       {/* Session Timeout Warning Banner */}
       {sessionWarning && (
@@ -2752,7 +3100,7 @@ function App() {
       )}
 
       {/* Mobile Akquise App Overlay (launched from Akquise tab on mobile) */}
-      {showAkquiseApp && (
+      {showAkquiseApp && isFeatureEnabled('tab_akquise_app') && (
         <Suspense fallback={
           <div className="fixed inset-0 z-[10000] bg-[#F2F2F7] flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" />

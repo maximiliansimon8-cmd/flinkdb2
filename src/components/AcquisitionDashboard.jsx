@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import {
   Target, Search, Loader2, RefreshCw,
   MapPin, FileText, AlertTriangle,
   CheckCircle2, XCircle, TrendingUp, Building2,
   ChevronDown, ExternalLink, Zap, ArrowUpRight, ArrowDownRight,
+  Bot, Link2, Copy, Check,
 } from 'lucide-react';
 import {
   Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -12,6 +13,10 @@ import {
 } from 'recharts';
 import { fetchAllAcquisition } from '../utils/airtableService';
 import { isStorno, isAlreadyInstalled, isReadyForInstall, WEEKLY_BUILD_TARGET } from '../metrics';
+import { canAccessTab, supabase } from '../utils/authService';
+import { useFeatureFlags } from '../hooks/useFeatureFlags';
+
+const AkquiseAutomationDashboard = lazy(() => import('./AkquiseAutomationDashboard'));
 
 /* ─── City Targets (Gesamtziele Live Displays) ─── */
 const CITY_TARGETS = {
@@ -116,6 +121,7 @@ function KpiCard({ label, value, icon: Icon, color, subtitle, active, onClick })
 
 /* ─── Main Component ─── */
 export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection, onSectionChange }) {
+  const { isEnabled: isFeatureEnabled } = useFeatureFlags();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSectionRaw] = useState(initialSection || 'netzwerk');
@@ -128,6 +134,44 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   const [statusFilter, setStatusFilter] = useState('all');
   const [partnerFilter, setPartnerFilter] = useState('all');
   const [acquirerFilter, setAcquirerFilter] = useState('all');
+
+  // FAW Link Generator state
+  const [showFawDialog, setShowFawDialog] = useState(false);
+  const [fawReviewer, setFawReviewer] = useState('');
+  const [fawLoading, setFawLoading] = useState(false);
+  const [fawLink, setFawLink] = useState(null);
+  const [fawCopied, setFawCopied] = useState(false);
+
+  const handleGenerateFawLink = useCallback(async () => {
+    if (!fawReviewer.trim()) return;
+    setFawLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/faw-check-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ action: 'generate', reviewer: fawReviewer.trim() }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Fehler bei Token-Generierung');
+      setFawLink(result);
+    } catch (err) {
+      console.error('[AcquisitionDashboard] FAW link generation failed:', err);
+      alert('Fehler: ' + err.message);
+    } finally {
+      setFawLoading(false);
+    }
+  }, [fawReviewer]);
+
+  const handleCopyFawLink = useCallback(() => {
+    if (!fawLink?.url) return;
+    navigator.clipboard.writeText(fawLink.url);
+    setFawCopied(true);
+    setTimeout(() => setFawCopied(false), 2000);
+  }, [fawLink]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -625,11 +669,14 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   // Total live = only leadStatus "Live" (actually operational), no Installation or Stornos
   const totalLive = useMemo(() => data.filter(r => recordIsLive(r) && !isStorno(r)).length, [data]);
 
+  const showAutomation = (canAccessTab('akquise-automation') || canAccessTab('admin')) && isFeatureEnabled('tab_akquise_automation');
+
   const sections = [
     { id: 'netzwerk', label: '🎯 Netzwerk-Aufbau' },
     { id: 'overview', label: 'Übersicht' },
     { id: 'pipeline', label: 'Pipeline' },
     { id: 'storno', label: 'Storno' },
+    ...(showAutomation ? [{ id: 'automation', label: '🤖 KI-Outreach' }] : []),
   ];
 
   // Defensive: catch render errors and show them inline
@@ -709,7 +756,92 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
         <button onClick={loadData} className="flex items-center gap-1.5 px-3 py-2 text-xs font-mono text-slate-500 bg-white/60 border border-slate-200/60 rounded-xl hover:bg-slate-50 transition-colors">
           <RefreshCw size={12} /> Refresh
         </button>
+
+        <button
+          onClick={() => { setShowFawDialog(true); setFawLink(null); setFawReviewer(''); }}
+          className="flex items-center gap-1 px-3 py-2 bg-amber-100 text-amber-700 rounded-xl text-xs font-medium hover:bg-amber-200 transition-colors"
+        >
+          <Link2 size={12} /> FAW-Prueferlink
+        </button>
       </div>
+
+      {/* FAW Link Generation Dialog */}
+      {showFawDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Link2 size={18} /> FAW-Prueferlink erstellen
+            </h3>
+
+            {!fawLink ? (
+              <>
+                <p className="text-sm text-gray-600 mb-4">
+                  Erstellen Sie einen Link fuer einen externen Frequenzpruefer. Der Link ist 7 Tage gueltig.
+                </p>
+
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pruefer-Name *</label>
+                <input
+                  type="text"
+                  value={fawReviewer}
+                  onChange={e => setFawReviewer(e.target.value)}
+                  placeholder="z.B. Max Mustermann"
+                  className="w-full p-2 border border-gray-300 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  onKeyDown={e => e.key === 'Enter' && handleGenerateFawLink()}
+                />
+
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowFawDialog(false)} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+                    Abbrechen
+                  </button>
+                  <button
+                    onClick={handleGenerateFawLink}
+                    disabled={!fawReviewer.trim() || fawLoading}
+                    className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {fawLoading ? <Loader2 size={14} className="animate-spin" /> : <Link2 size={14} />}
+                    Link erstellen
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-2 text-green-700 text-sm font-medium mb-2">
+                    <CheckCircle2 size={16} /> Link erstellt
+                  </div>
+                  <p className="text-xs text-gray-600 mb-2">
+                    Pruefer: <strong>{fawLink.reviewer}</strong> | Gueltig bis: <strong>{fawLink.expires}</strong>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={fawLink.url}
+                      readOnly
+                      className="flex-1 p-2 bg-white border border-gray-300 rounded-lg text-xs font-mono truncate"
+                    />
+                    <button
+                      onClick={handleCopyFawLink}
+                      className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        fawCopied
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {fawCopied ? <Check size={12} /> : <Copy size={12} />}
+                      {fawCopied ? 'Kopiert!' : 'Kopieren'}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button onClick={() => setShowFawDialog(false)} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+                    Schliessen
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Sub-Tabs */}
       <div className="flex items-center gap-3 flex-wrap">
@@ -1514,6 +1646,13 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
             )}
           </div>
         </div>
+      )}
+
+      {/* KI-Akquise Automation */}
+      {activeSection === 'automation' && showAutomation && (
+        <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /><span className="ml-2 text-sm text-slate-500">Lade KI-Automation...</span></div>}>
+          <AkquiseAutomationDashboard />
+        </Suspense>
       )}
     </div>
   );

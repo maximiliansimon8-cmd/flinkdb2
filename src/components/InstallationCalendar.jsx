@@ -12,7 +12,7 @@ const CITY_COLORS = {
   Leipzig: '#6366f1', Dresden: '#84cc16', Nürnberg: '#06b6d4', Bremen: '#a855f7',
 };
 
-const DEFAULT_TIME_SLOTS = ['09:00', '11:00', '14:00', '16:00'];
+const DEFAULT_TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
 function getCityColor(city) {
   return CITY_COLORS[city] || '#64748b';
@@ -241,19 +241,19 @@ function ScheduleModal({ route, onSave, onClose, cities, teams }) {
     schedule_date: route?.schedule_date || '',
     date_end: route?.schedule_date || '', // for batch creation
     installer_team: route?.installer_team || '',
-    max_capacity: route?.max_capacity || 4,
+    max_capacity: route?.max_capacity || 7,
     time_slots: route?.time_slots || DEFAULT_TIME_SLOTS,
     notes: route?.notes || '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [includeWeekends, setIncludeWeekends] = useState(false);
+  const [includeWeekends, setIncludeWeekends] = useState(true);
   const isEdit = !!route?.id;
 
   const activeTeams = (teams || []).filter(t => t.is_active);
 
   const handleSave = async () => {
-    if (!form.city || !form.schedule_date) return;
+    if (!form.city || !form.schedule_date || !form.installer_team) return;
     setSaving(true);
     setError('');
 
@@ -381,13 +381,13 @@ function ScheduleModal({ route, onSave, onClose, cities, teams }) {
           {/* Team (Dropdown) & Capacity */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Installer Team</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Installer Team <span className="text-red-500">*</span></label>
               <select
                 value={form.installer_team}
                 onChange={(e) => setForm(f => ({ ...f, installer_team: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-400"
+                className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-orange-400 ${!form.installer_team ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
               >
-                <option value="">Team wählen...</option>
+                <option value="">Team wählen... (Pflichtfeld)</option>
                 {activeTeams.map(t => (
                   <option key={t.id} value={t.name}>{t.name}</option>
                 ))}
@@ -404,7 +404,7 @@ function ScheduleModal({ route, onSave, onClose, cities, teams }) {
               <input
                 type="number"
                 value={form.max_capacity}
-                onChange={(e) => setForm(f => ({ ...f, max_capacity: parseInt(e.target.value) || 4 }))}
+                onChange={(e) => setForm(f => ({ ...f, max_capacity: parseInt(e.target.value) || 7 }))}
                 min={1}
                 max={20}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-400"
@@ -414,9 +414,9 @@ function ScheduleModal({ route, onSave, onClose, cities, teams }) {
 
           {/* Time Slots */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Zeitslots</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Zeitslots <span className="text-gray-400 font-normal">(optional)</span></label>
             <div className="flex flex-wrap gap-2">
-              {['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'].map(t => (
+              {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'].map(t => (
                 <button
                   key={t}
                   onClick={() => setForm(f => ({
@@ -460,7 +460,7 @@ function ScheduleModal({ route, onSave, onClose, cities, teams }) {
           </button>
           <button
             onClick={handleSave}
-            disabled={saving || !form.city || !form.schedule_date}
+            disabled={saving || !form.city || !form.schedule_date || !form.installer_team}
             className="flex-1 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium flex items-center justify-center gap-2"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : null}

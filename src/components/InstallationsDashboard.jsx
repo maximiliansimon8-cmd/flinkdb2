@@ -55,7 +55,6 @@ const InstallationReadyLocations = lazy(() => import('./InstallationReadyLocatio
 const MonteurManagement = lazy(() => import('./MonteurManagement'));
 const AdminPanel = lazy(() => import('./AdminPanel'));
 const TeamAnalyticsDashboard = lazy(() => import('./TeamAnalyticsDashboard'));
-
 /* ── Menu Structure: 3 Main Categories ── */
 const MENU_CATEGORIES = [
   {
@@ -63,8 +62,8 @@ const MENU_CATEGORIES = [
     label: 'Uebersicht',
     icon: BarChart3,
     items: [
-      { id: 'executive', label: 'Dashboard',    icon: BarChart3 },
-      { id: 'ready',     label: 'Aufbaubereit', icon: CheckCircle2 },
+      { id: 'executive',   label: 'Dashboard',         icon: BarChart3 },
+      { id: 'ready',       label: 'Aufbaubereit',      icon: CheckCircle2 },
     ],
   },
   {

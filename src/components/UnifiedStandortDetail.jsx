@@ -9,6 +9,10 @@
  * - Scheduling / Terminierung (LocationDetailTab)
  *
  * Akzeptiert verschiedene Daten-Formate und normalisiert sie intern.
+ *
+ * Optional interactive features controlled by props:
+ * - showActions, showTimeline, showWhatsApp, showPhoneEdit,
+ *   showTeamAssign, showBookingLink, showInviteButton, showAkquiseDetail
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,8 +21,12 @@ import {
   Download, CheckCircle, AlertTriangle, Zap, Calendar, Clock,
   ExternalLink, Eye, MessageSquare, CalendarCheck, Send,
   Wrench, Hash, BarChart3, PhoneOff,
+  History, Plus, Edit3, Save, Copy, Check, Loader2, RotateCcw,
+  Trash2, CalendarClock, Users, ShieldAlert, XCircle,
 } from 'lucide-react';
 import { resolveRecordImages } from '../utils/attachmentResolver';
+import { INSTALL_API, formatDateWeekdayYear, formatDateShort } from '../utils/installUtils';
+import SuperChatHistory from './SuperChatHistory';
 
 /* ═══════════════════════════════════════════════
    HELPERS
@@ -145,6 +153,14 @@ export function normalizeStandort(raw, booking, termin) {
       phoneNotes: booking.phone_notes,
       callbackDate: booking.callback_date,
       callbackReason: booking.callback_reason,
+      notes: booking.notes,
+      earliestDate: booking.earliest_date,
+      installerTeam: booking.installer_team,
+      updatedAt: booking.updated_at,
+      reminderSentAt: booking.reminder_sent_at,
+      _terminStatus: booking._terminStatus,
+      _statusInstallation: booking._statusInstallation,
+      _isAirtable: booking._isAirtable,
     } : (raw.booked_date || raw.bookedDate) ? {
       status: raw.status || raw.booking_status,
       bookedDate: raw.booked_date || raw.bookedDate,
@@ -154,6 +170,18 @@ export function normalizeStandort(raw, booking, termin) {
       whatsappSentAt: raw.whatsapp_sent_at,
       bookedAt: raw.booked_at,
       bookingToken: raw.booking_token,
+      notes: raw.notes,
+      earliestDate: raw.earliest_date,
+      installerTeam: raw.installer_team,
+      bookingSource: raw.booking_source,
+      updatedAt: raw.updated_at,
+      reminderSentAt: raw.reminder_sent_at,
+      phoneStatus: raw.phone_status,
+      phoneCallAt: raw.phone_call_at,
+      phoneNotes: raw.phone_notes,
+      _terminStatus: raw._terminStatus,
+      _statusInstallation: raw._statusInstallation,
+      _isAirtable: raw._isAirtable,
     } : null,
 
     // Termin (Airtable appointment)
@@ -177,6 +205,7 @@ const BOOKING_STATUS = {
   confirmed: { label: 'Eingebucht',    color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
   completed: { label: 'Abgeschlossen', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
   cancelled: { label: 'Storniert',     color: 'bg-red-100 text-red-700 border-red-200', icon: X },
+  no_show:   { label: 'No-Show',       color: 'bg-gray-100 text-gray-600 border-gray-200', icon: ShieldAlert },
 };
 
 function BookingStatusBadge({ status }) {
@@ -215,6 +244,184 @@ function InfoRow({ label, value, mono }) {
 }
 
 /* ═══════════════════════════════════════════════
+   TIMELINE SUB-COMPONENT
+   ═══════════════════════════════════════════════ */
+
+function TimelineSection({ booking, rawBooking }) {
+  // Build timeline entries from booking fields
+  const entries = [];
+
+  const addEntry = (date, label, icon, color) => {
+    if (!date) return;
+    entries.push({ date, label, icon, color });
+  };
+
+  // From rawBooking (Supabase booking record)
+  if (rawBooking) {
+    addEntry(rawBooking.created_at, 'Buchung erstellt', Plus, 'text-gray-400');
+    addEntry(rawBooking.whatsapp_sent_at, 'WhatsApp gesendet', Send, 'text-green-500');
+    addEntry(rawBooking.booked_at, 'Termin gebucht', CalendarCheck, 'text-blue-500');
+    addEntry(rawBooking.confirmed_at, 'Termin bestaetigt', CheckCircle, 'text-emerald-500');
+    addEntry(rawBooking.reminder_sent_at, 'Erinnerung gesendet', Clock, 'text-amber-500');
+    addEntry(rawBooking.updated_at && rawBooking.updated_at !== rawBooking.created_at
+      ? rawBooking.updated_at : null, 'Zuletzt aktualisiert', RotateCcw, 'text-gray-400');
+  } else if (booking) {
+    addEntry(booking.whatsappSentAt, 'WhatsApp gesendet', Send, 'text-green-500');
+    addEntry(booking.bookedAt, 'Termin gebucht', CalendarCheck, 'text-blue-500');
+    addEntry(booking.reminderSentAt, 'Erinnerung gesendet', Clock, 'text-amber-500');
+    addEntry(booking.updatedAt, 'Zuletzt aktualisiert', RotateCcw, 'text-gray-400');
+  }
+
+  // Airtable enrichment
+  if (rawBooking?._terminStatus) {
+    addEntry(rawBooking.booked_date, `Terminstatus: ${rawBooking._terminStatus}`, Calendar, 'text-purple-500');
+  }
+  if (rawBooking?._statusInstallation) {
+    addEntry(rawBooking.booked_date, `Installation: ${rawBooking._statusInstallation}`, Wrench, 'text-indigo-500');
+  }
+
+  // Sort by date ascending
+  entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="bg-gray-50 rounded-2xl p-4 space-y-1 border border-gray-100">
+      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5 mb-3">
+        <History size={14} /> Verlauf
+      </h4>
+      <div className="relative">
+        {/* Vertical line */}
+        <div className="absolute left-[9px] top-2 bottom-2 w-px bg-gray-200" />
+        <div className="space-y-3">
+          {entries.map((entry, i) => {
+            const Icon = entry.icon;
+            return (
+              <div key={i} className="flex items-start gap-3 relative">
+                <div className={`w-[19px] h-[19px] rounded-full bg-white border-2 border-gray-200 flex items-center justify-center shrink-0 z-10 ${entry.color}`}>
+                  <Icon size={10} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-gray-700 font-medium">{entry.label}</div>
+                  <div className="text-[10px] text-gray-400">{formatDateTime(entry.date)}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   AKQUISE DETAIL LOADER SUB-COMPONENT
+   ═══════════════════════════════════════════════ */
+
+function AkquiseDetailSection({ airtableId, bookingId }) {
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadDetail() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        if (bookingId) params.set('bookingId', bookingId);
+        else if (airtableId) params.set('akquiseId', airtableId);
+        else { setLoading(false); return; }
+
+        const res = await fetch(`${INSTALL_API.DETAIL}?${params}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) setDetail(data);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    loadDetail();
+    return () => { cancelled = true; };
+  }, [airtableId, bookingId]);
+
+  if (loading) {
+    return (
+      <div className="bg-orange-50/50 rounded-2xl p-4 border border-orange-100 flex items-center justify-center gap-2 text-sm text-orange-600">
+        <Loader2 size={14} className="animate-spin" /> Akquise-Daten laden...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 rounded-2xl p-4 border border-red-100 text-sm text-red-600 flex items-center gap-2">
+        <AlertTriangle size={14} /> Fehler beim Laden: {error}
+      </div>
+    );
+  }
+
+  if (!detail) return null;
+
+  const d = detail.akquise || detail;
+
+  return (
+    <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
+      <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
+        <Building size={14} /> Akquise-Daten (Detail)
+      </h4>
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <InfoRow label="Akquise-Partner" value={d.acquisitionPartner || d.acquisition_partner || d.akquise_partner} />
+        <InfoRow label="Akquise-Datum" value={d.acquisitionDate || d.acquisition_date ? formatDate(d.acquisitionDate || d.acquisition_date) : null} />
+        <InfoRow label="Montage-Art" value={d.mountType || d.mount_type} />
+        <InfoRow label="Vertragsnummer" value={d.vertragsnummer || d.contract_number} mono />
+        <InfoRow label="FAW Status" value={d.frequencyApproval || d.frequency_check_status} />
+        {(d.dvacWeek || d.dvac_week || d.dvacMonth || d.dvac_month) && (<>
+          <div>
+            <div className="text-orange-400 text-xs">dVAC / Woche</div>
+            <div className="text-gray-900 font-semibold">
+              {(d.dvacWeek || d.dvac_week) != null ? Math.round(d.dvacWeek || d.dvac_week).toLocaleString('de-DE') : '--'}
+            </div>
+          </div>
+          <div>
+            <div className="text-orange-400 text-xs">dVAC / Monat</div>
+            <div className="text-gray-900 font-semibold">
+              {(d.dvacMonth || d.dvac_month) != null ? Math.round(d.dvacMonth || d.dvac_month).toLocaleString('de-DE') : '--'}
+            </div>
+          </div>
+        </>)}
+        <InfoRow label="Schaufenster" value={d.schaufenster || d.schaufenster_einsehbar} />
+      </div>
+
+      {/* Technical details from API response */}
+      {(d.hindernisse || d.hindernisse_vorhanden || d.hindernisseBeschreibung || d.hindernisse_beschreibung) && (
+        <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="text-xs font-medium text-amber-700 flex items-center gap-1">
+            <AlertTriangle size={11} /> Hindernisse
+          </div>
+          <div className="text-xs text-amber-600 whitespace-pre-wrap mt-1">
+            {d.hindernisseBeschreibung || d.hindernisse_beschreibung || d.hindernisse || d.hindernisse_vorhanden}
+          </div>
+        </div>
+      )}
+
+      {/* Kommentare from API */}
+      {(d.akquiseKommentar || d.akquise_comment) && (
+        <div className="mt-2">
+          <div className="text-[10px] font-semibold text-orange-500 uppercase tracking-wider mb-0.5">Akquise Kommentar</div>
+          <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-orange-100">
+            {d.akquiseKommentar || d.akquise_comment}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════ */
 
@@ -227,8 +434,51 @@ function InfoRow({ label, value, mono }) {
  *   termin    — Optional Airtable appointment
  *   onClose   — Close handler
  *   className — Optional extra classes
+ *
+ * Action callbacks (all optional — null/undefined = feature hidden):
+ *   onStatusChange  — (bookingId, newStatus)
+ *   onReinvite      — (booking)
+ *   onReschedule    — (bookingId, newDate, newTime)
+ *   onDefer         — (bookingId, deferDate, deferNote)
+ *   onPhoneUpdate   — (bookingId, newPhone, akquiseAirtableId)
+ *   onTeamChange    — (bookingId, teamName)
+ *   onInvite        — (standort)
+ *   actionLoading   — string (booking ID currently loading) or false
+ *
+ * Data (optional):
+ *   routes       — array of open routes (for reschedule modal)
+ *   teams        — array of team objects
+ *   rawBooking   — the raw booking object from Supabase
+ *
+ * Feature flags (all default false):
+ *   showActions, showTimeline, showWhatsApp, showPhoneEdit,
+ *   showTeamAssign, showBookingLink, showInviteButton, showAkquiseDetail
  */
-export default function UnifiedStandortDetail({ standort: rawStandort, booking, termin, onClose, className = '' }) {
+export default function UnifiedStandortDetail({
+  standort: rawStandort, booking, termin, onClose, className = '',
+  // Action callbacks
+  onStatusChange,
+  onReinvite,
+  onReschedule,
+  onDefer,
+  onPhoneUpdate,
+  onTeamChange,
+  onInvite,
+  actionLoading,
+  // Data
+  routes,
+  teams,
+  rawBooking,
+  // Feature flags
+  showActions = false,
+  showTimeline = false,
+  showWhatsApp = false,
+  showPhoneEdit = false,
+  showTeamAssign = false,
+  showBookingLink = false,
+  showInviteButton = false,
+  showAkquiseDetail = false,
+}) {
   // Normalize data
   const s = normalizeStandort(rawStandort, booking, termin);
 
@@ -236,6 +486,20 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
   const [resolvedImages, setResolvedImages] = useState(s?.images || []);
   const [resolvedVertragPdf, setResolvedVertragPdf] = useState(s?.vertragPdf || []);
   const [resolvedFawData, setResolvedFawData] = useState(s?.fawDataAttachment || []);
+
+  // Phone edit state
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [phoneValue, setPhoneValue] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
+
+  // Defer state
+  const [showDeferForm, setShowDeferForm] = useState(false);
+  const [deferDate, setDeferDate] = useState('');
+  const [deferNote, setDeferNote] = useState('');
+  const [savingDefer, setSavingDefer] = useState(false);
+
+  // Booking link copy state
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     if (!s?.airtableId) return;
@@ -254,6 +518,15 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
     }
   }, [s?.airtableId]);
 
+  // Reset phone edit when standort changes
+  useEffect(() => {
+    setEditingPhone(false);
+    setPhoneValue(s?.contactPhone || '');
+    setShowDeferForm(false);
+    setDeferDate('');
+    setDeferNote('');
+  }, [s?.airtableId, s?.contactPhone]);
+
   if (!s) return null;
 
   // Build URLs
@@ -271,6 +544,63 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
       : null);
 
   const isVorhanden = (v) => v === true || v === 'true' || v === 'YES' || v === 'checked' || v === 'Ja';
+
+  // Determine booking status for action bar
+  const bookingStatus = rawBooking?.status || s.booking?.status;
+  const bookingId = rawBooking?.id || s.booking?.id;
+  const isLoading = actionLoading && actionLoading === bookingId;
+  const isBookedOrConfirmed = bookingStatus === 'booked' || bookingStatus === 'confirmed';
+  const isCancelledOrNoShow = bookingStatus === 'cancelled' || bookingStatus === 'no_show';
+  const isPending = bookingStatus === 'pending';
+
+  // Phone edit handlers
+  const handlePhoneEditStart = () => {
+    setPhoneValue(s.contactPhone || '');
+    setEditingPhone(true);
+  };
+  const handlePhoneEditCancel = () => {
+    setEditingPhone(false);
+    setPhoneValue(s.contactPhone || '');
+  };
+  const handlePhoneSave = async () => {
+    if (!onPhoneUpdate || !bookingId || !phoneValue.trim()) return;
+    setSavingPhone(true);
+    try {
+      await onPhoneUpdate(bookingId, phoneValue.trim(), s.airtableId);
+      setEditingPhone(false);
+    } catch (err) {
+      console.error('[UnifiedStandortDetail] Phone update failed:', err.message);
+    } finally {
+      setSavingPhone(false);
+    }
+  };
+
+  // Defer handlers
+  const handleDeferSubmit = async () => {
+    if (!onDefer || !bookingId || !deferDate) return;
+    setSavingDefer(true);
+    try {
+      await onDefer(bookingId, deferDate, deferNote);
+      setShowDeferForm(false);
+      setDeferDate('');
+      setDeferNote('');
+    } catch (err) {
+      console.error('[UnifiedStandortDetail] Defer failed:', err.message);
+    } finally {
+      setSavingDefer(false);
+    }
+  };
+
+  // Booking link copy
+  const bookingToken = rawBooking?.booking_token || s.booking?.bookingToken;
+  const bookingUrl = bookingToken ? `https://tools.dimension-outdoor.com/book/${bookingToken}` : null;
+  const handleCopyLink = () => {
+    if (!bookingUrl) return;
+    navigator.clipboard.writeText(bookingUrl).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
+  };
 
   return (
     <div className={`fixed inset-0 bg-black/40 z-50 flex justify-end animate-fade-in ${className}`} onClick={onClose}>
@@ -312,6 +642,88 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
             )}
           </div>
 
+          {/* ══════════════════════════════════════
+             1. ACTION BAR (when showActions && rawBooking)
+             ══════════════════════════════════════ */}
+          {showActions && rawBooking && (
+            <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Booked / confirmed: status change actions */}
+                {isBookedOrConfirmed && onStatusChange && (
+                  <>
+                    <button
+                      onClick={() => onStatusChange(bookingId, 'cancelled')}
+                      disabled={isLoading}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                    >
+                      {isLoading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                      Stornieren
+                    </button>
+                    <button
+                      onClick={() => onStatusChange(bookingId, 'no_show')}
+                      disabled={isLoading}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                    >
+                      {isLoading ? <Loader2 size={12} className="animate-spin" /> : <ShieldAlert size={12} />}
+                      No-Show
+                    </button>
+                  </>
+                )}
+
+                {/* Booked / confirmed: reschedule */}
+                {isBookedOrConfirmed && onReschedule && (
+                  <button
+                    onClick={() => onReschedule(bookingId, null, null)}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+                  >
+                    {isLoading ? <Loader2 size={12} className="animate-spin" /> : <CalendarClock size={12} />}
+                    Umbuchen
+                  </button>
+                )}
+
+                {/* Cancelled / no_show with phone: reinvite */}
+                {isCancelledOrNoShow && onReinvite && s.contactPhone && (
+                  <button
+                    onClick={() => onReinvite(rawBooking)}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-green-600 border border-green-700 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 shadow-sm"
+                  >
+                    {isLoading ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
+                    Neu einladen
+                  </button>
+                )}
+                {/* Always if phone: call link */}
+                {s.contactPhone && (
+                  <a
+                    href={`tel:${s.contactPhone}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
+                  >
+                    <Phone size={12} /> Anrufen
+                  </a>
+                )}
+              </div>
+
+              {/* Cancellation details */}
+              {isCancelledOrNoShow && rawBooking && (rawBooking.cancelled_by_user_name || rawBooking.cancelled_reason || rawBooking.cancelled_at) && (
+                <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-lg text-xs space-y-1">
+                  <div className="font-semibold text-red-700 flex items-center gap-1">
+                    <Trash2 size={11} /> Storno-Details
+                  </div>
+                  {rawBooking.cancelled_by_user_name && (
+                    <p className="text-red-600">Storniert von: <span className="font-medium">{rawBooking.cancelled_by_user_name}</span></p>
+                  )}
+                  {rawBooking.cancelled_at && (
+                    <p className="text-red-600">Zeitpunkt: {new Date(rawBooking.cancelled_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                  )}
+                  {rawBooking.cancelled_reason && (
+                    <p className="text-red-600">Grund: {rawBooking.cancelled_reason}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ── Map Preview (clickable link to Google Maps) ── */}
           {mapsUrl && (
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
@@ -327,7 +739,7 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
             </a>
           )}
 
-          {/* ── Kontakt ── */}
+          {/* ── Kontakt (with optional Phone Edit) ── */}
           <div className="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
             <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
               <User size={14} /> Kontakt
@@ -336,12 +748,60 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
               <InfoRow label="Name" value={s.contactName} />
               <div>
                 <div className="text-gray-400 text-xs">Telefon</div>
-                {s.contactPhone ? (
-                  <a href={`tel:${s.contactPhone}`} className="text-gray-900 font-mono text-sm hover:text-cyan-600 transition-colors">
-                    {s.contactPhone}
-                  </a>
+                {editingPhone && showPhoneEdit ? (
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <input
+                      type="tel"
+                      value={phoneValue}
+                      onChange={e => setPhoneValue(e.target.value)}
+                      className="w-full px-2 py-1 text-sm font-mono border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      placeholder="+49..."
+                      autoFocus
+                    />
+                    <button
+                      onClick={handlePhoneSave}
+                      disabled={savingPhone || !phoneValue.trim()}
+                      className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                      title="Speichern"
+                    >
+                      {savingPhone ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+                    </button>
+                    <button
+                      onClick={handlePhoneEditCancel}
+                      className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Abbrechen"
+                    >
+                      <XCircle size={13} />
+                    </button>
+                  </div>
+                ) : s.contactPhone ? (
+                  <div className="flex items-center gap-1">
+                    <a href={`tel:${s.contactPhone}`} className="text-gray-900 font-mono text-sm hover:text-cyan-600 transition-colors">
+                      {s.contactPhone}
+                    </a>
+                    {showPhoneEdit && onPhoneUpdate && (
+                      <button
+                        onClick={handlePhoneEditStart}
+                        className="p-1 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                        title="Telefonnummer bearbeiten"
+                      >
+                        <Edit3 size={11} />
+                      </button>
+                    )}
+                  </div>
                 ) : (
-                  <span className="text-amber-500 flex items-center gap-1 text-sm"><PhoneOff size={11} /> Keine Nr.</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-amber-500 flex items-center gap-1 text-sm"><PhoneOff size={11} /> Keine Nr.</span>
+                    {showPhoneEdit && onPhoneUpdate && (
+                      <button
+                        onClick={handlePhoneEditStart}
+                        className="p-1 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                        title="Telefonnummer hinzufuegen"
+                      >
+                        <Edit3 size={11} />
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               <div>
@@ -456,13 +916,164 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
                     <div className="text-blue-900">{formatDateTime(s.booking.bookedAt)}</div>
                   </div>
                 )}
+                {s.booking.installerTeam && (
+                  <div>
+                    <div className="text-blue-400 text-xs">Team</div>
+                    <div className="text-blue-900">{s.booking.installerTeam}</div>
+                  </div>
+                )}
+                {s.booking.bookingSource && (
+                  <div>
+                    <div className="text-blue-400 text-xs">Quelle</div>
+                    <div className="text-blue-900 text-xs">{s.booking.bookingSource === 'airtable' ? 'Airtable' : s.booking.bookingSource}</div>
+                  </div>
+                )}
               </div>
-              {s.booking.bookingToken && (
+              {s.booking.bookingToken && !showBookingLink && (
                 <a href={`/book/${s.booking.bookingToken}`} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium mt-1">
                   <ExternalLink size={11} /> Buchungsseite oeffnen
                 </a>
               )}
+              {s.booking.notes && (
+                <div className="mt-2 pt-2 border-t border-blue-100">
+                  <div className="text-blue-400 text-xs mb-0.5">Notizen</div>
+                  <div className="text-xs text-blue-900 whitespace-pre-wrap">{s.booking.notes}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══════════════════════════════════════
+             2. TEAM ASSIGNMENT (when showTeamAssign && teams)
+             ══════════════════════════════════════ */}
+          {showTeamAssign && teams && teams.length > 0 && rawBooking && (
+            <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-4 space-y-2 border border-purple-100">
+              <h4 className="text-sm font-semibold text-purple-700 flex items-center gap-1.5">
+                <Users size={14} /> Team-Zuweisung
+              </h4>
+              <select
+                value={rawBooking.installer_team || ''}
+                onChange={e => onTeamChange && onTeamChange(rawBooking.id, e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-300 transition-colors"
+              >
+                <option value="">-- Kein Team --</option>
+                {teams.map(team => (
+                  <option key={team.id || team.name} value={team.name}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* ══════════════════════════════════════
+             5. DEFER / EARLIEST DATE (when showActions && rawBooking)
+             ══════════════════════════════════════ */}
+          {showActions && rawBooking && (
+            <>
+              {/* Earliest date info */}
+              {rawBooking.earliest_date && (
+                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <CalendarClock size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-xs font-medium text-amber-700">Fruehestens ab</div>
+                    <div className="text-sm font-semibold text-amber-900">{formatDate(rawBooking.earliest_date)}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Defer button + form for pending bookings */}
+              {isPending && onDefer && (
+                <div className="space-y-2">
+                  {!showDeferForm ? (
+                    <button
+                      onClick={() => setShowDeferForm(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                    >
+                      <CalendarClock size={12} /> Auf spaeter verschieben
+                    </button>
+                  ) : (
+                    <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 space-y-2">
+                      <div className="text-xs font-medium text-amber-700 flex items-center gap-1">
+                        <CalendarClock size={12} /> Auf spaeter verschieben
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-amber-600 block mb-0.5">Fruehestes Datum</label>
+                        <input
+                          type="date"
+                          value={deferDate}
+                          onChange={e => setDeferDate(e.target.value)}
+                          className="w-full px-2 py-1.5 text-sm border border-amber-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-200"
+                          min={new Date().toLocaleDateString('sv-SE')}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-amber-600 block mb-0.5">Notiz (optional)</label>
+                        <input
+                          type="text"
+                          value={deferNote}
+                          onChange={e => setDeferNote(e.target.value)}
+                          placeholder="z.B. Urlaub bis ..."
+                          className="w-full px-2 py-1.5 text-sm border border-amber-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-200"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleDeferSubmit}
+                          disabled={!deferDate || savingDefer}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                        >
+                          {savingDefer ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                          Verschieben
+                        </button>
+                        <button
+                          onClick={() => { setShowDeferForm(false); setDeferDate(''); setDeferNote(''); }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Abbrechen
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ══════════════════════════════════════
+             4. BOOKING LINK (when showBookingLink && bookingToken)
+             ══════════════════════════════════════ */}
+          {showBookingLink && bookingUrl && (
+            <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-100 space-y-1.5">
+              <div className="text-xs font-medium text-blue-600 flex items-center gap-1">
+                <ExternalLink size={11} /> Buchungslink
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0 text-[11px] font-mono text-blue-800 bg-white px-2.5 py-1.5 rounded-lg border border-blue-100 truncate">
+                  {bookingUrl}
+                </div>
+                <button
+                  onClick={handleCopyLink}
+                  className={`shrink-0 p-1.5 rounded-lg border transition-colors ${
+                    linkCopied
+                      ? 'text-green-600 bg-green-50 border-green-200'
+                      : 'text-blue-600 bg-white border-blue-200 hover:bg-blue-50'
+                  }`}
+                  title={linkCopied ? 'Kopiert!' : 'Link kopieren'}
+                >
+                  {linkCopied ? <Check size={13} /> : <Copy size={13} />}
+                </button>
+                <a
+                  href={bookingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 p-1.5 text-blue-600 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                  title="Buchungsseite oeffnen"
+                >
+                  <ExternalLink size={13} />
+                </a>
+              </div>
             </div>
           )}
 
@@ -505,30 +1116,37 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
             </div>
           )}
 
-          {/* ── Akquise-Daten ── */}
-          <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
-            <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
-              <Building size={14} /> Akquise-Daten
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <InfoRow label="Akquise-Partner" value={s.acquisitionPartner} />
-              <InfoRow label="Akquise-Datum" value={s.acquisitionDate ? formatDate(s.acquisitionDate) : null} />
-              <InfoRow label="Montage-Art" value={s.mountType || 'Nicht angegeben'} />
-              <InfoRow label="Vertragsnummer" value={s.vertragsnummer} mono />
-              {(s.dvacWeek || s.dvacMonth) && (<>
-                <div>
-                  <div className="text-orange-400 text-xs">dVAC / Woche</div>
-                  <div className="text-gray-900 font-semibold">{s.dvacWeek != null ? Math.round(s.dvacWeek).toLocaleString('de-DE') : '--'}</div>
-                </div>
-                <div>
-                  <div className="text-orange-400 text-xs">dVAC / Monat</div>
-                  <div className="text-gray-900 font-semibold">{s.dvacMonth != null ? Math.round(s.dvacMonth).toLocaleString('de-DE') : '--'}</div>
-                </div>
-              </>)}
-              {s.schaufenster && <InfoRow label="Schaufenster" value={s.schaufenster} />}
-              {s.frequencyApproval && <InfoRow label="FAW Status" value={s.frequencyApproval} />}
+          {/* ── Akquise-Daten (static or API-loaded) ── */}
+          {showAkquiseDetail && s.airtableId ? (
+            <AkquiseDetailSection
+              airtableId={s.airtableId}
+              bookingId={rawBooking?.id || s.booking?.id}
+            />
+          ) : (
+            <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
+              <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
+                <Building size={14} /> Akquise-Daten
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <InfoRow label="Akquise-Partner" value={s.acquisitionPartner} />
+                <InfoRow label="Akquise-Datum" value={s.acquisitionDate ? formatDate(s.acquisitionDate) : null} />
+                <InfoRow label="Montage-Art" value={s.mountType || 'Nicht angegeben'} />
+                <InfoRow label="Vertragsnummer" value={s.vertragsnummer} mono />
+                {(s.dvacWeek || s.dvacMonth) && (<>
+                  <div>
+                    <div className="text-orange-400 text-xs">dVAC / Woche</div>
+                    <div className="text-gray-900 font-semibold">{s.dvacWeek != null ? Math.round(s.dvacWeek).toLocaleString('de-DE') : '--'}</div>
+                  </div>
+                  <div>
+                    <div className="text-orange-400 text-xs">dVAC / Monat</div>
+                    <div className="text-gray-900 font-semibold">{s.dvacMonth != null ? Math.round(s.dvacMonth).toLocaleString('de-DE') : '--'}</div>
+                  </div>
+                </>)}
+                {s.schaufenster && <InfoRow label="Schaufenster" value={s.schaufenster} />}
+                {s.frequencyApproval && <InfoRow label="FAW Status" value={s.frequencyApproval} />}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* ── Vertragsdaten ── */}
           {(s.vertragsnummer || s.vertragspartner || s.vertragsbeginn || s.laufzeit) && (
@@ -596,6 +1214,25 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
             </div>
           )}
 
+          {/* ══════════════════════════════════════
+             6. WHATSAPP CHAT HISTORY (when showWhatsApp && contactPhone)
+             ══════════════════════════════════════ */}
+          {showWhatsApp && s.contactPhone && (
+            <SuperChatHistory
+              contactPhone={s.contactPhone}
+              contactName={s.contactName || s.name}
+              collapsed={true}
+              maxHeight="300px"
+            />
+          )}
+
+          {/* ══════════════════════════════════════
+             8. TIMELINE (when showTimeline)
+             ══════════════════════════════════════ */}
+          {showTimeline && (
+            <TimelineSection booking={s.booking} rawBooking={rawBooking} />
+          )}
+
           {/* ── Kommentare ── */}
           {(s.akquiseKommentar || s.kommentarInstallationen || s.frequencyApprovalComment || s.akquiseKommentarUpdate) && (
             <div className="bg-sky-50/50 rounded-2xl p-4 space-y-3 border border-sky-100">
@@ -642,6 +1279,18 @@ export default function UnifiedStandortDetail({ standort: rawStandort, booking, 
                 <InfoRow label="Installations-Team" value={s.integratorName} />
               </div>
             </div>
+          )}
+
+          {/* ══════════════════════════════════════
+             9. INVITE BUTTON (when showInviteButton && onInvite && contactPhone)
+             ══════════════════════════════════════ */}
+          {showInviteButton && onInvite && s.contactPhone && (
+            <button
+              onClick={() => onInvite(rawStandort)}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-green-600 border border-green-700 rounded-xl hover:bg-green-700 transition-colors shadow-sm"
+            >
+              <Send size={14} /> Einladung senden
+            </button>
           )}
         </div>
       </div>

@@ -245,8 +245,8 @@ export default async (request, context) => {
       const body = await request.json();
       const { city, schedule_date, installer_team, max_capacity, time_slots, notes, airtable_id } = body;
 
-      if (!city || !schedule_date) {
-        return new Response(JSON.stringify({ error: 'city and schedule_date are required' }), {
+      if (!city || !schedule_date || !installer_team) {
+        return new Response(JSON.stringify({ error: 'city, schedule_date und installer_team sind Pflichtfelder' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...cors },
         });
@@ -259,7 +259,7 @@ export default async (request, context) => {
       const row = {
         city,
         schedule_date,
-        installer_team: installer_team || null,
+        installer_team,
         max_capacity: max_capacity != null ? max_capacity : 8,
         time_slots: Array.isArray(slotsValue) ? slotsValue : (typeof slotsValue === 'string' ? JSON.parse(slotsValue) : slotsValue),
         status: 'open',

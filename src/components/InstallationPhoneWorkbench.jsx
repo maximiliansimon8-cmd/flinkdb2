@@ -1024,7 +1024,7 @@ function ActiveCallPanel({ item, routes, onComplete, onSkip, isBookingItem, read
                       type="date"
                       value={bookingForm.bookedDate}
                       onChange={e => setBookingForm(f => ({ ...f, bookedDate: e.target.value, bookedTime: '' }))}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={new Date().toLocaleDateString('sv-SE')}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-400 transition-all"
                     />
                   </div>
@@ -1213,7 +1213,7 @@ export default function InstallationPhoneWorkbench({ filterCity: filterCityProp 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('sv-SE');
       const [acqData, bookRes, routeRes] = await Promise.all([
         fetchAllAcquisition(),
         fetch(INSTALL_API.BOOKINGS + '?').then(r => r.json()).catch(() => []),

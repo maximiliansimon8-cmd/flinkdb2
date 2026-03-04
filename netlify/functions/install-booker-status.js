@@ -291,6 +291,11 @@ export default async (request, context) => {
             `Storniert & Link reaktiviert: ${oldDate || '—'} ${oldTime || '—'} (${new Date().toLocaleString('de-DE')})`,
           ].filter(Boolean).join('\n'),
           updated_at: new Date().toISOString(),
+          // Track who cancelled
+          cancelled_at: new Date().toISOString(),
+          cancelled_by_user_id: body.created_by_user_id || null,
+          cancelled_by_user_name: body.created_by_user_name || null,
+          cancelled_reason: body.cancelled_reason || 'Termin verschoben (cancel_and_reopen)',
         };
 
         const updateResult = await supabaseRequest(`install_bookings?id=eq.${bookingId}`, {
@@ -477,10 +482,22 @@ export default async (request, context) => {
             await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${currentBooking.akquise_airtable_id}`, {
               method: 'PATCH',
               headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ fields: { 'Contact Phone': body.contact_phone } }),
+              body: JSON.stringify({ fields: { 'Contact Phone': normalizedPhone } }),
             });
           } catch (e) {
             console.error('[install-booker-status] Airtable phone update failed:', e.message);
+          }
+        }
+
+        // Also update Supabase acquisition cache immediately (avoids 5-min sync lag)
+        if (phoneResult.ok && currentBooking.akquise_airtable_id) {
+          try {
+            await supabaseRequest(
+              `acquisition?airtable_id=eq.${currentBooking.akquise_airtable_id}`,
+              { method: 'PATCH', body: JSON.stringify({ contact_phone: normalizedPhone }) }
+            );
+          } catch (e) {
+            console.error('[install-booker-status] Acquisition phone cache update failed:', e.message);
           }
         }
 
@@ -525,6 +542,14 @@ export default async (request, context) => {
       if (body.installer_team !== undefined) updates.installer_team = body.installer_team || null;
 
       if (newStatus === 'confirmed') updates.confirmed_at = new Date().toISOString();
+
+      // Track who cancelled and why
+      if (newStatus === 'cancelled' || newStatus === 'no_show') {
+        updates.cancelled_at = new Date().toISOString();
+        updates.cancelled_by_user_id = body.created_by_user_id || null;
+        updates.cancelled_by_user_name = body.created_by_user_name || null;
+        if (body.cancelled_reason) updates.cancelled_reason = body.cancelled_reason;
+      }
 
       const updateResult = await supabaseRequest(`install_bookings?id=eq.${bookingId}`, {
         method: 'PATCH',

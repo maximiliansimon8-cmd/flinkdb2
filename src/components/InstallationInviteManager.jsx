@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Send, Search, Filter, MapPin, Phone, User, CheckCircle, Clock, AlertCircle,
-  ChevronDown, ChevronUp, RefreshCw, Users, Eye, Image, Building, Wrench,
-  CalendarCheck, ExternalLink, X, XCircle, Check, Info, Loader2, Inbox, ChevronRight,
-  CheckSquare, Square, AlertTriangle, ArrowRight, History, FileText, Download,
-  MessageSquare, Zap, Map as MapIcon, Calendar, Copy,
+  Send, Search, MapPin, Phone, CheckCircle, Clock, AlertCircle,
+  ChevronDown, RefreshCw, Eye, Building,
+  X, XCircle, Check, Loader2, Inbox, ChevronRight,
+  CheckSquare, AlertTriangle, History, FileText,
+  Map as MapIcon, Calendar,
 } from 'lucide-react';
 import { fetchAllAcquisition, fetchAllInstallationstermine } from '../utils/airtableService';
 import { isStorno, isAlreadyInstalled, isReadyForInstall } from '../metrics';
 import { INSTALL_API, formatDateYear as formatDate, formatDateTime, triggerSyncAndReload } from '../utils/installUtils';
 import { getCurrentUser } from '../utils/authService';
 import UnifiedStandortDetail from './UnifiedStandortDetail';
-import SuperChatHistory from './SuperChatHistory';
 
 const MOUNT_TYPES = [
   { value: '', label: 'Alle Montagearten' },
@@ -41,442 +40,6 @@ function StatusBadge({ status }) {
   );
 }
 
-/* ── Detail Drawer ── */
-function StandortDetail({ standort, bookingInfo, onClose, onInvite, inviting }) {
-  // Build Google Maps Streetview link
-  const streetviewUrl = standort.street && standort.city?.[0]
-    ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${encodeURIComponent(
-        `${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}`
-      )}`
-    : null;
-  const mapsUrl = standort.street && standort.city?.[0]
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${standort.locationName || ''} ${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}`
-      )}`
-    : null;
-
-  return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex justify-end animate-fade-in" onClick={onClose}>
-      <div className="bg-white w-full max-w-lg h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
-          <div className="min-w-0">
-            <h3 className="font-bold text-gray-900 text-lg truncate">{standort.locationName || 'Unbekannt'}</h3>
-            <p className="text-sm text-gray-500 flex items-center gap-1">
-              <MapPin size={13} /> {standort.city?.[0] || '--'} | {standort.postalCode || ''} {standort.street} {standort.streetNumber}
-            </p>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          {/* Status + Quick Links */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <StatusBadge status={bookingInfo?.status || 'not_invited'} />
-            {bookingInfo?.whatsapp_sent_at && (
-              <span className="text-xs text-gray-400">
-                WhatsApp: {formatDateTime(bookingInfo.whatsapp_sent_at)}
-              </span>
-            )}
-            {mapsUrl && (
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-                <MapPin size={11} /> Maps
-              </a>
-            )}
-            {streetviewUrl && (
-              <a href={streetviewUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors">
-                <Eye size={11} /> Streetview
-              </a>
-            )}
-          </div>
-
-          {/* Embedded Mini-Map */}
-          {standort.street && standort.city?.[0] && (() => {
-            const mapQuery = encodeURIComponent(`${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}, Germany`);
-            const mapEmbedUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
-            return (
-              <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-                <iframe
-                  src={mapEmbedUrl}
-                  width="100%"
-                  height="200"
-                  style={{ border: 0, borderRadius: '16px' }}
-                  allowFullScreen
-                  loading="lazy"
-                  title="Standort Karte"
-                />
-              </div>
-            );
-          })()}
-
-          {/* Contact */}
-          <div className="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-              <User size={14} /> Kontakt
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div className="text-gray-400 text-xs">Name</div>
-                <div className="text-gray-900 font-medium">{standort.contactPerson || '--'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">Telefon</div>
-                <div className="text-gray-900 font-mono text-sm">{standort.contactPhone || '--'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">E-Mail</div>
-                <div className="text-gray-900 truncate text-sm">{standort.contactEmail || '--'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">JET ID</div>
-                <div className="text-gray-900 font-mono text-sm">{standort.jetId && !standort.jetId.startsWith('rec') ? standort.jetId : '--'}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* WhatsApp Chat History */}
-          {standort.contactPhone && (
-            <SuperChatHistory
-              contactPhone={standort.contactPhone}
-              contactName={standort.contactPerson || standort.locationName}
-              collapsed={true}
-              maxHeight="300px"
-            />
-          )}
-
-          {/* Akquise-Daten */}
-          <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
-            <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
-              <Building size={14} /> Akquise-Daten
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div className="text-orange-400 text-xs">Akquise-Partner</div>
-                <div className="text-gray-900">{standort.acquisitionPartner || '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Akquise-ID</div>
-                <div className="text-gray-900 font-mono text-xs">{standort.akquiseId || standort.id?.substring(0, 12) || '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Akquise-Datum</div>
-                <div className="text-gray-900">{standort.acquisitionDate ? formatDate(standort.acquisitionDate) : '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Eingereicht von</div>
-                <div className="text-gray-900">{standort.submittedBy || '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Lead Status</div>
-                <div className="text-gray-900 font-medium">{standort.leadStatus || '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Approval Status</div>
-                <div className="text-gray-900">{standort.approvalStatus || '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Frequency Approval</div>
-                <div className="text-gray-900">{standort.frequencyApproval || '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">DVAC Woche</div>
-                <div className="text-gray-900">{standort.dvacWeek || '--'}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Installation Details */}
-          <div className="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-              <Wrench size={14} /> Installation
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div className="text-gray-400 text-xs">Montage-Art</div>
-                <div className="text-gray-900">{standort.mountType || 'Nicht angegeben'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">Schaufenster</div>
-                <div className="text-gray-900">{standort.schaufenster || '--'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">Vertrag vorhanden</div>
-                <div className="text-gray-900 flex items-center gap-1">
-                  {(standort.vertragVorhanden === 'true' || standort.vertragVorhanden === true || standort.vertragVorhanden === 'YES' || standort.vertragVorhanden === 'yes' || standort.vertragVorhanden === 'checked') ? (
-                    <><CheckCircle size={12} className="text-green-500" /> Ja</>
-                  ) : (
-                    <span className="text-gray-400">Nein</span>
-                  )}
-                </div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">Vertragsnummer</div>
-                <div className="text-gray-900 font-mono text-xs">{standort.vertragsnummer || '--'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">Unterschriftsdatum</div>
-                <div className="text-gray-900">{standort.unterschriftsdatum ? formatDate(standort.unterschriftsdatum) : '--'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">Install Approval</div>
-                <div className="text-gray-900">{standort.installApproval || '--'}</div>
-              </div>
-            </div>
-
-            {/* Installations Status */}
-            {Array.isArray(standort.installationsStatus) && standort.installationsStatus.length > 0 && standort.installationsStatus[0] && (
-              <div className="mt-2">
-                <div className="text-gray-400 text-xs mb-1">Installations-Status</div>
-                <div className="flex flex-wrap gap-1">
-                  {standort.installationsStatus.filter(Boolean).map((s, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-medium">
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Display Location Status */}
-            {Array.isArray(standort.displayLocationStatus) && standort.displayLocationStatus.length > 0 && standort.displayLocationStatus[0] && (
-              <div className="mt-2">
-                <div className="text-gray-400 text-xs mb-1">Display Status</div>
-                <div className="flex flex-wrap gap-1">
-                  {standort.displayLocationStatus.filter(Boolean).map((s, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-medium">
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Hindernisse + Tech Details */}
-            {(standort.hindernisse || standort.hindernisseBeschreibung || standort.fensterbreite || standort.steckdose) && (
-              <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5">
-                <div className="text-xs font-medium text-amber-700 flex items-center gap-1">
-                  <AlertCircle size={12} /> Hindernisse / Technische Details
-                </div>
-                {standort.hindernisse && <div className="text-xs text-amber-600 whitespace-pre-wrap">{standort.hindernisse}</div>}
-                {standort.hindernisseBeschreibung && <div className="text-xs text-amber-600 whitespace-pre-wrap">{standort.hindernisseBeschreibung}</div>}
-                <div className="flex gap-3 text-xs">
-                  {standort.fensterbreite && (
-                    <span className="inline-flex items-center gap-1 text-green-600">
-                      <CheckCircle size={11} /> Fensterbreite: {standort.fensterbreite === true ? 'Ja' : standort.fensterbreite}
-                    </span>
-                  )}
-                  {standort.steckdose && (
-                    <span className="inline-flex items-center gap-1 text-green-600">
-                      <Zap size={11} /> Steckdose: {standort.steckdose === true ? 'Ja' : standort.steckdose}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Fotos */}
-          {standort.images && standort.images.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                <Image size={14} /> Standort-Fotos ({standort.images.length})
-              </h4>
-              <div className="grid grid-cols-3 gap-2">
-                {standort.images.slice(0, 6).map((img, i) => (
-                  <a key={i} href={img.url} target="_blank" rel="noopener noreferrer" className="block">
-                    <img
-                      src={img.thumbnails?.large?.url || img.thumbnails?.small?.url || img.url}
-                      alt={img.filename || `Foto ${i + 1}`}
-                      className="w-full h-20 object-cover rounded-xl border border-gray-100 hover:border-cyan-300 transition-colors"
-                      loading="lazy"
-                    />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Dokumente */}
-          {((standort.vertragPdf && standort.vertragPdf.length > 0) || (standort.fawDataAttachment && standort.fawDataAttachment.length > 0)) && (
-            <div className="bg-slate-50 rounded-2xl p-4 space-y-2 border border-slate-200">
-              <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-                <FileText size={14} /> Dokumente
-              </h4>
-              <div className="space-y-1.5">
-                {standort.vertragPdf && standort.vertragPdf.map((doc, i) => (
-                  <a key={`pdf-${i}`} href={doc.url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50/50 transition-colors group">
-                    <FileText size={14} className="text-green-500 shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-gray-900 truncate">{doc.filename || 'Vertrag PDF'}</div>
-                      {doc.size > 0 && <div className="text-[10px] text-gray-400">{(doc.size / 1024).toFixed(0)} KB</div>}
-                    </div>
-                    <Download size={12} className="text-gray-300 group-hover:text-green-500 shrink-0" />
-                  </a>
-                ))}
-                {standort.fawDataAttachment && standort.fawDataAttachment.map((doc, i) => (
-                  <a key={`faw-${i}`} href={doc.url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group">
-                    <FileText size={14} className="text-blue-500 shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-gray-900 truncate">{doc.filename || 'FAW Daten'}</div>
-                      {doc.size > 0 && <div className="text-[10px] text-gray-400">{(doc.size / 1024).toFixed(0)} KB</div>}
-                    </div>
-                    <Download size={12} className="text-gray-300 group-hover:text-blue-500 shrink-0" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Kommentare */}
-          {(standort.akquiseKommentar || standort.kommentarInstallationen || standort.frequencyApprovalComment) && (
-            <div className="bg-sky-50/50 rounded-2xl p-4 space-y-3 border border-sky-100">
-              <h4 className="text-sm font-semibold text-sky-700 flex items-center gap-1.5">
-                <MessageSquare size={14} /> Kommentare
-              </h4>
-              {standort.akquiseKommentar && (
-                <div>
-                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Akquise</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.akquiseKommentar}</div>
-                </div>
-              )}
-              {standort.kommentarInstallationen && (
-                <div>
-                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Installationen</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.kommentarInstallationen}</div>
-                </div>
-              )}
-              {standort.frequencyApprovalComment && (
-                <div>
-                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">FAW Pruefung</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.frequencyApprovalComment}</div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Storno-Info */}
-          {(standort.akquiseStorno || standort.postInstallStorno) && (
-            <div className="bg-red-50 rounded-2xl p-4 space-y-2 border border-red-200">
-              <h4 className="text-sm font-semibold text-red-700 flex items-center gap-1.5">
-                <XCircle size={14} /> Storno
-              </h4>
-              {standort.akquiseStorno && (
-                <div className="text-xs text-red-600">Akquise-Storno aktiv</div>
-              )}
-              {standort.postInstallStorno && (
-                <div className="text-xs text-red-600">Post-Install Storno aktiv</div>
-              )}
-              {Array.isArray(standort.postInstallStornoGrund) && standort.postInstallStornoGrund.length > 0 && (
-                <div className="text-xs text-red-500">
-                  Grund: {standort.postInstallStornoGrund.join(', ')}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Booking Info */}
-          {bookingInfo && (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 space-y-2 border border-blue-100">
-              <h4 className="text-sm font-semibold text-blue-700 flex items-center gap-1.5">
-                <CalendarCheck size={14} /> Buchung
-              </h4>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {bookingInfo.booked_date && (
-                  <div>
-                    <div className="text-blue-400 text-xs">Termin</div>
-                    <div className="text-blue-900 font-semibold">{formatDate(bookingInfo.booked_date)}</div>
-                  </div>
-                )}
-                {bookingInfo.booked_time && (
-                  <div>
-                    <div className="text-blue-400 text-xs">Uhrzeit</div>
-                    <div className="text-blue-900">{bookingInfo.booked_time} - {bookingInfo.booked_end_time}</div>
-                  </div>
-                )}
-                {bookingInfo.whatsapp_sent_at && (
-                  <div>
-                    <div className="text-blue-400 text-xs">WhatsApp gesendet</div>
-                    <div className="text-blue-900">{formatDateTime(bookingInfo.whatsapp_sent_at)}</div>
-                  </div>
-                )}
-                {bookingInfo.booked_at && (
-                  <div>
-                    <div className="text-blue-400 text-xs">Bestätigt am</div>
-                    <div className="text-blue-900">{formatDateTime(bookingInfo.booked_at)}</div>
-                  </div>
-                )}
-              </div>
-              {bookingInfo.booking_token && (
-                <div className="mt-3 space-y-1">
-                  <div className="text-xs font-medium text-gray-500">Buchungslink</div>
-                  <div className="flex items-center gap-1.5">
-                    <code className="flex-1 text-xs bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-gray-700 break-all select-all">
-                      {`https://tools.dimension-outdoor.com/book/${bookingInfo.booking_token}`}
-                    </code>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`https://tools.dimension-outdoor.com/book/${bookingInfo.booking_token}`);
-                        const btn = document.activeElement;
-                        const orig = btn.innerHTML;
-                        btn.innerHTML = '✓';
-                        setTimeout(() => { btn.innerHTML = orig; }, 1500);
-                      }}
-                      className="shrink-0 p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Link kopieren"
-                    >
-                      <Copy size={12} />
-                    </button>
-                    <a
-                      href={`/book/${bookingInfo.booking_token}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Buchungsseite oeffnen"
-                    >
-                      <ExternalLink size={12} />
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="pt-2 flex gap-3">
-            {(!bookingInfo || bookingInfo.status === 'not_invited') && standort.contactPhone && isReadyForInstall(standort) && (
-              <button
-                onClick={() => onInvite([standort])}
-                disabled={inviting}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium transition-colors"
-              >
-                {inviting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                {inviting ? 'Wird gesendet...' : 'Einladung senden'}
-              </button>
-            )}
-            {(!bookingInfo || bookingInfo.status === 'not_invited') && standort.contactPhone && !isReadyForInstall(standort) && (
-              <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2.5 rounded-xl w-full border border-amber-200">
-                <AlertCircle size={16} />
-                Nicht aufbaubereit (Approval/Vertrag fehlt)
-              </div>
-            )}
-            {!standort.contactPhone && (
-              <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2.5 rounded-xl w-full border border-amber-200">
-                <AlertCircle size={16} />
-                Keine Telefonnummer hinterlegt
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ── Batch Invite Confirm Modal with Progress + Template Selection + Route Selection ── */
 function BatchInviteModal({ selectedStandorte, onConfirm, onCancel, inviting, progress, templates, selectedTemplate, onTemplateChange, routes, selectedRouteId, onRouteChange }) {
@@ -943,7 +506,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
   }, [filterCityProp]);
   const [filterMountType, setFilterMountType] = useState('');
   const [filterContract, setFilterContract] = useState('');
-  const [filterStatus, setFilterStatus] = useState('not_invited'); // 'not_invited', 'invited', 'booked', 'reschedule', 'all'
+  const [filterStatus, setFilterStatus] = useState('not_invited'); // 'not_invited', 'invited', 'booked', 'reschedule' (Nachterminierung), 'all'
   const [selected, setSelected] = useState(new Set());
   const [campaignBanner, setCampaignBanner] = useState(null); // { count, source }
 
@@ -1006,7 +569,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD in local tz (CET)
       const [acqData, bookRes, terminData, routeRes, allRouteRes] = await Promise.all([
         fetchAllAcquisition(),
         fetch(INSTALL_API.BOOKINGS).then(r => r.json()).catch(() => []),
@@ -1089,6 +652,21 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
     return set;
   }, [installationstermine]);
 
+  // Map akquiseId → latest termin for detecting failures (Nachterminierung)
+  const terminByAkquise = useMemo(() => {
+    const map = new Map();
+    for (const t of installationstermine) {
+      for (const akqId of (t.akquiseLinks || [])) {
+        const existing = map.get(akqId);
+        // Keep the most recent termin
+        if (!existing || (t.createdAt && existing.createdAt && t.createdAt > existing.createdAt)) {
+          map.set(akqId, t);
+        }
+      }
+    }
+    return map;
+  }, [installationstermine]);
+
   // Predicates imported from src/metrics (isStorno, isAlreadyInstalled, isReadyForInstall)
 
   // Build set of acquisition IDs for fast lookup
@@ -1156,10 +734,31 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
       }
       if (filterStatus === 'invited') return (hasBooking && booking.status === 'pending' && !!booking.whatsapp_sent_at) || (hasAirtableInvite && atBookingStatus === 'invited');
       if (filterStatus === 'booked') return (hasBooking && (booking.status === 'booked' || booking.status === 'confirmed')) || (hasAirtableInvite && (atBookingStatus === 'confirmed' || atBookingStatus === 'booked'));
-      if (filterStatus === 'reschedule') return hasBooking && (booking.status === 'cancelled' || booking.status === 'no_show');
+      if (filterStatus === 'reschedule') {
+        // Standort already has an active booking → doesn't need reschedule
+        if (hasBooking && (booking.status === 'booked' || booking.status === 'confirmed')) return false;
+        if (hasBooking && booking.status === 'pending' && booking.whatsapp_sent_at) return false;
+        // Nachterminierung: booking cancelled/no_show OR Airtable termin with failure status
+        if (hasBooking && (booking.status === 'cancelled' || booking.status === 'no_show')) return true;
+        // Check Airtable termin for failure states
+        const termin = terminByAkquise.get(a.id);
+        if (termin) {
+          const ts = (termin.terminstatus || '').toLowerCase();
+          const si = Array.isArray(termin.statusInstallation)
+            ? termin.statusInstallation.join(' ').toLowerCase()
+            : (termin.statusInstallation || '').toLowerCase();
+          if (ts === 'verschoben' || ts === 'no-show' || ts === 'abgesagt') return true;
+          if (si.includes('abgebrochen') || si.includes('fehlgeschlagen') || si.includes('nacharbeit') || si.includes('storniert')) return true;
+        }
+        // Check Akquise installationsStatus (from linked Installationen table)
+        const instStatus = (a.installationsStatus || []).join(' ').toLowerCase();
+        if (instStatus.includes('abgebrochen') || instStatus.includes('fehlgeschlagen')
+          || instStatus.includes('nacharbeit') || instStatus.includes('storniert')) return true;
+        return false;
+      }
       return ready || hasBooking || hasAirtableInvite;
     });
-  }, [acquisitionData, orphanBookingRecords, bookingByAkquise, activeTerminIds, filterStatus]);
+  }, [acquisitionData, orphanBookingRecords, bookingByAkquise, activeTerminIds, filterStatus, terminByAkquise]);
 
   // Apply search + filters
   const filtered = useMemo(() => {
@@ -1208,8 +807,44 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
     let invited = uniqueByStatus(b => b.status === 'pending' && !!b.whatsapp_sent_at);
     // "Gebucht" = all bookings with an active appointment (booked or confirmed)
     let booked = uniqueByStatus(b => b.status === 'booked' || b.status === 'confirmed');
-    // "Reschedule" = cancelled/no_show bookings that need a new appointment
-    const needsReschedule = uniqueByStatus(b => b.status === 'cancelled' || b.status === 'no_show');
+    // "Nachterminierung" = cancelled/no_show bookings + Airtable termin failures
+    // IMPORTANT: exclude standorte that already have an active re-booking (booked/confirmed/invited)
+    let needsReschedule = 0;
+    const rescheduleFromBookings = new Set();
+    // Count standorte where the BEST booking is cancelled/no_show (not ones that were re-booked)
+    for (const [akquiseId, bestBooking] of bookingByAkquise.entries()) {
+      if (bestBooking.status === 'cancelled' || bestBooking.status === 'no_show') {
+        needsReschedule++;
+        rescheduleFromBookings.add(akquiseId);
+      }
+    }
+    // Also count Airtable termin failures not covered by booking status
+    for (const a of eligible) {
+      if (rescheduleFromBookings.has(a.id)) continue; // already counted
+      // Skip if standort has an active booking (re-invited / re-booked)
+      const bk = bookingByAkquise.get(a.id);
+      if (bk && (bk.status === 'booked' || bk.status === 'confirmed')) continue;
+      if (bk && bk.status === 'pending' && bk.whatsapp_sent_at) continue;
+      const termin = terminByAkquise.get(a.id);
+      if (termin) {
+        const ts = (termin.terminstatus || '').toLowerCase();
+        const si = Array.isArray(termin.statusInstallation)
+          ? termin.statusInstallation.join(' ').toLowerCase()
+          : (termin.statusInstallation || '').toLowerCase();
+        if (ts === 'verschoben' || ts === 'no-show' || ts === 'abgesagt'
+          || si.includes('abgebrochen') || si.includes('fehlgeschlagen')
+          || si.includes('nacharbeit') || si.includes('storniert')) {
+          needsReschedule++;
+          continue; // already counted, skip installationsStatus check below
+        }
+      }
+      // Also check Akquise installationsStatus (from linked Installationen table)
+      const instStatus = (a.installationsStatus || []).join(' ').toLowerCase();
+      if (instStatus.includes('abgebrochen') || instStatus.includes('fehlgeschlagen')
+        || instStatus.includes('nacharbeit') || instStatus.includes('storniert')) {
+        needsReschedule++;
+      }
+    }
     // Also count Airtable-only invites (no install_bookings entry but Airtable Booking Status set)
     let airtableOnlyInvited = 0;
     let airtableOnlyBooked = 0;
@@ -1236,7 +871,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
       isReadyForInstall(a) && !bookingByAkquise.has(a.id) && !activeTerminIds.has(a.id) && !a.bookingStatus && !a.contactPhone
     ).length;
     return { totalReady, notInvited, invited, booked, reschedule: needsReschedule, noPhone: withoutPhone };
-  }, [acquisitionData, bookings, bookingByAkquise, activeTerminIds]);
+  }, [acquisitionData, bookings, bookingByAkquise, activeTerminIds, terminByAkquise]);
 
   // Recently sent invites
   const recentInvites = useMemo(() => {
@@ -1496,7 +1131,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
           { label: 'Nicht eingeladen', value: kpis.notInvited, color: 'text-slate-600', bgColor: 'bg-slate-100', icon: Clock, onClick: () => setFilterStatus('not_invited') },
           { label: 'Eingeladen', value: kpis.invited, color: 'text-yellow-600', bgColor: 'bg-yellow-100', icon: Send, onClick: () => setFilterStatus('invited') },
           { label: 'Termin gebucht', value: kpis.booked, color: 'text-green-600', bgColor: 'bg-green-100', icon: CheckCircle, onClick: () => setFilterStatus('booked') },
-          { label: 'Reschedule', value: kpis.reschedule, color: 'text-orange-600', bgColor: 'bg-orange-100', icon: History, onClick: () => setFilterStatus('reschedule'), highlight: kpis.reschedule > 0 },
+          { label: 'Nachterminierung', value: kpis.reschedule, color: 'text-orange-600', bgColor: 'bg-orange-100', icon: History, onClick: () => setFilterStatus('reschedule'), highlight: kpis.reschedule > 0 },
           { label: 'Ohne Telefon', value: kpis.noPhone, color: 'text-red-600', bgColor: 'bg-red-100', icon: AlertTriangle, onClick: () => {} },
         ].map(k => {
           const Icon = k.icon;
@@ -1528,7 +1163,7 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
             { id: 'not_invited', label: 'Nicht eingeladen', count: kpis.notInvited },
             { id: 'invited', label: 'Eingeladen', count: kpis.invited },
             { id: 'booked', label: 'Termin gebucht', count: kpis.booked },
-            { id: 'reschedule', label: 'Reschedule', count: kpis.reschedule, warn: kpis.reschedule > 0 },
+            { id: 'reschedule', label: 'Nachterminierung', count: kpis.reschedule, warn: kpis.reschedule > 0 },
             { id: 'all', label: 'Alle' },
           ].map(tab => (
             <button
@@ -1806,7 +1441,36 @@ export default function InstallationInviteManager({ onNavigateToDetail, filterCi
         <UnifiedStandortDetail
           standort={detailStandort}
           booking={bookingByAkquise.get(detailStandort.id)}
+          rawBooking={bookingByAkquise.get(detailStandort.id)}
           onClose={() => setDetailStandort(null)}
+          showInviteButton
+          onInvite={(s) => sendInvites([s])}
+          showWhatsApp
+          showPhoneEdit
+          onPhoneUpdate={async (bookingId, newPhone) => {
+            try {
+              const user = getCurrentUser();
+              if (bookingId) {
+                // Booking exists — update via booking endpoint (syncs Supabase + Airtable)
+                const res = await fetch(`${INSTALL_API.BOOKINGS}/${bookingId}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contact_phone: newPhone,
+                    created_by_user_id: user?.id || null,
+                    created_by_user_name: user?.name || null,
+                  }),
+                });
+                if (!res.ok) throw new Error('Update fehlgeschlagen');
+              }
+              setToast({ message: 'Telefonnummer aktualisiert.', type: 'success' });
+              loadData();
+            } catch (err) {
+              console.error('[InviteManager] Phone update failed:', err);
+              setToast({ message: 'Telefonnummer konnte nicht aktualisiert werden.', type: 'error' });
+              throw err;
+            }
+          }}
         />
       )}
 

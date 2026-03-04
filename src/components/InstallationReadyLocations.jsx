@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Search, MapPin, Phone, User, CheckCircle, Clock, AlertCircle,
-  ChevronDown, ChevronUp, RefreshCw, Loader2, Building, X,
-  CalendarCheck, ExternalLink, AlertTriangle, ArrowUpDown,
-  Filter, PhoneOff, Calendar, Send, Eye, Mail, FileText,
-  Image, Download, MessageSquare, Zap, RulerIcon,
+  Search, CheckCircle, Clock, RefreshCw, Loader2, Building, X,
+  CalendarCheck, AlertTriangle, ArrowUpDown,
+  Filter, PhoneOff, Calendar, Send,
 } from 'lucide-react';
 import { fetchAllAcquisition, fetchAllInstallationstermine } from '../utils/airtableService';
-import { INSTALL_API, formatDateYear as formatDate, formatDateTime, triggerSyncAndReload } from '../utils/installUtils';
+import { INSTALL_API, formatDateYear as formatDate, triggerSyncAndReload } from '../utils/installUtils';
 import { isStorno, isAlreadyInstalled, isReadyForInstall } from '../metrics';
-import { resolveRecordImages } from '../utils/attachmentResolver';
 import UnifiedStandortDetail from './UnifiedStandortDetail';
-import SuperChatHistory from './SuperChatHistory';
 
 /* ── Status Badges ── */
 
@@ -34,21 +30,6 @@ function BookingStatusBadge({ status }) {
   );
 }
 
-function StatusBadge({ label, variant = 'default' }) {
-  const variants = {
-    green: 'bg-green-100 text-green-700 border-green-200',
-    cyan: 'bg-cyan-100 text-cyan-700 border-cyan-200',
-    amber: 'bg-amber-100 text-amber-700 border-amber-200',
-    blue: 'bg-blue-100 text-blue-700 border-blue-200',
-    default: 'bg-gray-100 text-gray-600 border-gray-200',
-  };
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${variants[variant] || variants.default}`}>
-      {label}
-    </span>
-  );
-}
-
 /* ── KPI Card ── */
 function KPICard({ label, value, icon: Icon, color, bgColor, subtitle }) {
   return (
@@ -61,434 +42,6 @@ function KPICard({ label, value, icon: Icon, color, bgColor, subtitle }) {
       <div className="text-2xl font-bold text-gray-900">{value}</div>
       <div className="text-xs text-gray-500 font-medium mt-0.5">{label}</div>
       {subtitle && <div className="text-[10px] text-gray-400 mt-0.5">{subtitle}</div>}
-    </div>
-  );
-}
-
-
-/* ── Detail Slide-Over Panel ── */
-function StandortDetailPanel({ standort, bookingInfo, terminInfo, onClose }) {
-  // Resolve attachment URLs from Supabase cache (Airtable URLs expire after ~2h)
-  const [resolvedImages, setResolvedImages] = useState(standort.images || []);
-  const [resolvedVertragPdf, setResolvedVertragPdf] = useState(standort.vertragPdf || []);
-  const [resolvedFawData, setResolvedFawData] = useState(standort.fawDataAttachment || []);
-
-  useEffect(() => {
-    const recordId = standort.id || standort.airtableId;
-    if (!recordId) return;
-
-    // Resolve images
-    if (standort.images && standort.images.length > 0) {
-      resolveRecordImages(recordId, standort.images, 'images_akquise')
-        .then(setResolvedImages)
-        .catch(() => {});
-    }
-
-    // Resolve Vertrag PDF attachments
-    if (standort.vertragPdf && standort.vertragPdf.length > 0) {
-      resolveRecordImages(recordId, standort.vertragPdf, 'Vertrag (PDF)')
-        .then(setResolvedVertragPdf)
-        .catch(() => {});
-    }
-
-    // Resolve FAW data attachments
-    if (standort.fawDataAttachment && standort.fawDataAttachment.length > 0) {
-      resolveRecordImages(recordId, standort.fawDataAttachment, 'FAW_data_attachment')
-        .then(setResolvedFawData)
-        .catch(() => {});
-    }
-  }, [standort]);
-
-  const mapsUrl = standort.street && standort.city?.[0]
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${standort.locationName || ''} ${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}`
-      )}`
-    : null;
-  const streetviewUrl = standort.street && standort.city?.[0]
-    ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${encodeURIComponent(
-        `${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}`
-      )}`
-    : null;
-
-  return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex justify-end animate-fade-in" onClick={onClose}>
-      <div className="bg-white w-full max-w-lg h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
-          <div className="min-w-0">
-            <h3 className="font-bold text-gray-900 text-lg truncate">{standort.locationName || 'Unbekannt'}</h3>
-            <p className="text-sm text-gray-500 flex items-center gap-1">
-              <MapPin size={13} />
-              {standort.street} {standort.streetNumber}, {standort.postalCode} {standort.city?.[0] || '--'}
-            </p>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          {/* Status Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <StatusBadge label={standort.leadStatus || '--'} variant="green" />
-            <StatusBadge label={standort.approvalStatus || '--'} variant="cyan" />
-            {(standort.vertragVorhanden === true || standort.vertragVorhanden === 'true' || standort.vertragVorhanden === 'YES' || standort.vertragVorhanden === 'checked') && (
-              <StatusBadge label="Vertrag vorhanden" variant="green" />
-            )}
-            {bookingInfo && <BookingStatusBadge status={bookingInfo.status} />}
-            {mapsUrl && (
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-full hover:bg-blue-100 transition-colors">
-                <MapPin size={10} /> Maps
-              </a>
-            )}
-            {streetviewUrl && (
-              <a href={streetviewUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full hover:bg-indigo-100 transition-colors">
-                <Eye size={10} /> Streetview
-              </a>
-            )}
-          </div>
-
-          {/* Embedded Mini-Map */}
-          {standort.street && standort.city?.[0] && (() => {
-            const mapQuery = encodeURIComponent(`${standort.street} ${standort.streetNumber || ''}, ${standort.postalCode || ''} ${standort.city[0]}, Germany`);
-            const mapEmbedUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
-            return (
-              <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-                <iframe
-                  src={mapEmbedUrl}
-                  width="100%"
-                  height="180"
-                  style={{ border: 0, borderRadius: '16px' }}
-                  allowFullScreen
-                  loading="lazy"
-                  title="Standort Karte"
-                />
-              </div>
-            );
-          })()}
-
-          {/* Contact Info */}
-          <div className="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-              <User size={14} /> Kontakt
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div className="text-gray-400 text-xs">Name</div>
-                <div className="text-gray-900 font-medium">{standort.contactPerson || '--'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">Telefon</div>
-                <div className="text-gray-900 font-mono text-sm">
-                  {standort.contactPhone ? (
-                    <a href={`tel:${standort.contactPhone}`} className="hover:text-cyan-600 transition-colors">
-                      {standort.contactPhone}
-                    </a>
-                  ) : (
-                    <span className="text-amber-500 flex items-center gap-1"><PhoneOff size={11} /> Keine Nr.</span>
-                  )}
-                </div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">E-Mail</div>
-                <div className="text-gray-900 truncate text-sm">
-                  {standort.contactEmail ? (
-                    <a href={`mailto:${standort.contactEmail}`} className="hover:text-cyan-600 transition-colors">
-                      {standort.contactEmail}
-                    </a>
-                  ) : '--'}
-                </div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs">JET ID</div>
-                <div className="text-gray-900 font-mono text-sm">{standort.jetId && !standort.jetId.startsWith('rec') ? standort.jetId : '--'}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Fotos */}
-          {resolvedImages && resolvedImages.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                <Image size={14} /> Standort-Fotos ({resolvedImages.length})
-              </h4>
-              <div className="grid grid-cols-3 gap-2">
-                {resolvedImages.slice(0, 6).map((img, i) => (
-                  <a key={i} href={img.url} target="_blank" rel="noopener noreferrer" className="block">
-                    <img
-                      src={img.thumbnails?.large?.url || img.thumbnails?.small?.url || img.url}
-                      alt={img.filename || `Foto ${i + 1}`}
-                      className="w-full h-20 object-cover rounded-xl border border-gray-100 hover:border-cyan-300 transition-colors"
-                      loading="lazy"
-                    />
-                  </a>
-                ))}
-              </div>
-              {resolvedImages.length > 6 && (
-                <div className="text-[10px] text-gray-400 text-center">+{resolvedImages.length - 6} weitere Fotos</div>
-              )}
-            </div>
-          )}
-
-          {/* Hindernisse + Technische Details */}
-          {(standort.hindernisse || standort.hindernisseBeschreibung || standort.fensterbreite || standort.steckdose) && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-              <div className="text-xs font-medium text-amber-700 flex items-center gap-1.5">
-                <AlertTriangle size={13} /> Hindernisse / Technische Details
-              </div>
-              {standort.hindernisse && (
-                <div className="text-xs text-amber-600 whitespace-pre-wrap">{standort.hindernisse}</div>
-              )}
-              {standort.hindernisseBeschreibung && (
-                <div className="text-xs text-amber-600 whitespace-pre-wrap">{standort.hindernisseBeschreibung}</div>
-              )}
-              <div className="flex gap-3 text-xs">
-                {standort.fensterbreite && (
-                  <span className={`inline-flex items-center gap-1 ${standort.fensterbreite === 'Ja' || standort.fensterbreite === true ? 'text-green-600' : 'text-red-500'}`}>
-                    <CheckCircle size={11} /> Fensterbreite: {standort.fensterbreite === true ? 'Ja' : standort.fensterbreite}
-                  </span>
-                )}
-                {standort.steckdose && (
-                  <span className={`inline-flex items-center gap-1 ${standort.steckdose === 'Ja' || standort.steckdose === true ? 'text-green-600' : 'text-red-500'}`}>
-                    <Zap size={11} /> Steckdose: {standort.steckdose === true ? 'Ja' : standort.steckdose}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Booking Info */}
-          {bookingInfo && (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 space-y-2 border border-blue-100">
-              <h4 className="text-sm font-semibold text-blue-700 flex items-center gap-1.5">
-                <CalendarCheck size={14} /> Buchung
-              </h4>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <div className="text-blue-400 text-xs">Status</div>
-                  <BookingStatusBadge status={bookingInfo.status} />
-                </div>
-                {bookingInfo.booked_date && (
-                  <div>
-                    <div className="text-blue-400 text-xs">Termin</div>
-                    <div className="text-blue-900 font-semibold">{formatDate(bookingInfo.booked_date)}</div>
-                  </div>
-                )}
-                {bookingInfo.booked_time && (
-                  <div>
-                    <div className="text-blue-400 text-xs">Uhrzeit</div>
-                    <div className="text-blue-900">{bookingInfo.booked_time} - {bookingInfo.booked_end_time || ''}</div>
-                  </div>
-                )}
-                {bookingInfo.route_city && (
-                  <div>
-                    <div className="text-blue-400 text-xs">Route / Stadt</div>
-                    <div className="text-blue-900">{bookingInfo.route_city}</div>
-                  </div>
-                )}
-                {bookingInfo.whatsapp_sent_at && (
-                  <div>
-                    <div className="text-blue-400 text-xs">WhatsApp gesendet</div>
-                    <div className="text-blue-900">{formatDateTime(bookingInfo.whatsapp_sent_at)}</div>
-                  </div>
-                )}
-                {bookingInfo.booked_at && (
-                  <div>
-                    <div className="text-blue-400 text-xs">Bestätigt am</div>
-                    <div className="text-blue-900">{formatDateTime(bookingInfo.booked_at)}</div>
-                  </div>
-                )}
-              </div>
-              {bookingInfo.booking_token && (
-                <div className="mt-2">
-                  <a href={`/book/${bookingInfo.booking_token}`} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">
-                    <ExternalLink size={11} /> Buchungsseite oeffnen
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Airtable Installationstermin */}
-          {terminInfo && (
-            <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-4 space-y-2 border border-purple-100">
-              <h4 className="text-sm font-semibold text-purple-700 flex items-center gap-1.5">
-                <Calendar size={14} /> Installationstermin (Airtable)
-              </h4>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <div className="text-purple-400 text-xs">Status</div>
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${
-                    terminInfo.terminstatus === 'Geplant' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                    terminInfo.terminstatus === 'Durchgeführt' ? 'bg-green-100 text-green-700 border-green-200' :
-                    terminInfo.terminstatus === 'Verschoben' ? 'bg-amber-100 text-amber-700 border-amber-200' :
-                    terminInfo.terminstatus === 'Abgesagt' ? 'bg-red-100 text-red-700 border-red-200' :
-                    'bg-gray-100 text-gray-600 border-gray-200'
-                  }`}>
-                    {terminInfo.terminstatus || 'Unbekannt'}
-                  </span>
-                </div>
-                {terminInfo.installationsdatum && (
-                  <div>
-                    <div className="text-purple-400 text-xs">Datum</div>
-                    <div className="text-purple-900 font-semibold">
-                      {new Date(terminInfo.installationsdatum).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
-                    </div>
-                  </div>
-                )}
-                {terminInfo.installationszeit && (
-                  <div>
-                    <div className="text-purple-400 text-xs">Uhrzeit</div>
-                    <div className="text-purple-900">{terminInfo.installationszeit}</div>
-                  </div>
-                )}
-                {terminInfo.grundNotiz && (
-                  <div className="col-span-2">
-                    <div className="text-purple-400 text-xs">Notiz</div>
-                    <div className="text-purple-900 text-xs whitespace-pre-wrap">{terminInfo.grundNotiz}</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Akquise Data */}
-          <div className="bg-orange-50/50 rounded-2xl p-4 space-y-2 border border-orange-100">
-            <h4 className="text-sm font-semibold text-orange-700 flex items-center gap-1.5">
-              <Building size={14} /> Akquise-Daten
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div className="text-orange-400 text-xs">Akquise-Partner</div>
-                <div className="text-gray-900">{standort.acquisitionPartner || '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Akquise-Datum</div>
-                <div className="text-gray-900">{standort.acquisitionDate ? formatDate(standort.acquisitionDate) : '--'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Montage-Art</div>
-                <div className="text-gray-900">{standort.mountType || 'Nicht angegeben'}</div>
-              </div>
-              <div>
-                <div className="text-orange-400 text-xs">Vertragsnummer</div>
-                <div className="text-gray-900 font-mono text-xs">{standort.vertragsnummer || '--'}</div>
-              </div>
-              {(standort.dvacWeek || standort.dvacMonth || standort.dvacDay) && (<>
-                <div>
-                  <div className="text-orange-400 text-xs">dVAC / Woche</div>
-                  <div className="text-gray-900 font-semibold">{standort.dvacWeek != null ? Math.round(standort.dvacWeek).toLocaleString('de-DE') : '--'}</div>
-                </div>
-                <div>
-                  <div className="text-orange-400 text-xs">dVAC / Monat</div>
-                  <div className="text-gray-900 font-semibold">{standort.dvacMonth != null ? Math.round(standort.dvacMonth).toLocaleString('de-DE') : '--'}</div>
-                </div>
-              </>)}
-              {standort.schaufenster && (
-                <div>
-                  <div className="text-orange-400 text-xs">Schaufenster</div>
-                  <div className="text-gray-900">{standort.schaufenster}</div>
-                </div>
-              )}
-              {standort.frequencyApproval && (
-                <div>
-                  <div className="text-orange-400 text-xs">FAW Status</div>
-                  <div className="text-gray-900">{standort.frequencyApproval}</div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Dokumente */}
-          {((resolvedVertragPdf && resolvedVertragPdf.length > 0) || (resolvedFawData && resolvedFawData.length > 0)) && (
-            <div className="bg-slate-50 rounded-2xl p-4 space-y-2 border border-slate-200">
-              <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-                <FileText size={14} /> Dokumente
-              </h4>
-              <div className="space-y-1.5">
-                {resolvedVertragPdf && resolvedVertragPdf.map((doc, i) => (
-                  <a key={`pdf-${i}`} href={doc.url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50/50 transition-colors group">
-                    <FileText size={14} className="text-green-500 shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-gray-900 truncate">{doc.filename || 'Vertrag PDF'}</div>
-                      {doc.size > 0 && <div className="text-[10px] text-gray-400">{(doc.size / 1024).toFixed(0)} KB</div>}
-                    </div>
-                    <Download size={12} className="text-gray-300 group-hover:text-green-500 shrink-0" />
-                  </a>
-                ))}
-                {resolvedFawData && resolvedFawData.map((doc, i) => (
-                  <a key={`faw-${i}`} href={doc.url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group">
-                    <FileText size={14} className="text-blue-500 shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-gray-900 truncate">{doc.filename || 'FAW Daten'}</div>
-                      {doc.size > 0 && <div className="text-[10px] text-gray-400">{(doc.size / 1024).toFixed(0)} KB</div>}
-                    </div>
-                    <Download size={12} className="text-gray-300 group-hover:text-blue-500 shrink-0" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Kommentare */}
-          {(standort.akquiseKommentar || standort.kommentarInstallationen || standort.frequencyApprovalComment) && (
-            <div className="bg-sky-50/50 rounded-2xl p-4 space-y-3 border border-sky-100">
-              <h4 className="text-sm font-semibold text-sky-700 flex items-center gap-1.5">
-                <MessageSquare size={14} /> Kommentare
-              </h4>
-              {standort.akquiseKommentar && (
-                <div>
-                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Akquise</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.akquiseKommentar}</div>
-                </div>
-              )}
-              {standort.kommentarInstallationen && (
-                <div>
-                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Installationen</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.kommentarInstallationen}</div>
-                </div>
-              )}
-              {standort.frequencyApprovalComment && (
-                <div>
-                  <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-0.5">FAW Pruefung</div>
-                  <div className="text-xs text-gray-700 whitespace-pre-wrap bg-white rounded-lg p-2.5 border border-sky-100">{standort.frequencyApprovalComment}</div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* WhatsApp Chat History */}
-          {standort.contactPhone && (
-            <SuperChatHistory
-              contactPhone={standort.contactPhone}
-              contactName={standort.contactPerson || standort.locationName}
-              collapsed={true}
-              maxHeight="300px"
-            />
-          )}
-
-          {/* Action Links */}
-          <div className="flex gap-3 pt-2">
-            <a
-              href={`#invite`}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-50 text-orange-700 border border-orange-200 rounded-xl hover:bg-orange-100 font-medium text-sm transition-colors"
-            >
-              <Send size={14} /> Einladungsmanager
-            </a>
-            <a
-              href={`#phone`}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-xl hover:bg-cyan-100 font-medium text-sm transition-colors"
-            >
-              <Phone size={14} /> Telefon-Workbench
-            </a>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -556,7 +109,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
   // Only future or active bookings count as "mit Termin"
   const bookingByAkquise = useMemo(() => {
     const map = new Map();
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE');
     for (const b of bookings) {
       if (!b.akquise_airtable_id) continue;
       // Skip past bookings with booked status (already happened, not counted as upcoming)
@@ -572,7 +125,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
   // Only count "Geplant" termine with future dates as active (past termine don't count as "mit Termin")
   const terminByAkquise = useMemo(() => {
     const map = new Map();
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE');
     for (const t of termine) {
       const links = t.akquiseLinks || [];
       const status = t.terminstatus || '';
@@ -1022,6 +575,7 @@ export default function InstallationReadyLocations({ filterCity: filterCityProp 
           booking={detailBooking}
           termin={detailTermin}
           onClose={() => setDetailStandort(null)}
+          showWhatsApp
         />
       )}
 

@@ -1,19 +1,22 @@
 /**
- * Netlify Scheduled Function: Install Booker – 22h Reminder
+ * Netlify Scheduled Function: Install Booker – Multi-Stage Reminders
  *
- * Runs every hour. Checks for pending bookings older than 22h
- * that haven't received a reminder yet, and sends a WhatsApp
- * reminder via approved SuperChat template.
+ * Runs every hour. Sends up to 3 reminder stages for pending bookings
+ * that haven't booked an appointment yet:
  *
- * Logic:
- *   1. Query install_bookings: status=pending, reminder_count=0,
- *      created_at older than 22h (within WA 24h window)
- *   2. For each booking, ensure booking link is set on SC contact
- *   3. Send the approved "install_reminder" WA template
- *   4. Update reminder_sent_at and reminder_count
+ *   Stage 1: After 22h   (within WA 24h window)    — "Erinnerung: Bitte Termin buchen"
+ *   Stage 2: After 3 days (from last reminder)      — "Freundliche Erinnerung"
+ *   Stage 3: After 7 days (from last reminder)      — "Letzte Erinnerung"
  *
- * Uses feature flag "install_reminder_enabled" to enable/disable.
- * Respects superchat_test_phone for test mode.
+ * Each stage has its own feature flag for gradual rollout.
+ * Template IDs are configurable per stage (falls back to stage 1 template).
+ *
+ * Uses feature flags:
+ *   - install_reminder_enabled      (master switch)
+ *   - install_reminder_2_enabled    (stage 2)
+ *   - install_reminder_3_enabled    (stage 3)
+ *   - superchat_enabled             (global WA gate)
+ *   - superchat_test_phone          (test mode override)
  */
 
 import { logApiCall } from './shared/apiLogger.js';
@@ -25,14 +28,48 @@ const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
 const BOOKING_BASE_URL = process.env.BOOKING_BASE_URL || 'https://tools.dimension-outdoor.com/book';
 const SUPERCHAT_BASE = 'https://api.superchat.com/v1.0';
 
-/** Approved WA template for reminders — SuperChat internal tn_ ID */
-const REMINDER_TEMPLATE_ID = 'tn_d3S5yQ0A18EQ9mulWgNUb';
+/**
+ * Multi-stage reminder configuration.
+ * Each stage defines:
+ *   - count:      The current reminder_count value to match
+ *   - delayHours: Minimum hours since last action before sending
+ *   - timeField:  Which DB field to check for timing (whatsapp_sent_at or reminder_sent_at)
+ *   - templateId: SuperChat template to use (approved WA template)
+ *   - featureFlag: Which flag must be enabled (null = uses master switch only)
+ *   - label:      Human-readable label for logging
+ */
+const REMINDER_STAGES = [
+  {
+    count: 0,
+    delayHours: 22,
+    timeField: 'whatsapp_sent_at',
+    templateId: 'tn_d3S5yQ0A18EQ9mulWgNUb',   // Approved: Erinnerung
+    featureFlag: null,                           // Uses master switch
+    label: 'Reminder 1 (22h)',
+  },
+  {
+    count: 1,
+    delayHours: 72,                              // 3 Tage nach Reminder 1
+    timeField: 'reminder_sent_at',
+    templateId: 'tn_d3S5yQ0A18EQ9mulWgNUb',   // Same template until new one is approved
+    featureFlag: 'install_reminder_2_enabled',
+    label: 'Reminder 2 (3 Tage)',
+  },
+  {
+    count: 2,
+    delayHours: 168,                             // 7 Tage nach Reminder 2
+    timeField: 'reminder_sent_at',
+    templateId: 'tn_d3S5yQ0A18EQ9mulWgNUb',   // Same template until new one is approved
+    featureFlag: 'install_reminder_3_enabled',
+    label: 'Reminder 3 (7 Tage)',
+  },
+];
 
 /** SuperChat contact attribute IDs */
 const SC_BOOKING_LINK_ATTR_ID = 'ca_cb868yUGScrsohM7y2kwv';
 
-/** How many hours to wait before sending reminder (must be < 24 for WA window) */
-const REMINDER_DELAY_HOURS = 22;
+/** Max bookings to process per stage per run */
+const BATCH_LIMIT = 20;
 
 /** Supabase REST helper */
 async function supabaseRequest(path, options = {}) {
@@ -93,8 +130,15 @@ async function superchatRequest(path, options = {}) {
 /** Get feature flags for reminder + superchat config */
 async function getConfig() {
   try {
+    const flagKeys = [
+      'superchat_enabled',
+      'superchat_test_phone',
+      'install_reminder_enabled',
+      'install_reminder_2_enabled',
+      'install_reminder_3_enabled',
+    ];
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone,install_reminder_enabled)&select=*`,
+      `${SUPABASE_URL}/rest/v1/feature_flags?key=in.(${flagKeys.join(',')})&select=*`,
       {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -102,25 +146,37 @@ async function getConfig() {
         },
       }
     );
-    if (!res.ok) return { reminderEnabled: false, superchatEnabled: false, testPhone: null };
+    if (!res.ok) return { reminderEnabled: false, superchatEnabled: false, testPhone: null, stageFlags: {} };
     const data = await res.json();
-    const reminderFlag = data.find(f => f.key === 'install_reminder_enabled');
-    const scEnabledFlag = data.find(f => f.key === 'superchat_enabled');
-    const testPhoneFlag = data.find(f => f.key === 'superchat_test_phone');
+
+    const getFlag = (key) => data.find(f => f.key === key);
+    const reminderFlag = getFlag('install_reminder_enabled');
+    const scEnabledFlag = getFlag('superchat_enabled');
+    const testPhoneFlag = getFlag('superchat_test_phone');
+
+    // Stage-specific flags
+    const stageFlags = {};
+    for (const stage of REMINDER_STAGES) {
+      if (stage.featureFlag) {
+        const flag = getFlag(stage.featureFlag);
+        stageFlags[stage.featureFlag] = flag?.enabled === true;
+      }
+    }
+
     return {
       reminderEnabled: reminderFlag?.enabled === true,
       superchatEnabled: scEnabledFlag?.enabled === true,
       testPhone: testPhoneFlag?.enabled ? (testPhoneFlag.description || null) : null,
+      stageFlags,
     };
   } catch {
-    return { reminderEnabled: false, superchatEnabled: false, testPhone: null };
+    return { reminderEnabled: false, superchatEnabled: false, testPhone: null, stageFlags: {} };
   }
 }
 
 /** Update the Install Booking Link attribute on a SuperChat contact */
 async function updateContactBookingLink(phone, bookingUrl) {
   try {
-    // Search for contact by phone
     const searchResult = await superchatRequest('contacts/search', {
       method: 'POST',
       body: JSON.stringify({
@@ -134,20 +190,133 @@ async function updateContactBookingLink(phone, bookingUrl) {
     }
     const contactId = contacts[0].id;
 
-    // Update booking link attribute
     const updateResult = await superchatRequest(`contacts/${contactId}`, {
       method: 'PATCH',
       body: JSON.stringify({
         custom_attributes: [{ id: SC_BOOKING_LINK_ATTR_ID, value: bookingUrl }],
       }),
     });
-    console.log(`[install-booker-reminder] Updated booking link on contact ${contactId}: ${updateResult.ok ? 'OK' : 'FAILED'}`);
     return updateResult.ok;
   } catch (e) {
     console.error(`[install-booker-reminder] Contact update failed for ${phone}:`, e.message);
     return false;
   }
 }
+
+/**
+ * Process a single reminder stage.
+ * Returns { sent, failed, skipped }
+ */
+async function processStage(stage, config) {
+  const cutoff = new Date(Date.now() - stage.delayHours * 60 * 60 * 1000).toISOString();
+  const WA_CHANNEL = process.env.SUPERCHAT_WA_CHANNEL_ID || 'mc_cy5HABDnpRhRtosxckRzb';
+
+  // Query: status=pending, correct reminder_count, time field older than cutoff
+  const query = `install_bookings?status=eq.pending`
+    + `&reminder_count=eq.${stage.count}`
+    + `&${stage.timeField}=lt.${cutoff}`
+    + `&${stage.timeField}=not.is.null`
+    + `&select=*&order=created_at.asc&limit=${BATCH_LIMIT}`;
+
+  const result = await supabaseRequest(query);
+
+  if (!result.ok) {
+    console.error(`[install-booker-reminder] [${stage.label}] Query failed: ${result.status}`);
+    return { sent: 0, failed: 0, skipped: 0 };
+  }
+
+  const bookings = result.data || [];
+  if (bookings.length === 0) {
+    return { sent: 0, failed: 0, skipped: 0 };
+  }
+
+  console.log(`[install-booker-reminder] [${stage.label}] Found ${bookings.length} bookings`);
+
+  let sent = 0;
+  let failed = 0;
+  let skipped = 0;
+  const newCount = stage.count + 1;
+
+  for (const booking of bookings) {
+    if (!booking.contact_phone) {
+      console.warn(`[install-booker-reminder] [${stage.label}] Skipping ${booking.id} — no phone`);
+      skipped++;
+      continue;
+    }
+
+    const actualPhone = normalizePhone(config.testPhone || booking.contact_phone);
+    if (config.testPhone) {
+      console.log(`[install-booker-reminder] [${stage.label}] TEST MODE — ${booking.contact_phone} → ${config.testPhone}`);
+    }
+
+    try {
+      // Ensure booking link is set on SC contact
+      const bookingUrl = `${BOOKING_BASE_URL}/${booking.booking_token}`;
+      const contactSearchPhone = normalizePhone(booking.contact_phone);
+      await updateContactBookingLink(contactSearchPhone, bookingUrl);
+
+      const firstName = booking.contact_name ? booking.contact_name.split(' ')[0] : 'Standortinhaber/in';
+
+      // Send template
+      const sendResult = await superchatRequest('messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          to: [{ identifier: actualPhone }],
+          from: { channel_id: WA_CHANNEL },
+          content: {
+            type: 'whats_app_template',
+            template_id: stage.templateId,
+            variables: [
+              { position: 1, value: firstName },
+              { position: 2, value: bookingUrl },
+            ],
+          },
+        }),
+      });
+
+      if (sendResult.ok) {
+        await supabaseRequest(`install_bookings?id=eq.${booking.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            reminder_sent_at: new Date().toISOString(),
+            reminder_count: newCount,
+          }),
+        });
+        sent++;
+        console.log(`[install-booker-reminder] [${stage.label}] ✓ ${booking.location_name} (${booking.id})`);
+
+        writeActivityLog({
+          user_name: 'WhatsApp Bot',
+          action: 'reminder_sent',
+          booking_id: booking.id,
+          akquise_airtable_id: booking.akquise_airtable_id || null,
+          location_name: booking.location_name,
+          city: booking.city,
+          source: 'bot',
+          detail: { template_id: stage.templateId, reminder_count: newCount, stage: stage.label },
+        });
+      } else {
+        failed++;
+        console.error(`[install-booker-reminder] [${stage.label}] ✗ ${booking.location_name}:`, JSON.stringify(sendResult.data)?.slice(0, 300));
+
+        // Mark as attempted so we don't retry forever
+        await supabaseRequest(`install_bookings?id=eq.${booking.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ reminder_count: newCount }),
+        });
+      }
+    } catch (e) {
+      failed++;
+      console.error(`[install-booker-reminder] [${stage.label}] Error for ${booking.location_name}:`, e.message);
+    }
+  }
+
+  return { sent, failed, skipped };
+}
+
+// ═══════════════════════════════════════
+//  MAIN
+// ═══════════════════════════════════════
 
 export default async (req) => {
   const apiStart = Date.now();
@@ -174,121 +343,27 @@ export default async (req) => {
       return;
     }
 
-    // 2. Find pending bookings older than 22h with no reminder sent yet
-    //    22h ensures we're still within the WA 24h service window from initial invite
-    const cutoff = new Date(Date.now() - REMINDER_DELAY_HOURS * 60 * 60 * 1000).toISOString();
+    // 2. Process each stage
+    const totals = { sent: 0, failed: 0, skipped: 0 };
 
-    const pendingResult = await supabaseRequest(
-      `install_bookings?status=eq.pending&reminder_count=eq.0&whatsapp_sent_at=lt.${cutoff}&whatsapp_sent_at=not.is.null&select=*&order=created_at.asc&limit=20`
-    );
-
-    if (!pendingResult.ok) {
-      console.error('[install-booker-reminder] Failed to query pending bookings:', pendingResult.status);
-      return;
-    }
-
-    const pendingBookings = pendingResult.data || [];
-
-    if (pendingBookings.length === 0) {
-      console.log('[install-booker-reminder] No pending bookings need reminders.');
-      return;
-    }
-
-    console.log(`[install-booker-reminder] Found ${pendingBookings.length} bookings needing reminders`);
-
-    const WA_CHANNEL = process.env.SUPERCHAT_WA_CHANNEL_ID || 'mc_cy5HABDnpRhRtosxckRzb';
-    let sent = 0;
-    let failed = 0;
-
-    // 3. Send reminders via approved template
-    for (const booking of pendingBookings) {
-      if (!booking.contact_phone) {
-        console.warn(`[install-booker-reminder] Skipping booking ${booking.id} — no phone number`);
+    for (const stage of REMINDER_STAGES) {
+      // Check stage-specific feature flag
+      if (stage.featureFlag && !config.stageFlags[stage.featureFlag]) {
+        console.log(`[install-booker-reminder] [${stage.label}] SKIPPED — ${stage.featureFlag}=false`);
         continue;
       }
 
-      // Test mode: override phone
-      const actualPhone = normalizePhone(config.testPhone || booking.contact_phone);
-      if (config.testPhone) {
-        console.log(`[install-booker-reminder] TEST MODE — redirecting from ${booking.contact_phone} to ${config.testPhone}`);
-      }
+      const result = await processStage(stage, config);
+      totals.sent += result.sent;
+      totals.failed += result.failed;
+      totals.skipped += result.skipped;
 
-      try {
-        // Ensure booking link is set on the SC contact (template uses contact_attribute)
-        const bookingUrl = `${BOOKING_BASE_URL}/${booking.booking_token}`;
-        const contactSearchPhone = normalizePhone(booking.contact_phone);
-        await updateContactBookingLink(contactSearchPhone, bookingUrl);
-
-        // Extract first name for the static template variable
-        const firstName = booking.contact_name ? booking.contact_name.split(' ')[0] : 'Standortinhaber/in';
-
-        // Send the approved template
-        // Template "install_reminder" variables:
-        //   {{1}} = First name (static — we provide the value)
-        //   {{2}} = Install Booking Link (contact_attribute — SC reads from contact, but we also pass value)
-        console.log(`[install-booker-reminder] Sending template to ${actualPhone} for ${booking.location_name || booking.id}`);
-        const sendResult = await superchatRequest('messages', {
-          method: 'POST',
-          body: JSON.stringify({
-            to: [{ identifier: actualPhone }],
-            from: { channel_id: WA_CHANNEL },
-            content: {
-              type: 'whats_app_template',
-              template_id: REMINDER_TEMPLATE_ID,
-              variables: [
-                { position: 1, value: firstName },
-                { position: 2, value: bookingUrl },
-              ],
-            },
-          }),
-        });
-
-        console.log(`[install-booker-reminder] Template result: ${sendResult.status} ${sendResult.ok ? 'OK' : 'FAILED'}`);
-
-        // 4. Update booking with reminder tracking
-        if (sendResult.ok) {
-          await supabaseRequest(`install_bookings?id=eq.${booking.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({
-              reminder_sent_at: new Date().toISOString(),
-              reminder_count: 1,
-            }),
-          });
-          sent++;
-          console.log(`[install-booker-reminder] ✓ Reminder sent for ${booking.location_name} (${booking.id})`);
-
-          // Activity log: reminder sent (fire-and-forget)
-          writeActivityLog({
-            user_id:             null,
-            user_name:           'WhatsApp Bot',
-            action:              'reminder_sent',
-            booking_id:          booking.id,
-            akquise_airtable_id: booking.akquise_airtable_id || null,
-            location_name:       booking.location_name,
-            city:                booking.city,
-            source:              'bot',
-            detail: { template_id: REMINDER_TEMPLATE_ID, reminder_count: 1 },
-          });
-        } else {
-          failed++;
-          console.error(`[install-booker-reminder] ✗ Failed for ${booking.location_name} (${booking.id}):`, JSON.stringify(sendResult.data)?.slice(0, 300));
-
-          // Still mark as attempted so we don't retry forever
-          await supabaseRequest(`install_bookings?id=eq.${booking.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({
-              reminder_count: 1,
-              // Don't set reminder_sent_at so we can distinguish success/failure
-            }),
-          });
-        }
-      } catch (e) {
-        failed++;
-        console.error(`[install-booker-reminder] Error for ${booking.location_name} (${booking.id}):`, e.message);
+      if (result.sent > 0 || result.failed > 0) {
+        console.log(`[install-booker-reminder] [${stage.label}] Done: sent=${result.sent}, failed=${result.failed}`);
       }
     }
 
-    console.log(`[install-booker-reminder] Done. Sent: ${sent}, Failed: ${failed}, Total: ${pendingBookings.length}`);
+    console.log(`[install-booker-reminder] All stages done. Total sent=${totals.sent}, failed=${totals.failed}, skipped=${totals.skipped}`);
 
     logApiCall({
       functionName: 'install-booker-reminder',
@@ -298,7 +373,7 @@ export default async (req) => {
       durationMs: Date.now() - apiStart,
       statusCode: 200,
       success: true,
-      metadata: { sent, failed, total: pendingBookings.length },
+      metadata: totals,
     });
 
   } catch (err) {

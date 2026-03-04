@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
-  LineChart,
+  AreaChart,
+  Area,
   Line,
   XAxis,
   YAxis,
@@ -9,7 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { Calendar } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 
 const PRESETS = [
   { label: '7T', days: 7 },
@@ -118,10 +119,7 @@ export default function HealthTrendChart({
   }
 
   // Merge comparison data day-by-day aligned
-  // The comparison period has the same number of days, shifted back.
-  // We align by index: day 0 of current = day 0 of comparison, etc.
   const mergedData = useMemo(() => {
-    // Downsample comparison data the same way
     let compData = comparisonTrendData || [];
     if (compData.length > 60) {
       const step = Math.ceil(compData.length / 60);
@@ -134,11 +132,9 @@ export default function HealthTrendChart({
         ts: d.timestamp.getTime(),
       };
 
-      // Align by index (day 0 current <-> day 0 comparison)
       if (compData.length > 0 && i < compData.length) {
         const comp = compData[i];
         entry.compHealthRate = comp.healthRate;
-        // Format comparison date for tooltip
         const cd = comp.timestamp;
         entry.compDate = `${cd.getDate().toString().padStart(2, '0')}.${(cd.getMonth() + 1).toString().padStart(2, '0')}`;
       }
@@ -146,6 +142,43 @@ export default function HealthTrendChart({
       return entry;
     });
   }, [chartData, comparisonTrendData]);
+
+  // Compute trend summary: first vs last data point
+  const trendSummary = useMemo(() => {
+    if (mergedData.length < 2) return null;
+    const first = mergedData[0];
+    const last = mergedData[mergedData.length - 1];
+    if (first.healthRate == null || last.healthRate == null) return null;
+    const delta = Math.round((last.healthRate - first.healthRate) * 10) / 10;
+    return {
+      startRate: first.healthRate,
+      endRate: last.healthRate,
+      startDate: first.date,
+      endDate: last.date,
+      delta,
+      isPositive: delta > 0,
+      isNegative: delta < 0,
+    };
+  }, [mergedData]);
+
+  // Dynamic Y-axis domain: auto-scale to data range with padding
+  const yDomain = useMemo(() => {
+    let min = 100, max = 0;
+    for (const d of mergedData) {
+      if (d.healthRate != null) {
+        if (d.healthRate < min) min = d.healthRate;
+        if (d.healthRate > max) max = d.healthRate;
+      }
+      if (d.compHealthRate != null) {
+        if (d.compHealthRate < min) min = d.compHealthRate;
+        if (d.compHealthRate > max) max = d.compHealthRate;
+      }
+    }
+    // Round down/up to nearest 5 with padding
+    const lower = Math.max(0, Math.floor((min - 5) / 5) * 5);
+    const upper = Math.min(100, Math.ceil((max + 5) / 5) * 5);
+    return [lower, upper];
+  }, [mergedData]);
 
   // Format X-axis labels
   const formatXAxis = (val) => {
@@ -234,7 +267,7 @@ export default function HealthTrendChart({
             </button>
           </div>
 
-          {/* Custom date inputs - shown when Custom is clicked or custom range is active */}
+          {/* Custom date inputs */}
           {(showCustomDate || isCustomActive) && (
             <>
               <div className="w-px h-5 bg-slate-200 mx-1" />
@@ -267,9 +300,43 @@ export default function HealthTrendChart({
         </div>
       )}
 
+      {/* Trend summary banner */}
+      {trendSummary && (
+        <div className="flex items-center gap-3 mb-3 px-3 py-2 bg-slate-50/80 rounded-lg border border-slate-200/40">
+          <div className="flex items-center gap-2 text-sm font-mono">
+            <span className="text-slate-500">{trendSummary.startDate}</span>
+            <span className="text-slate-900 font-semibold">{trendSummary.startRate}%</span>
+          </div>
+          <div className="text-slate-400">{'\u2192'}</div>
+          <div className="flex items-center gap-2 text-sm font-mono">
+            <span className="text-slate-500">{trendSummary.endDate}</span>
+            <span className="text-slate-900 font-semibold">{trendSummary.endRate}%</span>
+          </div>
+          {trendSummary.delta !== 0 && (
+            <div className={`flex items-center gap-1 ml-auto px-2.5 py-1 rounded-full text-xs font-mono font-bold ${
+              trendSummary.isPositive
+                ? 'text-emerald-700 bg-emerald-50 border border-emerald-200/60'
+                : 'text-red-600 bg-red-50 border border-red-200/60'
+            }`}>
+              {trendSummary.isPositive
+                ? <TrendingUp size={14} />
+                : <TrendingDown size={14} />
+              }
+              {trendSummary.isPositive ? '+' : ''}{trendSummary.delta}%
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={mergedData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+          <AreaChart data={mergedData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+            <defs>
+              <linearGradient id="healthGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis
               dataKey="ts"
@@ -280,7 +347,7 @@ export default function HealthTrendChart({
               stroke="#e2e8f0"
             />
             <YAxis
-              domain={[0, 100]}
+              domain={yDomain}
               tick={{ fill: '#64748b', fontSize: 11 }}
               stroke="#e2e8f0"
               tickFormatter={(v) => `${v}%`}
@@ -288,7 +355,7 @@ export default function HealthTrendChart({
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine y={90} stroke="#22c55e" strokeDasharray="3 3" strokeOpacity={0.3} />
             <ReferenceLine y={70} stroke="#f59e0b" strokeDasharray="3 3" strokeOpacity={0.3} />
-            {/* Comparison period line (behind current) - ALWAYS shown when data exists */}
+            {/* Comparison period line (behind current) */}
             {hasComparison && (
               <Line
                 type="monotone"
@@ -302,16 +369,17 @@ export default function HealthTrendChart({
                 connectNulls
               />
             )}
-            {/* Current period line (on top) */}
-            <Line
+            {/* Current period: area fill + line */}
+            <Area
               type="monotone"
               dataKey="healthRate"
               stroke="#3b82f6"
               strokeWidth={2}
+              fill="url(#healthGradient)"
               dot={false}
               activeDot={{ r: 4, fill: '#3b82f6', stroke: '#ffffff', strokeWidth: 2 }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>

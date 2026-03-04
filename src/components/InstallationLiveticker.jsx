@@ -132,13 +132,25 @@ function deriveBookingEvents(bookings) {
       });
     }
 
-    // Cancelled
+    // Cancelled — with extra context
     if (b.status === 'cancelled' && b.updated_at) {
+      const wasBooked = !!b.booked_date;
+      const cancelledBy = b.cancelled_by_user_name || null;
+      const reason = b.cancelled_reason || null;
+      let detail = '';
+      if (wasBooked) {
+        const dateStr = new Date(b.booked_date + 'T00:00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+        detail = ` (Termin ${dateStr}${b.booked_time ? ' ' + b.booked_time : ''})`;
+      } else {
+        detail = ' (kein Termin gebucht)';
+      }
+      const byStr = cancelledBy ? ` von ${cancelledBy}` : '';
       events.push({
         id: `cancelled-${b.id}`,
         type: 'cancelled',
-        timestamp: b.updated_at,
-        text: `${name}${suffix} ${EVENT_TYPES.cancelled.label}`,
+        timestamp: b.cancelled_at || b.updated_at,
+        text: `${name}${suffix} ${EVENT_TYPES.cancelled.label}${byStr}${detail}`,
+        subtitle: reason || null,
       });
     }
   }
@@ -182,6 +194,9 @@ function EventRow({ event }) {
       {/* Text */}
       <div className="min-w-0 flex-1">
         <p className="text-sm text-gray-800 leading-snug">{event.text}</p>
+        {event.subtitle && (
+          <p className="text-[11px] text-gray-400 mt-0.5">Grund: {event.subtitle}</p>
+        )}
       </div>
       {/* Time */}
       <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap shrink-0 pt-0.5">

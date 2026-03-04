@@ -245,7 +245,7 @@ export default async (request, context) => {
     if (monteurAuth.authenticated) {
       team = monteurAuth.team;
       // Use date from query param if provided, otherwise today
-      date = url.searchParams.get('date') || new Date().toISOString().split('T')[0];
+      date = url.searchParams.get('date') || new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
       authMethod = 'jwt';
     } else if (monteurAuth.error) {
       return new Response(JSON.stringify({ error: monteurAuth.error }), {
@@ -308,8 +308,8 @@ export default async (request, context) => {
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
 
-      const startDate = monday.toISOString().split('T')[0];
-      const endDate = sunday.toISOString().split('T')[0];
+      const startDate = monday.toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
+      const endDate = sunday.toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
 
       // Fetch booking counts for the whole week (route-based + direct team assignment)
       const [routeResult, directResult, atResult] = await Promise.all([
@@ -320,15 +320,50 @@ export default async (request, context) => {
           `install_bookings?installer_team=eq.${encodeURIComponent(team)}&booked_date=gte.${startDate}&booked_date=lte.${endDate}&status=neq.cancelled&select=id,booked_date`
         ),
         supabaseRequest(
-          `installationstermine?installationsdatum_nur_datum=gte.${startDate}&installationsdatum_nur_datum=lte.${endDate}&select=id,installationsdatum_nur_datum,integrator`
+          `installationstermine?installationsdatum_nur_datum=gte.${startDate}&installationsdatum_nur_datum=lte.${endDate}&select=id,installationsdatum_nur_datum,integrator,city,akquise_links`
         ),
       ]);
 
       const routes = routeResult.data || [];
       const directBookings = directResult.data || [];
+
+      // Build route city lookup for the week
+      const weekRouteCities = new Map(); // date → Set<city>
+      for (const r of routes) {
+        const d = r.schedule_date;
+        if (!weekRouteCities.has(d)) weekRouteCities.set(d, new Set());
+        if (r.city) weekRouteCities.get(d).add(r.city.toLowerCase().trim());
+      }
+
+      // Collect all booking akquise IDs to avoid double-counting
+      const allBookingAkqIds = new Set();
+      for (const b of directBookings) {
+        if (b.akquise_airtable_id) allBookingAkqIds.add(b.akquise_airtable_id);
+      }
+
+      // Filter Airtable termine for this team (dynamic, not hardcoded)
+      const weekTeamLower = team.toLowerCase().trim();
       const atTermine = (atResult.data || []).filter(t => {
+        // Skip if already covered by install_bookings
+        const akqLinks = Array.isArray(t.akquise_links) ? t.akquise_links : [];
+        if (akqLinks.some(id => allBookingAkqIds.has(id))) return false;
+
+        // Match by integrator
         const integrators = Array.isArray(t.integrator) ? t.integrator.join(' ').toLowerCase() : (t.integrator || '').toLowerCase();
-        return integrators.includes('e-systems') || integrators.includes('esystems');
+        if (integrators.includes(weekTeamLower) || weekTeamLower.includes(integrators)) return true;
+        // Fuzzy: extract core team name (e.g. "e-systems" from "e-systems Team 1")
+        const coreTeam = weekTeamLower.replace(/\s*team\s*\d+$/i, '').trim();
+        if (coreTeam && integrators.includes(coreTeam)) return true;
+
+        // Match by city (if route exists for this date)
+        const tDate = t.installationsdatum_nur_datum;
+        const citiesForDate = weekRouteCities.get(tDate);
+        if (citiesForDate) {
+          const tCities = Array.isArray(t.city) ? t.city : (t.city ? [t.city] : []);
+          if (tCities.some(c => citiesForDate.has((c || '').toLowerCase().trim()))) return true;
+        }
+
+        return false;
       });
 
       // Also fetch route-based bookings
@@ -346,7 +381,7 @@ export default async (request, context) => {
       for (let i = 0; i < 7; i++) {
         const dd = new Date(monday);
         dd.setDate(monday.getDate() + i);
-        dayCounts[dd.toISOString().split('T')[0]] = 0;
+        dayCounts[dd.toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' })] = 0;
       }
 
       for (const b of [...routeBookings, ...directBookings]) {
@@ -417,7 +452,26 @@ export default async (request, context) => {
 
     // Filter termine for this team's cities OR matching integrator
     const teamLower = team.toLowerCase().trim();
+    const coreTeamName = teamLower.replace(/\s*team\s*\d+$/i, '').trim(); // "e-systems team 1" → "e-systems"
     const bookingAkqIds = new Set(bookings.map(b => b.akquise_airtable_id).filter(Boolean));
+
+    // If no routes exist for today, fetch ALL routes for this team to get known cities
+    let teamCities = [...routeCities];
+    if (teamCities.length === 0) {
+      try {
+        const allRoutesResult = await supabaseRequest(
+          `install_routen?installer_team=eq.${encodeURIComponent(team)}&select=city&limit=200`
+        );
+        const allTeamCities = new Set();
+        for (const r of (allRoutesResult.data || [])) {
+          if (r.city) allTeamCities.add(r.city.toLowerCase().trim());
+        }
+        teamCities = [...allTeamCities];
+      } catch (e) {
+        console.warn('[install-monteur] Team cities fallback failed:', e.message);
+      }
+    }
+
     const atTermine = [];
     for (const t of allTermine) {
       // Skip if already covered by an install_booking (same akquise link)
@@ -439,11 +493,17 @@ export default async (request, context) => {
       }
 
       // Check if termin belongs to this team:
-      // Match via integrator field OR city matching with route cities
+      // 1. Integrator field matches team name (exact or core name)
       const integrators = Array.isArray(t.integrator) ? t.integrator : (t.integrator ? [t.integrator] : []);
-      const integratorMatch = integrators.some(i => (i || '').toLowerCase().includes(teamLower) || teamLower.includes((i || '').toLowerCase()));
+      const integratorMatch = integrators.some(i => {
+        const iLower = (i || '').toLowerCase();
+        return iLower.includes(teamLower) || teamLower.includes(iLower) ||
+               (coreTeamName && (iLower.includes(coreTeamName) || coreTeamName.includes(iLower)));
+      });
+
+      // 2. City matches route cities (today's routes OR team's known cities)
       const tCities = Array.isArray(t.city) ? t.city : (t.city ? [t.city] : []);
-      const cityMatch = routeCities.length > 0 && tCities.some(c => routeCities.includes((c || '').toLowerCase().trim()));
+      const cityMatch = teamCities.length > 0 && tCities.some(c => teamCities.includes((c || '').toLowerCase().trim()));
 
       if (!integratorMatch && !cityMatch) continue;
 

@@ -34,6 +34,13 @@
 /api/install-monteur/status   /.netlify/functions/install-monteur-status  200!
 /api/install-monteur          /.netlify/functions/install-monteur     200!
 
+# FAW Check APIs (external reviewer interface)
+/api/faw-check         /.netlify/functions/faw-check         200!
+/api/faw-check-token   /.netlify/functions/faw-check-token   200!
+
+# Akquise Automation API
+/api/akquise/outreach   /.netlify/functions/akquise-outreach   200!
+
 # Feature Flags API
 /api/feature-flags      /.netlify/functions/feature-flags    200!
 /api/feature-flags/*    /.netlify/functions/feature-flags    200!
@@ -47,6 +54,14 @@
 
 # Scheduling tool (standalone SPA, auth required)
 /scheduling/*  /scheduling/index.html  200
+
+# Inspection tool (public, token-based auth)
+/inspection     /inspection/index.html  200
+/inspection/*   /inspection/index.html  200
+
+# FAW Check (public, token-based auth for frequency reviewers)
+/faw     /faw/index.html  200
+/faw/*   /faw/index.html  200
 
 # Monteur mobile view (public, token-based auth)
 /monteur  /index.html  200

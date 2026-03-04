@@ -218,7 +218,7 @@ export default async (request, context) => {
     }
 
     // Reject past dates
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE');
     if (date < today) {
       return new Response(JSON.stringify({ error: 'past_date', message: 'Termine in der Vergangenheit können nicht gebucht werden.' }), {
         status: 400, headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
@@ -466,12 +466,45 @@ export default async (request, context) => {
     const CONFIRMATION_TEMPLATE_ID = 'tn_ZogGREMwedmaZwXJz6iyZ'; // install_booking_confirmation
     const WA_CHANNEL = process.env.SUPERCHAT_WA_CHANNEL_ID || 'mc_cy5HABDnpRhRtosxckRzb';
     const scConfig = await getSuperchatConfig();
-    if (SUPERCHAT_API_KEY && booking.contact_phone && scConfig.enabled) {
+
+    // Fallback: If booking has no contact_phone, try to fetch from Airtable Akquise record
+    let confirmationPhone = booking.contact_phone;
+    if (!confirmationPhone && AIRTABLE_TOKEN && booking.akquise_airtable_id) {
+      try {
+        const akqRes = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${booking.akquise_airtable_id}?fields%5B%5D=Telefon`,
+          { headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` } }
+        );
+        const akqData = await akqRes.json();
+        confirmationPhone = akqData.fields?.Telefon || null;
+        if (confirmationPhone) {
+          console.log(`[install-booker-book] Fallback phone from Airtable: ${confirmationPhone}`);
+          // Also update the booking record with this phone
+          await supabaseRequest(`install_bookings?id=eq.${booking.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ contact_phone: confirmationPhone }),
+          });
+        }
+      } catch (e) {
+        console.error('[install-booker-book] Airtable phone fallback failed:', e.message);
+      }
+    }
+
+    // Diagnostic logging for WA confirmation
+    console.log('[install-booker-book] WA confirmation check:', {
+      hasApiKey: !!SUPERCHAT_API_KEY,
+      contactPhone: confirmationPhone || '(missing)',
+      scEnabled: scConfig.enabled,
+      testPhone: scConfig.testPhone || '(none)',
+      templateId: CONFIRMATION_TEMPLATE_ID,
+    });
+
+    if (SUPERCHAT_API_KEY && confirmationPhone && scConfig.enabled) {
       try {
         // Test mode: override recipient phone with test number
-        const actualPhone = normalizePhone(scConfig.testPhone || booking.contact_phone);
+        const actualPhone = normalizePhone(scConfig.testPhone || confirmationPhone);
         if (scConfig.testPhone) {
-          console.log(`[install-booker-book] TEST MODE — redirecting WA confirmation from ${booking.contact_phone} to ${scConfig.testPhone}`);
+          console.log(`[install-booker-book] TEST MODE — redirecting WA confirmation from ${confirmationPhone} to ${scConfig.testPhone}`);
         }
 
         const firstName = booking.contact_name || 'Hallo';

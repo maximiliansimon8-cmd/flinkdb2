@@ -491,7 +491,7 @@ export default async (request) => {
     try {
       console.log('[trigger-sync] Running installationen→install_bookings status sync...');
       const installRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/installationen?select=id,akquise_links,status,location_name&status=in.(Installiert,Abgebrochen,Storniert)`,
+        `${SUPABASE_URL}/rest/v1/installationen?select=id,akquise_links,status,location_name&status=in.(Installiert,Installiert - Nacharbeit notwendig,Abgebrochen - Vorort,Abbruch - telefonisch vorab)`,
         { headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`, 'apikey': SUPABASE_SERVICE_KEY } }
       );
       const installationen = installRes.ok ? await installRes.json() : [];
@@ -501,9 +501,8 @@ export default async (request) => {
         for (const inst of installationen) {
           const links = Array.isArray(inst.akquise_links) ? inst.akquise_links : [];
           for (const akqId of links) {
-            if (inst.status === 'Installiert') statusByAkquise[akqId] = 'completed';
-            else if (inst.status === 'Abgebrochen') statusByAkquise[akqId] = 'cancelled';
-            else if (inst.status === 'Storniert') statusByAkquise[akqId] = 'cancelled';
+            if (inst.status.startsWith('Installiert')) statusByAkquise[akqId] = 'completed';
+            else if (inst.status.startsWith('Abgebrochen') || inst.status.startsWith('Abbruch')) statusByAkquise[akqId] = 'cancelled';
           }
         }
         const openBookingsRes = await fetch(

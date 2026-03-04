@@ -248,6 +248,11 @@ export const INSTALLATION_FIELDS = {
   STREET_LOOKUP:            'Street',
   STREET_NUMBER_LOOKUP:     'Street Number',
   POSTAL_CODE_LOOKUP:       'Postal Code',
+  // Post-Install Verification / CHG Freigabe
+  FREIGABE_ONLINE_RATE:     'Freigabe Installation (Online Rate)',
+  FREIGABE_INSTALLATION_VORORT: 'Freigabe Installation (Installation Vorort)',
+  FREIGABE_CHG:             'Freigabe CHG?',
+  FREIGABE_DATUM_CHG:       'Freigabe-Datum CHG',
 };
 
 /** Dayn Screens fields */
@@ -473,14 +478,23 @@ export const VALUES = {
     INFO_REQUIRED:    'Info required',
   },
 
-  /** Status Installation possible values */
+  /** Status Installation possible values (from Airtable Installationen table) */
   INSTALLATION_STATUS: {
-    INSTALLIERT:      'Installiert',
-    ABGEBROCHEN:      'Abgebrochen',
-    GEPLANT:          'Geplant',
-    NACHARBEIT:       'Nacharbeit erforderlich',
-    STORNIERT:        'Storniert',
+    INSTALLIERT:              'Installiert',
+    INSTALLIERT_NACHARBEIT:   'Installiert - Nacharbeit notwendig',
+    ABGEBROCHEN_VORORT:       'Abgebrochen - Vorort',
+    ABBRUCH_TELEFONISCH:      'Abbruch - telefonisch vorab',
+    AUFBAU_MOEGLICH:          'Aufbau evtl. Möglich - Offene Punkte (zu klären intern)',
+    TERMINIERT:               'Terminiert',
+    // Legacy aliases (kept for backward compat)
+    ABGEBROCHEN:              'Abgebrochen - Vorort',
+    NACHARBEIT:               'Installiert - Nacharbeit notwendig',
   },
+
+  /** Helper: all statuses that count as "installiert" (installed) */
+  INSTALLED_STATUSES: ['Installiert', 'Installiert - Nacharbeit notwendig'],
+  /** Helper: all statuses that count as "abgebrochen" (cancelled on site) */
+  ABORTED_STATUSES: ['Abgebrochen - Vorort', 'Abbruch - telefonisch vorab'],
 
   /** Online Status (Display) possible values */
   ONLINE_STATUS: {

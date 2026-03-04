@@ -171,7 +171,7 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
     }
 
     // Capacity utilization — count future bookings + Airtable-only termine
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE');
     const futureOpenRoutes = routes.filter(r => r.status === 'open' && r.schedule_date >= today);
     const totalCapacity = futureOpenRoutes.reduce((sum, r) => sum + (r.max_capacity || 4), 0);
     const futureRouteIds = new Set(futureOpenRoutes.map(r => r.id));
@@ -254,7 +254,7 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
     for (let i = 13; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = date.toLocaleDateString('sv-SE');
       const dayCreated = bookings.filter(b => (b.created_at || '').startsWith(dateStr));
       const dayBooked = bookings.filter(b => (b.booked_at || '').startsWith(dateStr));
       days.push({
@@ -325,10 +325,10 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
   // Upcoming installations (next 7 days) — combine bookings + Airtable termine
   const upcoming = useMemo(() => {
     const now = new Date();
-    const todayDate = now.toISOString().split('T')[0];
+    const todayDate = now.toLocaleDateString('sv-SE');
     const weekOut = new Date(now);
     weekOut.setDate(now.getDate() + 7);
-    const weekOutDate = weekOut.toISOString().split('T')[0];
+    const weekOutDate = weekOut.toLocaleDateString('sv-SE');
     const items = [];
     // From our booking system — use string comparison for date-only fields
     bookings
@@ -391,11 +391,11 @@ export default function InstallationExecutiveDashboard({ filterCity }) {
     const now = new Date();
     // todayStr for date-only comparisons (avoids excluding today's termine because
     // new Date('2026-02-17T00:00:00') < new Date() when it's afternoon)
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = now.toLocaleDateString('sv-SE');
     const in7 = new Date(now); in7.setDate(now.getDate() + 7);
-    const in7Str = in7.toISOString().split('T')[0];
+    const in7Str = in7.toLocaleDateString('sv-SE');
     const in30 = new Date(now); in30.setDate(now.getDate() + 30);
-    const in30Str = in30.toISOString().split('T')[0];
+    const in30Str = in30.toLocaleDateString('sv-SE');
 
     // Installationen from acquisition data (NO storno filter — these are factual counts)
     const installed = acquisitionData.filter(a => {

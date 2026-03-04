@@ -39,6 +39,38 @@ function ensureArray(v) {
 }
 
 /**
+ * Normalize a date value from Airtable to ISO format (YYYY-MM-DD).
+ * Handles: ISO timestamps ("2026-03-04T09:00:00.000Z"), ISO dates ("2026-03-04"),
+ * German format ("4.3.2026", "04.03.2026"), and US format ("03/04/2026").
+ * Returns null for invalid/empty values.
+ */
+function normalizeToISODate(v) {
+  if (!v || typeof v !== 'string') return null;
+  const s = v.trim();
+  if (!s) return null;
+
+  // Already ISO date: "2026-03-04" or ISO timestamp "2026-03-04T..."
+  const isoMatch = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoMatch) return isoMatch[1];
+
+  // German format: "4.3.2026" or "04.03.2026"
+  const deMatch = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (deMatch) {
+    const [, day, month, year] = deMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  // US format: "03/04/2026"
+  const usMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (usMatch) {
+    const [, month, day, year] = usMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  return null;
+}
+
+/**
  * Sanitize Airtable formula field values that can return error objects.
  * Handles {error: "#ERROR!"}, {state: "error"/"empty"}, and "#ERROR" strings.
  */
@@ -399,6 +431,11 @@ export function mapInstallation(rec) {
     street: streets[0] || null,
     street_number: streetNumbers[0] || null,
     postal_code: postalCodes[0] || null,
+    // Post-Install Verification / CHG Freigabe
+    freigabe_online_rate: f[IF_.FREIGABE_ONLINE_RATE] || false,
+    freigabe_installation_vorort: f[IF_.FREIGABE_INSTALLATION_VORORT] || false,
+    freigabe_chg: f[IF_.FREIGABE_CHG] || false,
+    freigabe_datum_chg: f[IF_.FREIGABE_DATUM_CHG] || null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -573,7 +610,9 @@ export function mapInstallationstermin(rec) {
     naechste_schritt: f[IT.NAECHSTE_SCHRITT] || null,
     kw_geplant: safeFieldValue(f[IT.KW_GEPLANT]) || null,
     wochentag: safeFieldValue(f[IT.WOCHENTAG]) || null,
-    installationsdatum_nur_datum: safeFieldValue(f[IT.INSTALLATIONSDATUM_NUR_DATUM]) || null,
+    installationsdatum_nur_datum: normalizeToISODate(safeFieldValue(f[IT.INSTALLATIONSDATUM_NUR_DATUM]))
+      || normalizeToISODate(safeFieldValue(f[IT.INSTALLATIONSDATUM]))
+      || null,
     terminstatus: f[IT.TERMINSTATUS] || null,
     jet_id_links: ensureArray(f[IT.JET_ID]),
     location_name: ensureArray(f[IT.LOCATION_NAME]),
