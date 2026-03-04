@@ -669,7 +669,8 @@ export default function AcquisitionDashboard({ onOpenAkquiseApp, initialSection,
   // Total live = only leadStatus "Live" (actually operational), no Installation or Stornos
   const totalLive = useMemo(() => data.filter(r => recordIsLive(r) && !isStorno(r)).length, [data]);
 
-  const showAutomation = (canAccessTab('akquise-automation') || canAccessTab('admin')) && isFeatureEnabled('tab_akquise_automation');
+  const isUserAdmin = canAccessTab('admin');
+  const showAutomation = (canAccessTab('akquise-automation') || isUserAdmin) && (isUserAdmin || isFeatureEnabled('tab_akquise_automation'));
 
   const sections = [
     { id: 'netzwerk', label: '🎯 Netzwerk-Aufbau' },

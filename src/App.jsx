@@ -240,7 +240,7 @@ function App() {
     acquisition:   { valid: ['netzwerk','overview','pipeline','storno','automation'], default: 'netzwerk' },
     installations: { valid: ['executive','calendar','invite','phone','bookings'], default: 'executive' },
   }), []);
-  const validTabs = useMemo(() => ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app'], []);
+  const validTabs = useMemo(() => ['overview', 'displays-list', 'tasks', 'communication', 'admin', 'programmatic', 'hardware', 'acquisition', 'map', 'contacts', 'cities', 'activities', 'installations', 'akquise-app', 'display-trends', 'faw'], []);
   const parseHash = useCallback(() => {
     const raw = window.location.hash.replace('#', '');
     const [mainPart, subPart] = raw.split('/');
@@ -2208,6 +2208,9 @@ function App() {
     );
   }
 
+  // Admin bypasses feature flags to see all features (for testing/review before rollout)
+  const userIsAdmin = isAdmin();
+
   /* ─── Mobile Layout (Fast-Path: uses mobileKPIs from single RPC call) ─── */
   if (isMobile) {
     // Use mobile KPIs if available (from RPC), else fall back to desktop kpis
@@ -2314,7 +2317,7 @@ function App() {
         />
 
         {/* QR Hardware Scanner Overlay */}
-        {showQRScanner && isFeatureEnabled('tab_qr_scanner') && (
+        {showQRScanner && (userIsAdmin || isFeatureEnabled('tab_qr_scanner')) && (
           <Suspense fallback={
             <div className="fixed inset-0 z-[9999] bg-black/20 backdrop-blur-sm flex items-end justify-center">
               <div className="w-full max-w-lg bg-white/90 rounded-t-3xl p-8 flex items-center justify-center">
@@ -2327,7 +2330,7 @@ function App() {
         )}
 
         {/* AI Chat Assistant — opens as overlay on mobile when J.E.T. tab is active */}
-        {isFeatureEnabled('tab_chat_assistant') && (
+        {(userIsAdmin || isFeatureEnabled('tab_chat_assistant')) && (
           <Suspense fallback={null}>
             <ChatAssistant
               rawData={rawData || { displays: [], cityData: [], tasks: [], trendData: [] }}
@@ -2447,7 +2450,7 @@ function App() {
   // Filter tabs by user permissions + feature flags, remove empty groups
   const visibleGroups = tabGroups
     .map(g => ({ ...g, tabs: g.tabs.filter(t =>
-      canAccessTab(t.access) && (!t.featureFlag || isFeatureEnabled(t.featureFlag))
+      canAccessTab(t.access) && (!t.featureFlag || userIsAdmin || isFeatureEnabled(t.featureFlag))
     ) }))
     .filter(g => g.tabs.length > 0);
 
@@ -3042,7 +3045,7 @@ function App() {
       </main>
 
       {/* AI Chat Assistant — floating button, available on all tabs */}
-      {isFeatureEnabled('tab_chat_assistant') && (
+      {(userIsAdmin || isFeatureEnabled('tab_chat_assistant')) && (
         <Suspense fallback={null}>
           <ChatAssistant
             rawData={rawData || displayRawData}
@@ -3100,7 +3103,7 @@ function App() {
       )}
 
       {/* Mobile Akquise App Overlay (launched from Akquise tab on mobile) */}
-      {showAkquiseApp && isFeatureEnabled('tab_akquise_app') && (
+      {showAkquiseApp && (userIsAdmin || isFeatureEnabled('tab_akquise_app')) && (
         <Suspense fallback={
           <div className="fixed inset-0 z-[10000] bg-[#F2F2F7] flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" />

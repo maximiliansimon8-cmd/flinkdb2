@@ -31,6 +31,7 @@ import {
   ACQUISITION_DETAIL_FIELDS as ADF,
   INSTALLATION_FIELDS as IF_,
   TASK_FIELDS as TF,
+  VALUES,
 } from './shared/airtableFields.js';
 
 // ═══════════════════════════════════════════════
@@ -190,8 +191,8 @@ async function fetchCachedKeys(supabaseUrl, serviceKey, tableName) {
 async function fetchReadyRecordIds(supabaseUrl, serviceKey) {
   const params = new URLSearchParams({
     select: 'airtable_id,lead_status,approval_status,vertrag_vorhanden,akquise_storno,post_install_storno,installations_status,display_location_status',
-    lead_status: 'in.("Won / Signed","Won/Signed")',
-    approval_status: 'in.("Accepted","Approved","accepted","approved")',
+    lead_status: `in.("${VALUES.LEAD_STATUS.WON_SIGNED}","Won/Signed")`,
+    approval_status: `in.("${VALUES.APPROVAL_STATUS.ACCEPTED}","Approved","accepted","approved")`,
     akquise_storno: 'neq.true',
     limit: '500',
   });
@@ -213,7 +214,7 @@ async function fetchReadyRecordIds(supabaseUrl, serviceKey) {
   // Apply additional filters that can't be done in PostgREST
   return rows.filter(r => {
     const vv = r.vertrag_vorhanden;
-    if (!(vv === true || vv === 'true' || vv === 'checked' || vv === 'YES' || vv === 'yes')) return false;
+    if (!(vv === true || vv === 'true' || vv === VALUES.READY_FOR_INSTALL.CHECKED || vv === 'YES' || vv === 'yes')) return false;
     if (r.post_install_storno === true || r.post_install_storno === 'true') return false;
     const ls = (r.lead_status || '').toLowerCase();
     if (ls.includes('storno') || ls.includes('cancelled') || ls.includes('lost')) return false;

@@ -20,6 +20,7 @@ import {
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 import { normalizeCity } from './shared/slotUtils.js';
+import { VALUES } from './shared/airtableFields.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -340,9 +341,9 @@ export default async (request, context) => {
       const ls = (akq.lead_status || '').toLowerCase();
       const as = (akq.approval_status || akq.install_approval || '').toLowerCase();
       const vv = akq.vertrag_vorhanden;
-      const isWon = ls === 'won / signed' || ls === 'won/signed';
-      const isApproved = as === 'accepted' || as === 'approved';
-      const hasVertrag = vv === true || vv === 'true' || vv === 'checked' || vv === 'YES' || vv === 'yes';
+      const isWon = ls === VALUES.LEAD_STATUS.WON_SIGNED.toLowerCase() || ls === 'won/signed';
+      const isApproved = as === VALUES.APPROVAL_STATUS.ACCEPTED.toLowerCase() || as === 'approved';
+      const hasVertrag = vv === true || vv === 'true' || vv === VALUES.READY_FOR_INSTALL.CHECKED || vv === 'YES' || vv === 'yes';
 
       if (!isWon || !isApproved || !hasVertrag) {
         const missing = [];
