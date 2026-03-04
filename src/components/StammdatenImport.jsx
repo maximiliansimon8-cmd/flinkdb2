@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import {
   Upload, FileText, CheckCircle2, AlertTriangle, Plus, Minus,
   ArrowRight, Search, ChevronDown, Loader2, MapPin, RefreshCw,
-  Eye, X, Download, Database, Clock,
+  Eye, X, Download, Database, Clock, Shield, Zap, XCircle,
 } from 'lucide-react';
 import { supabase } from '../utils/authService';
 
@@ -98,6 +98,12 @@ export default function StammdatenImport() {
   const [activeTab, setActiveTab] = useState('summary');
   const [expandedId, setExpandedId] = useState(null);
   const [fileName, setFileName] = useState('');
+
+  // Import flow state
+  const [importStep, setImportStep] = useState(null); // null | 'validating' | 'review' | 'importing' | 'done'
+  const [validationResult, setValidationResult] = useState(null);
+  const [importResult, setImportResult] = useState(null);
+  const [importProgress, setImportProgress] = useState(null);
 
   /** Fetch all Stammdaten from Supabase (synced from Airtable every 5 min) */
   const fetchStammdaten = useCallback(async () => {
@@ -373,6 +379,138 @@ export default function StammdatenImport() {
     const a = document.createElement('a');
     a.href = url; a.download = 'stammdaten-diff.csv'; a.click();
     URL.revokeObjectURL(url);
+  }, [comparison]);
+
+  /** Build import records from comparison results */
+  const buildImportRecords = useCallback(() => {
+    if (!comparison) return [];
+    const records = [];
+
+    // Updates: records with changes that have an airtable_id
+    for (const m of comparison.withChanges) {
+      if (!m.airtable?.airtable_id) continue;
+      const fields = {};
+      for (const c of m.changes) {
+        fields[c.field] = c.csvVal;
+      }
+      records.push({
+        airtable_id: m.airtable.airtable_id,
+        jet_id: m.id,
+        mode: 'update',
+        fields,
+      });
+    }
+
+    // Creates: new entries (no airtable match)
+    for (const row of comparison.newEntries) {
+      const fields = {};
+      for (const field of COMPARE_FIELDS) {
+        if (row[field]) fields[field] = row[field];
+      }
+      records.push({
+        jet_id: row.id,
+        mode: 'create',
+        fields,
+      });
+    }
+
+    return records;
+  }, [comparison]);
+
+  /** Step 1: Validate records via backend */
+  const runValidation = useCallback(async () => {
+    const records = buildImportRecords();
+    if (records.length === 0) {
+      setError('Keine Aenderungen zum Importieren');
+      return;
+    }
+
+    setImportStep('validating');
+    setError(null);
+    setValidationResult(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Nicht eingeloggt. Bitte zuerst anmelden.');
+        setImportStep(null);
+        return;
+      }
+
+      const res = await fetch('/.netlify/functions/stammdaten-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: 'validate', records }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Validierung fehlgeschlagen');
+
+      setValidationResult(data);
+      setImportStep('review');
+    } catch (err) {
+      setError(`Validierung fehlgeschlagen: ${err.message}`);
+      setImportStep(null);
+    }
+  }, [buildImportRecords]);
+
+  /** Step 2: Execute import after validation review */
+  const runImport = useCallback(async () => {
+    const records = buildImportRecords();
+    if (records.length === 0) return;
+
+    setImportStep('importing');
+    setImportResult(null);
+    setError(null);
+
+    const totalBatches = Math.ceil(records.length / 10);
+    setImportProgress({ current: 0, total: records.length, batches: totalBatches });
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Session abgelaufen. Bitte neu einloggen.');
+        setImportStep('review');
+        return;
+      }
+
+      const res = await fetch('/.netlify/functions/stammdaten-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: 'import', records }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Import fehlgeschlagen');
+
+      setImportResult(data);
+      setImportStep('done');
+    } catch (err) {
+      setError(`Import fehlgeschlagen: ${err.message}`);
+      setImportStep('review');
+    }
+  }, [buildImportRecords]);
+
+  /** Reset import flow */
+  const resetImport = useCallback(() => {
+    setImportStep(null);
+    setValidationResult(null);
+    setImportResult(null);
+    setImportProgress(null);
+  }, []);
+
+  /** Count of importable records */
+  const importableCount = useMemo(() => {
+    if (!comparison) return { updates: 0, creates: 0, total: 0 };
+    const updates = comparison.withChanges.filter(m => m.airtable?.airtable_id).length;
+    const creates = comparison.newEntries.length;
+    return { updates, creates, total: updates + creates };
   }, [comparison]);
 
   return (
@@ -673,6 +811,209 @@ export default function StammdatenImport() {
               </div>
             )}
           </div>
+
+          {/* ── Import Panel ── */}
+          {importableCount.total > 0 && (
+            <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap size={16} className="text-orange-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">3. Aenderungen nach Airtable schreiben</h3>
+                </div>
+                {importStep && importStep !== 'done' && (
+                  <button onClick={resetImport} className="text-xs text-gray-500 hover:text-gray-700">Abbrechen</button>
+                )}
+              </div>
+
+              {/* Pre-import summary */}
+              {!importStep && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-amber-50/80 rounded-xl px-3 py-2">
+                      <p className="text-[10px] text-amber-600 font-medium uppercase">Updates</p>
+                      <p className="text-lg font-bold text-amber-700">{importableCount.updates}</p>
+                      <p className="text-[10px] text-amber-500">Bestehende Records aktualisieren</p>
+                    </div>
+                    <div className="bg-blue-50/80 rounded-xl px-3 py-2">
+                      <p className="text-[10px] text-blue-600 font-medium uppercase">Neue Records</p>
+                      <p className="text-lg font-bold text-blue-700">{importableCount.creates}</p>
+                      <p className="text-[10px] text-blue-500">Neu in Airtable anlegen</p>
+                    </div>
+                    <div className="bg-gray-50/80 rounded-xl px-3 py-2">
+                      <p className="text-[10px] text-gray-600 font-medium uppercase">Gesamt</p>
+                      <p className="text-lg font-bold text-gray-900">{importableCount.total}</p>
+                      <p className="text-[10px] text-gray-500">Batches: ~{Math.ceil(importableCount.total / 10)}</p>
+                    </div>
+                  </div>
+
+                  {/* Warnings */}
+                  {comparison.addrConflicts.length > 0 && (
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2">
+                      <AlertTriangle size={14} className="text-purple-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-purple-700">
+                        <p className="font-semibold">{comparison.addrConflicts.length} Adress-Konflikte erkannt</p>
+                        <p>Neue Eintraege mit identischer Adresse koennten Duplikate sein. Bitte im Tab "Adress-Konflikte" pruefen.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={runValidation}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                  >
+                    <Shield size={16} /> Validierung starten
+                  </button>
+                </div>
+              )}
+
+              {/* Validating spinner */}
+              {importStep === 'validating' && (
+                <div className="flex items-center justify-center gap-3 py-6">
+                  <Loader2 size={20} className="text-orange-500 animate-spin" />
+                  <span className="text-sm text-gray-600">Validiere {importableCount.total} Records...</span>
+                </div>
+              )}
+
+              {/* Validation review */}
+              {importStep === 'review' && validationResult && (
+                <div className="space-y-3">
+                  {/* Validation summary */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-emerald-50/80 rounded-xl px-3 py-2 text-center">
+                      <p className="text-lg font-bold text-emerald-700">{validationResult.summary.valid}</p>
+                      <p className="text-[10px] text-emerald-600">Gueltig</p>
+                    </div>
+                    <div className={`rounded-xl px-3 py-2 text-center ${validationResult.summary.invalid > 0 ? 'bg-red-50/80' : 'bg-gray-50/80'}`}>
+                      <p className={`text-lg font-bold ${validationResult.summary.invalid > 0 ? 'text-red-700' : 'text-gray-400'}`}>{validationResult.summary.invalid}</p>
+                      <p className={`text-[10px] ${validationResult.summary.invalid > 0 ? 'text-red-600' : 'text-gray-500'}`}>Ungueltig (werden uebersprungen)</p>
+                    </div>
+                    <div className={`rounded-xl px-3 py-2 text-center ${validationResult.summary.withWarnings > 0 ? 'bg-amber-50/80' : 'bg-gray-50/80'}`}>
+                      <p className={`text-lg font-bold ${validationResult.summary.withWarnings > 0 ? 'text-amber-700' : 'text-gray-400'}`}>{validationResult.summary.withWarnings}</p>
+                      <p className={`text-[10px] ${validationResult.summary.withWarnings > 0 ? 'text-amber-600' : 'text-gray-500'}`}>Mit Warnungen</p>
+                    </div>
+                  </div>
+
+                  {/* Show errors/warnings if any */}
+                  {validationResult.results.filter(r => !r.valid || r.warnings.length > 0).length > 0 && (
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {validationResult.results.filter(r => !r.valid || r.warnings.length > 0).map(r => (
+                        <div key={r.index} className="flex items-start gap-2 text-xs px-3 py-1.5 rounded-lg bg-gray-50">
+                          {!r.valid ? <XCircle size={12} className="text-red-500 mt-0.5 flex-shrink-0" /> : <AlertTriangle size={12} className="text-amber-500 mt-0.5 flex-shrink-0" />}
+                          <div>
+                            <span className="font-mono text-gray-500">{r.jet_id}</span>
+                            {r.errors.map((e, i) => <span key={i} className="text-red-600 ml-2">{e}</span>)}
+                            {r.warnings.map((w, i) => <span key={i} className="text-amber-600 ml-2">{w}</span>)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Import button */}
+                  {validationResult.summary.valid > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                      <p className="text-xs text-red-700 font-semibold mb-2">
+                        Achtung: {validationResult.summary.valid} Records werden direkt in Airtable geschrieben!
+                      </p>
+                      <p className="text-[10px] text-red-600 mb-3">
+                        Dieser Vorgang kann nicht rueckgaengig gemacht werden. Supabase wird beim naechsten Sync (alle 5 Min) aktualisiert.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={runImport}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                        >
+                          <Zap size={14} /> {validationResult.summary.valid} Records importieren
+                        </button>
+                        <button
+                          onClick={resetImport}
+                          className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
+                        >
+                          Abbrechen
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Importing progress */}
+              {importStep === 'importing' && (
+                <div className="py-6 space-y-3">
+                  <div className="flex items-center justify-center gap-3">
+                    <Loader2 size={20} className="text-orange-500 animate-spin" />
+                    <span className="text-sm text-gray-600">Importiere nach Airtable...</span>
+                  </div>
+                  {importProgress && (
+                    <div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-orange-500 h-2 rounded-full transition-all animate-pulse" style={{ width: '50%' }} />
+                      </div>
+                      <p className="text-[10px] text-gray-500 text-center mt-1">
+                        ~{importProgress.batches} Batches a 10 Records ({importProgress.total} gesamt)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Import done */}
+              {importStep === 'done' && importResult && (
+                <div className="space-y-3">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 size={16} className="text-emerald-600" />
+                      <span className="text-sm font-semibold text-emerald-800">Import abgeschlossen</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                        <p className="font-bold text-emerald-700">{importResult.summary.updates.success}</p>
+                        <p className="text-emerald-600">Updates OK</p>
+                      </div>
+                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                        <p className="font-bold text-emerald-700">{importResult.summary.creates.success}</p>
+                        <p className="text-emerald-600">Neu angelegt</p>
+                      </div>
+                      <div className={`bg-white/70 rounded-lg px-3 py-2 text-center ${(importResult.summary.updates.failed + importResult.summary.creates.failed) > 0 ? 'border border-red-200' : ''}`}>
+                        <p className={`font-bold ${(importResult.summary.updates.failed + importResult.summary.creates.failed) > 0 ? 'text-red-700' : 'text-gray-400'}`}>
+                          {importResult.summary.updates.failed + importResult.summary.creates.failed}
+                        </p>
+                        <p className="text-gray-600">Fehlgeschlagen</p>
+                      </div>
+                      <div className="bg-white/70 rounded-lg px-3 py-2 text-center">
+                        <p className="font-bold text-gray-500">{importResult.summary.skipped}</p>
+                        <p className="text-gray-600">Uebersprungen</p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-emerald-600 mt-2">
+                      Ausgefuehrt von: {importResult.user} — Supabase wird beim naechsten Sync aktualisiert.
+                    </p>
+                  </div>
+
+                  {/* Show failed records if any */}
+                  {[...(importResult.updateResults || []), ...(importResult.createResults || [])].filter(r => !r.ok).length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-red-700">Fehlgeschlagene Records:</p>
+                      {[...(importResult.updateResults || []), ...(importResult.createResults || [])].filter(r => !r.ok).map((r, i) => (
+                        <div key={i} className="flex items-center gap-2 text-xs px-3 py-1.5 bg-red-50 rounded-lg">
+                          <XCircle size={12} className="text-red-500" />
+                          <span className="font-mono text-gray-600">{r.jet_id}</span>
+                          <span className="text-red-600">{r.error}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={resetImport}
+                    className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors"
+                  >
+                    Fertig
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
