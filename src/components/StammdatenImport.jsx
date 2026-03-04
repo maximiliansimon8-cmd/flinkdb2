@@ -162,6 +162,9 @@ export default function StammdatenImport() {
   // CSV fields actually present in the upload
   const [csvFields, setCsvFields] = useState(new Set());
 
+  // Single-record sync state: { [jetId]: 'syncing' | 'done' | 'error' }
+  const [syncStatus, setSyncStatus] = useState({});
+
   // Import flow state
   const [importStep, setImportStep] = useState(null); // null | 'validating' | 'review' | 'importing' | 'done'
   const [validationResult, setValidationResult] = useState(null);
@@ -171,6 +174,39 @@ export default function StammdatenImport() {
   // Selective approval state
   const [approvedNonCritical, setApprovedNonCritical] = useState(false); // bulk approve unkritische
   const [approvedCriticalIds, setApprovedCriticalIds] = useState(new Set()); // individual IDs approved
+
+  /** Sync a single new record to Airtable */
+  const syncToAirtable = useCallback(async (row) => {
+    const jetId = row.id;
+    setSyncStatus(prev => ({ ...prev, [jetId]: 'syncing' }));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Nicht eingeloggt');
+
+      const res = await fetch('/.netlify/functions/stammdaten-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'import',
+          records: [{
+            jet_id: jetId,
+            fields: { ...row, id: undefined },
+          }],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.createResults?.[0]?.ok === false) {
+        throw new Error(data.error || data.createResults?.[0]?.error || 'Sync fehlgeschlagen');
+      }
+      setSyncStatus(prev => ({ ...prev, [jetId]: 'done' }));
+    } catch (err) {
+      console.error(`[syncToAirtable] ${jetId}:`, err.message);
+      setSyncStatus(prev => ({ ...prev, [jetId]: 'error' }));
+    }
+  }, []);
 
   /** Fetch all Stammdaten from Supabase (synced from Airtable every 5 min) */
   const fetchStammdaten = useCallback(async () => {
@@ -863,6 +899,22 @@ export default function StammdatenImport() {
             </div>
           )}
 
+          {/* Primary Card: Neue Standorte */}
+          {comparison.newEntries.length > 0 && (
+            <button onClick={() => setActiveTab('new')} className={`w-full rounded-xl px-5 py-4 text-left transition-colors border-2 ${activeTab === 'new' ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-50 border-blue-300 hover:border-blue-400'}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${activeTab === 'new' ? 'opacity-80' : 'text-blue-600'}`}>Neue Standorte</p>
+                  <p className={`text-3xl font-bold ${activeTab === 'new' ? '' : 'text-blue-700'}`}>{comparison.newEntries.length}</p>
+                  <p className={`text-xs mt-0.5 ${activeTab === 'new' ? 'opacity-70' : 'text-blue-600'}`}>
+                    neue JET IDs zum Anlegen{comparison.newWithConflicts.length > 0 ? ` (${comparison.newWithConflicts.length} mit Konflikten)` : ''}
+                  </p>
+                </div>
+                <Plus size={28} className={activeTab === 'new' ? 'opacity-60' : 'text-blue-400'} />
+              </div>
+            </button>
+          )}
+
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
             <button onClick={() => setActiveTab('summary')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'summary' ? 'bg-gray-900 text-white' : 'bg-surface-primary border border-border-secondary'}`}>
@@ -1171,9 +1223,18 @@ export default function StammdatenImport() {
                                       <span className="text-text-muted ml-auto">{h.detail}</span>
                                     </div>
                                   ))}
-                                  <p className="text-[10px] text-text-muted pt-1">
-                                    Moeglich: JET ID geaendert, Standort verkauft/neuer Vertragspartner, oder tatsaechlich neu.
-                                  </p>
+                                  <div className="flex items-center gap-2 pt-2">
+                                    <p className="text-[10px] text-text-muted flex-1">
+                                      Moeglich: JET ID geaendert, Standort verkauft/neuer Vertragspartner, oder tatsaechlich neu.
+                                    </p>
+                                    {syncStatus[row.id] === 'done' ? (
+                                      <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12} /> Angelegt</span>
+                                    ) : syncStatus[row.id] === 'syncing' ? (
+                                      <Loader2 size={14} className="text-accent animate-spin" />
+                                    ) : (
+                                      <button onClick={(e) => { e.stopPropagation(); syncToAirtable(row); }} className="text-xs bg-accent text-white px-2.5 py-1 rounded-lg hover:bg-accent/90 transition-colors flex-shrink-0">Trotzdem anlegen</button>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -1198,6 +1259,15 @@ export default function StammdatenImport() {
                               <span className="text-sm font-medium text-text-primary flex-1 truncate">{row.name}</span>
                               <span className="text-xs text-text-muted">{row.street} {row.street_number}</span>
                               <span className="text-xs text-text-muted">{row.postcode} {row.city}</span>
+                              {syncStatus[row.id] === 'done' ? (
+                                <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12} /> Angelegt</span>
+                              ) : syncStatus[row.id] === 'syncing' ? (
+                                <Loader2 size={14} className="text-accent animate-spin flex-shrink-0" />
+                              ) : syncStatus[row.id] === 'error' ? (
+                                <button onClick={() => syncToAirtable(row)} className="text-xs text-status-offline font-medium hover:underline">Fehler — nochmal</button>
+                              ) : (
+                                <button onClick={() => syncToAirtable(row)} className="text-xs bg-accent text-white px-2.5 py-1 rounded-lg hover:bg-accent/90 transition-colors flex-shrink-0">Anlegen</button>
+                              )}
                             </div>
                           ))}
                         </div>
