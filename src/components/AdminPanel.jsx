@@ -1146,7 +1146,7 @@ export default function AdminPanel({ initialSection, onSectionChange }) {
       </div>
 
       {/* Section Tabs */}
-      <div className="flex gap-1 bg-white/40 backdrop-blur-sm border border-slate-200/40 rounded-xl p-1">
+      <div className="flex gap-1 bg-white/40 backdrop-blur-sm border border-slate-200/40 rounded-xl p-1 overflow-x-auto">
         {sections.map((sec) => {
           const Icon = sec.icon;
           const isActive = activeSection === sec.id;
