@@ -7,7 +7,7 @@ import {
   formatDate,
   formatDateTime,
 } from '../utils/dataProcessing';
-import { hasPermission } from '../utils/authService';
+import { hasPermission, isAdmin } from '../utils/authService';
 
 
 function StatusBadge({ status }) {
@@ -702,8 +702,8 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
 
   return (
     <div className="space-y-4">
-      {/* ─── Data Source Comparison Tiles ─── */}
-      {sourceComparison && (
+      {/* ─── Data Source Comparison Tiles (Admin only) ─── */}
+      {isAdmin() && sourceComparison && (
         <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">

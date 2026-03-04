@@ -4,7 +4,6 @@ import {
   Activity,
   WifiOff,
   AlertTriangle,
-  PlusCircle,
   Clock,
   Skull,
   TrendingUp,
@@ -120,7 +119,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
           Letzte bekannte Daten{kpis._cachedTimestamp ? ` · ${new Date(kpis._cachedTimestamp).toLocaleString('de-DE')}` : ''}
         </div>
       )}
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
       <KPICard
         label="Health Rate"
         value={`${kpis.healthRate}%`}
@@ -252,29 +251,6 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
               current={useAvg ? kpis.avgNeverOnline : kpis.neverOnlineCount}
               previous={kpis.firstNeverOnline}
               inverted
-            />
-          ) : null
-        }
-      />
-      <KPICard
-        label="Neu / Deinstalliert"
-        value={`+${kpis.newlyInstalled} / -${kpis.deinstalled}`}
-        icon={PlusCircle}
-        color="#94a3b8"
-        subtitle={rangeLabel || 'Zeitraum'}
-        avgLabel={comparisonKPIs ? `Vorz. +${comparisonKPIs.newlyInstalled} / -${comparisonKPIs.deinstalled}` : undefined}
-        onClick={() => {
-          // Cycle: null → NEW → DEINSTALLED → null
-          if (activeFilter === KPI_FILTERS.NEW) toggle(KPI_FILTERS.DEINSTALLED);
-          else if (activeFilter === KPI_FILTERS.DEINSTALLED) onFilterClick(null);
-          else toggle(KPI_FILTERS.NEW);
-        }}
-        active={activeFilter === KPI_FILTERS.NEW || activeFilter === KPI_FILTERS.DEINSTALLED}
-        trend={
-          comparisonKPIs ? (
-            <TrendIndicator
-              current={kpis.newlyInstalled - kpis.deinstalled}
-              previous={comparisonKPIs.newlyInstalled - comparisonKPIs.deinstalled}
             />
           ) : null
         }

@@ -2849,13 +2849,15 @@ function App() {
                       <CityHealthChart cityData={rawData.cityData} />
                     </div>
 
-                    {/* Lists below visualizations */}
-                    <NewDisplayWatchlist
-                      watchlist={watchlist}
-                      onSelectDisplay={setSelectedDisplay}
-                      webhookUrl={webhookUrl}
-                      onWebhookUrlChange={handleWebhookUrlChange}
-                    />
+                    {/* Neu installierte Displays Watchlist — nur Admin */}
+                    {userIsAdmin && (
+                      <NewDisplayWatchlist
+                        watchlist={watchlist}
+                        onSelectDisplay={setSelectedDisplay}
+                        webhookUrl={webhookUrl}
+                        onWebhookUrlChange={handleWebhookUrlChange}
+                      />
+                    )}
 
                     <DisplayTable
                       displays={rawData.displays}
