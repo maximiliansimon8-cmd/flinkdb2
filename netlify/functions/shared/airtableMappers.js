@@ -119,20 +119,93 @@ export function mapStammdaten(rec) {
   const jetId = Array.isArray(f[SF.JET_ID]) ? f[SF.JET_ID][0] : (f[SF.JET_ID] || null);
   return {
     id: rec.id, airtable_id: rec.id, jet_id: jetId,
+    // ── Core ──
     display_ids: ensureArray(f[SF.DISPLAY_ID]),
+    record_id: f[SF.RECORD_ID] || null,
+    // ── Location ──
     location_name: f[SF.LOCATION_NAME] || null,
+    location_categories: f[SF.LOCATION_CATEGORIES] || null,
+    jet_chain: f[SF.JET_CHAIN] || null,
+    legal_entity: f[SF.LEGAL_ENTITY] || null,
+    lega_entity_adress: f[SF.LEGA_ENTITY_ADRESS] || null,
+    restaurant_website: f[SF.RESTAURANT_WEBSITE] || null,
+    brands_listed: f[SF.BRANDS_LISTED] || null,
+    // ── Address ──
+    street: f[SF.STREET] || null,
+    street_number: f[SF.STREET_NUMBER] || null,
+    postal_code: f[SF.POSTAL_CODE] || null,
+    city: f[SF.CITY] || null,
+    // ── Geo ──
+    latitude: f[SF.LATITUDE] != null ? Number(f[SF.LATITUDE]) : null,
+    longitude: f[SF.LONGITUDE] != null ? Number(f[SF.LONGITUDE]) : null,
+    koordinaten: f[SF.KOORDINATEN] || null,
+    streetview_link: f[SF.STREETVIEW_LINK] || null,
+    image_link: f[SF.IMAGE_LINK] || null,
+    // ── Contact ──
     contact_person: f[SF.CONTACT_PERSON] || null,
     contact_email: f[SF.CONTACT_EMAIL] || null,
     contact_phone: f[SF.CONTACT_PHONE] || null,
     location_email: f[SF.LOCATION_EMAIL] || null,
     location_phone: f[SF.LOCATION_PHONE] || null,
-    legal_entity: f[SF.LEGAL_ENTITY] || null,
-    street: f[SF.STREET] || null,
-    street_number: f[SF.STREET_NUMBER] || null,
-    postal_code: f[SF.POSTAL_CODE] || null,
-    city: f[SF.CITY] || null,
+    formatted_germany_mobile_phone: f[SF.FORMATTED_PHONE] || null,
+    email: f[SF.EMAIL] || null,
+    phone: f[SF.PHONE] || null,
+    superchat_id: f[SF.SUPERCHAT_ID] || null,
+    // ── Opening hours ──
+    regular_open_time: f[SF.REGULAR_OPEN_TIME] || null,
+    regular_close_time_weekdays: f[SF.REGULAR_CLOSE_TIME_WEEKDAYS] || null,
+    regular_close_time_weekdend: f[SF.REGULAR_CLOSE_TIME_WEEKDEND] || null,
+    weekend_close_time: f[SF.WEEKEND_CLOSE_TIME] || null,
+    closed_days: f[SF.CLOSED_DAYS] || null,
+    // ── Akquise ──
     lead_status: ensureArray(f[SF.LEAD_STATUS_LOOKUP]),
-    display_status: f[SF.STATUS] || null,
+    akquise: ensureArray(f[SF.AKQUISE]).length > 0 ? ensureArray(f[SF.AKQUISE]) : null,
+    zur_akquise_freigegeben: f[SF.ZUR_AKQUISE_FREIGEGEBEN] === true || f[SF.ZUR_AKQUISE_FREIGEGEBEN] === 'checked' || false,
+    akquise_freigabedatum: f[SF.AKQUISE_FREIGABEDATUM] || null,
+    akquise_freigegeben_von: f[SF.AKQUISE_FREIGEGEBEN_VON] || null,
+    acquisition_update: f[SF.ACQUISITION_UPDATE] || null,
+    vertrag_pdf_from_akquise: f[SF.VERTRAG_PDF_FROM_AKQUISE] || null,
+    // ── Installations ──
+    installationen: ensureArray(f[SF.INSTALLATIONEN]).length > 0 ? ensureArray(f[SF.INSTALLATIONEN]) : null,
+    record_id_from_installationen: ensureArray(f[SF.RECORD_ID_FROM_INSTALLATIONEN]).length > 0 ? ensureArray(f[SF.RECORD_ID_FROM_INSTALLATIONEN]) : null,
+    count_installationen: f[SF.COUNT_INSTALLATIONEN] != null ? Number(f[SF.COUNT_INSTALLATIONEN]) : null,
+    status_installation_from_installationen: ensureArray(f[SF.STATUS_INSTALLATION]).length > 0 ? ensureArray(f[SF.STATUS_INSTALLATION]) : null,
+    installationstermine: ensureArray(f[SF.INSTALLATIONSTERMINE]).length > 0 ? ensureArray(f[SF.INSTALLATIONSTERMINE]) : null,
+    // ── Displays ──
+    displays: ensureArray(f[SF.DISPLAYS]).length > 0 ? ensureArray(f[SF.DISPLAYS]) : null,
+    displays_copy: f[SF.DISPLAYS_COPY] || null,
+    displays_copy_2: f['Displays copy'] || null,  // second "Displays copy" field
+    live_display_locations_copy: f[SF.LIVE_DISPLAY_LOCATIONS_COPY] || null,
+    ops_nr_from_displays: ensureArray(f[SF.OPS_NR_FROM_DISPLAYS]).length > 0 ? ensureArray(f[SF.OPS_NR_FROM_DISPLAYS]) : null,
+    ops_sn_from_displays: ensureArray(f[SF.OPS_SN_FROM_DISPLAYS]).length > 0 ? ensureArray(f[SF.OPS_SN_FROM_DISPLAYS]) : null,
+    online_status_from_displays: ensureArray(f[SF.ONLINE_STATUS_FROM_DISPLAYS]).length > 0 ? ensureArray(f[SF.ONLINE_STATUS_FROM_DISPLAYS]) : null,
+    live_since_from_displays: ensureArray(f[SF.LIVE_SINCE_FROM_DISPLAYS]).length > 0 ? ensureArray(f[SF.LIVE_SINCE_FROM_DISPLAYS]) : null,
+    // ── Tasks ──
+    related_tasks: ensureArray(f[SF.RELATED_TASKS]).length > 0 ? ensureArray(f[SF.RELATED_TASKS]) : null,
+    tasks: ensureArray(f[SF.TASKS]).length > 0 ? ensureArray(f[SF.TASKS]) : null,
+    tasks_copy: f[SF.TASKS_COPY] || null,
+    assigned_from_related_tasks: ensureArray(f[SF.ASSIGNED_FROM_TASKS]).length > 0 ? ensureArray(f[SF.ASSIGNED_FROM_TASKS]) : null,
+    // ── Hardware ──
+    ops_player_inventory: ensureArray(f[SF.OPS_PLAYER_INVENTORY]).length > 0 ? ensureArray(f[SF.OPS_PLAYER_INVENTORY]) : null,
+    deinstallation_ruecknahme: ensureArray(f[SF.DEINSTALLATION_RUECKNAHME]).length > 0 ? ensureArray(f[SF.DEINSTALLATION_RUECKNAHME]) : null,
+    chg_approval: ensureArray(f[SF.CHG_APPROVAL]).length > 0 ? ensureArray(f[SF.CHG_APPROVAL]) : null,
+    // ── Frequency ──
+    weischer_30m_frequency: f[SF.WEISCHER_30M_FREQUENCY] != null ? Number(f[SF.WEISCHER_30M_FREQUENCY]) : null,
+    // ── Computed/search ──
+    jet_search: f[SF.JET_SEARCH] || null,
+    jet_search_2: f[SF.JET_SEARCH_2] || null,
+    location: f[SF.LOCATION] || null,
+    location_search: f[SF.LOCATION_SEARCH] || null,
+    // ── Other ──
+    attachments: f[SF.ATTACHMENTS] || null,
+    created_time: f[SF.CREATED] || null,
+    created_by: f[SF.CREATED_BY] || null,
+    date_first_online: f[SF.DATE_FIRST_ONLINE] || null,
+    imported: f[SF.IMPORTED] || null,
+    imported_table: f[SF.IMPORTED_TABLE] || null,
+    caller_feedback_locations: f[SF.CALLER_FEEDBACK] || null,
+    // ── Meta ──
+    display_status: null,  // field removed from Airtable Stammdaten
     updated_at: new Date().toISOString(),
   };
 }
