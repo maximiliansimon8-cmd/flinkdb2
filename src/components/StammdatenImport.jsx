@@ -107,10 +107,22 @@ function parseCSV(text) {
   });
 }
 
-/** Normalize string for comparison */
+/** Normalize value for comparison — handles number precision, arrays, empty values */
 function norm(val) {
-  if (val == null) return '';
-  return String(val).trim().toLowerCase().replace(/\s+/g, ' ');
+  if (val == null || val === '' || val === 'null' || val === 'undefined') return '';
+  // Arrays: sort and join for stable comparison
+  if (Array.isArray(val)) {
+    const filtered = val.map(v => norm(v)).filter(Boolean);
+    return filtered.sort().join(', ');
+  }
+  let s = String(val).trim();
+  if (s === '') return '';
+  // Numbers: parse and compare as float to avoid precision differences (e.g. "52.52000800" vs "52.520008")
+  const num = Number(s);
+  if (!isNaN(num) && isFinite(num) && /^-?\d+(\.\d+)?$/.test(s.replace(/0+$/, '').replace(/\.$/, ''))) {
+    return String(num);
+  }
+  return s.toLowerCase().replace(/\s+/g, ' ');
 }
 
 /** Normalize address for duplicate detection */
@@ -961,7 +973,7 @@ export default function StammdatenImport() {
                     {approvedNonCritical ? (
                       <><CheckCircle2 size={14} /> Freigegeben</>
                     ) : (
-                      <><Shield size={14} /> Alle {comparison.onlyNonCritical.length + comparison.withCritical.length} freigeben</>
+                      <><Shield size={14} /> Alle {comparison.onlyNonCritical.length} unkritischen freigeben</>
                     )}
                   </button>
                 </div>
