@@ -285,7 +285,7 @@ export default function InstallationsDashboard({ initialSection, onSectionChange
         }>
           {activeSubTab === 'executive' && <InstallationExecutiveDashboard filterCity={selectedCity} />}
           {activeSubTab === 'ready' && <InstallationReadyLocations filterCity={selectedCity} />}
-          {activeSubTab === 'bookings' && <InstallationBookingsDashboard filterCity={selectedCity} />}
+          {activeSubTab === 'bookings' && <InstallationBookingsDashboard filterCity={selectedCity} isAdmin={isAdmin} />}
           {activeSubTab === 'phone' && <InstallationPhoneWorkbench filterCity={selectedCity} />}
           {activeSubTab === 'invite' && <InstallationInviteManager filterCity={selectedCity} campaignSelection={campaignSelection} onCampaignConsumed={handleCampaignConsumed} />}
           {activeSubTab === 'map' && <InstallationMapView filterCity={selectedCity} onSendToInvite={handleSendToInvite} />}

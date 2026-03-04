@@ -5,7 +5,7 @@ import {
   Plus, PhoneCall, RotateCcw, X, ArrowUpDown, ArrowUp, ArrowDown,
   Loader2, Inbox, Eye, ChevronRight, MessageSquare,
   AlertTriangle, ExternalLink, CalendarClock, Trash2, Users, ShieldAlert,
-  Wrench, ClockAlert,
+  Wrench, ClockAlert, BarChart3,
 } from 'lucide-react';
 import UnifiedStandortDetail from './UnifiedStandortDetail';
 import { fetchAllAcquisition, fetchAllInstallationstermine } from '../utils/airtableService';
@@ -706,7 +706,7 @@ function PhoneBookingModal({ onClose, onSuccess, routes }) {
 
 
 /* ── Main Component ── */
-export default function InstallationBookingsDashboard({ onNavigateToDetail, filterCity: filterCityProp }) {
+export default function InstallationBookingsDashboard({ onNavigateToDetail, filterCity: filterCityProp, isAdmin = false }) {
   const [bookings, setBookings] = useState([]);
   const [airtableTermine, setAirtableTermine] = useState([]);
   const [readyIds, setReadyIds] = useState(null); // Set of aufbaubereite akquise IDs
@@ -1372,6 +1372,58 @@ export default function InstallationBookingsDashboard({ onNavigateToDetail, filt
           )}
         </div>
       )}
+
+      {/* Reminder-Auswertung (Admin only) */}
+      {isAdmin && allBookings.length > 0 && (() => {
+        const invited = allBookings.filter(b => b.whatsapp_sent_at);
+        const r1 = allBookings.filter(b => b.reminder_count >= 1);
+        const r2 = allBookings.filter(b => b.reminder_count >= 2);
+        const r3 = allBookings.filter(b => b.reminder_count >= 3);
+        const converted = allBookings.filter(b => b.reminder_count > 0 && ['booked', 'confirmed', 'completed'].includes(b.status));
+        const rate = r1.length > 0 ? Math.round((converted.length / r1.length) * 100) : 0;
+        const stillPending = allBookings.filter(b => b.status === 'pending' && b.reminder_count > 0).length;
+        return (
+          <div className="bg-white/60 backdrop-blur-xl border border-indigo-200/60 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center">
+                <BarChart3 size={16} className="text-indigo-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900">Reminder-Auswertung</h3>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-600">Admin</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+              <div className="bg-slate-50/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-gray-500 font-medium">Eingeladen</p>
+                <p className="text-lg font-bold text-gray-900">{invited.length}</p>
+              </div>
+              <div className="bg-amber-50/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-gray-500 font-medium">Stage 1</p>
+                <p className="text-lg font-bold text-amber-700">{r1.length}</p>
+              </div>
+              <div className="bg-orange-50/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-gray-500 font-medium">Stage 2</p>
+                <p className="text-lg font-bold text-orange-700">{r2.length}</p>
+              </div>
+              <div className="bg-red-50/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-gray-500 font-medium">Stage 3</p>
+                <p className="text-lg font-bold text-red-700">{r3.length}</p>
+              </div>
+              <div className="bg-emerald-50/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-gray-500 font-medium">Konvertiert</p>
+                <p className="text-lg font-bold text-emerald-700">{converted.length}</p>
+              </div>
+              <div className="bg-blue-50/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-gray-500 font-medium">Conversion</p>
+                <p className="text-lg font-bold text-blue-700">{rate}%</p>
+              </div>
+              <div className="bg-gray-50/80 rounded-xl px-3 py-2">
+                <p className="text-[11px] text-gray-500 font-medium">Noch offen</p>
+                <p className="text-lg font-bold text-gray-600">{stillPending}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Quick Filters + Search */}
       <div className="flex flex-wrap gap-3 items-center">
