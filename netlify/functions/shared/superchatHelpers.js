@@ -186,7 +186,7 @@ export async function upsertSuperchatContact({ phone, contactName, customAttrs =
 export async function getSuperchatConfig(supabaseUrl, supabaseKey, flagKeys = ['superchat_enabled', 'superchat_test_phone']) {
   try {
     const keyList = flagKeys.map(k => k).join(',');
-    const res = await fetch(`${supabaseUrl}/rest/v1/feature_flags?key=in.(${keyList})&select=*`, {
+    const res = await fetch(`${supabaseUrl}/rest/v1/feature_flags?key=in.(${keyList})&select=key,enabled,description&limit=10`, {
       headers: {
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`,
@@ -213,7 +213,7 @@ export async function getSuperchatConfig(supabaseUrl, supabaseKey, flagKeys = ['
 export async function getAkquiseConfig(supabaseUrl, supabaseKey) {
   try {
     const res = await fetch(
-      `${supabaseUrl}/rest/v1/feature_flags?key=in.(akquise_automation_enabled,akquise_ai_bot_enabled,akquise_test_phone,akquise_max_daily_sends)&select=*`,
+      `${supabaseUrl}/rest/v1/feature_flags?key=in.(akquise_automation_enabled,akquise_ai_bot_enabled,akquise_test_phone,akquise_max_daily_sends)&select=key,enabled,description&limit=10`,
       {
         headers: {
           'apikey': supabaseKey,

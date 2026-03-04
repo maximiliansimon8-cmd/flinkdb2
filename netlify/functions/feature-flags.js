@@ -80,8 +80,8 @@ export default async (request, context) => {
     // GET — Read flags
     if (request.method === 'GET') {
       const path = flagKey
-        ? `feature_flags?key=eq.${encodeURIComponent(flagKey)}&select=*`
-        : 'feature_flags?select=*&order=key.asc';
+        ? `feature_flags?key=eq.${encodeURIComponent(flagKey)}&select=key,enabled,description,updated_at,updated_by&limit=1`
+        : 'feature_flags?select=key,enabled,description,updated_at,updated_by&order=key.asc&limit=50';
 
       const result = await supabaseRequest(path);
 

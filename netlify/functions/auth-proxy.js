@@ -23,10 +23,11 @@ import {
   sanitizeString, sanitizeForAirtableFormula, isValidEmail, isValidAirtableId,
   safeErrorResponse,
 } from './shared/security.js';
+import { AIRTABLE_BASE, TABLES } from './shared/airtableFields.js';
 
-const BASE_ID = 'apppFUWK829K6B3R2';
-const TEAM_TABLE = 'tblPxz19KsF1TUkwr';      // external_team
-const ACTIVITY_LOG_TABLE = 'tblDk1dl4J3Ow3Qde'; // activity_log
+const BASE_ID = AIRTABLE_BASE;
+const TEAM_TABLE = 'tblPxz19KsF1TUkwr';      // external_team — not in shared TABLES constants
+const ACTIVITY_LOG_TABLE = TABLES.ACTIVITY_LOG;
 const AIRTABLE_API = 'https://api.airtable.com/v0';
 
 /**

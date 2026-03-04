@@ -201,7 +201,7 @@ export default async (request, context) => {
     if (bookingId) {
       // 1. Get the booking from Supabase
       const bookingResult = await supabaseRequest(
-        `install_bookings?id=eq.${encodeURIComponent(bookingId)}&select=*&limit=1`
+        `install_bookings?id=eq.${encodeURIComponent(bookingId)}&select=id,booking_token,akquise_airtable_id,termin_airtable_id,location_name,city,contact_name,contact_phone,contact_email,jet_id,booked_date,booked_time,booked_end_time,booked_window,route_id,installer_team,status,booking_source,notes,whatsapp_sent_at,reminder_sent_at,reminder_count,booked_at,confirmed_at,created_at,updated_at&limit=1`
       );
 
       if (!bookingResult.ok || !bookingResult.data?.length) {
@@ -229,7 +229,7 @@ export default async (request, context) => {
       let route = null;
       if (booking.route_id) {
         const routeResult = await supabaseRequest(
-          `install_routen?id=eq.${booking.route_id}&select=*&limit=1`
+          `install_routen?id=eq.${booking.route_id}&select=id,city,schedule_date,installer_team,max_capacity,time_slots,status,notes&limit=1`
         );
         route = routeResult.data?.[0] || null;
       }
@@ -257,7 +257,7 @@ export default async (request, context) => {
     if (city) {
       // 1. Get all bookings for this city from Supabase
       const bookingsResult = await supabaseRequest(
-        `install_bookings?city=eq.${encodeURIComponent(city)}&select=*&order=created_at.desc`
+        `install_bookings?city=eq.${encodeURIComponent(city)}&select=id,booking_token,akquise_airtable_id,termin_airtable_id,location_name,city,contact_name,contact_phone,contact_email,jet_id,booked_date,booked_time,booked_end_time,booked_window,route_id,installer_team,status,booking_source,notes,booked_at,confirmed_at,created_at,updated_at&order=created_at.desc&limit=1000`
       );
       const bookings = bookingsResult.ok ? bookingsResult.data || [] : [];
 
@@ -291,7 +291,7 @@ export default async (request, context) => {
       let routeMap = new Map();
       if (routeIds.length > 0) {
         const routesResult = await supabaseRequest(
-          `install_routen?id=in.(${routeIds.join(',')})&select=*`
+          `install_routen?id=in.(${routeIds.join(',')})&select=id,city,schedule_date,installer_team,max_capacity,status&limit=500`
         );
         routeMap = new Map((routesResult.data || []).map(r => [r.id, r]));
       }
@@ -330,7 +330,7 @@ export default async (request, context) => {
     if (all === 'ready') {
       // 1. Get all bookings from Supabase
       const bookingsResult = await supabaseRequest(
-        `install_bookings?select=*&order=created_at.desc`
+        `install_bookings?select=id,booking_token,akquise_airtable_id,termin_airtable_id,location_name,city,contact_name,contact_phone,contact_email,jet_id,booked_date,booked_time,booked_end_time,booked_window,route_id,installer_team,status,booking_source,notes,booked_at,confirmed_at,created_at,updated_at&order=created_at.desc&limit=1000`
       );
       const bookings = bookingsResult.ok ? bookingsResult.data || [] : [];
 
@@ -363,7 +363,7 @@ export default async (request, context) => {
       let routeMap = new Map();
       if (routeIds.length > 0) {
         const routesResult = await supabaseRequest(
-          `install_routen?id=in.(${routeIds.join(',')})&select=*`
+          `install_routen?id=in.(${routeIds.join(',')})&select=id,city,schedule_date,installer_team,max_capacity,status&limit=500`
         );
         routeMap = new Map((routesResult.data || []).map(r => [r.id, r]));
       }

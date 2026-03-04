@@ -19,14 +19,11 @@ import {
   getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
-import { INSTALLATION_FIELDS as IF_ } from './shared/airtableFields.js';
+import { AIRTABLE_BASE, TABLES, INSTALLATION_FIELDS as IF_ } from './shared/airtableFields.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
-const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
 
 const ONLINE_RATE_THRESHOLD = 80; // percent
 const MAX_INSTALLATIONS_PER_RUN = 50;
@@ -156,7 +153,7 @@ async function createVerificationTask(installation, checkType, onlineRate, displ
   }
 
   const apiStart = Date.now();
-  const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TASKS_TABLE}`, {
+  const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.TASKS}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -182,7 +179,7 @@ async function createVerificationTask(installation, checkType, onlineRate, displ
 async function setFreigabeOnlineRate(installationAirtableId) {
   const apiStart = Date.now();
   const res = await fetch(
-    `https://api.airtable.com/v0/${AIRTABLE_BASE}/${INSTALLATIONEN_TABLE}/${installationAirtableId}`,
+    `https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONEN}/${installationAirtableId}`,
     {
       method: 'PATCH',
       headers: {
@@ -205,7 +202,7 @@ async function setFreigabeCHG(installationAirtableId) {
   const today = getLocalDateString();
   const apiStart = Date.now();
   const res = await fetch(
-    `https://api.airtable.com/v0/${AIRTABLE_BASE}/${INSTALLATIONEN_TABLE}/${installationAirtableId}`,
+    `https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONEN}/${installationAirtableId}`,
     {
       method: 'PATCH',
       headers: {

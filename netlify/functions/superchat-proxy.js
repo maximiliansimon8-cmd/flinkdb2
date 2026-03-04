@@ -31,7 +31,7 @@ export default async (request, context) => {
       const SUPABASE_URL = process.env.SUPABASE_URL;
       const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (SUPABASE_URL && SUPABASE_KEY) {
-        const flagRes = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=*`, {
+        const flagRes = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=key,enabled,description&limit=10`, {
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
         });
         if (flagRes.ok) {

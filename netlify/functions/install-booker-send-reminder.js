@@ -63,7 +63,7 @@ async function superchatRequest(path, options = {}) {
 async function getConfig() {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=*`,
+      `${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=key,enabled,description&limit=10`,
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
     );
     if (!res.ok) return { superchatEnabled: false, testPhone: null };
@@ -131,7 +131,7 @@ export default async (req) => {
   try {
     // Query ALL pending bookings with no reminder sent yet (no 22h filter — manual trigger)
     const pendingResult = await supabaseRequest(
-      `install_bookings?status=eq.pending&reminder_count=eq.0&whatsapp_sent_at=not.is.null&select=*&order=whatsapp_sent_at.asc`
+      `install_bookings?status=eq.pending&reminder_count=eq.0&whatsapp_sent_at=not.is.null&select=id,location_name,city,contact_name,contact_phone,jet_id,booking_token,whatsapp_sent_at&order=whatsapp_sent_at.asc&limit=1000`
     );
 
     if (!pendingResult.ok) {

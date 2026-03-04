@@ -491,7 +491,7 @@ export default async (request) => {
     try {
       console.log('[trigger-sync] Running installationen→install_bookings status sync...');
       const installRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/installationen?select=id,akquise_links,status,location_name&status=in.(Installiert,Installiert - Nacharbeit notwendig,Abgebrochen - Vorort,Abbruch - telefonisch vorab)`,
+        `${SUPABASE_URL}/rest/v1/installationen?select=id,akquise_links,status,location_name&status=in.(Installiert,Installiert - Nacharbeit notwendig,Abgebrochen - Vorort,Abbruch - telefonisch vorab)&limit=5000`,
         { headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`, 'apikey': SUPABASE_SERVICE_KEY } }
       );
       const installationen = installRes.ok ? await installRes.json() : [];
@@ -506,7 +506,7 @@ export default async (request) => {
           }
         }
         const openBookingsRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/install_bookings?select=id,akquise_airtable_id,status,location_name&status=in.(pending,booked,confirmed,invited)&akquise_airtable_id=not.is.null`,
+          `${SUPABASE_URL}/rest/v1/install_bookings?select=id,akquise_airtable_id,status,location_name&status=in.(pending,booked,confirmed,invited)&akquise_airtable_id=not.is.null&limit=1000`,
           { headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`, 'apikey': SUPABASE_SERVICE_KEY } }
         );
         const openBookings = openBookingsRes.ok ? await openBookingsRes.json() : [];

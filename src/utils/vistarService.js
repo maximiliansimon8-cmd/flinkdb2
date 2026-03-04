@@ -48,11 +48,12 @@ export async function fetchVenueHealthFromSupabase(venueId, startDate, endDate) 
   try {
     const { data, error } = await supabase
       .from('vistar_venue_health')
-      .select('*')
+      .select('*') // All health metrics needed for venue detail view
       .eq('venue_id', venueId)
       .gte('report_date', startDate)
       .lte('report_date', endDate)
-      .order('report_date', { ascending: true });
+      .order('report_date', { ascending: true })
+      .limit(400);
 
     if (error) {
       console.warn('[vistarService] Supabase health query error:', error.message);
@@ -118,10 +119,11 @@ export async function fetchAllVenueHealthFromSupabase(startDate, endDate) {
     // Then: load health data
     const { data, error } = await supabase
       .from('vistar_venue_health')
-      .select('*')
+      .select('venue_id,report_date,impressions,requested_spots,partner_revenue,partner_profit,partner_ecpm,is_requesting')
       .gte('report_date', startDate)
       .lte('report_date', endDate)
-      .order('report_date', { ascending: true });
+      .order('report_date', { ascending: true })
+      .limit(50000);
 
     if (error || !data || data.length === 0) {
       console.warn('[vistarService] No health data found for', startDate, '–', endDate, error?.message);

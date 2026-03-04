@@ -233,7 +233,7 @@ export async function getAuditLog(limit = 100) {
   try {
     const { data, error } = await supabase
       .from('audit_log')
-      .select('*')
+      .select('created_at,action,detail,user_name,user_id')
       .order('created_at', { ascending: false })
       .limit(limit);
     if (error) throw error;
@@ -631,7 +631,7 @@ export async function fetchGroups() {
   if (_groupsPromise) return _groupsPromise;
   _groupsPromise = (async () => {
     try {
-      const { data, error } = await supabase.from('groups').select('*').order('name');
+      const { data, error } = await supabase.from('groups').select('id,name,description,color,icon,tabs,actions').order('name').limit(50);
       if (error) throw error;
       _cachedGroups = (data || []).map(g => ({
         id: g.id,

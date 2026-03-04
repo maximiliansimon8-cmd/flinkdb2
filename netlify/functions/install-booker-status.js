@@ -14,14 +14,12 @@ import {
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 import { calculateEndTime, normalizeCity } from './shared/slotUtils.js';
+import { AIRTABLE_BASE, TABLES } from './shared/airtableFields.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const AKQUISE_TABLE = 'tblqFMBAeKQ1NbSI8';
-const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
 
 /** Supabase REST helper */
 async function supabaseRequest(path, options = {}) {
@@ -102,7 +100,7 @@ export default async (request, context) => {
       const to = url.searchParams.get('to');
       const olderThan = url.searchParams.get('olderThan'); // e.g. "48h" for follow-up
 
-      let query = 'install_bookings?select=*&order=created_at.desc';
+      let query = 'install_bookings?select=id,booking_token,akquise_airtable_id,termin_airtable_id,location_name,city,contact_name,contact_phone,contact_email,jet_id,booked_date,booked_time,booked_end_time,booked_window,route_id,installer_team,status,booking_source,notes,whatsapp_sent_at,reminder_sent_at,reminder_count,earliest_date,created_by_user_id,created_by_user_name,cancelled_at,cancelled_by_user_id,cancelled_by_user_name,cancelled_reason,booked_at,confirmed_at,created_at,updated_at&order=created_at.desc&limit=1000';
       if (city) query += `&city=eq.${encodeURIComponent(city)}`;
       if (status) {
         // Support comma-separated statuses — sanitize each value
@@ -194,7 +192,7 @@ export default async (request, context) => {
       const { status: newStatus, notes, action, newDate, newTime } = body;
 
       // Get current booking
-      const currentResult = await supabaseRequest(`install_bookings?id=eq.${bookingId}&select=*&limit=1`);
+      const currentResult = await supabaseRequest(`install_bookings?id=eq.${bookingId}&select=id,booking_token,akquise_airtable_id,termin_airtable_id,location_name,city,contact_name,contact_phone,jet_id,booked_date,booked_time,booked_end_time,route_id,installer_team,status,notes,reminder_count,cancelled_at&limit=1`);
       if (!currentResult.ok || !currentResult.data?.length) {
         return new Response(JSON.stringify({ error: 'Booking not found' }), {
           status: 404,
@@ -306,7 +304,7 @@ export default async (request, context) => {
         // Update Airtable Installationstermine status → Abgebrochen
         if (updateResult.ok && currentBooking.termin_airtable_id && AIRTABLE_TOKEN) {
           try {
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/tblKznpAOAMvEfX8u/${currentBooking.termin_airtable_id}`, {
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONEN}/${currentBooking.termin_airtable_id}`, {
               method: 'PATCH',
               headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -321,7 +319,7 @@ export default async (request, context) => {
         // Update Akquise Booking Status → pending (so it shows as "ausstehend" again)
         if (updateResult.ok && currentBooking.akquise_airtable_id && AIRTABLE_TOKEN) {
           try {
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${currentBooking.akquise_airtable_id}`, {
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.ACQUISITION}/${currentBooking.akquise_airtable_id}`, {
               method: 'PATCH',
               headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({ fields: { 'Booking Status': 'pending' } }),
@@ -410,7 +408,7 @@ export default async (request, context) => {
         // Update Airtable Installationen record
         if (updateResult.ok && currentBooking.termin_airtable_id && AIRTABLE_TOKEN) {
           try {
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/tblKznpAOAMvEfX8u/${currentBooking.termin_airtable_id}`, {
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONEN}/${currentBooking.termin_airtable_id}`, {
               method: 'PATCH',
               headers: {
                 'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -433,7 +431,7 @@ export default async (request, context) => {
         // Update Akquise Booking Status back to booked
         if (updateResult.ok && currentBooking.akquise_airtable_id && AIRTABLE_TOKEN) {
           try {
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${currentBooking.akquise_airtable_id}`, {
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.ACQUISITION}/${currentBooking.akquise_airtable_id}`, {
               method: 'PATCH',
               headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({ fields: { 'Booking Status': 'confirmed' } }),
@@ -479,7 +477,7 @@ export default async (request, context) => {
         // Also sync to Airtable Akquise
         if (phoneResult.ok && currentBooking.akquise_airtable_id && AIRTABLE_TOKEN) {
           try {
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${currentBooking.akquise_airtable_id}`, {
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.ACQUISITION}/${currentBooking.akquise_airtable_id}`, {
               method: 'PATCH',
               headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({ fields: { 'Contact Phone': normalizedPhone } }),
@@ -566,7 +564,7 @@ export default async (request, context) => {
             no_show: 'Abgebrochen - Vorort',
           };
           if (atStatusMap[newStatus]) {
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/tblKznpAOAMvEfX8u/${currentBooking.termin_airtable_id}`, {
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONEN}/${currentBooking.termin_airtable_id}`, {
               method: 'PATCH',
               headers: {
                 'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -591,7 +589,7 @@ export default async (request, context) => {
             completed: 'completed',
           };
           if (akquiseStatusMap[newStatus]) {
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${currentBooking.akquise_airtable_id}`, {
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.ACQUISITION}/${currentBooking.akquise_airtable_id}`, {
               method: 'PATCH',
               headers: {
                 'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -644,7 +642,7 @@ export default async (request, context) => {
             taskFields['Locations'] = [currentBooking.akquise_airtable_id];
           }
 
-          await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TASKS_TABLE}`, {
+          await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.TASKS}`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -665,7 +663,7 @@ export default async (request, context) => {
         let scEnabled = false;
         let scTestPhone = null;
         try {
-          const flagRes = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=*`, {
+          const flagRes = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=key,enabled,description&limit=10`, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
           });
           if (flagRes.ok) {
@@ -832,7 +830,7 @@ export default async (request, context) => {
           if (akquiseAirtableId) {
             installFields['Akquise'] = [akquiseAirtableId];
           }
-          const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/tblKznpAOAMvEfX8u`, {
+          const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONEN}`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ records: [{ fields: installFields }] }),
@@ -852,7 +850,7 @@ export default async (request, context) => {
       // Update Akquise Booking Status
       if (AIRTABLE_TOKEN && akquiseAirtableId) {
         try {
-          await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${akquiseAirtableId}`, {
+          await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.ACQUISITION}/${akquiseAirtableId}`, {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ fields: { 'Booking Status': 'confirmed' } }),

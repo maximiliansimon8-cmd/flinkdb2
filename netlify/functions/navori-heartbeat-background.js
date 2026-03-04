@@ -57,7 +57,7 @@ async function supabaseInsertBatch(table, rows, onConflict) {
 async function getFeatureFlag(key) {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/feature_flags?key=eq.${key}&select=enabled`,
+      `${SUPABASE_URL}/rest/v1/feature_flags?key=eq.${key}&select=key,enabled&limit=1`,
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
     );
     if (!res.ok) return false;

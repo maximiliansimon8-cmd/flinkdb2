@@ -414,7 +414,7 @@ export default async (request, context) => {
   try {
     // 1. Get route for this team + date
     const routeResult = await supabaseRequest(
-      `install_routen?installer_team=eq.${encodeURIComponent(team)}&schedule_date=eq.${date}&select=*`
+      `install_routen?installer_team=eq.${encodeURIComponent(team)}&schedule_date=eq.${date}&select=id,city,schedule_date,installer_team,max_capacity,status,time_slots,notes&limit=500`
     );
 
     const routes = routeResult.data || [];
@@ -424,14 +424,14 @@ export default async (request, context) => {
     let bookings = [];
     if (routes.length > 0) {
       const bookingsResult = await supabaseRequest(
-        `install_bookings?route_id=in.(${routes.map(r => r.id).join(',')})&booked_date=eq.${date}&select=*&order=booked_time.asc`
+        `install_bookings?route_id=in.(${routes.map(r => r.id).join(',')})&booked_date=eq.${date}&select=id,booking_token,akquise_airtable_id,location_name,city,street,street_number,postal_code,contact_name,contact_phone,contact_email,jet_id,booked_date,booked_time,booked_end_time,booked_window,route_id,installer_team,status,notes&order=booked_time.asc&limit=1000`
       );
       bookings = bookingsResult.data || [];
     }
 
     // Also fetch bookings by team + date directly (covers bookings not linked to a route)
     const directBookingsResult = await supabaseRequest(
-      `install_bookings?installer_team=eq.${encodeURIComponent(team)}&booked_date=eq.${date}&select=*&order=booked_time.asc`
+      `install_bookings?installer_team=eq.${encodeURIComponent(team)}&booked_date=eq.${date}&select=id,booking_token,akquise_airtable_id,location_name,city,street,street_number,postal_code,contact_name,contact_phone,contact_email,jet_id,booked_date,booked_time,booked_end_time,booked_window,route_id,installer_team,status,notes&order=booked_time.asc&limit=1000`
     );
     const directBookings = directBookingsResult.data || [];
     // Merge without duplicates
@@ -446,7 +446,7 @@ export default async (request, context) => {
     // 3. Fetch Airtable Installationstermine for this date (from Supabase cache)
     //    These are Airtable-sourced appointments that may not have install_bookings records.
     const termineResult = await supabaseRequest(
-      `installationstermine?installationsdatum_nur_datum=eq.${date}&select=*`
+      `installationstermine?installationsdatum_nur_datum=eq.${date}&select=id,airtable_id,installationsdatum_nur_datum,installationszeit,terminstatus,status_installation,akquise_links,integrator,city,location_name,street,street_number,postal_code,contact_email,contact_phone,contact_person,jet_id_links,grund_notiz&limit=500`
     );
     const allTermine = termineResult.data || [];
 
@@ -581,7 +581,7 @@ export default async (request, context) => {
     if (akquiseIds.length > 0) {
       try {
         const akquiseResult = await supabaseRequest(
-          `acquisition?airtable_id=in.(${akquiseIds.map(id => `"${id}"`).join(',')})&select=*`
+          `acquisition?airtable_id=in.(${akquiseIds.map(id => `"${id}"`).join(',')})&select=airtable_id,images,vertrag_pdf,akquise_kommentar,kommentar_installationen,frequency_approval_comment,mount_type,schaufenster,hindernisse,hindernisse_beschreibung,fensterbreite,steckdose,latitude,longitude,street,street_number,postal_code,contact_person,contact_phone,contact_email,jet_id&limit=1000`
         );
         for (const row of (akquiseResult.data || [])) {
           akquiseMap.set(row.airtable_id, row);

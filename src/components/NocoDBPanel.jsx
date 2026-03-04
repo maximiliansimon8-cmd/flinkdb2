@@ -1688,25 +1688,40 @@ export default function NocoDBPanel() {
         }
       };
 
-      const [vorbRes, simRes, vistarRes, liefRes, metaRes, opsRes, instData, taskData] = await Promise.all([
-        supabase.from('nocodb_vorbereitet').select('*').order('ops_nr', { ascending: true }),
-        supabase.from('nocodb_sim_kunden').select('*').order('karten_nr', { ascending: true }),
-        supabase.from('nocodb_vistar_navori').select('*').order('name', { ascending: true }),
-        supabase.from('nocodb_lieferando').select('*').order('restaurant', { ascending: true }),
-        supabase.from('sync_metadata').select('*').eq('table_name', 'nocodb_all').order('updated_at', { ascending: false }).limit(1),
+      const results = await Promise.allSettled([
+        supabase.from('nocodb_vorbereitet').select('*').order('ops_nr', { ascending: true }).limit(5000), // Full table load — all fields needed for NocoDB panel
+        supabase.from('nocodb_sim_kunden').select('*').order('karten_nr', { ascending: true }).limit(5000), // Full table load — all fields needed for NocoDB panel
+        supabase.from('nocodb_vistar_navori').select('*').order('name', { ascending: true }).limit(5000), // Full table load — all fields needed for NocoDB panel
+        supabase.from('nocodb_lieferando').select('*').order('restaurant', { ascending: true }).limit(5000), // Full table load — all fields needed for NocoDB panel
+        supabase.from('sync_metadata').select('table_name,updated_at,last_sync_timestamp,last_sync_status,records_fetched').eq('table_name', 'nocodb_all').order('updated_at', { ascending: false }).limit(1),
         supabase.from('hardware_ops').select('ops_nr,serial_number,status,hardware_type,display_location_id').limit(5000),
         fetchProxy('installationen', 'id,ops_nr,install_date,status,installation_type,integrator,technicians,sim_id,install_start,install_end,screen_type,screen_size,remarks,display_ids'),
         fetchProxy('tasks', 'title,status,priority,due_date,description,display_ids,location_names,responsible_user,created_time,install_date,install_remarks,nacharbeit_kommentar', 'created_time.desc'),
       ]);
 
-      setVorbereitet(vorbRes.data || []);
-      setSimKunden(simRes.data || []);
-      setVistarNavori(vistarRes.data || []);
-      setLieferando(liefRes.data || []);
-      setSyncMeta(metaRes.data?.[0] || null);
-      setOpsData(opsRes.data || []);
-      setInstallationen(instData);
-      setTasks(taskData);
+      const extract = (result, label) => {
+        if (result.status === 'fulfilled') return result.value;
+        console.error(`[NocoDBPanel] Query "${label}" failed:`, result.reason);
+        return null;
+      };
+
+      const vorbRes = extract(results[0], 'nocodb_vorbereitet');
+      const simRes = extract(results[1], 'nocodb_sim_kunden');
+      const vistarRes = extract(results[2], 'nocodb_vistar_navori');
+      const liefRes = extract(results[3], 'nocodb_lieferando');
+      const metaRes = extract(results[4], 'sync_metadata');
+      const opsRes = extract(results[5], 'hardware_ops');
+      const instData = extract(results[6], 'installationen');
+      const taskData = extract(results[7], 'tasks');
+
+      setVorbereitet(vorbRes?.data || []);
+      setSimKunden(simRes?.data || []);
+      setVistarNavori(vistarRes?.data || []);
+      setLieferando(liefRes?.data || []);
+      setSyncMeta(metaRes?.data?.[0] || null);
+      setOpsData(opsRes?.data || []);
+      setInstallationen(instData || []);
+      setTasks(taskData || []);
     } catch (err) {
       console.error('[NocoDBPanel] Load error:', err);
     } finally {
