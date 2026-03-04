@@ -2,26 +2,9 @@ import { useState, useMemo, useCallback } from 'react';
 import {
   Upload, FileText, CheckCircle2, AlertTriangle, Plus, Minus,
   ArrowRight, Search, ChevronDown, Loader2, MapPin, RefreshCw,
-  Eye, X, Download,
+  Eye, X, Download, Database, Clock,
 } from 'lucide-react';
-
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const STAMMDATEN_TABLE = 'tblLJ1S7OUhc2w5Jw';
-
-/** CSV field → Airtable field mapping */
-const FIELD_MAP = {
-  id:                    'JET ID',
-  name:                  'Location Name',
-  street:                'Street',
-  street_number:         'Street Number',
-  postcode:              'Postal Code',
-  city:                  'City',
-  phone:                 'Location Phone',
-  email:                 'Location Email',
-  contact_name:          'Contact Person',
-  contact_email:         'Contact Email',
-  account_name:          'Legal Entity',
-};
+import { supabase } from '../utils/authService';
 
 /** Fields to compare for change detection */
 const COMPARE_FIELDS = ['name', 'street', 'street_number', 'postcode', 'city', 'phone', 'email', 'contact_name', 'contact_email', 'account_name'];
@@ -92,77 +75,78 @@ export default function StammdatenImport() {
   const [airtableData, setAirtableData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingAirtable, setLoadingAirtable] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState('');
+  const [syncInfo, setSyncInfo] = useState(null);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('summary');
   const [expandedId, setExpandedId] = useState(null);
   const [fileName, setFileName] = useState('');
 
-  /** Fetch all Stammdaten from Airtable via proxy (with rate-limit handling) */
-  const fetchAirtableStammdaten = useCallback(async () => {
+  /** Fetch all Stammdaten from Supabase (synced from Airtable every 5 min) */
+  const fetchStammdaten = useCallback(async () => {
     setLoadingAirtable(true);
-    setLoadingProgress('Starte...');
     setError(null);
+    setSyncInfo(null);
     try {
-      const records = [];
-      let offset = null;
-      const fields = Object.values(FIELD_MAP);
-      const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
-      let page = 0;
+      // 1. Check sync freshness
+      const { data: syncMeta } = await supabase
+        .from('sync_metadata')
+        .select('last_sync_timestamp,last_sync_status,records_upserted')
+        .eq('table_name', 'stammdaten')
+        .single();
 
-      do {
-        let url = `/api/airtable/${AIRTABLE_BASE}/${STAMMDATEN_TABLE}?pageSize=100&${fieldParams}`;
-        if (offset) url += `&offset=${encodeURIComponent(offset)}`;
+      if (syncMeta?.last_sync_timestamp) {
+        const syncAge = Date.now() - new Date(syncMeta.last_sync_timestamp).getTime();
+        const syncMinAgo = Math.round(syncAge / 60000);
+        setSyncInfo({
+          lastSync: syncMeta.last_sync_timestamp,
+          minAgo: syncMinAgo,
+          status: syncMeta.last_sync_status,
+          fresh: syncMinAgo <= 10,
+        });
+      }
 
-        // Retry loop for rate limiting (429)
-        let res;
-        for (let attempt = 0; attempt < 5; attempt++) {
-          res = await fetch(url);
-          if (res.status !== 429) break;
-          const wait = Math.pow(2, attempt) * 1000;
-          setLoadingProgress(`Rate-Limit erreicht, warte ${wait / 1000}s...`);
-          await new Promise(r => setTimeout(r, wait));
-        }
-        if (!res.ok) throw new Error(`Airtable Fehler: ${res.status}`);
+      // 2. Fetch all stammdaten from Supabase (paginated, 1000 per page)
+      const allRows = [];
+      const PAGE_SIZE = 1000;
+      let from = 0;
+      let hasMore = true;
 
-        const data = await res.json();
-        records.push(...(data.records || []));
-        offset = data.offset || null;
-        page++;
-        setLoadingProgress(`${records.length} Eintraege geladen...`);
+      while (hasMore) {
+        const { data, error: fetchErr } = await supabase
+          .from('stammdaten')
+          .select('airtable_id,jet_id,location_name,street,street_number,postal_code,city,location_phone,location_email,contact_person,contact_email,legal_entity')
+          .range(from, from + PAGE_SIZE - 1);
+        if (fetchErr) throw new Error(`Supabase Fehler: ${fetchErr.message}`);
+        allRows.push(...(data || []));
+        hasMore = data?.length === PAGE_SIZE;
+        from += PAGE_SIZE;
+      }
 
-        // Throttle: 250ms pause between requests to stay under Airtable's 5 req/s limit
-        if (offset) await new Promise(r => setTimeout(r, 250));
-      } while (offset);
-
-      // Map to simple objects keyed by JET ID
+      // 3. Map to comparison format keyed by JET ID
       const map = new Map();
-      for (const rec of records) {
-        const f = rec.fields;
-        const jetId = Array.isArray(f['JET ID']) ? f['JET ID'][0] : (f['JET ID'] || null);
+      for (const row of allRows) {
+        const jetId = row.jet_id;
         if (!jetId) continue;
         map.set(String(jetId), {
-          airtable_id: rec.id,
+          airtable_id: row.airtable_id || '',
           id: String(jetId),
-          name: f['Location Name'] || '',
-          street: f['Street'] || '',
-          street_number: f['Street Number'] || '',
-          postcode: f['Postal Code'] || '',
-          city: f['City'] || '',
-          phone: f['Location Phone'] || '',
-          email: f['Location Email'] || '',
-          contact_name: f['Contact Person'] || '',
-          contact_email: f['Contact Email'] || '',
-          account_name: f['Legal Entity'] || '',
+          name: row.location_name || '',
+          street: row.street || '',
+          street_number: row.street_number || '',
+          postcode: row.postal_code || '',
+          city: row.city || '',
+          phone: row.location_phone || '',
+          email: row.location_email || '',
+          contact_name: row.contact_person || '',
+          contact_email: row.contact_email || '',
+          account_name: row.legal_entity || '',
         });
       }
       setAirtableData(map);
-      setLoadingProgress('');
       return map;
     } catch (err) {
-      setError(`Airtable-Laden fehlgeschlagen: ${err.message}`);
-      setLoadingProgress('');
+      setError(`Laden fehlgeschlagen: ${err.message}`);
       return null;
     } finally {
       setLoadingAirtable(false);
@@ -372,26 +356,33 @@ export default function StammdatenImport() {
           </label>
         </div>
 
-        {/* Airtable Load */}
+        {/* Supabase Load */}
         <div className="bg-white/60 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
-            <RefreshCw size={16} className="text-orange-600" />
-            <h3 className="text-sm font-semibold text-gray-900">2. Airtable Stammdaten laden</h3>
+            <Database size={16} className="text-orange-600" />
+            <h3 className="text-sm font-semibold text-gray-900">2. Stammdaten laden</h3>
+            <span className="text-[10px] text-gray-400 ml-auto">via Supabase (Airtable-Sync alle 5 Min)</span>
           </div>
           <button
-            onClick={fetchAirtableStammdaten}
+            onClick={fetchStammdaten}
             disabled={loadingAirtable}
             className="w-full flex flex-col items-center gap-2 border-2 border-dashed border-slate-300 rounded-xl p-6 cursor-pointer hover:border-orange-400 hover:bg-orange-50/30 transition-all disabled:opacity-50"
           >
             {loadingAirtable ? (
               <Loader2 size={24} className="text-orange-500 animate-spin" />
             ) : (
-              <RefreshCw size={24} className="text-slate-400" />
+              <Database size={24} className="text-slate-400" />
             )}
             <span className="text-sm text-slate-500">
-              {loadingAirtable ? (loadingProgress || 'Lade aus Airtable...') : airtableData ? `${airtableData.size} Stammdaten geladen` : 'Klicken zum Laden'}
+              {loadingAirtable ? 'Lade Stammdaten...' : airtableData ? `${airtableData.size} Stammdaten geladen` : 'Klicken zum Laden'}
             </span>
             {airtableData && <span className="text-xs text-emerald-600 font-medium">Bereit zum Abgleich</span>}
+            {syncInfo && (
+              <span className={`text-[10px] flex items-center gap-1 ${syncInfo.fresh ? 'text-emerald-600' : 'text-amber-600'}`}>
+                <Clock size={10} />
+                Letzter Sync: vor {syncInfo.minAgo} Min {!syncInfo.fresh && '(moeglicherweise veraltet)'}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -469,7 +460,7 @@ export default function StammdatenImport() {
                 <h3 className="text-sm font-semibold text-gray-900">Zusammenfassung</h3>
                 <div className="text-sm text-gray-600 space-y-1.5">
                   <p><Badge color="gray">{csvData.length}</Badge> Eintraege im JET-Export</p>
-                  <p><Badge color="gray">{airtableData.size}</Badge> Eintraege in Airtable</p>
+                  <p><Badge color="gray">{airtableData.size}</Badge> Eintraege in Supabase (Airtable-Sync)</p>
                   <p><Badge color="green">{comparison.unchanged.length}</Badge> unveraendert (ID match, alle Felder identisch)</p>
                   <p><Badge color="amber">{comparison.withChanges.length}</Badge> mit Aenderungen (ID match, Felder weichen ab)</p>
                   <p><Badge color="blue">{comparison.newEntries.length}</Badge> neue Standorte (ID nur im CSV)</p>
