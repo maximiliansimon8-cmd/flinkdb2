@@ -127,7 +127,7 @@ async function handleGetStats() {
 /** List all campaigns */
 async function handleGetCampaigns() {
   const result = await supabaseRequest(
-    'akquise_campaigns?select=*&order=created_at.desc&limit=50'
+    'akquise_campaigns?select=id,name,description,template_id,target_filter,total_leads,sent_count,status,started_at,created_by,created_at,updated_at&order=created_at.desc&limit=50'
   );
   if (!result.ok) throw new Error('Kampagnen konnten nicht geladen werden');
   return result.data || [];
@@ -361,7 +361,7 @@ async function handleSendSingle(body, userName) {
 async function handleGetConversations(body) {
   const { campaignId, status, city, limit: queryLimit = 50, offset = 0 } = body || {};
 
-  let query = 'akquise_conversations?select=*&order=updated_at.desc';
+  let query = 'akquise_conversations?select=id,campaign_id,akquise_airtable_id,contact_phone,contact_name,contact_email,location_name,city,jet_id,status,template_sent_at,superchat_contact_id,error_message,created_at,updated_at&order=updated_at.desc';
   if (campaignId) query += `&campaign_id=eq.${encodeURIComponent(campaignId)}`;
   if (status) query += `&status=eq.${encodeURIComponent(status)}`;
   if (city) query += `&city=ilike.${encodeURIComponent(city)}*`;
@@ -378,8 +378,8 @@ async function handleGetConversation(body) {
   if (!conversationId) throw new Error('conversationId ist erforderlich');
 
   const [conv, msgs] = await Promise.all([
-    supabaseRequest(`akquise_conversations?id=eq.${conversationId}&select=*&limit=1`),
-    supabaseRequest(`akquise_messages?conversation_id=eq.${conversationId}&select=*&order=created_at.asc&limit=500`),
+    supabaseRequest(`akquise_conversations?id=eq.${conversationId}&select=id,campaign_id,akquise_airtable_id,contact_phone,contact_name,contact_email,location_name,city,jet_id,status,template_sent_at,superchat_contact_id,error_message,created_at,updated_at&limit=1`),
+    supabaseRequest(`akquise_messages?conversation_id=eq.${conversationId}&select=id,conversation_id,direction,sender,content,message_type,template_id,created_at&order=created_at.asc&limit=500`),
   ]);
 
   if (!conv.ok || !conv.data?.length) throw new Error('Konversation nicht gefunden');
@@ -402,7 +402,7 @@ async function handleSendCampaign(body, userName) {
 
   // Load campaign
   const campResult = await supabaseRequest(
-    `akquise_campaigns?id=eq.${campaignId}&select=*&limit=1`
+    `akquise_campaigns?id=eq.${campaignId}&select=id,name,template_id,target_filter,total_leads,sent_count,status,started_at,created_at,updated_at&limit=1`
   );
   if (!campResult.ok || !campResult.data?.length) throw new Error('Kampagne nicht gefunden');
   const campaign = campResult.data[0];

@@ -14,14 +14,12 @@ import {
   sanitizeString, normalizePhone,
 } from './shared/security.js';
 import { slotsOverlap, calculateEndTime, normalizeCity, TIME_WINDOWS, TIME_WINDOW_KEYS, assignSlotInWindow } from './shared/slotUtils.js';
+import { AIRTABLE_BASE, TABLES } from './shared/airtableFields.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const AKQUISE_TABLE = 'tblqFMBAeKQ1NbSI8';
-const INSTALLATIONSTERMINE_TABLE = 'tblZrFRRg3iKxlXFJ';
 
 const SUPERCHAT_BASE = 'https://api.superchat.com/v1.0';
 
@@ -79,7 +77,7 @@ async function writeActivityLog(entry) {
 /** Check SuperChat flags: enabled + optional test phone override */
 async function getSuperchatConfig() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=*`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=key,enabled,description&limit=10`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
     });
     if (!res.ok) return { enabled: false, testPhone: null };
@@ -227,7 +225,7 @@ export default async (request, context) => {
 
     // 1. Validate token exists and is still pending
     const bookingResult = await supabaseRequest(
-      `install_bookings?booking_token=eq.${encodeURIComponent(token)}&select=*&limit=1`
+      `install_bookings?booking_token=eq.${encodeURIComponent(token)}&select=id,booking_token,akquise_airtable_id,location_name,city,contact_name,contact_phone,jet_id,booked_date,booked_time,booked_end_time,status&limit=1`
     );
 
     if (!bookingResult.ok || !bookingResult.data?.length) {
@@ -255,7 +253,7 @@ export default async (request, context) => {
     //    Use ilike to match city name variants (e.g. "Frankfurt" vs "Frankfurt am Main")
     const cityBase = normalizeCity(booking.city);
     const routesResult = await supabaseRequest(
-      `install_routen?city=ilike.${encodeURIComponent(cityBase)}*&schedule_date=eq.${date}&status=eq.open&select=*`
+      `install_routen?city=ilike.${encodeURIComponent(cityBase)}*&schedule_date=eq.${date}&status=eq.open&select=id,city,schedule_date,installer_team,max_capacity,time_slots,status&limit=500`
     );
 
     if (!routesResult.ok || !routesResult.data?.length) {
@@ -393,7 +391,7 @@ export default async (request, context) => {
           terminFields['Akquise'] = [booking.akquise_airtable_id];
         }
 
-        const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${INSTALLATIONSTERMINE_TABLE}`, {
+        const terminRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONSTERMINE}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -428,7 +426,7 @@ export default async (request, context) => {
       try {
         // Note: We only update fields that exist in Airtable Akquise table
         // Lead_Status is the status field, no custom Booking fields exist
-        const akquiseRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${booking.akquise_airtable_id}`, {
+        const akquiseRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.ACQUISITION}/${booking.akquise_airtable_id}`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -472,7 +470,7 @@ export default async (request, context) => {
     if (!confirmationPhone && AIRTABLE_TOKEN && booking.akquise_airtable_id) {
       try {
         const akqRes = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AKQUISE_TABLE}/${booking.akquise_airtable_id}?fields%5B%5D=Telefon`,
+          `https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.ACQUISITION}/${booking.akquise_airtable_id}?fields%5B%5D=Telefon`,
           { headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` } }
         );
         const akqData = await akqRes.json();

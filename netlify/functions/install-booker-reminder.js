@@ -138,7 +138,7 @@ async function getConfig() {
       'install_reminder_3_enabled',
     ];
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/feature_flags?key=in.(${flagKeys.join(',')})&select=*`,
+      `${SUPABASE_URL}/rest/v1/feature_flags?key=in.(${flagKeys.join(',')})&select=key,enabled,description&limit=10`,
       {
         headers: {
           'apikey': SUPABASE_KEY,

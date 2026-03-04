@@ -17,12 +17,12 @@ import {
   sanitizeString, isValidUUID, secureCompare,
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
+import { AIRTABLE_BASE } from './shared/airtableFields.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const BOOKER_API_KEY = process.env.BOOKER_API_KEY;
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 
 /** Check auth: either Origin-based (dashboard) or API-key (Make.com / Airtable automation) */
 function authenticate(request) {
@@ -123,7 +123,7 @@ export default async (request, context) => {
 
       // GET /teams — list all teams
       if (request.method === 'GET') {
-        const result = await supabaseRequest('install_teams?select=*&order=name.asc');
+        const result = await supabaseRequest('install_teams?select=id,name,description,color,is_active,members,created_at,updated_at&order=name.asc&limit=100');
         return new Response(JSON.stringify(result.data || []), {
           status: result.status,
           headers: {
@@ -212,7 +212,7 @@ export default async (request, context) => {
         });
       }
 
-      let query = 'install_routen?select=*&order=schedule_date.asc';
+      let query = 'install_routen?select=id,city,schedule_date,installer_team,max_capacity,time_slots,status,notes,airtable_id,created_at,updated_at&order=schedule_date.asc&limit=500';
       if (city) query += `&city=eq.${encodeURIComponent(city)}`;
       if (from) query += `&schedule_date=gte.${from}`;
       if (to) query += `&schedule_date=lte.${to}`;

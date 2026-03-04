@@ -12,14 +12,11 @@ import {
   checkRateLimit, getClientIP, rateLimitResponse, safeErrorResponse,
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
-import { INSTALLATION_FIELDS as IF_ } from './shared/airtableFields.js';
+import { AIRTABLE_BASE, TABLES, INSTALLATION_FIELDS as IF_ } from './shared/airtableFields.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';
-const TASKS_TABLE = 'tblcKHWJg77mgIQ9l';
 
 function getLocalDateString(date = new Date()) {
   return date.toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
@@ -63,7 +60,7 @@ export default async (request, context) => {
       // PATCH Airtable: set checkbox
       const apiStart = Date.now();
       const atRes = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE}/${INSTALLATIONEN_TABLE}/${installation_airtable_id}`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONEN}/${installation_airtable_id}`,
         {
           method: 'PATCH',
           headers: {
@@ -95,7 +92,7 @@ export default async (request, context) => {
           // Both are now true → set CHG
           const chgStart = Date.now();
           const chgRes = await fetch(
-            `https://api.airtable.com/v0/${AIRTABLE_BASE}/${INSTALLATIONEN_TABLE}/${installation_airtable_id}`,
+            `https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.INSTALLATIONEN}/${installation_airtable_id}`,
             {
               method: 'PATCH',
               headers: {
@@ -166,7 +163,7 @@ export default async (request, context) => {
       }
 
       const apiStart = Date.now();
-      const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TASKS_TABLE}`, {
+      const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLES.TASKS}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,

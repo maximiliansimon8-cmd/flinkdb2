@@ -20,15 +20,13 @@ import {
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 import { normalizeCity } from './shared/slotUtils.js';
-import { VALUES } from './shared/airtableFields.js';
+import { AIRTABLE_BASE, TABLES, VALUES } from './shared/airtableFields.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPERCHAT_API_KEY = process.env.SUPERCHAT_API_KEY;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const BOOKER_API_KEY = process.env.BOOKER_API_KEY;
-const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
-const AKQUISE_TABLE = 'tblqFMBAeKQ1NbSI8';
 const BOOKING_BASE_URL = process.env.BOOKING_BASE_URL || 'https://tools.dimension-outdoor.com/book';
 
 const SUPERCHAT_BASE = 'https://api.superchat.com/v1.0';
@@ -102,7 +100,7 @@ function formatDateRange(routes) {
 /** Check SuperChat flags: enabled + optional test phone override */
 async function getSuperchatConfig() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=*`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/feature_flags?key=in.(superchat_enabled,superchat_test_phone)&select=key,enabled,description&limit=10`, {
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,

@@ -108,7 +108,7 @@ export async function fetchStammdatenByDisplayId(displayId) {
   try {
     const { data, error } = await supabase
       .from('stammdaten')
-      .select('*')
+      .select('*') // Mapped via mapStammdatenToAirtable — all fields needed
       .contains('display_ids', [displayId])
       .limit(1)
       .single();
@@ -117,7 +117,7 @@ export async function fetchStammdatenByDisplayId(displayId) {
       // Fallback: try text search if contains doesn't match
       const { data: data2 } = await supabase
         .from('stammdaten')
-        .select('*')
+        .select('*') // Mapped via mapStammdatenToAirtable — all fields needed
         .filter('display_ids', 'cs', `{${displayId}}`)
         .limit(1)
         .maybeSingle();
@@ -206,7 +206,7 @@ async function _fetchAllStammdatenImpl() {
     while (true) {
       const { data, error } = await supabase
         .from('stammdaten')
-        .select('*')
+        .select('*') // Full cache load — all fields needed for multi-component use
         .order('location_name', { ascending: true })
         .range(from, from + pageSize - 1);
 
@@ -261,7 +261,7 @@ export async function fetchTasksByDisplayId(displayId) {
   try {
     const { data, error } = await supabase
       .from('tasks')
-      .select('*')
+      .select('*') // Mapped via mapTaskFromSupabase — all fields needed
       .contains('display_ids', [displayId])
       .order('created_time', { ascending: false })
       .limit(50);
@@ -310,7 +310,7 @@ async function _fetchAllTasksImpl() {
     while (true) {
       const { data, error } = await supabase
         .from('tasks')
-        .select('*')
+        .select('*') // Full cache load — all fields needed for multi-component use
         .order('created_time', { ascending: false })
         .range(from, from + pageSize - 1);
 
@@ -386,7 +386,7 @@ export async function fetchInstallationByDisplayId(displayId) {
   try {
     const { data, error } = await supabase
       .from('installationen')
-      .select('*')
+      .select('*') // Many fields used for installation detail view
       .contains('display_ids', [displayId])
       .limit(1)
       .maybeSingle();
@@ -708,7 +708,7 @@ async function _fetchAllCommunicationsImpl() {
     while (true) {
       const { data, error } = await supabase
         .from('communications')
-        .select('*')
+        .select('*') // Full cache load — all fields needed for multi-component use
         .order('timestamp', { ascending: false })
         .range(from, from + pageSize - 1);
 
@@ -737,7 +737,7 @@ export async function fetchCommunicationsByLocation(locationRecordId) {
   try {
     const { data, error } = await supabase
       .from('communications')
-      .select('*')
+      .select('*') // Mapped via mapCommFromSupabase — all fields needed
       .contains('location_ids', [locationRecordId])
       .order('timestamp', { ascending: false })
       .limit(100);
@@ -892,7 +892,7 @@ export async function fetchHardwareByLocationId(displayLocationId) {
     // 1. Find OPS Player linked to this location
     const { data: opsData } = await supabase
       .from('hardware_ops')
-      .select('*')
+      .select('*') // Mapped via mapOpsFromSupabase — all fields needed
       .eq('display_location_id', displayLocationId)
       .limit(5);
 
@@ -904,8 +904,9 @@ export async function fetchHardwareByLocationId(displayLocationId) {
     if (opsIds.length > 0) {
       const { data: simData } = await supabase
         .from('hardware_sim')
-        .select('*')
-        .in('ops_record_id', opsIds);
+        .select('*') // Mapped via mapSimFromSupabase — all fields needed
+        .in('ops_record_id', opsIds)
+        .limit(20);
       sims = (simData || []).map(mapSimFromSupabase);
     }
 
@@ -915,8 +916,9 @@ export async function fetchHardwareByLocationId(displayLocationId) {
     if (opsIds.length > 0) {
       const { data: dispData } = await supabase
         .from('hardware_displays')
-        .select('*')
-        .in('ops_record_id', opsIds);
+        .select('*') // Mapped via mapDisplayFromSupabase — all fields needed
+        .in('ops_record_id', opsIds)
+        .limit(20);
       displays = (dispData || []).map(mapDisplayFromSupabase);
     }
 
@@ -944,7 +946,7 @@ export async function fetchHardwareByOpsNr(opsNr) {
   try {
     const { data: opsData } = await supabase
       .from('hardware_ops')
-      .select('*')
+      .select('*') // Mapped via mapOpsFromSupabase — all fields needed
       .eq('ops_nr', String(opsNr))
       .limit(1);
 
@@ -957,8 +959,9 @@ export async function fetchHardwareByOpsNr(opsNr) {
     if (opsIds.length > 0) {
       const { data: simData } = await supabase
         .from('hardware_sim')
-        .select('*')
-        .in('ops_record_id', opsIds);
+        .select('*') // Mapped via mapSimFromSupabase — all fields needed
+        .in('ops_record_id', opsIds)
+        .limit(10);
       sims = (simData || []).map(mapSimFromSupabase);
     }
 
@@ -966,8 +969,9 @@ export async function fetchHardwareByOpsNr(opsNr) {
     if (opsIds.length > 0) {
       const { data: dispData } = await supabase
         .from('hardware_displays')
-        .select('*')
-        .in('ops_record_id', opsIds);
+        .select('*') // Mapped via mapDisplayFromSupabase — all fields needed
+        .in('ops_record_id', opsIds)
+        .limit(10);
       displays = (dispData || []).map(mapDisplayFromSupabase);
     }
 
@@ -1097,7 +1101,7 @@ export async function fetchAllOpsInventory() {
     while (true) {
       const { data, error } = await supabase
         .from('hardware_ops')
-        .select('*')
+        .select('*') // Full cache load — all fields needed for multi-component use
         .order('ops_nr', { ascending: true })
         .range(from, from + pageSize - 1);
 
@@ -1191,7 +1195,7 @@ export async function fetchAllSimInventory() {
     while (true) {
       const { data, error } = await supabase
         .from('hardware_sim')
-        .select('*')
+        .select('*') // Full cache load — all fields needed for multi-component use
         .range(from, from + pageSize - 1);
       if (error) throw error;
       if (!data || data.length === 0) break;
@@ -1224,7 +1228,7 @@ export async function fetchAllDisplayInventory() {
     while (true) {
       const { data, error } = await supabase
         .from('hardware_displays')
-        .select('*')
+        .select('*') // Full cache load — all fields needed for multi-component use
         .range(from, from + pageSize - 1);
       if (error) throw error;
       if (!data || data.length === 0) break;
@@ -1263,7 +1267,7 @@ export async function fetchLeaseByDisplaySN(displaySN) {
     // CHG Approval
     const { data: chgData } = await supabase
       .from('chg_approvals')
-      .select('*')
+      .select('*') // Mapped via mapChgFromSupabase — all fields needed
       .eq('display_sn', displaySN)
       .limit(1)
       .maybeSingle();
@@ -1271,7 +1275,7 @@ export async function fetchLeaseByDisplaySN(displaySN) {
     // Bank TESMA
     const { data: bankData } = await supabase
       .from('bank_leasing')
-      .select('*')
+      .select('*') // Mapped via mapBankFromSupabase — all fields needed
       .eq('serial_number', displaySN)
       .limit(1)
       .maybeSingle();
@@ -1308,7 +1312,7 @@ export async function fetchLeaseByJetId(jetId) {
     // CHG Approval via jet_id_location
     const { data: chgData } = await supabase
       .from('chg_approvals')
-      .select('*')
+      .select('*') // Mapped via mapChgFromSupabase — all fields needed
       .eq('jet_id_location', jetId)
       .limit(1)
       .maybeSingle();
@@ -1318,7 +1322,7 @@ export async function fetchLeaseByJetId(jetId) {
     if (chgData?.display_sn) {
       const { data: bank } = await supabase
         .from('bank_leasing')
-        .select('*')
+        .select('*') // Mapped via mapBankFromSupabase — all fields needed
         .eq('serial_number', chgData.display_sn)
         .limit(1)
         .maybeSingle();
@@ -1349,8 +1353,8 @@ export async function fetchAllLeasingData() {
 
   try {
     const [chgRes, bankRes] = await Promise.all([
-      supabase.from('chg_approvals').select('*').order('rental_start', { ascending: false }),
-      supabase.from('bank_leasing').select('*').order('rental_start', { ascending: false }),
+      supabase.from('chg_approvals').select('*').order('rental_start', { ascending: false }).limit(2000), // Full cache load — all fields needed for multi-component use
+      supabase.from('bank_leasing').select('*').order('rental_start', { ascending: false }).limit(2000), // Full cache load — all fields needed for multi-component use
     ]);
 
     const chg = (chgRes.data || []).map(mapChgFromSupabase);
@@ -1491,7 +1495,7 @@ export async function fetchAllInstallationen() {
     while (true) {
       const { data, error } = await supabase
         .from('installationen')
-        .select('*')
+        .select('*') // Full cache load — all fields needed for multi-component use
         .order('install_date', { ascending: false })
         .range(from, from + pageSize - 1);
 
@@ -1560,7 +1564,7 @@ export async function fetchSwapsByLocationId(displayLocationId) {
   try {
     const { data, error } = await supabase
       .from('hardware_swaps')
-      .select('*')
+      .select('*') // Mapped via mapSwapFromSupabase — all fields needed
       .eq('display_location_id', displayLocationId)
       .order('swap_date', { ascending: false })
       .limit(50);
@@ -1582,8 +1586,9 @@ export async function fetchAllSwaps() {
   try {
     const { data, error } = await supabase
       .from('hardware_swaps')
-      .select('*')
-      .order('swap_date', { ascending: false });
+      .select('*') // Full cache load — all fields needed for multi-component use
+      .order('swap_date', { ascending: false })
+      .limit(2000);
 
     if (error) throw error;
     return (data || []).map(mapSwapFromSupabase);
@@ -1700,7 +1705,7 @@ export async function fetchDeinstallsByLocationId(displayLocationId) {
   try {
     const { data, error } = await supabase
       .from('hardware_deinstalls')
-      .select('*')
+      .select('*') // Mapped via mapDeinstallFromSupabase — all fields needed
       .eq('display_location_id', displayLocationId)
       .order('deinstall_date', { ascending: false })
       .limit(50);
@@ -1722,8 +1727,9 @@ export async function fetchAllDeinstalls() {
   try {
     const { data, error } = await supabase
       .from('hardware_deinstalls')
-      .select('*')
-      .order('deinstall_date', { ascending: false });
+      .select('*') // Full cache load — all fields needed for multi-component use
+      .order('deinstall_date', { ascending: false })
+      .limit(2000);
 
     if (error) throw error;
     return (data || []).map(mapDeinstallFromSupabase);
@@ -1986,7 +1992,7 @@ export async function fetchHardwareMovementHistory(snType, snValue) {
 export async function fetchOpsById(opsId) {
   if (!opsId) return null;
   try {
-    const { data, error } = await supabase.from('hardware_ops').select('*').eq('id', opsId).single();
+    const { data, error } = await supabase.from('hardware_ops').select('*').eq('id', opsId).single(); // Mapped via mapOpsFromSupabase — all fields needed
     if (error) throw error;
     return data ? mapOpsFromSupabase(data) : null;
   } catch (err) {
@@ -2001,7 +2007,7 @@ export async function fetchOpsById(opsId) {
 export async function fetchSimById(simId) {
   if (!simId) return null;
   try {
-    const { data, error } = await supabase.from('hardware_sim').select('*').eq('id', simId).single();
+    const { data, error } = await supabase.from('hardware_sim').select('*').eq('id', simId).single(); // Mapped via mapSimFromSupabase — all fields needed
     if (error) throw error;
     return data ? mapSimFromSupabase(data) : null;
   } catch (err) {
@@ -2016,7 +2022,7 @@ export async function fetchSimById(simId) {
 export async function fetchDisplayById(displayId) {
   if (!displayId) return null;
   try {
-    const { data, error } = await supabase.from('hardware_displays').select('*').eq('id', displayId).single();
+    const { data, error } = await supabase.from('hardware_displays').select('*').eq('id', displayId).single(); // Mapped via mapDisplayFromSupabase — all fields needed
     if (error) throw error;
     return data ? mapDisplayFromSupabase(data) : null;
   } catch (err) {
@@ -2033,9 +2039,10 @@ export async function fetchSwapsByOpsId(opsId) {
   try {
     const { data, error } = await supabase
       .from('hardware_swaps')
-      .select('*')
+      .select('*') // Mapped via mapSwapFromSupabase — all fields needed
       .or(`old_hardware_ids.cs.{${opsId}},new_hardware_ids.cs.{${opsId}}`)
-      .order('swap_date', { ascending: false });
+      .order('swap_date', { ascending: false })
+      .limit(50);
     if (error) throw error;
     return (data || []).map(mapSwapFromSupabase);
   } catch (err) {
@@ -2052,9 +2059,10 @@ export async function fetchDeinstallsByOpsId(opsId) {
   try {
     const { data, error } = await supabase
       .from('hardware_deinstalls')
-      .select('*')
+      .select('*') // Mapped via mapDeinstallFromSupabase — all fields needed
       .eq('ops_record_id', opsId)
-      .order('deinstall_date', { ascending: false });
+      .order('deinstall_date', { ascending: false })
+      .limit(50);
     if (error) throw error;
     return (data || []).map(mapDeinstallFromSupabase);
   } catch (err) {
@@ -2105,8 +2113,8 @@ export async function fetchComponentLifecycle(componentType, componentId) {
     let relatedDisplays = [];
     if (opsId) {
       const [simRes, dispRes] = await Promise.all([
-        supabase.from('hardware_sim').select('*').eq('ops_record_id', opsId),
-        supabase.from('hardware_displays').select('*').eq('ops_record_id', opsId),
+        supabase.from('hardware_sim').select('*').eq('ops_record_id', opsId).limit(10), // Mapped via mapSimFromSupabase — all fields needed
+        supabase.from('hardware_displays').select('*').eq('ops_record_id', opsId).limit(10), // Mapped via mapDisplayFromSupabase — all fields needed
       ]);
       relatedSims = (simRes.data || []).map(mapSimFromSupabase);
       relatedDisplays = (dispRes.data || []).map(mapDisplayFromSupabase);
@@ -2279,7 +2287,7 @@ export async function fetchAirtableDisplayByDisplayId(displayId) {
   try {
     const { data, error } = await supabase
       .from('airtable_displays')
-      .select('*')
+      .select('*') // Full record needed — returned directly to components
       .eq('display_id', displayId)
       .maybeSingle();
     if (error) {
@@ -2498,7 +2506,7 @@ async function _fetchAllAcquisitionImpl() {
       while (true) {
         const { data, error } = await supabase
           .from('acquisition')
-          .select('*')
+          .select('*') // Full cache load — all fields needed for multi-component use
           .order('created_at', { ascending: false })
           .range(from, from + pageSize - 1);
 
@@ -2571,7 +2579,7 @@ async function _fetchAllInstallationstermineImpl() {
     while (true) {
       const { data, error } = await supabase
         .from('installationstermine')
-        .select('*')
+        .select('*') // Full cache load — all fields needed for multi-component use
         .order('installationsdatum', { ascending: false })
         .range(from, from + pageSize - 1);
 
