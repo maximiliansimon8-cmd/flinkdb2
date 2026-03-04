@@ -44,30 +44,28 @@ function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, ac
   return (
     <div
       onClick={onClick}
-      className={`bg-surface-primary rounded-2xl p-5 transition-all duration-200 ${
+      className={`bg-white rounded-2xl p-5 transition-all duration-200 shadow-card ${
         large ? 'col-span-1 md:col-span-2 lg:col-span-1' : ''
       } ${
-        onClick ? 'cursor-pointer hover:scale-[1.02] hover:shadow-lg' : ''
+        onClick ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5' : ''
       } ${
-        active
-          ? 'ring-2 ring-[#007AFF] shadow-lg'
-          : 'shadow-sm'
+        active ? 'ring-2 ring-[#007AFF] shadow-lg' : ''
       }`}
-      style={{
-        border: active ? 'none' : '1px solid rgba(0,0,0,0.06)',
-      }}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[14px] text-[#86868B] font-medium">
+        <span className="text-[13px] text-[#86868B] font-medium">
           {label}
         </span>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '14' }}>
-          <Icon size={16} style={{ color }} />
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: color + '20' }}
+        >
+          <Icon size={17} style={{ color }} />
         </div>
       </div>
       <div className="flex items-end gap-2.5">
         <div
-          className={`font-semibold tracking-tight ${large ? 'text-[36px] leading-none' : 'text-[30px] leading-none'}`}
+          className={`font-bold tracking-tight ${large ? 'text-[36px] leading-none' : 'text-[28px] leading-none'}`}
           style={{ color: '#1D1D1F' }}
         >
           {value}
@@ -75,12 +73,12 @@ function KPICard({ label, value, icon: Icon, color, subtitle, large, onClick, ac
         {trend}
       </div>
       {(subtitle || avgLabel) && (
-        <div className="flex items-center gap-2 mt-2.5">
+        <div className="flex items-center gap-2 mt-3">
           {subtitle && (
-            <span className="text-[#86868B] text-[13px]">{subtitle}</span>
+            <span className="text-[#AEAEB2] text-[12px]">{subtitle}</span>
           )}
           {avgLabel && (
-            <span className="text-[#86868B] text-[12px] bg-[#F5F5F7] px-2 py-0.5 rounded-md font-medium">
+            <span className="text-[#86868B] text-[11px] bg-[#F2F2F7] px-2 py-0.5 rounded-md font-medium">
               {avgLabel}
             </span>
           )}
@@ -124,7 +122,7 @@ export default function KPICards({ kpis, activeFilter, onFilterClick, rangeLabel
           Letzte bekannte Daten{kpis._cachedTimestamp ? ` · ${new Date(kpis._cachedTimestamp).toLocaleString('de-DE')}` : ''}
         </div>
       )}
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
       <KPICard
         label="Health Rate"
         value={`${kpis.healthRate}%`}
