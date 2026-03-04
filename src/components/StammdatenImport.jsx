@@ -529,7 +529,20 @@ export default function StammdatenImport() {
       }
     }
 
-    const withChanges = matched.filter(m => m.hasChanges);
+    // Only show changes for Standorte that have a Vertrag (Won/Signed) or a Display
+    // Others are irrelevant — both versions can exist, nobody cares about diffs
+    const isRelevant = (m) => {
+      const at = m.airtable;
+      const ls = Array.isArray(at.lead_status) ? at.lead_status : [at.lead_status].filter(Boolean);
+      const hasVertrag = ls.some(s => s === 'Won / Signed');
+      const hasDisplay = (Array.isArray(at.display_ids) ? at.display_ids : []).length > 0
+        || (Array.isArray(at.displays) ? at.displays : []).length > 0;
+      return hasVertrag || hasDisplay;
+    };
+
+    const relevantWithChanges = matched.filter(m => m.hasChanges && isRelevant(m));
+    const irrelevantWithChanges = matched.filter(m => m.hasChanges && !isRelevant(m));
+    const withChanges = relevantWithChanges;
     const unchanged = matched.filter(m => !m.hasChanges);
     const withUnsynced = matched.filter(m => m.hasUnsynced);
     const totalUnsyncedFields = matched.reduce((sum, m) => sum + (m.unsyncedFields?.length || 0), 0);
@@ -538,7 +551,7 @@ export default function StammdatenImport() {
     const withCritical = withChanges.filter(m => m.hasCritical);
     const onlyNonCritical = withChanges.filter(m => !m.hasCritical);
 
-    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical, newWithConflicts, newClean, withUnsynced, totalUnsyncedFields };
+    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical, newWithConflicts, newClean, withUnsynced, totalUnsyncedFields, irrelevantWithChanges };
   }, [csvData, airtableData]);
 
   /** Filter results by search */
@@ -921,19 +934,15 @@ export default function StammdatenImport() {
               <p className="text-[11px] font-medium opacity-70">Gesamt CSV</p>
               <p className="text-2xl font-bold">{csvData.length}</p>
             </button>
-            <button onClick={() => setActiveTab('unchanged')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'unchanged' ? 'bg-emerald-600 text-white' : 'bg-emerald-50/80 border border-emerald-200/60'}`}>
-              <p className="text-[11px] font-medium opacity-70">Unveraendert</p>
-              <p className={`text-2xl font-bold ${activeTab === 'unchanged' ? '' : 'text-emerald-700'}`}>{comparison.unchanged.length}</p>
-            </button>
             <button onClick={() => setActiveTab('noncritical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'noncritical' ? 'bg-amber-600 text-white' : 'bg-status-warning/10/80 border border-status-warning/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Unkritisch</p>
               <p className={`text-2xl font-bold ${activeTab === 'noncritical' ? '' : 'text-amber-700'}`}>{comparison.onlyNonCritical.length}</p>
-              <p className="text-[9px] opacity-60">Tel, Email, Geo...</p>
+              <p className="text-[9px] opacity-60">Mit Vertrag/Display</p>
             </button>
             <button onClick={() => setActiveTab('critical')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'critical' ? 'bg-status-offline text-white' : 'bg-status-offline/10/80 border border-status-offline/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Kritisch</p>
               <p className={`text-2xl font-bold ${activeTab === 'critical' ? '' : 'text-red-700'}`}>{comparison.withCritical.length}</p>
-              <p className="text-[9px] opacity-60">Name, Firma, Chain</p>
+              <p className="text-[9px] opacity-60">Name, Chain</p>
             </button>
             <button onClick={() => setActiveTab('new')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'new' ? 'bg-accent text-white' : 'bg-accent-light/80 border border-accent/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Neu (nur CSV)</p>
@@ -950,6 +959,11 @@ export default function StammdatenImport() {
             <button onClick={() => setActiveTab('conflicts')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'conflicts' ? 'bg-brand-purple text-white' : 'bg-brand-purple/10/80 border border-brand-purple/20/60'}`}>
               <p className="text-[11px] font-medium opacity-70">Adress-Konflikte</p>
               <p className={`text-2xl font-bold ${activeTab === 'conflicts' ? '' : 'text-purple-700'}`}>{comparison.addrConflicts.length}</p>
+            </button>
+            <button onClick={() => setActiveTab('ignored')} className={`rounded-xl px-4 py-3 text-left transition-colors ${activeTab === 'ignored' ? 'bg-slate-600 text-white' : 'bg-slate-50/80 border border-slate-200/60'}`}>
+              <p className="text-[11px] font-medium opacity-70">Ignoriert</p>
+              <p className={`text-2xl font-bold ${activeTab === 'ignored' ? '' : 'text-slate-500'}`}>{(comparison.irrelevantWithChanges?.length || 0) + comparison.unchanged.length}</p>
+              <p className="text-[9px] opacity-60">Ohne Vertrag/Display</p>
             </button>
           </div>
 
@@ -1311,6 +1325,32 @@ export default function StammdatenImport() {
                 {comparison.unchanged.length > 100 && (
                   <div className="p-3 text-center text-xs text-text-muted">... und {comparison.unchanged.length - 100} weitere</div>
                 )}
+              </div>
+            )}
+
+            {/* Ignored: Standorte ohne Vertrag/Display mit Aenderungen + Unchanged */}
+            {activeTab === 'ignored' && (
+              <div>
+                <div className="px-4 py-3 bg-slate-50/80 border-b border-slate-200/40">
+                  <p className="text-xs text-slate-600">
+                    <span className="font-semibold">{comparison.irrelevantWithChanges?.length || 0}</span> Standorte mit Aenderungen aber ohne Vertrag/Display — irrelevant.
+                    {' '}<span className="font-semibold">{comparison.unchanged.length}</span> ohne Aenderungen.
+                  </p>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {[...(comparison.irrelevantWithChanges || []), ...comparison.unchanged].slice(0, 100).map(m => (
+                    <div key={m.id} className="px-4 py-2.5 flex items-center gap-3">
+                      <Minus size={14} className="text-slate-300 flex-shrink-0" />
+                      <span className="text-xs font-mono text-gray-400 w-20 flex-shrink-0">{m.id}</span>
+                      <span className="text-sm text-gray-500 flex-1 truncate">{m.csv.name}</span>
+                      <span className="text-xs text-gray-400">{m.csv.city}</span>
+                      {m.hasChanges && <span className="text-[10px] text-slate-400">{m.changes.length} Aend.</span>}
+                    </div>
+                  ))}
+                  {((comparison.irrelevantWithChanges?.length || 0) + comparison.unchanged.length) > 100 && (
+                    <div className="p-3 text-center text-xs text-gray-400">... und {(comparison.irrelevantWithChanges?.length || 0) + comparison.unchanged.length - 100} weitere</div>
+                  )}
+                </div>
               </div>
             )}
 
