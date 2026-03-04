@@ -366,10 +366,16 @@ export default function StammdatenImport() {
       const existing = airtableData.get(row.id);
       if (existing) {
         const changes = [];
+        const unsyncedFields = []; // CSV has value but Supabase is null (not yet synced)
         for (const field of compareFields) {
           const csvVal = norm(row[field]);
           const atVal = norm(existing[field]);
           if (csvVal !== atVal) {
+            // Supabase has no value but CSV does → field was never synced, not a real change
+            if (!atVal && csvVal) {
+              unsyncedFields.push({ field, label: FIELD_LABELS[field] || field, csvVal: row[field] || '' });
+              continue;
+            }
             const isCritical = CRITICAL_FIELDS.has(field);
             changes.push({
               field, label: FIELD_LABELS[field] || field,
@@ -382,9 +388,10 @@ export default function StammdatenImport() {
         const nonCriticalChanges = changes.filter(c => !c.critical);
         matched.push({
           id: row.id, csv: row, airtable: existing,
-          changes, criticalChanges, nonCriticalChanges,
+          changes, criticalChanges, nonCriticalChanges, unsyncedFields,
           hasChanges: changes.length > 0,
           hasCritical: criticalChanges.length > 0,
+          hasUnsynced: unsyncedFields.length > 0,
         });
       } else {
         newEntries.push(row);
@@ -488,12 +495,14 @@ export default function StammdatenImport() {
 
     const withChanges = matched.filter(m => m.hasChanges);
     const unchanged = matched.filter(m => !m.hasChanges);
+    const withUnsynced = matched.filter(m => m.hasUnsynced);
+    const totalUnsyncedFields = matched.reduce((sum, m) => sum + (m.unsyncedFields?.length || 0), 0);
 
     // Split: records with only non-critical changes vs those with critical
     const withCritical = withChanges.filter(m => m.hasCritical);
     const onlyNonCritical = withChanges.filter(m => !m.hasCritical);
 
-    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical, newWithConflicts, newClean };
+    return { matched, withChanges, unchanged, newEntries, missing, addrConflicts, withCritical, onlyNonCritical, newWithConflicts, newClean, withUnsynced, totalUnsyncedFields };
   }, [csvData, airtableData]);
 
   /** Filter results by search */
@@ -929,6 +938,9 @@ export default function StammdatenImport() {
                   <p><Badge color="blue">{comparison.newEntries.length}</Badge> neue Standorte (ID nur im CSV)</p>
                   <p><Badge color="gray">{comparison.missing.length}</Badge> in DB ohne Aenderungen (ID nur in Airtable, nicht im CSV)</p>
                   <p><Badge color="purple">{comparison.addrConflicts.length}</Badge> Adress-Konflikte (gleiche Anschrift, andere ID)</p>
+                  {comparison.withUnsynced.length > 0 && (
+                    <p className="mt-1 pt-1 border-t border-slate-100"><Badge color="gray">{comparison.withUnsynced.length}</Badge> Standorte mit {comparison.totalUnsyncedFields} nicht-gesyncten Feldern (CSV hat Wert, Supabase leer — ignoriert)</p>
+                  )}
                 </div>
                 {comparison.withChanges.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-border-secondary">
