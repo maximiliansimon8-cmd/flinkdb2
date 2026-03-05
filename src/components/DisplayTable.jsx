@@ -442,7 +442,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
         inNavori: '✓',
         inAirtable: '–',
         inChg: hasChg ? '✓' : '–',
-        network: d.displayId.startsWith('DM-') ? 'Dayn' : 'Flink',
+        network: d.displayId.startsWith('DM-') ? 'Dayn' : 'JET',
         isActiveDisplay: d.isActive,
       });
     }
@@ -469,7 +469,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
             inNavori: '–',
             inAirtable: '✓',
             inChg: '–',
-            network: did.startsWith('DM-') ? 'Dayn' : 'Flink',
+            network: did.startsWith('DM-') ? 'Dayn' : 'JET',
             isActiveDisplay: isAtActive && !/deinstall/i.test(atStatus),
           });
         }
@@ -533,7 +533,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
     const masterList = Array.from(masterMap.values());
     masterList.sort((a, b) => {
       // Sort by network (JET first), then by navori status (aktiv first), then ID
-      if (a.network !== b.network) return a.network === 'Flink' ? -1 : 1;
+      if (a.network !== b.network) return a.network === 'JET' ? -1 : 1;
       const statusOrder = { 'Aktiv': 0, 'Inaktiv': 1, '–': 2 };
       const sa = statusOrder[a.navoriStatus] ?? 9;
       const sb = statusOrder[b.navoriStatus] ?? 9;
@@ -549,7 +549,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
     const airtableActiveCount = airtableIds.size;
 
     // Count active JET displays in master
-    const masterActiveJet = masterList.filter(d => d.network === 'Flink' && d.isActiveDisplay).length;
+    const masterActiveJet = masterList.filter(d => d.network === 'JET' && d.isActiveDisplay).length;
     const masterActiveDayn = masterList.filter(d => d.network === 'Dayn' && d.isActiveDisplay).length;
     const masterActiveTotal = masterActiveJet + masterActiveDayn;
     const masterDeinstalledTotal = masterList.length - masterActiveTotal;
@@ -570,7 +570,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
       navoriVistarJet: { matched: navoriVistarJetMatched, navoriOnly: navoriVistarJetUnmatched, vistarOnly: vistarJetOnlyCount, navoriTotal: activeDisplays.length, vistarJetTotal: vistarJetVenues.size },
       daynVistar: { matched: daynVistarMatched, unmatched: daynVistarUnmatched, offline: daynOfflineCount, total: daynScreensData?.total || 0, online: daynScreensData?.activeIds?.size || 0 },
       master: {
-        total: masterMap.size, jetCount: masterList.filter(d => d.network === 'Flink').length, daynCount: masterList.filter(d => d.network === 'Dayn').length,
+        total: masterMap.size, jetCount: masterList.filter(d => d.network === 'JET').length, daynCount: masterList.filter(d => d.network === 'Dayn').length,
         activeTotal: masterActiveTotal, activeJet: masterActiveJet, activeDayn: masterActiveDayn, deinstalledTotal: masterDeinstalledTotal,
       },
       completeness: { complete: completeCount, activeTotal: activeInMaster },
@@ -1023,7 +1023,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                 }
                 // Sort: JET first, then by status, then by displayId
                 detailList.sort((a, b) => {
-                  if (a.network !== b.network) return a.network === 'Flink' ? -1 : 1;
+                  if (a.network !== b.network) return a.network === 'JET' ? -1 : 1;
                   const aActive = /online|live|aktiv/i.test(a.airtableStatus) ? 0 : 1;
                   const bActive = /online|live|aktiv/i.test(b.airtableStatus) ? 0 : 1;
                   if (aActive !== bActive) return aActive - bActive;
@@ -1238,7 +1238,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
                                 </span>
                               ) : col === 'network' ? (
                                 <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold uppercase ${
-                                  item[col] === 'Flink' ? 'bg-accent-light text-blue-700' : 'bg-status-warning/10 text-orange-700'
+                                  item[col] === 'JET' ? 'bg-accent-light text-blue-700' : 'bg-status-warning/10 text-orange-700'
                                 }`}>{item[col]}</span>
                               ) : col === 'platformComplete' ? (
                                 item[col] ? (

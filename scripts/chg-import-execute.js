@@ -35,9 +35,8 @@ try {
   }
 } catch { /* no .env.local */ }
 
-const SUPABASE_URL = env.SUPABASE_URL || process.env.SUPABASE_URL;
-const SUPABASE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPABASE_URL || !SUPABASE_KEY) { console.error('SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY muessen in .env.local gesetzt sein'); process.exit(1); }
+const SUPABASE_URL = env.SUPABASE_URL || process.env.SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co';
+const SUPABASE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDc4NTMzNywiZXhwIjoyMDg2MzYxMzM3fQ.xiCcyalyFh3BDg_dABcpurfw5ygFnmucc17UiYLb8Y4';
 const AIRTABLE_TOKEN = env.AIRTABLE_TOKEN || process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE = 'apppFUWK829K6B3R2';
 const INSTALLATIONEN_TABLE = 'tblKznpAOAMvEfX8u';

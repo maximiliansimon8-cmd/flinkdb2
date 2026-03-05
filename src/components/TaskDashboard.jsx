@@ -533,7 +533,7 @@ export default function TaskDashboard() {
             Task Dashboard
           </h2>
           <p className="text-xs text-text-muted mt-0.5">
-            Zentrale Übersicht aller Aufgaben im Rahmen des Flink DooH Projekts
+            Zentrale Übersicht aller Aufgaben im Rahmen des JET DooH Projekts
           </p>
         </div>
         <div className="flex items-center gap-2">

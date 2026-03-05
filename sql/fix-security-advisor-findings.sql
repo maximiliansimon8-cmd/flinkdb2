@@ -1,5 +1,5 @@
 -- Fix Supabase Security Advisor Findings (Report 22 Feb 2026)
--- Project: FlinkDB2 / Flink_DooH (nrijgfcdlvuhhudasicd)
+-- Project: JET Dashboard v.2 (hvgjdosdejnwkuyivnrq)
 --
 -- Finding 1+2: sync_metadata has RLS policies but RLS is not enabled
 -- The table has a policy "Allow service role full access" but RLS was never turned on.
