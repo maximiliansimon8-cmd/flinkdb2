@@ -39,3 +39,5 @@ crop-sections.mjs
 
 # Local Netlify folder
 .netlify
+flinkdb/node_modules/
+flinkdb/dist/
