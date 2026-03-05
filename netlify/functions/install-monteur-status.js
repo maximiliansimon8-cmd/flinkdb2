@@ -2,10 +2,11 @@
  * Netlify Function: Install Monteur – WhatsApp Status Messages
  *
  * Sends WhatsApp notifications to customers on behalf of monteur.
- * Four actions: on_the_way (Auf dem Weg), delay (Verspätung), reschedule (Verschiebung), cancel (Absage).
+ * Five actions: on_the_way, delay, reschedule, cancel, complete.
+ * The "complete" action marks the installation as done (status → completed) without sending WhatsApp.
  *
  * POST /api/install-monteur/status
- * Body: { token, team, date, bookingId, action: 'on_the_way'|'delay'|'reschedule'|'cancel', delayMinutes? }
+ * Body: { token, team, date, bookingId, action: 'on_the_way'|'delay'|'reschedule'|'cancel'|'complete', delayMinutes? }
  *
  * Auth: Supabase JWT (persistent login) OR HMAC token (legacy links)
  *
@@ -128,16 +129,16 @@ async function superchatRequest(path, options = {}) {
  */
 const MESSAGES = {
   on_the_way: (contactName) =>
-    `Hallo ${contactName || 'Guten Tag'},\n\nunser Installationsteam ist jetzt auf dem Weg zu Ihnen. Wir sind voraussichtlich innerhalb der nächsten 60 Minuten bei Ihnen.\n\nBitte stellen Sie sicher, dass der Zugang zum Schaufenster / Montageort frei ist.\n\nIhr Lieferando Installations-Team`,
+    `Hallo ${contactName || 'Guten Tag'},\n\nunser Installationsteam ist jetzt auf dem Weg zu Ihnen. Wir sind voraussichtlich innerhalb der nächsten 60 Minuten bei Ihnen.\n\nBitte stellen Sie sicher, dass der Zugang zum Schaufenster / Montageort frei ist.\n\nIhr Dimension Outdoor Installations-Team`,
 
   delay: (contactName, delayMinutes) =>
-    `Hallo ${contactName || 'Guten Tag'},\n\nunser Installationsteam hat leider eine Verzögerung. Wir kommen ca. ${delayMinutes || 30} Minuten später als geplant.\n\nVielen Dank für Ihr Verständnis.\n\nIhr Lieferando Installations-Team`,
+    `Hallo ${contactName || 'Guten Tag'},\n\nunser Installationsteam hat leider eine Verzögerung. Wir kommen ca. ${delayMinutes || 30} Minuten später als geplant.\n\nVielen Dank für Ihr Verständnis.\n\nIhr Dimension Outdoor Installations-Team`,
 
   reschedule: (contactName) =>
-    `Hallo ${contactName || 'Guten Tag'},\n\nleider müssen wir Ihren heutigen Installationstermin verschieben. Wir melden uns in Kürze mit einem neuen Termin bei Ihnen.\n\nWir bitten um Entschuldigung für die Unannehmlichkeiten.\n\nIhr Lieferando Installations-Team`,
+    `Hallo ${contactName || 'Guten Tag'},\n\nleider müssen wir Ihren heutigen Installationstermin verschieben. Wir melden uns in Kürze mit einem neuen Termin bei Ihnen.\n\nWir bitten um Entschuldigung für die Unannehmlichkeiten.\n\nIhr Dimension Outdoor Installations-Team`,
 
   cancel: (contactName) =>
-    `Hallo ${contactName || 'Guten Tag'},\n\nleider müssen wir Ihren heutigen Installationstermin absagen. Wir melden uns schnellstmöglich bei Ihnen, um einen Ersatztermin zu vereinbaren.\n\nWir bitten vielmals um Entschuldigung.\n\nIhr Lieferando Installations-Team`,
+    `Hallo ${contactName || 'Guten Tag'},\n\nleider müssen wir Ihren heutigen Installationstermin absagen. Wir melden uns schnellstmöglich bei Ihnen, um einen Ersatztermin zu vereinbaren.\n\nWir bitten vielmals um Entschuldigung.\n\nIhr Dimension Outdoor Installations-Team`,
 };
 
 export default async (request, context) => {
@@ -185,8 +186,8 @@ export default async (request, context) => {
   }
 
   // Validate action
-  if (!['on_the_way', 'delay', 'reschedule', 'cancel'].includes(action)) {
-    return new Response(JSON.stringify({ error: 'action must be on_the_way, delay, reschedule, or cancel' }), {
+  if (!['on_the_way', 'delay', 'reschedule', 'cancel', 'complete'].includes(action)) {
+    return new Response(JSON.stringify({ error: 'action must be on_the_way, delay, reschedule, cancel, or complete' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
     });
@@ -234,7 +235,64 @@ export default async (request, context) => {
 
     const booking = bookingResult.data[0];
 
-    // 2. Check if booking has a phone number
+    // 2. Handle "complete" action — no WhatsApp, just status transition
+    if (action === 'complete') {
+      const timestamp = new Date().toISOString();
+      const existingNotes = booking.notes || '';
+      const logEntry = `[${timestamp}] Monteur: Installation abgeschlossen`;
+      const updatedNotes = existingNotes ? `${existingNotes}\n${logEntry}` : logEntry;
+
+      const patchRes = await supabaseRequest(
+        `install_bookings?id=eq.${bookingId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: 'completed',
+            notes: updatedNotes,
+          }),
+        }
+      );
+
+      if (!patchRes.ok) {
+        console.error('[install-monteur-status] Failed to mark complete:', JSON.stringify(patchRes.data)?.slice(0, 500));
+        return new Response(JSON.stringify({ error: 'Status-Update fehlgeschlagen' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+        });
+      }
+
+      // Log to booking_activity_log
+      await supabaseRequest('booking_activity_log', {
+        method: 'POST',
+        body: JSON.stringify({
+          booking_id: bookingId,
+          action: 'completed',
+          details: `Installation abgeschlossen (Monteur)`,
+          actor: 'monteur',
+        }),
+      });
+
+      logApiCall({
+        functionName: 'install-monteur-status',
+        service: 'supabase',
+        method: 'PATCH',
+        endpoint: 'install_bookings/complete',
+        durationMs: Date.now() - apiStart,
+        statusCode: 200,
+        success: true,
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        action: 'complete',
+        message: `Installation "${booking.location_name || booking.id}" als abgeschlossen markiert.`,
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...PUBLIC_CORS },
+      });
+    }
+
+    // 3. Check if booking has a phone number (required for WhatsApp actions)
     if (!booking.contact_phone) {
       return new Response(JSON.stringify({
         error: 'no_phone',
@@ -304,7 +362,7 @@ export default async (request, context) => {
 
     // 6. Log the action in the booking notes
     const timestamp = new Date().toISOString();
-    const actionLabels = { on_the_way: 'Auf dem Weg', delay: 'Verspätung', reschedule: 'Verschiebung', cancel: 'Absage' };
+    const actionLabels = { on_the_way: 'Auf dem Weg', delay: 'Verspätung', reschedule: 'Verschiebung', cancel: 'Absage', complete: 'Abgeschlossen' };
     const logEntry = `[${timestamp}] Monteur: ${actionLabels[action]}${action === 'delay' ? ` (${delayMinutes || 30} Min.)` : ''} — WA ${success ? 'gesendet' : 'fehlgeschlagen'}`;
 
     // Append to existing notes
