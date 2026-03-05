@@ -14,14 +14,16 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://nrijgfcdlvuhhudasicd.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('[authService] VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY muessen gesetzt sein!');
+if (!SUPABASE_ANON_KEY) {
+  console.error('[authService] VITE_SUPABASE_ANON_KEY nicht gesetzt! Auth wird nicht funktionieren.');
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = SUPABASE_ANON_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : createClient(SUPABASE_URL, 'placeholder-will-fail-gracefully');
 
 /* ═══════════════════════════════════════════
    CONSTANTS
