@@ -1,338 +1,306 @@
-# CLAUDE.md — JET Dashboard V2 (Dimension Outdoor)
+# CLAUDE.md — FlinkDB2 (Dimension Outdoor DOOH Operations)
 
 > Automatisch geladen bei jeder Claude Code Session.
-> Basiert auf verifiziertem Code-Review (Feb 2026). Bei Widerspruch gilt HANDOFF.md.
-
-## Weiterführende Dokumentation
-
-| Datei | Inhalt |
-|-------|--------|
-| `HANDOFF.md` | 1396-Zeilen Master-Referenz — bei Architektur-Fragen IMMER zuerst lesen |
-| `AIRTABLE_FIELD_REFERENCE.md` | Vollständige Airtable-Felddokumentation |
-| `src/metrics/predicates.js` | Kanonische Standort-Status-Prädikate (isStorno, isReadyForInstall etc.) |
-| `netlify/functions/shared/airtableFields.js` | Airtable-Konstanten, Tabellen-IDs, Helper-Funktionen, VALUES |
-| `netlify/functions/shared/airtableMappers.js` | Airtable→Supabase Transformatoren |
-| `netlify/functions/shared/security.js` | CORS, Auth, Rate Limiting, Sanitization — betrifft ALLE Functions |
+> Beschreibt die FlinkDB2 Codebase — das Display-Netzwerk-Management fuer Dimension Outdoor.
 
 ---
 
-## Echter Stack
+## Was ist FlinkDB2?
+
+FlinkDB2 ist das **Operations-Dashboard fuer das Dimension Outdoor DOOH-Netzwerk** (Digital Out-of-Home).
+Es verwaltet ~350 digitale Displays in ganz Deutschland: Echtzeit-Monitoring, Installationsplanung,
+Hardware-Inventar, Akquise-Pipeline und Programmatic-Advertising-Integration.
+
+**Live-URL:** `https://startling-pothos-27fc77.netlify.app`
+**Repo:** `maximiliansimon8-cmd/flinkdb2`
+
+---
+
+## Stack
 
 | Bereich | Technologie |
 |---------|------------|
-| **Frontend** | **React 19** + **Tailwind CSS 4** + **Vite 7** — JSX-Komponenten, Hooks, CSS utility classes |
-| **Backend** | 28 Netlify Functions (ES Modules `.js`) in `netlify/functions/` |
-| **Datenbank** | Supabase (PostgreSQL) — Frontend via `@supabase/supabase-js` SDK, Backend via direktem `fetch()` |
-| **Primäre Datenquelle** | Airtable Base `apppFUWK829K6B3R2` |
-| **WhatsApp** | SuperChat API `https://api.superchat.com/v1.0` |
-| **Hosting** | Netlify (`main` → Produktion, Feature Branches → Deploy Previews) |
-| **Live-URL** | https://tools.dimension-outdoor.com |
+| **Frontend** | React 19 + Tailwind CSS 4 + Vite 7 — JSX, Hooks, Utility Classes |
+| **Charts** | Recharts 3.7 |
+| **Karten** | React-Leaflet 5 + Leaflet 1.9 (OpenStreetMap) |
+| **Backend** | 39 Netlify Functions (ES Modules `.js`) in `netlify/functions/` |
+| **Datenbank** | Supabase (PostgreSQL + RLS + Auth) |
+| **Primaere Datenquelle** | Airtable Base `apppFUWK829K6B3R2` (13 Tabellen, via Sync) |
+| **WhatsApp/SMS** | SuperChat API (`api.superchat.com/v1.0`) |
+| **Programmatic** | Vistar SSP API (Revenue, Impressions) |
+| **KI-Chat** | Anthropic Claude API (SSE Streaming) |
+| **Heartbeat-Daten** | Google Sheets CSV (Navori Player Export) |
+| **Hosting** | Netlify (auto-deploy `main`, Functions + CDN) |
 
 ---
 
 ## Wichtige Befehle
 
 ```bash
-npm run dev                                    # Vite Dev-Server (localhost:5173)
-npm run build                                  # Build → dist/ (IMMER vor Deploy!)
-npm run build && netlify deploy --prod --dir=dist  # Produktions-Deploy (NIEMALS --dir=.)
-npx netlify dev                                # Functions lokal testen (liest .env.local)
+npm run dev          # Vite Dev-Server (localhost:5173)
+npm run build        # Production Build → dist/
+npm run lint         # ESLint
+npx netlify dev      # Functions lokal testen (liest .env / .env.local)
+```
+
+**Deploy:** `git push origin main` → Netlify baut automatisch.
+Manuell: `npm run build && netlify deploy --prod --dir=dist`
+
+---
+
+## 7 Entry Points (SPAs)
+
+| Route | Entry HTML | Root-Komponente | Zweck | Auth |
+|-------|-----------|----------------|-------|------|
+| `/` `/dashboard` | `index.html` → `main.jsx` | `App.jsx` (2876 Zeilen) | Haupt-Dashboard: KPIs, Displays, Tasks, Hardware, Chat | Supabase JWT |
+| `/install` | `install.html` → `install-main.jsx` | `InstallApp.jsx` | Installations-Tool (Terminierung, Buchungen, Monteure) | Supabase JWT |
+| `/book/*` | `booking/index.html` | `BookingPage.jsx` | Oeffentliche Terminbuchung fuer Standort-Betreiber | Token (public) |
+| `/scheduling/*` | `scheduling/index.html` | `SchedulingApp.jsx` | Telefon-Akquise + Standort-Detail-Editor | Supabase JWT |
+| `/inspection/*` | `inspection/index.html` | `InspectionApp.jsx` | Protokollpruefung fuer externe Pruefer | Token |
+| `/faw/*` | `faw/index.html` | `FAWCheckApp.jsx` | INDA-Frequenzanalyse fuer Frequenzpruefer | Token |
+| `/monteur` | `index.html` (Hash-Route) | `MonteurView.jsx` | Monteur-Tagesroute (mobil) | HMAC Token |
+
+Alle Redirects in `public/_redirects` (wird nach `dist/` kopiert beim Build).
+
+---
+
+## Datenfluss
+
+```
+Airtable (Source of Truth, 13 Tabellen)
+  ↓ sync-airtable.js (*/5 Min) → trigger-sync-background.js (inkrementell, max 15 Min)
+Supabase (Read-Cache, 46+ Tabellen)
+  ↓
+Frontend (liest NUR von Supabase)
+  ↓
+Schreiboperationen → Netlify Function → Airtable API
+                     (Supabase beim naechsten Sync aktualisiert)
+```
+
+**Ausnahme:** Supabase-only Tabellen (install_bookings, install_routen, install_teams,
+app_users, groups, audit_log, feature_flags, warehouse_*, etc.) werden direkt beschrieben.
+
+### Installations-Prozess (End-to-End)
+
+```
+1. Akquise → acquisition (Airtable sync)
+     ↓ leadStatus = "Won / Signed", approvalStatus = "Accepted"
+2. Aufbaubereit → isReadyForInstall() = true (src/metrics/predicates.js)
+     ↓ WhatsApp-Einladung via install-booker-invite.js
+3. Terminbuchung → install_bookings (Supabase-only, status: pending → booked)
+     ↓ Standort-Betreiber bucht via /book/* oder Telefon
+4. Aufbau → Monteur-Tagesroute (/monteur)
+     ↓ Monteur klickt "Installation abgeschlossen" → status: completed
+5. Verifikation → install-verification-background.js (3-Tage + 10-Tage Check)
+     ↓ Online-Rate >= 80% → Freigabe in Airtable
+6. Display Live → airtable_displays mit online_status
 ```
 
 ---
 
-## Absolute Regeln
+## Netlify Functions (39 Stueck)
 
-### 1. Datenquelle-Hierarchie
+### Scheduled (Cron)
+| Function | Schedule | Zweck |
+|----------|----------|-------|
+| `sync-airtable.js` | */5 Min | Trigger fuer Background-Sync |
+| `sync-attachments-scheduled.js` | */15 Min | Trigger fuer Foto-Sync |
+| `install-booker-reminder.js` | @hourly | WhatsApp-Erinnerungen |
+| `vistar-sync-scheduled.js` | taeglich 03:00 | Vistar SSP Revenue-Sync |
+| `navori-heartbeat-scheduled.js` | Trigger | Navori Heartbeat-CSV Import |
 
-```
-Airtable = Source of Truth
-     ↓ sync-airtable.js (alle 5 Min) → trigger-sync-background.js (inkrementell)
-Supabase = Read-Cache
-     ↓
-Frontend = liest NUR von Supabase
-     ↓
-Schreiboperationen = Frontend → Netlify Function → Airtable API
-                     (Supabase beim nächsten Sync aktualisiert)
-```
+### Background (max 15 Min)
+| Function | Zweck |
+|----------|-------|
+| `trigger-sync-background.js` | Airtable → Supabase Hauptsync (14 Tabellen, 6 Batches) |
+| `trigger-sync-attachments-background.js` | Airtable-Fotos → Supabase Storage |
+| `install-verification-background.js` | Installations-Foto-Verifikation |
+| `navori-heartbeat-background.js` | Google Sheets CSV → display_heartbeats |
 
-- **NIEMALS** direkt in Supabase schreiben wenn Daten aus Airtable stammen
-- **Ausnahme:** Supabase-only Tabellen (install_bookings, install_routen, install_teams, app_users, feature_flags etc.)
+### Install-Booker (7 Functions)
+`install-booker-invite.js`, `install-booker-detail.js`, `install-booker-slots.js`,
+`install-booker-book.js`, `install-booker-status.js`, `install-booker-send-reminder.js`,
+`install-booker-templates.js`
 
-### 2. Supabase SDK: Frontend JA, Backend NEIN
+### Monteur Mobile (3 Functions)
+`install-monteur.js`, `install-monteur-status.js`, `install-schedule.js`
+
+### Proxies & APIs
+`airtable-proxy.js`, `supabase-proxy.js`, `superchat-proxy.js`, `vistar-proxy.js`,
+`sheets-proxy.js`, `chat-proxy.js`, `auth-proxy.js`, `bank-import.js`
+
+### Weitere
+`user-management.js`, `feature-flags.js`, `akquise-outreach.js`, `sync-nocodb.js`,
+`faw-check.js`, `faw-check-token.js`, `install-inspection.js`, `install-inspection-token.js`,
+`stammdaten-import.js`, `vistar-sync.js`
+
+### Shared Utilities (`netlify/functions/shared/`)
+| Datei | Inhalt |
+|-------|--------|
+| `security.js` | CORS, Auth, Rate Limiting, Sanitization — PFLICHT fuer jede Function |
+| `apiLogger.js` | API-Call-Tracking (Kosten) |
+| `airtableFields.js` | Alle Airtable-Feldnamen, Tabellen-IDs, Werte-Konstanten |
+| `airtableMappers.js` | Airtable → Supabase Transformatoren |
+| `attachmentHelper.js` | Airtable-Foto-URLs → Supabase Storage |
+| `slotUtils.js` | Installations-Slot-Berechnung |
+| `superchatHelpers.js` | WhatsApp Template-IDs, Normalisierung |
+
+---
+
+## Supabase-Tabellen (Uebersicht)
+
+### Sync-Tabellen (aus Airtable, nur lesen)
+`stammdaten`, `airtable_displays`, `acquisition`, `installationen`, `installationstermine`,
+`communications`, `tasks`, `chg_approvals`, `dayn_screens`, `hardware_ops`, `hardware_sim`,
+`hardware_displays`, `hardware_swaps`, `hardware_deinstalls`, `display_heartbeats`
+
+### Vistar (Programmatic)
+`vistar_venues`, `vistar_networks`, `vistar_venue_health`
+
+### App-eigene Tabellen (Supabase-only, read-write)
+`app_users`, `groups`, `install_bookings`, `install_teams`, `install_routen`,
+`audit_log`, `feature_flags`, `feedback_requests`, `agent_memory`,
+`phone_call_logs`, `booking_activity_log`, `akquise_activity_log`
+
+### Warehouse & Bestellwesen
+`bank_leasing`, `purchase_orders`, `return_orders`, `shipping_orders`,
+`goods_receipts`, `hardware_positions`, `warehouse_locations`, `stock_alerts`
+
+### Metadaten
+`sync_metadata`, `attachment_sync_log`, `attachment_cache`, `api_usage_log`,
+`display_first_seen`
+
+---
+
+## Authentifizierung
+
+| Methode | Wo | Beispiel-Functions |
+|---------|----|--------------------|
+| **Origin-Check** | Dashboard-interne Calls | `airtable-proxy.js`, `feature-flags.js` |
+| **Supabase JWT** | Eingeloggte User | `user-management.js`, `install-schedule.js` |
+| **API-Key** (`x-api-key`) | Make.com, externe Trigger | `install-booker-invite.js` |
+| **HMAC Token** | Monteur-Links (stateless) | `install-monteur.js` |
+| **Token-based** | Public Forms | `faw-check.js`, `install-inspection.js` |
+
+**Session:** 8h Timeout (localStorage), Activity-basiert. Passwort-Expiry konfigurierbar.
+**RBAC:** `grp_admin`, `grp_monteur`, `grp_partner`, `grp_faw_pruefer`
+
+---
+
+## Wichtige Regeln
+
+### 1. Supabase SDK: Frontend JA, Backend NEIN
 
 ```javascript
-// ✅ FRONTEND: SDK verwenden (authService.js exportiert die Instanz)
+// FRONTEND: SDK (authService.js exportiert die Instanz)
 import { supabase } from '../utils/authService';
-const { data } = await supabase.from('acquisition').select('*');
 
-// ✅ BACKEND (Netlify Functions): fetch() direkt gegen REST API
+// BACKEND (Netlify Functions): fetch() direkt
 const res = await fetch(`${SUPABASE_URL}/rest/v1/tabelle?select=id,name`, {
-  headers: {
-    'Authorization': `Bearer ${SUPABASE_KEY}`,
-    'apikey': SUPABASE_KEY,
-  },
+  headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
 });
-
-// ❌ FALSCH: SDK in Netlify Functions importieren
-import { createClient } from '@supabase/supabase-js'; // NUR in src/, NICHT in netlify/functions/
 ```
 
-### 3. Shared Security Module — Pflicht für jede Netlify Function
+### 2. Shared Security — Pflicht fuer jede Netlify Function
 
 ```javascript
 import {
   getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
   checkRateLimit, getClientIP, rateLimitResponse, safeErrorResponse,
-  normalizePhone, sanitizeString, sanitizeForAirtableFormula,
-  isValidUUID, isValidAirtableId,
 } from './shared/security.js';
 import { logApiCall } from './shared/apiLogger.js';
 ```
 
-Keine neue Function ohne diese Imports.
+### 3. Airtable-Felder aus Konstanten
 
-### 4. Airtable-Felder IMMER aus Constants
+Airtable-Feldnamen haben Trailing Spaces, Double Spaces, Unicode-Hyphens und Typos.
+**IMMER** aus `shared/airtableFields.js` lesen, nie hardcoden.
 
-```javascript
-// ✅ RICHTIG: Konstanten aus shared/airtableFields.js
-import { AIRTABLE_BASE, TABLES, FETCH_FIELDS, ACQUISITION_FIELDS as AF, VALUES } from './shared/airtableFields.js';
-import { mapAcquisition } from './shared/airtableMappers.js';
+### 4. Praedikate (Standort-Status)
 
-// ❌ FALSCH: Feldnamen hardcoden (Trailing Spaces, Typos, Unicode!)
-filter: `{Lead_Status}='Won / Signed'`
-// → stattdessen: VALUES.LEAD_STATUS.WON_SIGNED
-```
+`src/metrics/predicates.js` ist die kanonische Quelle fuer:
+- `isStorno(record)` — Storniert/Abgebrochen
+- `isAlreadyInstalled(record)` — Bereits installiert
+- `isReadyForInstall(record)` — Aufbaubereit (3 Felder)
+- `isPendingApproval(record)` — Offene Pruefung
 
-### 5. Prädikate: ZWEI verschiedene isReadyForInstall()
+**Im Frontend immer importieren, nie lokal kopieren.**
 
-Es gibt zwei Funktionen mit demselben Namen — verschiedene Zwecke:
+### 5. Destructive Actions — IMMER erst fragen
 
-| Datei | Prüft | Verwendet in |
-|-------|-------|-------------|
-| `src/metrics/predicates.js` | `leadStatus + approvalStatus + vertragVorhanden` (3 Felder) | **Frontend-Komponenten** — kanonische Version |
-| `netlify/functions/shared/airtableFields.js` | Nur `ready_for_installation` Checkbox (`'checked'`, `true`) | **Backend-Sync** — Airtable Formelfeld |
-
-**Im Frontend IMMER die Predicate-Version verwenden:**
-
-```javascript
-import { isStorno, isAlreadyInstalled, isReadyForInstall, isPendingApproval } from '../metrics/predicates';
-
-// Aufbaubereit = alle 3 positiven Kriterien + 2 Ausschlüsse:
-const aufbaubereit = records.filter(a =>
-  !isStorno(a) && !isAlreadyInstalled(a) && isReadyForInstall(a)
-);
-```
-
-### 6. Destructive Actions — IMMER erst fragen
-
-- SQL Migrations mit `DROP`, `ALTER COLUMN`, `DELETE` ohne `WHERE`
+- SQL mit `DROP`, `ALTER COLUMN`, `DELETE` ohne `WHERE`
 - `git push --force`
-- Env-Vars löschen oder überschreiben
-- SuperChat Template-IDs ändern (Meta-Approval dauert Tage!)
-- Massenhafte Supabase-Updates ohne einschränkende WHERE-Clause
-- Änderungen an `shared/security.js` (betrifft alle 28 Functions!)
+- Aenderungen an `shared/security.js`
+- SuperChat Template-IDs aendern
+- Massenhafte Supabase-Updates
 
 ---
 
-## Airtable Quirks — Kritisch!
+## Hauptmodule (Frontend)
 
-| Problem | Beispiel | Regel |
-|---------|----------|-------|
-| Trailing Spaces | `'Online Status '`, `'Kommentar Nacharbeit '`, `'Status changed date '` | IMMER aus Konstante lesen |
-| Double Spaces | `'Lead Status  (from Akquise)'` | IMMER aus Konstante lesen |
-| Unicode Hyphen U+2011 | `'Post\u2011Install Storno'` | `ACQUISITION_FIELDS.POST_INSTALL_STORNO` |
-| Typos in Feldnamen | `'external_visiblity'` (fehlendes 'i'), `'Longtitude'` | Aus Konstante lesen |
-| Checkbox = String | `ready_for_installation = 'checked'` nicht `true` | Helper oder Predicate nutzen |
-| Lookup = Array | Lookup-Felder liefern immer Arrays | `unwrap()`, `first()`, `lookupArray()` |
-| vertragVorhanden Formate | `true`, `'true'`, `'checked'`, `'YES'`, `'yes'` | `isReadyForInstall()` prüft alle |
-
----
-
-## Architektur
-
-### 4 SPAs (separate Entry Points)
-
-| App | Entry | Root-Komponente | Auth |
-|-----|-------|----------------|------|
-| Main Dashboard | `index.html` → `src/main.jsx` | `App.jsx` | Supabase JWT |
-| Install Tool | `install.html` → `src/install-main.jsx` | `InstallApp.jsx` | Supabase JWT |
-| Booking Page | `booking/index.html` | `BookingPage.jsx` | Public (Token) |
-| Monteur View | via `index.html` Route | `MonteurView.jsx` | Public (HMAC Token) |
-
-### Scheduled → Background Pattern (KRITISCH!)
-
-Netlify Scheduled Functions haben ein **30-Sekunden-Limit**. Unser Sync braucht Minuten.
-
-```
-sync-airtable.js (Scheduled, */5 * * * *)
-  ↓ HTTP POST (< 1 Sekunde)
-trigger-sync-background.js (Background Function, 15 Min Limit)
-  ↓ Inkrementeller Sync via LAST_MODIFIED_TIME()
-  ↓ 14 Tabellen in 6 Batches (Promise.allSettled)
-Supabase (16 Tabellen aktualisiert)
-```
-
-- **Scheduled Functions** (`-scheduled` suffix oder `export const config = { schedule }`) → max 30s
-- **Background Functions** (`-background` suffix) → max 15 Min
-- Bei einem Tabellen-Fehler läuft der Rest trotzdem weiter (`Promise.allSettled`)
-
-### Sync-Reihenfolge (Batches)
-
-1. Displays, Acquisition, DaynScreens
-2. OPS, SIM, Display Inventory
-3. CHG, Stammdaten, Tasks
-4. Installationen, Swaps, Deinstalls
-5. Installationstermine, Communications
-6. Heartbeats
-
-### Authentifizierungs-Muster
-
-| Methode | Wann | Beispiel-Functions |
-|---------|------|--------------------|
-| Origin-Check | Dashboard-interne Calls | `airtable-proxy.js`, `feature-flags.js` |
-| Supabase JWT | Eingeloggte User-Aktionen | `install-booker-detail.js`, `user-management.js` |
-| API-Key (`x-api-key`) | Make.com / externe Trigger | `install-booker-invite.js`, `install-schedule.js` |
-| HMAC Token | Monteur-Links | `install-monteur.js`, `install-monteur-status.js` |
-| Dual (JWT + API-Key) | Flexible Endpoints | `install-booker-detail.js`, `install-schedule.js` |
-
-### Airtable Tabellen-IDs
-
-```javascript
-TABLES = {
-  STAMMDATEN:         'tblLJ1S7OUhc2w5Jw',  // JET Stammdaten
-  DISPLAYS:           'tblS6cWN7uEhZHcie',  // Live Display Locations
-  TASKS:              'tblcKHWJg77mgIQ9l',  // Tasks
-  INSTALLATIONEN:     'tblKznpAOAMvEfX8u',  // Installationen
-  ACTIVITY_LOG:       'tblDk1dl4J3Ow3Qde',  // activity_log / Communications
-  ACQUISITION:        'tblqFMBAeKQ1NbSI8',  // Acquisition_DB
-  INSTALLATIONSTERMINE: 'tblZrFRRg3iKxlXFJ', // Installationstermine
-  OPS_INVENTORY:      'tbl7szvfLUjsUvMkH',  // OPS_Player_inventory
-  SIM_INVENTORY:      'tblaV4UQX6hhcSDAj',  // SIM_card_inventory
-  DISPLAY_INVENTORY:  'tblaMScl3j45Q4Dtc',  // display_inventory
-  CHG:                'tblvj4qjJpBVLbY7F',  // CHG Approval
-  DEINSTALLATIONEN:   'tbltdxgzDeNz9d0ZC',  // Deinstallationen
-  HARDWARE_SWAP:      'tblzFHk0HhB4bNYJ4',  // Hardware-Tausch
-}
-```
-
-### Supabase Tabellen (Sync-Ziele)
-
-```
-stammdaten, airtable_displays, tasks, installationen, communications,
-dayn_screens, acquisition, hardware_ops, hardware_sim, hardware_displays,
-chg_approvals, hardware_swaps, hardware_deinstalls, display_heartbeats,
-installationstermine
-```
-
-Plus Supabase-only: `install_bookings`, `install_routen`, `install_teams`, `app_users`, `groups`, `audit_log`, `feature_flags`, `sync_metadata`, `warehouse_*`, `purchase_orders`, `bank_leasing`
-
-### Bekannte Feldwerte (VALUES)
-
-```javascript
-VALUES.LEAD_STATUS.WON_SIGNED          // 'Won / Signed'
-VALUES.APPROVAL_STATUS.ACCEPTED        // 'Accepted'
-VALUES.INSTALLATION_STATUS.INSTALLIERT // 'Installiert'
-VALUES.TERMINSTATUS.GEPLANT            // 'Geplant'
-VALUES.ONLINE_STATUS.ONLINE            // 'online'
-VALUES.READY_FOR_INSTALL.CHECKED       // 'checked' (⚠️ String, nicht boolean!)
-```
+| Modul | Komponenten | Beschreibung |
+|-------|------------|-------------|
+| **KPI Dashboard** | `App.jsx`, `KPICards`, `HealthTrendChart`, `OfflineDistributionChart` | Health Rate, Online/Offline-Status, Trends |
+| **Display-Verwaltung** | `DisplayTable`, `DisplayDetail`, `DisplayMap`, `DisplayTrends` | Liste, Detail, Karte, Watchlist |
+| **Installationen** | `InstallationsDashboard` (5 Subtabs), `InstallationInviteManager`, `InstallationPhoneWorkbench`, `InstallationCalendar` | Terminierung, Buchungen, WA-Einladungen |
+| **Hardware** | `HardwareDashboard` (7 Subtabs), `QRHardwareScanner`, `LagerVersandTab`, `BestellwesenTab` | OPS/SIM/Display-Inventar, Wareneingang, Versand |
+| **Akquise** | `AcquisitionDashboard` (4 Tabs), `AkquiseApp`, `AkquiseAutomationDashboard` | Pipeline, Storno, Automation |
+| **Tasks** | `TaskDashboard`, `TaskCreateModal`, `TaskEditModal` | Wartungsaufgaben |
+| **Kommunikation** | `CommunicationDashboard`, `SuperChatHistory`, `ComposeMessage` | WhatsApp/SMS/Email-Verlauf |
+| **Programmatic** | `ProgrammaticDashboard` | Vistar SSP Revenue & Impressions |
+| **Admin** | `AdminPanel`, `TeamAnalyticsDashboard`, `DataMappingPanel`, `APIOverviewPanel` | User, Flags, Audit, Team-Auswertung |
+| **KI-Chat** | `ChatAssistant`, `useChatEngine` | Claude AI mit SSE Streaming |
+| **Monteur** | `MonteurView` (72KB) | Tagesroute mobil |
 
 ---
 
-## SuperChat / WhatsApp
+## Utils
 
-- Nur approved Meta Templates funktionieren außerhalb des 24h-Fensters
-- Template-IDs (`tn_...`) NIEMALS ändern ohne Approval-Status geprüft
-- Test-Modus: `superchat_test_phone` Feature Flag respektieren
-- Phone-Nummern: `normalizePhone()` aus `shared/security.js`
-- WA Channel: `SUPERCHAT_WA_CHANNEL_ID` (Default: `mc_cy5HABDnpRhRtosxckRzb`)
-- Templates: Einladung `tn_Cs5DK5Qa515O4GpAsDvWo`, Erinnerung `tn_d3S5yQ0A18EQ9mulWgNUb`, Auf dem Weg `tn_zzfvOxMPZiB3wpwAxC9hD`
-
----
-
-## Netlify Function Standardstruktur
-
-```javascript
-/**
- * Netlify Function: [Name]
- * [Beschreibung]
- * Auth: [Origin | JWT | API-Key | HMAC]
- */
-import {
-  getAllowedOrigin, corsHeaders, handlePreflight, forbiddenResponse,
-  checkRateLimit, getClientIP, rateLimitResponse, safeErrorResponse,
-} from './shared/security.js';
-import { logApiCall } from './shared/apiLogger.js';
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-async function supabaseRequest(path, options = {}) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'apikey': SUPABASE_KEY,
-      'Prefer': options.prefer || 'return=representation',
-      ...options.headers,
-    },
-  });
-  const text = await res.text();
-  return { ok: res.ok, status: res.status, data: text ? JSON.parse(text) : null };
-}
-
-export default async (request, context) => {
-  if (request.method === 'OPTIONS') return handlePreflight(request);
-  const origin = getAllowedOrigin(request);
-  if (!origin) return forbiddenResponse();
-  const clientIP = getClientIP(request);
-  const limit = checkRateLimit(`function-name:${clientIP}`, 60, 60_000);
-  if (!limit.allowed) return rateLimitResponse(limit.retryAfterMs, origin);
-  const cors = corsHeaders(origin);
-  const apiStart = Date.now();
-  try {
-    // Logik hier
-  } catch (err) {
-    console.error('[function-name] Error:', err.message);
-    return safeErrorResponse(500, 'Fehlertext auf Deutsch', origin, err);
-  }
-};
-```
+| Datei | Zweck |
+|-------|-------|
+| `authService.js` | Supabase Auth, Session, RBAC, getCurrentUser() |
+| `dataProcessing.js` | KPI-Berechnung, parseRows, aggregateData |
+| `airtableService.js` | Airtable CRUD (ueber Proxy) |
+| `chatContext.js` | Claude AI Prompt-Builder mit Dashboard-Kontext |
+| `vistarService.js` | Vistar SSP API Integration |
+| `superchatService.js` | SuperChat/WhatsApp Helper |
+| `installUtils.js` | API-Endpunkte und Booking-Hilfsfunktionen |
+| `attachmentResolver.js` | Airtable-Foto-URLs → Supabase Storage |
+| `indaParser.js` | INDA-Frequenzdaten Parser |
 
 ---
 
-## Feature Flags
+## Hooks
 
-In Supabase-Tabelle `feature_flags`. Nie hardcoden:
-
-```javascript
-const res = await fetch(
-  `${SUPABASE_URL}/rest/v1/feature_flags?key=in.(flag_1,flag_2)&select=*`,
-  { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
-);
-const flags = await res.json();
-const isEnabled = flags.find(f => f.key === 'flag_1')?.enabled === true;
-```
+| Hook | Zweck |
+|------|-------|
+| `useFeatureFlags` | Feature-Flag-Loading + Caching |
+| `useChatEngine` | Chat Streaming + Memory |
+| `useIsMobile` | Responsive Detection |
+| `useTheme` | Dark Mode Toggle |
+| `useSpeechRecognition` | Voice Input |
+| `useSpeechSynthesis` | Voice Output |
 
 ---
 
-## Airtable Paginierung — immer implementieren
+## Environment Variables
 
-```javascript
-const records = [];
-let offset = null;
-do {
-  let url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${TABLE}?pageSize=100`;
-  if (filterFormula) url += `&filterByFormula=${encodeURIComponent(filterFormula)}`;
-  if (offset) url += `&offset=${encodeURIComponent(offset)}`;
-  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` } });
-  if (!res.ok) throw new Error(`Airtable failed: ${res.status}`);
-  const data = await res.json();
-  records.push(...(data.records || []));
-  offset = data.offset || null;
-} while (offset);
+```bash
+# Frontend (VITE_* Prefix)
+VITE_SUPABASE_URL=https://...supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+
+# Backend (Netlify Functions)
+SUPABASE_URL=https://...supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+AIRTABLE_TOKEN=pat_...
+AIRTABLE_BASE=apppFUWK829K6B3R2
+ANTHROPIC_API_KEY=sk-ant-...
+SUPERCHAT_API_KEY=...
+VISTAR_EMAIL=...
+VISTAR_PASSWORD=...
+MONTEUR_SECRET=...          # HMAC-Signing fuer Monteur-Links
+BOOKER_API_KEY=...          # Make.com Integration
 ```
 
 ---
@@ -341,39 +309,17 @@ do {
 
 - **Fehlermeldungen:** User-facing auf Deutsch, `console.error()` auf Englisch mit `[function-name]` Prefix
 - **Supabase Queries:** Immer `select=feld1,feld2` (nie `select=*`), immer `limit` setzen
-- **API Logging:** `logApiCall()` nach jedem externen Call (Airtable, Supabase, SuperChat)
+- **API Logging:** `logApiCall()` nach jedem externen Call
 - **Datums-Konvertierung:** NIEMALS `toISOString().split('T')[0]` — immer lokale CET-Berechnung
-- **Booking Status:** `booked` und `confirmed` werden IMMER als "Eingebucht" angezeigt
-- **Attachments:** Airtable-URLs verfallen nach 2h — `resolveRecordImages()` aus `attachmentResolver.js` nutzen
+- **Booking Status:** `booked` und `confirmed` werden als "Eingebucht" angezeigt
+- **Attachments:** Airtable-URLs verfallen nach 2h — `resolveRecordImages()` nutzen
 
 ---
-
-## Git Workflow
-
-```
-feature/install-booker-jwt-auth     # Neue Features
-fix/phone-normalisierung-at-ch      # Bugfixes
-chore/airtable-felder-update        # Config, Dependencies
-hotfix/superchat-template-approval  # Kritische Fixes
-```
-
-Regeln: Kein direkter Push auf `main`. `npm run build` muss lokal grün sein.
-
----
-
-## Vor jeder neuen Netlify Function
-
-1. Prüfen ob Airtable-Felder bereits in `shared/airtableFields.js` existieren
-2. Prüfen ob Transformer in `shared/airtableMappers.js` existiert
-3. Function nach Standardmuster (oben) aufbauen
-4. Security-Imports + API-Logging einbauen
-5. Fehlertexte auf Deutsch
 
 ## Vor jedem Commit
 
 - [ ] `npm run build` erfolgreich
-- [ ] Keine Secrets im Code
-- [ ] Neue Tabellen haben RLS aktiviert
-- [ ] Neue Functions nutzen `shared/security.js` und `shared/apiLogger.js`
+- [ ] Keine Secrets im Code (Supabase-Keys sind in authService.js hardcoded — bekannter Zustand)
+- [ ] Neue Netlify Functions nutzen `shared/security.js` und `shared/apiLogger.js`
 - [ ] Airtable-Felder kommen aus Konstanten
 - [ ] Fehlertexte auf Deutsch

@@ -611,6 +611,16 @@ export default function MonteurView() {
         success: json.success,
         message: json.message || json.error || 'Unbekannter Fehler',
       });
+
+      // Update local booking state on successful completion
+      if (action === 'complete' && json.success) {
+        setData(prev => prev ? {
+          ...prev,
+          bookings: prev.bookings.map(b =>
+            b.id === bookingId ? { ...b, status: 'completed' } : b
+          ),
+        } : prev);
+      }
     } catch (e) {
       setActionResult({
         bookingId,
@@ -1423,6 +1433,25 @@ export default function MonteurView() {
                           </button>
                         </div>
 
+                        {/* Complete Installation Button */}
+                        <div className="mt-3 pt-3 border-t" style={{ borderColor: '#E5E7EB' }}>
+                          <button
+                            onClick={() => {
+                              if (confirm('Installation als abgeschlossen markieren? Dies kann nicht rückgängig gemacht werden.')) handleAction(b.id, 'complete');
+                            }}
+                            disabled={isSending}
+                            className="w-full py-3 px-4 rounded-xl text-sm font-bold border-2 transition-all"
+                            style={{
+                              borderColor: '#8B5CF6',
+                              color: '#fff',
+                              backgroundColor: isSending && sendingAction?.action === 'complete' ? '#A78BFA' : '#7C3AED',
+                              opacity: isSending && sendingAction?.action !== 'complete' ? 0.5 : 1,
+                            }}
+                          >
+                            {isSending && sendingAction?.action === 'complete' ? '⏳ Wird gespeichert...' : '✅ Installation abgeschlossen'}
+                          </button>
+                        </div>
+
                         {/* Action Result */}
                         {result && (
                           <div className={`mt-2 p-2 rounded-lg text-xs text-center ${
@@ -1448,7 +1477,7 @@ export default function MonteurView() {
         {/* Footer */}
         <div className="text-center mt-8 pb-8">
           <p className="text-xs" style={{ color: BRAND.textMuted }}>
-            Lieferando Installations-Team — powered by JET Germany
+            Installations-Team — powered by Dimension Outdoor
           </p>
           {isJWT && (
             <p className="text-xs mt-1" style={{ color: BRAND.textMuted }}>

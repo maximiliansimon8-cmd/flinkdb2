@@ -1,5 +1,5 @@
 /**
- * Vistar SSP Service – JET Germany DOOH Dashboard
+ * Vistar SSP Service – FlinkDB2 — Dimension Outdoor DOOH Dashboard
  *
  * Primary: reads from Supabase (vistar_venue_health) – fast, no API auth needed.
  * Fallback: calls Vistar API via Netlify proxy (/api/vistar/*).

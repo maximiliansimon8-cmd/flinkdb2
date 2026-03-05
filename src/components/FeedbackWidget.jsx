@@ -277,6 +277,23 @@ function FeedbackModal({ type, clickX, clickY, context, onClose, onSubmitted }) 
 
       if (sbError) throw sbError;
 
+      // Post to Slack (fire-and-forget, don't block on failure)
+      try {
+        fetch('/.netlify/functions/slack-feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: typeConfig.dbValue,
+            title: record.title,
+            description: record.description,
+            priority,
+            userName: record.user_name,
+            component: context.component,
+            url: context.url,
+          }),
+        }).catch(() => {}); // silent fail — Supabase is the source of truth
+      } catch (_) { /* ignore */ }
+
       setSubmitted(true);
       if (onSubmitted) onSubmitted();
 

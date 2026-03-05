@@ -1,5 +1,5 @@
 /**
- * Auth Service for JET Germany DOOH Dashboard
+ * Auth Service for FlinkDB2 — Dimension Outdoor DOOH Dashboard
  * Powered by Supabase (Auth + PostgreSQL).
  *
  * Architecture:
@@ -14,8 +14,12 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://hvgjdosdejnwkuyivnrq.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('[authService] VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY muessen gesetzt sein!');
+}
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

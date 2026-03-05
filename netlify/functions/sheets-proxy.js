@@ -36,7 +36,7 @@ export default async (request, context) => {
   try {
     const apiStart = Date.now();
     const response = await fetch(SHEET_CSV_URL, {
-      headers: { 'User-Agent': 'JET-Dashboard/2.0' },
+      headers: { 'User-Agent': 'FlinkDB/2.0' },
     });
 
     if (!response.ok) {

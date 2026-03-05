@@ -1,5 +1,5 @@
 /**
- * Data Service – JET Germany DOOH Dashboard
+ * Data Service – FlinkDB2 — Dimension Outdoor DOOH Dashboard
  *
  * Architecture (hybrid):
  *   READ  → Supabase (fast, zero Netlify Function calls)

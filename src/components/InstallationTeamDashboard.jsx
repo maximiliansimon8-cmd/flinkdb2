@@ -616,7 +616,7 @@ export default function InstallationTeamDashboard() {
 
           {/* Footer */}
           <div className="print-footer-bar">
-            <span>JET Germany GmbH — DOOH Installation</span>
+            <span>Dimension Outdoor GmbH — DOOH Installation</span>
             <span>Erstellt: {new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
           </div>
         </div>

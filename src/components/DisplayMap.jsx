@@ -55,45 +55,83 @@ function MapLegend() {
 export default function DisplayMap({ rawData, comparisonData, onSelectDisplay }) {
   const [statusFilter, setStatusFilter] = useState('all');
 
-  /* ─── Merge Dayn coordinates with display status ─── */
+  /* ─── Build markers from ALL displays using geoLookup (dayn + stammdaten + airtable) ─── */
   const markers = useMemo(() => {
-    if (!comparisonData?.dayn?.records || !rawData?.displays) return [];
+    if (!rawData?.displays) return [];
 
-    // Build a lookup: displayId → display heartbeat data
-    const displayMap = new Map();
-    for (const d of rawData.displays) {
-      displayMap.set(d.displayId, d);
+    const geoLookup = comparisonData?.geoLookup || new Map();
+    const locationMap = comparisonData?.airtable?.locationMap || new Map();
+
+    // Build dayn lookup for enrichment (screenType, venueType)
+    const daynLookup = new Map();
+    if (comparisonData?.dayn?.records) {
+      for (const s of comparisonData.dayn.records) {
+        const id = s.do_screen_id || s.dayn_screen_id;
+        if (id) daynLookup.set(id, s);
+      }
     }
 
-    // Build a lookup: displayId → airtable location data
-    const locationMap = comparisonData.airtable?.locationMap || new Map();
-
+    const seen = new Set();
     const result = [];
-    for (const screen of comparisonData.dayn.records) {
-      const lat = parseFloat(screen.latitude);
-      const lon = parseFloat(screen.longitude);
-      if (!lat || !lon || isNaN(lat) || isNaN(lon)) continue;
 
-      // Match screen to display by dayn_screen_id or do_screen_id
-      const screenId = screen.dayn_screen_id || screen.do_screen_id || '';
-      const display = displayMap.get(screenId);
-      const location = locationMap.get(screenId);
+    // Primary: iterate over all heartbeat displays
+    for (const d of rawData.displays) {
+      const did = d.displayId;
+      if (!did || seen.has(did)) continue;
+      seen.add(did);
 
-      const status = display?.status || 'unknown';
+      const geo = geoLookup.get(did);
+      const lat = geo?.lat;
+      const lng = geo?.lng;
+      if (lat == null || lng == null || isNaN(lat) || isNaN(lng) || !lat || !lng) continue;
+
+      const location = locationMap.get(did);
+      const dayn = daynLookup.get(did);
+      const status = d.status || 'unknown';
       const colorInfo = getColor(status);
 
       result.push({
         lat,
-        lon,
-        displayId: screenId,
-        locationName: location?.locationName || screen.location_name || screenId,
-        city: location?.city || screen.city || '',
+        lon: lng,
+        displayId: did,
+        locationName: location?.locationName || dayn?.location_name || did,
+        city: location?.city || geo?.city || dayn?.city || '',
         status,
         colorInfo,
-        display, // full display object for opening detail
-        screenType: screen.screen_type || '',
-        venueType: screen.venue_type || '',
+        display: d,
+        screenType: dayn?.screen_type || location?.screenType || '',
+        venueType: dayn?.venue_type || geo?.venueType || '',
       });
+    }
+
+    // Secondary: add dayn screens that have coordinates but are NOT in heartbeat data
+    if (comparisonData?.dayn?.records) {
+      for (const screen of comparisonData.dayn.records) {
+        const screenId = screen.do_screen_id || screen.dayn_screen_id || '';
+        if (!screenId || seen.has(screenId)) continue;
+        seen.add(screenId);
+
+        const geo = geoLookup.get(screenId);
+        const lat = geo?.lat ?? parseFloat(screen.latitude);
+        const lng = geo?.lng ?? parseFloat(screen.longitude);
+        if (!lat || !lng || isNaN(lat) || isNaN(lng)) continue;
+
+        const location = locationMap.get(screenId);
+        const colorInfo = getColor('unknown');
+
+        result.push({
+          lat,
+          lon: lng,
+          displayId: screenId,
+          locationName: location?.locationName || screen.location_name || screenId,
+          city: location?.city || screen.city || '',
+          status: 'unknown',
+          colorInfo,
+          display: null,
+          screenType: screen.screen_type || '',
+          venueType: screen.venue_type || '',
+        });
+      }
     }
 
     return result;
@@ -110,9 +148,9 @@ export default function DisplayMap({ rawData, comparisonData, onSelectDisplay })
     const total = markers.length;
     const online = markers.filter(m => m.status === 'online').length;
     const offline = markers.filter(m => ['critical', 'offline', 'warning'].includes(m.status)).length;
-    const noCoords = (comparisonData?.dayn?.records || []).length - markers.length;
+    const noCoords = Math.max(0, (rawData?.displays?.length || 0) - markers.length);
     return { total, online, offline, noCoords };
-  }, [markers, comparisonData]);
+  }, [markers, rawData, comparisonData]);
 
   return (
     <div className="space-y-4">

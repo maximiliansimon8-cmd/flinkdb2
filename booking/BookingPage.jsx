@@ -925,7 +925,7 @@ export default function BookingPage() {
         {/* Footer */}
         <div className="text-center mt-8 pb-8">
           <p className="text-xs" style={{ color: BRAND.textMuted }}>
-            Lieferando Display Netzwerk — powered by JET Germany
+            Display Netzwerk — powered by Dimension Outdoor
           </p>
         </div>
       </main>

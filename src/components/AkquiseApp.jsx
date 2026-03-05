@@ -620,7 +620,7 @@ function StepContract({ lead, formData, signature, onSignatureChange, onSign, on
               </div>
               <div>
                 <div className="text-[16px] font-semibold text-text-primary">Standort-Vertrag</div>
-                <div className="text-[12px] text-text-muted">JET Germany DOOH Netzwerk</div>
+                <div className="text-[12px] text-text-muted">Dimension Outdoor DOOH Netzwerk</div>
               </div>
             </div>
 
@@ -662,7 +662,7 @@ function StepContract({ lead, formData, signature, onSignatureChange, onSign, on
             </div>
 
             <div className="mt-4 p-3 bg-surface-secondary rounded-xl text-[11px] text-text-muted leading-relaxed">
-              Hiermit bestätigt der Standortinhaber die Bereitstellung der Fläche für die Installation eines JET Germany DOOH-Displays gemäß den vereinbarten Konditionen. Der Standort erfüllt alle technischen Voraussetzungen laut Pre-Installation Checklist.
+              Hiermit bestätigt der Standortinhaber die Bereitstellung der Fläche für die Installation eines Dimension Outdoor DOOH-Displays gemäß den vereinbarten Konditionen. Der Standort erfüllt alle technischen Voraussetzungen laut Pre-Installation Checklist.
             </div>
           </div>
         </div>
@@ -967,9 +967,9 @@ function ProfileTab({ totalLeads, newLeads }) {
     <div className="h-full overflow-y-auto pb-24 px-4 pt-4">
       <div className="bg-surface-primary rounded-2xl shadow-sm p-5 mb-5 text-center border border-gray-100">
         <div className="w-16 h-16 rounded-full bg-[#007AFF] flex items-center justify-center mx-auto mb-3">
-          <span className="text-white text-[22px] font-bold">JG</span>
+          <span className="text-white text-[22px] font-bold">DO</span>
         </div>
-        <div className="text-[18px] font-bold text-text-primary">JET Germany</div>
+        <div className="text-[18px] font-bold text-text-primary">Dimension Outdoor</div>
         <div className="text-[13px] text-text-muted">Akquise-Team</div>
       </div>
 

@@ -1692,6 +1692,29 @@ function App() {
           }
         }
 
+        // Third: stammdaten (lat/lng for displays NOT covered by dayn_screens)
+        try {
+          const { data: stammdatenGeo } = await supabase
+            .from('stammdaten')
+            .select('display_ids, latitude, longitude');
+          if (stammdatenGeo) {
+            for (const s of stammdatenGeo) {
+              const lat = s.latitude != null ? Number(s.latitude) : NaN;
+              const lng = s.longitude != null ? Number(s.longitude) : NaN;
+              if (isNaN(lat) || isNaN(lng) || !lat || !lng) continue;
+              const ids = Array.isArray(s.display_ids) ? s.display_ids : [];
+              for (const did of ids) {
+                if (!did) continue;
+                const existing = geoLookup.get(did);
+                if (existing && existing.lat != null) continue; // already has coords from dayn
+                geoLookup.set(did, { ...(existing || {}), lat, lng });
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[App] Stammdaten geo lookup error:', e);
+        }
+
         // Bank leasing data — build serial number lookup set for cross-system matching
         let bankLeasing = null;
         if (!bankLeasingResult.error && bankLeasingResult.data && bankLeasingResult.data.length > 0) {
@@ -1897,10 +1920,10 @@ function App() {
                 />
               </div>
               <h1 className="text-[24px] font-semibold text-[#1D1D1F] tracking-[-0.5px]">
-                JET Germany
+                Dimension Outdoor
               </h1>
               <p className="text-[15px] text-[#86868B] mt-1.5">
-                Display Network Monitor
+                FlinkDB – Display Network Monitor
               </p>
             </div>
 
@@ -2106,10 +2129,10 @@ function App() {
           {/* Title */}
           <div className="animate-slide-up" style={{ animationDelay: '0.1s', opacity: 0 }}>
             <h1 className="text-[20px] font-semibold text-text-primary tracking-[-0.4px] mb-1">
-              JET Germany
+              Dimension Outdoor
             </h1>
             <p className="text-[13px] text-text-muted">
-              Display Network Monitor
+              FlinkDB – Display Network Monitor
             </p>
           </div>
 

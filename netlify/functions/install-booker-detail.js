@@ -154,7 +154,7 @@ export default async (request, context) => {
   // Authenticate — allow same-origin requests from our own domain
   // (CORS origin check above already ensures only allowed domains reach here)
   const auth = await authenticateUser(request);
-  const isSameOrigin = origin && origin.includes('jet-dashboard-v2.netlify.app');
+  const isSameOrigin = origin && (origin.includes('startling-pothos-27fc77.netlify.app') || origin.includes('tools.dimension-outdoor.com'));
   if (!auth.authenticated && !isSameOrigin) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,

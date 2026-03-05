@@ -695,7 +695,7 @@ export default async (request, context) => {
                   '',
                   `Bei Fragen antworten Sie einfach auf diese Nachricht.`,
                   '',
-                  `Ihr JET Germany Team`,
+                  `Ihr Dimension Outdoor Team`,
                 ].join('\n')
               : null; // No WhatsApp for no_show (internal handling)
 

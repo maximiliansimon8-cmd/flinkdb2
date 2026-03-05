@@ -332,7 +332,7 @@ function LoginScreen({ onLogin }) {
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-500 mt-6">
-          JET Germany &middot; Internes Tool
+          Dimension Outdoor &middot; Internes Tool
         </p>
       </div>
     </div>
