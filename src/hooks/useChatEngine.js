@@ -200,7 +200,7 @@ export default function useChatEngine({ rawData, kpis, comparisonData, currentUs
     const history = messages.slice(-6).map(m => {
       let content = m.content;
       // Remove any old JSON context blocks that may confuse the model
-      content = content.replace(/\[Kontext — JET Display Network\][\s\S]*?\[Benutzerfrage\]\n?/g, '');
+      content = content.replace(/\[Kontext — (?:JET|Flink) Display Network\][\s\S]*?\[Benutzerfrage\]\n?/g, '');
       content = content.replace(/\[Spezifische Display-Daten\][\s\S]*?\[Benutzerfrage\]\n?/g, '');
       return { role: m.role, content: content.trim() };
     }).filter(m => m.content.length > 0);

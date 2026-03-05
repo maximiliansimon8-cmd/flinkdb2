@@ -58,7 +58,7 @@ export function Sidebar({
         />
         {!collapsed && (
           <div className="min-w-0">
-            <div className="text-[13px] font-bold text-text-primary tracking-wide truncate">JET GERMANY</div>
+            <div className="text-[13px] font-bold text-text-primary tracking-wide truncate">FLINK</div>
           </div>
         )}
       </div>
