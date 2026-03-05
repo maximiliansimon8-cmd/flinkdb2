@@ -474,11 +474,11 @@ Health Rate = Online-Stunden / Erwartete Stunden * 100
 
 ```bash
 # Frontend (VITE_* Prefix, in index.html/Build eingebettet)
-VITE_SUPABASE_URL=https://hvgjdosdejnwkuyivnrq.supabase.co
+VITE_SUPABASE_URL=https://nrijgfcdlvuhhudasicd.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 
 # Backend (Netlify Functions, nur serverseitig)
-SUPABASE_URL=https://hvgjdosdejnwkuyivnrq.supabase.co
+SUPABASE_URL=https://nrijgfcdlvuhhudasicd.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 AIRTABLE_TOKEN=pat_...
 AIRTABLE_BASE=apppFUWK829K6B3R2

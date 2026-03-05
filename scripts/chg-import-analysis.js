@@ -17,8 +17,9 @@ for (const line of envFile.split('\n')) {
   if (match) env[match[1].trim()] = match[2].trim();
 }
 
-const SUPABASE_URL = env.SUPABASE_URL || process.env.SUPABASE_URL || 'https://hvgjdosdejnwkuyivnrq.supabase.co';
-const SUPABASE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDc4NTMzNywiZXhwIjoyMDg2MzYxMzM3fQ.xiCcyalyFh3BDg_dABcpurfw5ygFnmucc17UiYLb8Y4';
+const SUPABASE_URL = env.SUPABASE_URL || process.env.SUPABASE_URL;
+const SUPABASE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_URL || !SUPABASE_KEY) { console.error('SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY muessen in .env.local gesetzt sein'); process.exit(1); }
 
 function excelToDate(serial) {
   if (!serial) return null;

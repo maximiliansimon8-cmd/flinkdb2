@@ -733,7 +733,7 @@ const API_DATA = [
     status: 'connected',
     statusLabel: 'Aktiv',
     authMethod: 'Anon Key + Service Role',
-    baseUrl: 'https://hvgjdosdejnwkuyivnrq.supabase.co',
+    baseUrl: import.meta.env.VITE_SUPABASE_URL || 'https://nrijgfcdlvuhhudasicd.supabase.co',
     description: 'Lokaler Cache und Auth-Backend. PostgreSQL-Datenbank mit Row Level Security, JWT-basierter Authentifizierung und Storage fuer Attachments.',
     rateLimit: 'Keine harten Limits (Fair Use)',
     rights: 'READ + WRITE (Full)',
