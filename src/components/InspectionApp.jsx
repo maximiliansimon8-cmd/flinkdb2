@@ -491,7 +491,7 @@ export default function InspectionApp() {
         <div className="flex items-center gap-3">
           <ShieldCheck size={20} className="text-status-warning" />
           <div>
-            <h1 className="text-sm font-bold text-text-primary">JET Protokollpruefung</h1>
+            <h1 className="text-sm font-bold text-text-primary">Flink Protokollpruefung</h1>
             <p className="text-xs text-text-muted">
               Pruefer: {auth.inspector}
               {auth.city && <> | Stadt: {auth.city}</>}
