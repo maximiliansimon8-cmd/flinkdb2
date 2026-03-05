@@ -148,10 +148,9 @@ export default function DisplayMap({ rawData, comparisonData, onSelectDisplay })
     const total = markers.length;
     const online = markers.filter(m => m.status === 'online').length;
     const offline = markers.filter(m => ['critical', 'offline', 'warning'].includes(m.status)).length;
-    const totalDisplays = (rawData?.displays?.length || 0) + ((comparisonData?.dayn?.records || []).length - markers.length);
     const noCoords = Math.max(0, (rawData?.displays?.length || 0) - markers.length);
     return { total, online, offline, noCoords };
-  }, [markers, comparisonData]);
+  }, [markers, rawData, comparisonData]);
 
   return (
     <div className="space-y-4">
