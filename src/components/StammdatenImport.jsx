@@ -822,7 +822,7 @@ export default function StammdatenImport() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-text-primary">Stammdaten Import / Abgleich</h2>
-          <p className="text-xs text-text-muted mt-0.5">JET Restaurant-Export mit Airtable Stammdaten abgleichen</p>
+          <p className="text-xs text-text-muted mt-0.5">Flink Restaurant-Export mit Airtable Stammdaten abgleichen</p>
         </div>
       </div>
 
@@ -832,7 +832,7 @@ export default function StammdatenImport() {
         <div className="bg-surface-primary border border-border-secondary rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <Upload size={16} className="text-accent" />
-            <h3 className="text-sm font-semibold text-text-primary">1. JET Export CSV hochladen</h3>
+            <h3 className="text-sm font-semibold text-text-primary">1. Flink Export CSV hochladen</h3>
           </div>
           <label className="flex flex-col items-center gap-2 border-2 border-dashed border-border-primary rounded-xl p-6 cursor-pointer hover:border-blue-400 hover:bg-accent-light/30 transition-all">
             <FileText size={24} className="text-text-muted" />
@@ -920,7 +920,7 @@ export default function StammdatenImport() {
                   <p className={`text-xs font-semibold uppercase tracking-wider ${activeTab === 'new' ? 'opacity-80' : 'text-blue-600'}`}>Neue Standorte</p>
                   <p className={`text-3xl font-bold ${activeTab === 'new' ? '' : 'text-blue-700'}`}>{comparison.newEntries.length}</p>
                   <p className={`text-xs mt-0.5 ${activeTab === 'new' ? 'opacity-70' : 'text-blue-600'}`}>
-                    neue JET IDs zum Anlegen{comparison.newWithConflicts.length > 0 ? ` (${comparison.newWithConflicts.length} mit Konflikten)` : ''}
+                    neue Standort-IDs zum Anlegen{comparison.newWithConflicts.length > 0 ? ` (${comparison.newWithConflicts.length} mit Konflikten)` : ''}
                   </p>
                 </div>
                 <Plus size={28} className={activeTab === 'new' ? 'opacity-60' : 'text-blue-400'} />
@@ -996,7 +996,7 @@ export default function StammdatenImport() {
               <div className="p-5 space-y-3">
                 <h3 className="text-sm font-semibold text-text-primary">Zusammenfassung</h3>
                 <div className="text-sm text-text-secondary space-y-1.5">
-                  <p><Badge color="gray">{csvData.length}</Badge> Eintraege im JET-Export</p>
+                  <p><Badge color="gray">{csvData.length}</Badge> Eintraege im Flink-Export</p>
                   <p><Badge color="gray">{airtableData.size}</Badge> Eintraege in Supabase (Airtable-Sync)</p>
                   <p><Badge color="green">{comparison.unchanged.length}</Badge> unveraendert (ID match, alle Felder identisch)</p>
                   <p><Badge color="amber">{comparison.onlyNonCritical.length}</Badge> unkritische Aenderungen (Tel, Email, Kontakt, Geo — gesammelt freigeben)</p>
@@ -1077,7 +1077,7 @@ export default function StammdatenImport() {
                             <thead>
                               <tr className="text-text-muted uppercase">
                                 <th className="text-left py-1 px-2 font-medium">Feld</th>
-                                <th className="text-left py-1 px-2 font-medium">JET Export (neu)</th>
+                                <th className="text-left py-1 px-2 font-medium">Flink Export (neu)</th>
                                 <th className="text-left py-1 px-2 font-medium">Airtable (aktuell)</th>
                               </tr>
                             </thead>
@@ -1136,7 +1136,7 @@ export default function StammdatenImport() {
                               <tr className="text-text-muted uppercase">
                                 <th className="text-left py-1 px-2 font-medium w-8"></th>
                                 <th className="text-left py-1 px-2 font-medium">Feld</th>
-                                <th className="text-left py-1 px-2 font-medium">JET Export (neu)</th>
+                                <th className="text-left py-1 px-2 font-medium">Flink Export (neu)</th>
                                 <th className="text-left py-1 px-2 font-medium">Airtable (aktuell)</th>
                               </tr>
                             </thead>
@@ -1239,7 +1239,7 @@ export default function StammdatenImport() {
                                   ))}
                                   <div className="flex items-center gap-2 pt-2">
                                     <p className="text-[10px] text-text-muted flex-1">
-                                      Moeglich: JET ID geaendert, Standort verkauft/neuer Vertragspartner, oder tatsaechlich neu.
+                                      Moeglich: Standort-ID geaendert, Standort verkauft/neuer Vertragspartner, oder tatsaechlich neu.
                                     </p>
                                     {syncStatus[row.id] === 'done' ? (
                                       <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12} /> Angelegt</span>
@@ -1409,7 +1409,7 @@ export default function StammdatenImport() {
                       </div>
                     </div>
                     <p className="text-[10px] text-status-warning">
-                      Filter: Kein JET Chain + Stadt in Berlin/Hamburg/Muenchen/Koeln/Frankfurt + noch nicht freigegeben
+                      Filter: Kein Flink Chain + Stadt in Berlin/Hamburg/Muenchen/Koeln/Frankfurt + noch nicht freigegeben
                     </p>
                   </div>
 

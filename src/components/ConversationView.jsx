@@ -540,11 +540,11 @@ function LocationSidebar({ contactName, contact, location, conversation }) {
               </div>
             )}
 
-            {/* JET IDs */}
+            {/* Standort IDs */}
             {location.jetIds && location.jetIds.length > 0 && (
               <div className="mt-3 pt-3 border-t border-border-secondary/80">
                 <p className="text-xs text-text-muted font-medium mb-2">
-                  JET IDs
+                  Standort IDs
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {location.jetIds.map((id, i) => (

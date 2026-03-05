@@ -44,13 +44,13 @@ import { supabase } from '../utils/authService';
 const DATA_SOURCES = [
   {
     id: 'stammdaten',
-    name: 'JET Stammdaten',
+    name: 'Flink Stammdaten',
     airtableTable: 'JET Stammdaten',
     tableId: 'tblLJ1S7OUhc2w5Jw',
     supabaseTable: 'stammdaten',
     primaryKey: 'airtable_id',
     category: 'core',
-    description: 'Stammdaten aller JET-Standorte (Kontaktdaten, Adressen, JET-IDs)',
+    description: 'Stammdaten aller Flink-Standorte (Kontaktdaten, Adressen, Standort-IDs)',
     syncFrequency: 'Alle 2 Stunden',
     syncMethod: 'Inkrementell (LAST_MODIFIED_TIME)',
     rights: { source: 'read', supabase: 'read+write' },

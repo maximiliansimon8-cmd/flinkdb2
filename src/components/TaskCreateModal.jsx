@@ -490,7 +490,7 @@ export default function TaskCreateModal({ isOpen, onClose, onSave, loading = fal
               Neuen Task erstellen
             </h2>
             <p className="text-[11px] text-text-muted mt-0.5">
-              Aufgabe zum JET DooH Projekt hinzufügen
+              Aufgabe zum Flink DooH Projekt hinzufuegen
             </p>
           </div>
           <button

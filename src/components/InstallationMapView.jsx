@@ -135,7 +135,7 @@ async function geocodeAddress(address) {
   try {
     const url = `${NOMINATIM_BASE}?format=json&q=${encodeURIComponent(address)}&countrycodes=de&limit=1`;
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'JET-Dashboard/1.0' },
+      headers: { 'User-Agent': 'Flink-Dashboard/1.0' },
     });
     if (!res.ok) return null;
     const data = await res.json();
