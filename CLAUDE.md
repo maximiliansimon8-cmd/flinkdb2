@@ -80,6 +80,22 @@ Schreiboperationen → Netlify Function → Airtable API
 **Ausnahme:** Supabase-only Tabellen (install_bookings, install_routen, install_teams,
 app_users, groups, audit_log, feature_flags, warehouse_*, etc.) werden direkt beschrieben.
 
+### Installations-Prozess (End-to-End)
+
+```
+1. Akquise → acquisition (Airtable sync)
+     ↓ leadStatus = "Won / Signed", approvalStatus = "Accepted"
+2. Aufbaubereit → isReadyForInstall() = true (src/metrics/predicates.js)
+     ↓ WhatsApp-Einladung via install-booker-invite.js
+3. Terminbuchung → install_bookings (Supabase-only, status: pending → booked)
+     ↓ Standort-Betreiber bucht via /book/* oder Telefon
+4. Aufbau → Monteur-Tagesroute (/monteur)
+     ↓ Monteur klickt "Installation abgeschlossen" → status: completed
+5. Verifikation → install-verification-background.js (3-Tage + 10-Tage Check)
+     ↓ Online-Rate >= 80% → Freigabe in Airtable
+6. Display Live → airtable_displays mit online_status
+```
+
 ---
 
 ## Netlify Functions (39 Stueck)
