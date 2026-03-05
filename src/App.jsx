@@ -180,25 +180,9 @@ class TabErrorBoundary extends React.Component {
 
 function App() {
   /* ─── Auth State ─── */
-  // TEMPORARY: bypass auth for initial setup
-  const bypassAuth = true;
-  const fallbackUser = {
-    id: 'bootstrap-admin',
-    name: 'Admin',
-    email: 'admin@dimension-outdoor.com',
-    role: 'admin',
-    groupId: 'grp_admin',
-    groupName: 'Admin',
-    group: { id: 'grp_admin', name: 'Admin', tabs: ['*'], actions: ['*'], color: '#ef4444', icon: 'Shield' },
-    authId: null,
-    installerTeam: null,
-    mustChangePassword: false,
-    passwordExpired: false,
-    passwordExpiresAt: null,
-  };
-  const [authenticated, setAuthenticated] = useState(() => bypassAuth || isAuthenticated());
-  const [currentUser, setCurrentUser] = useState(() => bypassAuth ? fallbackUser : getCurrentUser());
-  const [authRecovering, setAuthRecovering] = useState(bypassAuth ? false : !isAuthenticated());
+  const [authenticated, setAuthenticated] = useState(() => isAuthenticated());
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+  const [authRecovering, setAuthRecovering] = useState(!isAuthenticated()); // try recover if not logged in
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
