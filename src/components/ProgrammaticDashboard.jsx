@@ -279,12 +279,14 @@ export default function ProgrammaticDashboard() {
   // Helper: deduplicate venues from map (which has both displayId and venueId keys)
   function deduplicateVenues(map) {
     if (!map || map.size === 0) return [];
-    const seen = new Set();
+    const seenVenueIds = new Set();
+    const seenDisplayIds = new Set();
     const list = [];
     map.forEach((venue) => {
-      const key = venue.venueId || venue.displayId;
-      if (seen.has(key)) return;
-      seen.add(key);
+      if (venue.venueId && seenVenueIds.has(venue.venueId)) return;
+      if (venue.displayId && seenDisplayIds.has(venue.displayId)) return;
+      if (venue.venueId) seenVenueIds.add(venue.venueId);
+      if (venue.displayId) seenDisplayIds.add(venue.displayId);
       list.push(venue);
     });
     return list;
@@ -371,14 +373,7 @@ export default function ProgrammaticDashboard() {
   const topVenues = useMemo(() => {
     if (!data || data.size === 0) return [];
     // Deduplicate: data may have entries keyed by both displayId and venueId
-    const seen = new Set();
-    const unique = [];
-    data.forEach((v) => {
-      const key = v.venueId || v.displayId;
-      if (seen.has(key)) return;
-      seen.add(key);
-      unique.push(v);
-    });
+    const unique = deduplicateVenues(data);
     return unique
       .filter((v) => v.totalRevenue > 0)
       .sort((a, b) => b.totalRevenue - a.totalRevenue)
@@ -409,14 +404,7 @@ export default function ProgrammaticDashboard() {
   // Underperforming venues: active but low revenue per day
   const underperformers = useMemo(() => {
     if (!data || data.size === 0) return [];
-    const seen = new Set();
-    const unique = [];
-    data.forEach((v) => {
-      const key = v.venueId || v.displayId;
-      if (seen.has(key)) return;
-      seen.add(key);
-      unique.push(v);
-    });
+    const unique = deduplicateVenues(data);
 
     // Only venues that are active (have spots > 0)
     const activeVenues = unique.filter(v => v.activeDays > 0 && v.totalSpots > 0);

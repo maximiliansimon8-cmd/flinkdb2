@@ -262,22 +262,6 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
       return a.displayId.localeCompare(b.displayId);
     });
 
-    // Vistar venues not matched to Navori (detail list)
-    const detailVistarOnly = [];
-    if (vistarVenues) {
-      const navoriNormSet = new Set();
-      for (const d of displays) {
-        if (d.serialNumber) navoriNormSet.add(d.serialNumber.replace(/\s+/g, ''));
-        if (d.displayId) navoriNormSet.add(d.displayId);
-      }
-      for (const v of vistarVenues) {
-        const matched = navoriNormSet.has(v.id) || navoriNormSet.has(v.partner_venue_id) || (v.name && navoriNormSet.has(v.name.split('|')[0]?.trim()));
-        if (!matched) {
-          detailVistarOnly.push({ venueId: v.id, name: v.name || '', city: v.city || '' });
-        }
-      }
-    }
-
     // Count JET (DO-) vs Dayn (DM-) display IDs in Vistar
     let vistarJetCount = 0, vistarDaynCount = 0;
     for (const did of vistarDisplayIds) {
@@ -591,7 +575,7 @@ export default function DisplayTable({ displays, onSelectDisplay, skipActiveFilt
       },
       completeness: { complete: completeCount, activeTotal: activeInMaster },
       chg: { total: chgLookup.size, matchedActive: chgMatchedCount },
-      details: { all3: detailAll3, navoriVistar: detailNavoriVistar, navoriAirtable: detailNavoriAirtable, onlyNavori: detailOnlyNavori, airtableOnly: detailAirtableOnly, vistarOnly: detailVistarOnly, navoriVistarJetDetail, daynVistarDetail, masterList },
+      details: { all3: detailAll3, navoriVistar: detailNavoriVistar, navoriAirtable: detailNavoriAirtable, onlyNavori: detailOnlyNavori, airtableOnly: detailAirtableOnly, navoriVistarJetDetail, daynVistarDetail, masterList },
     };
   }, [displays, airtableData, daynScreensData, vistarData, vistarVenues, chgLookup]);
 

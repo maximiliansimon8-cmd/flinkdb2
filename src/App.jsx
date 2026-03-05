@@ -1692,6 +1692,29 @@ function App() {
           }
         }
 
+        // Third: stammdaten (lat/lng for displays NOT covered by dayn_screens)
+        try {
+          const { data: stammdatenGeo } = await supabase
+            .from('stammdaten')
+            .select('display_ids, latitude, longitude');
+          if (stammdatenGeo) {
+            for (const s of stammdatenGeo) {
+              const lat = s.latitude != null ? Number(s.latitude) : NaN;
+              const lng = s.longitude != null ? Number(s.longitude) : NaN;
+              if (isNaN(lat) || isNaN(lng) || !lat || !lng) continue;
+              const ids = Array.isArray(s.display_ids) ? s.display_ids : [];
+              for (const did of ids) {
+                if (!did) continue;
+                const existing = geoLookup.get(did);
+                if (existing && existing.lat != null) continue; // already has coords from dayn
+                geoLookup.set(did, { ...(existing || {}), lat, lng });
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[App] Stammdaten geo lookup error:', e);
+        }
+
         // Bank leasing data — build serial number lookup set for cross-system matching
         let bankLeasing = null;
         if (!bankLeasingResult.error && bankLeasingResult.data && bankLeasingResult.data.length > 0) {
