@@ -14,16 +14,10 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://nrijgfcdlvuhhudasicd.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const SUPABASE_URL = 'https://hvgjdosdejnwkuyivnrq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2pkb3NkZWpud2t1eWl2bnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODUzMzcsImV4cCI6MjA4NjM2MTMzN30.eKY0Yyl0Dquqa7FQHjalAQvbqwtWsEFDA1eHgwDp7JQ';
 
-if (!SUPABASE_ANON_KEY) {
-  console.error('[authService] VITE_SUPABASE_ANON_KEY nicht gesetzt! Auth wird nicht funktionieren.');
-}
-
-export const supabase = SUPABASE_ANON_KEY
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : createClient(SUPABASE_URL, 'placeholder-will-fail-gracefully');
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ═══════════════════════════════════════════
    CONSTANTS
@@ -284,49 +278,17 @@ export async function login(email, password) {
     }
 
     // Fetch user profile from app_users + group config
-    let { data: profile } = await supabase
+    const { data: profile } = await supabase
       .from('app_users')
       .select('*, groups(*)')
       .eq('auth_id', authData.user.id)
       .single();
 
     if (!profile) {
-      // Auto-create admin profile on first login (bootstrap mode)
-      console.warn('[authService] No profile found, auto-creating admin profile for:', email);
-      const { data: newProfile, error: insertErr } = await supabase
-        .from('app_users')
-        .insert({
-          auth_id: authData.user.id,
-          name: email.split('@')[0],
-          email: email.trim().toLowerCase(),
-          group_id: 'grp_admin',
-          active: true,
-        })
-        .select('*, groups(*)')
-        .single();
-
-      if (insertErr || !newProfile) {
-        console.error('[authService] Auto-create failed:', insertErr);
-        // Fallback: build session without DB profile
-        const fallbackUser = {
-          id: authData.user.id,
-          name: email.split('@')[0],
-          email: email.trim().toLowerCase(),
-          role: 'admin',
-          groupId: 'grp_admin',
-          groupName: 'Admin',
-          group: { id: 'grp_admin', name: 'Admin', tabs: ['*'], actions: ['*'], color: '#ef4444', icon: 'Shield' },
-          authId: authData.user.id,
-          installerTeam: null,
-          mustChangePassword: false,
-          passwordExpired: false,
-          passwordExpiresAt: null,
-        };
-        saveSession(fallbackUser);
-        return { success: true, user: fallbackUser };
-      }
-      // Use the newly created profile
-      profile = newProfile;
+      // Auth succeeded but no app_users entry – rare edge case
+      writeAuditEntry('login_failed', `Kein Profil gefunden: ${email}`, null, email);
+      await supabase.auth.signOut();
+      return { success: false, error: 'Kein Benutzerprofil gefunden. Kontaktiere den Administrator.' };
     }
 
     // Check if active
