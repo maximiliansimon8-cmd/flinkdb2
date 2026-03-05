@@ -44,30 +44,30 @@ BEGIN;
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-AS 15293
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-15293;
+$$;
 
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS 15293
+RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-15293 LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION update_synced_at_column()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-AS 15293
+AS $$
 BEGIN
   NEW.synced_at = NOW();
   RETURN NEW;
 END;
-15293;
+$$;
 
 
 -- ============================================================
@@ -99,10 +99,10 @@ CREATE TABLE IF NOT EXISTS groups (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  color TEXT DEFAULT \'#6366f1\',
-  icon TEXT DEFAULT \'Shield\',
-  tabs TEXT[] DEFAULT \'{}\',
-  actions TEXT[] DEFAULT \'{}\',
+  color TEXT DEFAULT '#6366f1',
+  icon TEXT DEFAULT 'Shield',
+  tabs TEXT[] DEFAULT '{}',
+  actions TEXT[] DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
   action TEXT NOT NULL,
   resource TEXT,
   resource_id TEXT,
-  details JSONB DEFAULT \'{}\',
+  details JSONB DEFAULT '{}',
   ip_address TEXT,
   user_agent TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS airtable_displays (
   jet_id TEXT,
   sov_partner_ad NUMERIC,
   passpartout BOOLEAN DEFAULT false,
-  network TEXT DEFAULT \'jet\',
+  network TEXT DEFAULT 'jet',
   extra_fields JSONB DEFAULT NULL,
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -319,9 +319,9 @@ CREATE TABLE IF NOT EXISTS acquisition (
   vertragsnummer TEXT,
   latitude DOUBLE PRECISION,
   longitude DOUBLE PRECISION,
-  vertrag_pdf JSONB DEFAULT \'[]\',
-  images JSONB DEFAULT \'[]\',
-  faw_data_attachment JSONB DEFAULT \'[]\',
+  vertrag_pdf JSONB DEFAULT '[]',
+  images JSONB DEFAULT '[]',
+  faw_data_attachment JSONB DEFAULT '[]',
   akquise_kommentar TEXT,
   kommentar_installationen TEXT,
   frequency_approval_comment TEXT,
@@ -372,7 +372,7 @@ CREATE TABLE IF NOT EXISTS installationen (
   install_end TEXT,
   remarks TEXT,
   partner_name TEXT,
-  akquise_links JSONB DEFAULT \'[]\',
+  akquise_links JSONB DEFAULT '[]',
   jet_id TEXT,
   location_name TEXT,
   city TEXT,
@@ -392,7 +392,7 @@ CREATE INDEX IF NOT EXISTS idx_installationen_jet_id ON installationen (jet_id);
 CREATE INDEX IF NOT EXISTS idx_installationen_city ON installationen (city);
 CREATE INDEX IF NOT EXISTS idx_installationen_install_date ON installationen (install_date);
 CREATE INDEX IF NOT EXISTS idx_installationen_status ON installationen (status);
-CREATE INDEX IF NOT EXISTS idx_installationen_freigabe_pending ON installationen (install_date) WHERE freigabe_online_rate = false AND status = \'Installiert\';
+CREATE INDEX IF NOT EXISTS idx_installationen_freigabe_pending ON installationen (install_date) WHERE freigabe_online_rate = false AND status = 'Installiert';
 CREATE INDEX IF NOT EXISTS idx_installationen_extra_fields ON installationen USING GIN (extra_fields) WHERE extra_fields IS NOT NULL;
 
 ALTER TABLE installationen ENABLE ROW LEVEL SECURITY;
@@ -415,11 +415,11 @@ CREATE TABLE IF NOT EXISTS communications (
   recipient_contact TEXT,
   sender TEXT,
   external_id TEXT,
-  location_ids JSONB DEFAULT \'[]\',
-  location_names JSONB DEFAULT \'[]\',
-  display_ids JSONB DEFAULT \'[]\',
-  jet_ids JSONB DEFAULT \'[]\',
-  related_task JSONB DEFAULT \'[]\',
+  location_ids JSONB DEFAULT '[]',
+  location_names JSONB DEFAULT '[]',
+  display_ids JSONB DEFAULT '[]',
+  jet_ids JSONB DEFAULT '[]',
+  related_task JSONB DEFAULT '[]',
   extra_fields JSONB DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -444,7 +444,7 @@ CREATE TABLE IF NOT EXISTS display_heartbeats (
   display_status TEXT,
   last_online_date TIMESTAMPTZ,
   days_offline TEXT,
-  source TEXT DEFAULT \'sheets\',
+  source TEXT DEFAULT 'sheets',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(display_id, timestamp),
   UNIQUE(display_id, timestamp_parsed)
@@ -465,7 +465,7 @@ CREATE POLICY "service_all" ON display_heartbeats FOR ALL TO service_role USING 
 CREATE TABLE IF NOT EXISTS display_first_seen (
   display_id TEXT PRIMARY KEY,
   first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  source TEXT DEFAULT \'heartbeat\'
+  source TEXT DEFAULT 'heartbeat'
 );
 
 ALTER TABLE display_first_seen ENABLE ROW LEVEL SECURITY;
@@ -481,12 +481,12 @@ CREATE TABLE IF NOT EXISTS dayn_screens (
   dayn_screen_id TEXT,
   do_screen_id TEXT,
   screen_status TEXT,
-  network TEXT DEFAULT \'dayn\',
+  network TEXT DEFAULT 'dayn',
   location_name TEXT,
   address TEXT,
   city TEXT,
   region TEXT,
-  country TEXT DEFAULT \'GER\',
+  country TEXT DEFAULT 'GER',
   zip_code TEXT,
   venue_type TEXT,
   floor_cpm NUMERIC(8,2),
@@ -693,7 +693,7 @@ CREATE TABLE IF NOT EXISTS bank_leasing (
   rental_end_planned DATE,
   rental_end_actual DATE,
   monthly_price NUMERIC(8,2),
-  currency TEXT DEFAULT \'EUR\',
+  currency TEXT DEFAULT 'EUR',
   order_number TEXT,
   installation_location TEXT,
   cost_center TEXT,
@@ -798,7 +798,7 @@ CREATE TABLE IF NOT EXISTS vistar_venues (
   city TEXT,
   state TEXT,
   zip_code TEXT,
-  country TEXT DEFAULT \'DE\',
+  country TEXT DEFAULT 'DE',
   latitude NUMERIC(10,7),
   longitude NUMERIC(10,7),
   display_width INTEGER,
@@ -877,7 +877,7 @@ CREATE TABLE IF NOT EXISTS sync_metadata (
   table_name TEXT UNIQUE NOT NULL,
   last_sync_timestamp TIMESTAMP WITH TIME ZONE,
   last_sync_duration_ms INT,
-  last_sync_status TEXT DEFAULT \'pending\',
+  last_sync_status TEXT DEFAULT 'pending',
   records_fetched INT DEFAULT 0,
   records_upserted INT DEFAULT 0,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -940,13 +940,13 @@ CREATE INDEX IF NOT EXISTS idx_api_usage_success ON api_usage_log (success, crea
 
 ALTER TABLE api_usage_log ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Service role full access" ON api_usage_log FOR ALL USING (TRUE) WITH CHECK (TRUE);
-CREATE POLICY "Authenticated users can read" ON api_usage_log FOR SELECT USING (auth.role() = \'authenticated\');
+CREATE POLICY "Authenticated users can read" ON api_usage_log FOR SELECT USING (auth.role() = 'authenticated');
 
 
 CREATE TABLE IF NOT EXISTS attachment_cache (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   airtable_record_id TEXT NOT NULL,
-  airtable_table TEXT NOT NULL DEFAULT \'unknown\',
+  airtable_table TEXT NOT NULL DEFAULT 'unknown',
   airtable_field TEXT NOT NULL,
   original_filename TEXT NOT NULL,
   original_url TEXT,
@@ -967,9 +967,9 @@ CREATE POLICY "Service role full access" ON attachment_cache FOR ALL USING (true
 
 CREATE TABLE IF NOT EXISTS agent_memory (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  category TEXT NOT NULL CHECK (category IN (\'insight\', \'decision\', \'preference\', \'context\', \'pin\')),
+  category TEXT NOT NULL CHECK (category IN ('insight', 'decision', 'preference', 'context', 'pin')),
   content TEXT NOT NULL,
-  metadata JSONB DEFAULT \'{}\',
+  metadata JSONB DEFAULT '{}',
   relevance_score INTEGER DEFAULT 5 CHECK (relevance_score BETWEEN 1 AND 10),
   created_by TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -993,11 +993,11 @@ CREATE TABLE IF NOT EXISTS feedback_requests (
   user_id TEXT NOT NULL,
   user_name TEXT NOT NULL,
   user_email TEXT,
-  type TEXT NOT NULL CHECK (type IN (\'feature\', \'bug\', \'question\', \'feedback\')),
+  type TEXT NOT NULL CHECK (type IN ('feature', 'bug', 'question', 'feedback')),
   title TEXT NOT NULL,
   description TEXT,
-  priority TEXT DEFAULT \'medium\' CHECK (priority IN (\'low\', \'medium\', \'high\', \'critical\')),
-  status TEXT DEFAULT \'open\' CHECK (status IN (\'open\', \'in_review\', \'planned\', \'in_progress\', \'done\', \'rejected\')),
+  priority TEXT DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'critical')),
+  status TEXT DEFAULT 'open' CHECK (status IN ('open', 'in_review', 'planned', 'in_progress', 'done', 'rejected')),
   admin_notes TEXT,
   click_x INTEGER,
   click_y INTEGER,
@@ -1038,8 +1038,8 @@ CREATE TABLE IF NOT EXISTS install_routen (
   schedule_date DATE NOT NULL,
   installer_team TEXT,
   max_capacity INTEGER NOT NULL DEFAULT 4,
-  time_slots JSONB NOT NULL DEFAULT \'["09:00","11:00","14:00","16:00"]\'::jsonb,
-  status TEXT NOT NULL DEFAULT \'open\',
+  time_slots JSONB NOT NULL DEFAULT '["09:00","11:00","14:00","16:00"]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'open',
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -1056,14 +1056,14 @@ CREATE POLICY "Service role full access routen" ON install_routen FOR ALL USING 
 GRANT ALL ON install_routen TO anon, authenticated, service_role;
 
 -- Multi-team unique constraint
-DO 16729
+DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = \'install_routen_city_date_team_key\') THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'install_routen_city_date_team_key') THEN
     ALTER TABLE install_routen ADD CONSTRAINT install_routen_city_date_team_key UNIQUE (city, schedule_date, installer_team);
   END IF;
 EXCEPTION WHEN others THEN
-  RAISE NOTICE \'Constraint may already exist: %\', SQLERRM;
-END 16729;
+  RAISE NOTICE 'Constraint may already exist: %', SQLERRM;
+END $$;
 
 
 -- ═══ 2.2 install_bookings ═══
@@ -1081,8 +1081,8 @@ CREATE TABLE IF NOT EXISTS install_bookings (
   booked_date DATE,
   booked_time TEXT,
   booked_end_time TEXT,
-  status TEXT NOT NULL DEFAULT \'pending\',
-  booking_source TEXT NOT NULL DEFAULT \'self_booking\',
+  status TEXT NOT NULL DEFAULT 'pending',
+  booking_source TEXT NOT NULL DEFAULT 'self_booking',
   whatsapp_sent_at TIMESTAMPTZ,
   booked_at TIMESTAMPTZ,
   confirmed_at TIMESTAMPTZ,
@@ -1110,7 +1110,7 @@ CREATE INDEX IF NOT EXISTS idx_bookings_city_date ON install_bookings(city, book
 CREATE INDEX IF NOT EXISTS idx_bookings_route ON install_bookings(route_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_akquise ON install_bookings(akquise_airtable_id);
 CREATE INDEX IF NOT EXISTS idx_install_bookings_callback ON install_bookings(callback_date) WHERE callback_date IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_install_bookings_reminder_pending ON install_bookings (status, created_at) WHERE status = \'pending\' AND reminder_count = 0;
+CREATE INDEX IF NOT EXISTS idx_install_bookings_reminder_pending ON install_bookings (status, created_at) WHERE status = 'pending' AND reminder_count = 0;
 CREATE INDEX IF NOT EXISTS idx_install_bookings_cancelled_at ON install_bookings (cancelled_at) WHERE cancelled_at IS NOT NULL;
 
 ALTER TABLE install_bookings ENABLE ROW LEVEL SECURITY;
@@ -1124,9 +1124,9 @@ CREATE TABLE IF NOT EXISTS install_teams (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL UNIQUE,
   description TEXT,
-  color TEXT DEFAULT \'#FF8000\',
+  color TEXT DEFAULT '#FF8000',
   is_active BOOLEAN DEFAULT true,
-  members JSONB DEFAULT \'[]\',
+  members JSONB DEFAULT '[]',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1141,7 +1141,7 @@ CREATE TABLE IF NOT EXISTS phone_call_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   booking_id UUID REFERENCES install_bookings(id) ON DELETE CASCADE,
   called_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-  outcome TEXT NOT NULL CHECK (outcome IN (\'reached\', \'not_reached\', \'booked\', \'callback\', \'declined\', \'wrong_number\', \'voicemail\')),
+  outcome TEXT NOT NULL CHECK (outcome IN ('reached', 'not_reached', 'booked', 'callback', 'declined', 'wrong_number', 'voicemail')),
   notes TEXT,
   callback_date DATE,
   duration_seconds INTEGER,
@@ -1164,17 +1164,17 @@ CREATE TABLE IF NOT EXISTS booking_activity_log (
   user_id UUID,
   user_name TEXT NOT NULL,
   action TEXT NOT NULL CHECK (action IN (
-    \'invite_sent\', \'reminder_sent\', \'phone_call\',
-    \'booking_created\', \'booking_confirmed\', \'booking_cancelled\',
-    \'booking_completed\', \'booking_rescheduled\',
-    \'status_changed\', \'airtable_termin_created\'
+    'invite_sent', 'reminder_sent', 'phone_call',
+    'booking_created', 'booking_confirmed', 'booking_cancelled',
+    'booking_completed', 'booking_rescheduled',
+    'status_changed', 'airtable_termin_created'
   )),
   booking_id UUID,
   akquise_airtable_id TEXT,
   location_name TEXT,
   city TEXT,
-  detail JSONB DEFAULT \'{}\',
-  source TEXT NOT NULL DEFAULT \'portal\' CHECK (source IN (\'portal\', \'bot\', \'airtable\', \'self_booking\')),
+  detail JSONB DEFAULT '{}',
+  source TEXT NOT NULL DEFAULT 'portal' CHECK (source IN ('portal', 'bot', 'airtable', 'self_booking')),
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
@@ -1193,7 +1193,7 @@ CREATE POLICY "Allow all for anon" ON booking_activity_log FOR ALL TO anon USING
 CREATE TABLE IF NOT EXISTS attachment_sync_log (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   sync_type TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT \'running\',
+  status TEXT NOT NULL DEFAULT 'running',
   tables_processed TEXT[],
   records_synced INTEGER DEFAULT 0,
   attachments_found INTEGER DEFAULT 0,
@@ -1218,7 +1218,7 @@ CREATE TABLE IF NOT EXISTS install_verification_log (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   installation_airtable_id TEXT NOT NULL,
   display_id TEXT,
-  check_type TEXT NOT NULL CHECK (check_type IN (\'3_day\', \'10_day\')),
+  check_type TEXT NOT NULL CHECK (check_type IN ('3_day', '10_day')),
   check_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   period_start TIMESTAMPTZ,
   period_end TIMESTAMPTZ,
@@ -1251,8 +1251,8 @@ CREATE TABLE IF NOT EXISTS akquise_campaigns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
-  status TEXT NOT NULL DEFAULT \'draft\',
-  target_filter JSONB DEFAULT \'{}\',
+  status TEXT NOT NULL DEFAULT 'draft',
+  target_filter JSONB DEFAULT '{}',
   template_id TEXT NOT NULL,
   created_by TEXT,
   total_leads INT DEFAULT 0,
@@ -1280,7 +1280,7 @@ CREATE TABLE IF NOT EXISTS akquise_conversations (
   jet_id TEXT,
   superchat_contact_id TEXT,
   superchat_conversation_id TEXT,
-  status TEXT NOT NULL DEFAULT \'pending\',
+  status TEXT NOT NULL DEFAULT 'pending',
   template_sent_at TIMESTAMPTZ,
   first_response_at TIMESTAMPTZ,
   window_expires_at TIMESTAMPTZ,
@@ -1314,7 +1314,7 @@ CREATE TABLE IF NOT EXISTS akquise_messages (
   direction TEXT NOT NULL,
   sender TEXT NOT NULL,
   content TEXT NOT NULL,
-  message_type TEXT DEFAULT \'text\',
+  message_type TEXT DEFAULT 'text',
   superchat_message_id TEXT,
   template_id TEXT,
   ai_model TEXT,
@@ -1330,14 +1330,14 @@ CREATE POLICY "auth_read" ON akquise_messages FOR SELECT TO authenticated USING 
 
 CREATE TABLE IF NOT EXISTS akquise_activity_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_name TEXT DEFAULT \'KI-Bot\',
+  user_name TEXT DEFAULT 'KI-Bot',
   action TEXT NOT NULL,
   conversation_id UUID REFERENCES akquise_conversations(id),
   akquise_airtable_id TEXT,
   location_name TEXT,
   city TEXT,
-  detail JSONB DEFAULT \'{}\',
-  source TEXT DEFAULT \'automation\',
+  detail JSONB DEFAULT '{}',
+  source TEXT DEFAULT 'automation',
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -1367,11 +1367,11 @@ CREATE TABLE IF NOT EXISTS goods_receipts (
   serial_number TEXT,
   hardware_id TEXT,
   quantity INTEGER DEFAULT 1,
-  condition TEXT DEFAULT \'ok\',
+  condition TEXT DEFAULT 'ok',
   condition_notes TEXT,
   photo_urls TEXT[],
   received_by TEXT,
-  warehouse TEXT DEFAULT \'Hauptlager\',
+  warehouse TEXT DEFAULT 'Hauptlager',
   qr_code_id BIGINT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -1394,17 +1394,17 @@ CREATE POLICY "service_all" ON goods_receipts FOR ALL TO service_role USING (tru
 CREATE TABLE IF NOT EXISTS hardware_qr_codes (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   qr_code TEXT UNIQUE NOT NULL,
-  qr_prefix TEXT DEFAULT \'JET-HW\',
+  qr_prefix TEXT DEFAULT 'JET-HW',
   batch_id TEXT,
   component_type TEXT,
   hardware_id TEXT,
   serial_number TEXT,
-  status TEXT DEFAULT \'generated\',
+  status TEXT DEFAULT 'generated',
   assigned_at TIMESTAMPTZ,
   assigned_by TEXT,
   label_printed BOOLEAN DEFAULT FALSE,
   label_printed_at TIMESTAMPTZ,
-  label_format TEXT DEFAULT \'62x29\',
+  label_format TEXT DEFAULT '62x29',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1474,7 +1474,7 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
   supplier_contact TEXT,
   supplier_reference TEXT,
   notes TEXT,
-  status TEXT DEFAULT \'entwurf\',
+  status TEXT DEFAULT 'entwurf',
   total_items INTEGER DEFAULT 0,
   received_items INTEGER DEFAULT 0,
   created_by TEXT,
@@ -1506,7 +1506,7 @@ CREATE TABLE IF NOT EXISTS purchase_order_items (
   quantity INTEGER NOT NULL,
   unit_price NUMERIC(10,2),
   received_quantity INTEGER DEFAULT 0,
-  status TEXT DEFAULT \'offen\',
+  status TEXT DEFAULT 'offen',
   serial_numbers TEXT[],
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1525,7 +1525,7 @@ CREATE POLICY "service_all" ON purchase_order_items FOR ALL TO service_role USIN
 
 CREATE TABLE IF NOT EXISTS warehouse_locations (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  warehouse TEXT NOT NULL DEFAULT \'Hauptlager\',
+  warehouse TEXT NOT NULL DEFAULT 'Hauptlager',
   zone TEXT,
   shelf TEXT,
   name TEXT NOT NULL,
@@ -1561,7 +1561,7 @@ CREATE TABLE IF NOT EXISTS shipping_orders (
   tracking_number TEXT,
   packaging_type TEXT,
   notes TEXT,
-  status TEXT DEFAULT \'kommissioniert\',
+  status TEXT DEFAULT 'kommissioniert',
   shipped_at TIMESTAMPTZ,
   delivered_at TIMESTAMPTZ,
   created_by TEXT,
@@ -1625,7 +1625,7 @@ CREATE TABLE IF NOT EXISTS return_orders (
   reference_id TEXT,
   carrier TEXT,
   tracking_number TEXT,
-  status TEXT DEFAULT \'erwartet\',
+  status TEXT DEFAULT 'erwartet',
   inspection_result TEXT,
   inspection_notes TEXT,
   decision TEXT,
@@ -1662,7 +1662,7 @@ CREATE TABLE IF NOT EXISTS return_order_items (
   hardware_id TEXT,
   serial_number TEXT,
   qr_code TEXT,
-  condition TEXT DEFAULT \'ungeprueft\',
+  condition TEXT DEFAULT 'ungeprueft',
   condition_notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1685,7 +1685,7 @@ CREATE POLICY "service_all" ON return_order_items FOR ALL TO service_role USING 
 CREATE TABLE IF NOT EXISTS stock_alerts (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   component_type TEXT NOT NULL,
-  warehouse TEXT DEFAULT \'Hauptlager\',
+  warehouse TEXT DEFAULT 'Hauptlager',
   min_stock INTEGER DEFAULT 5,
   current_stock INTEGER DEFAULT 0,
   alert_active BOOLEAN DEFAULT TRUE,
@@ -1860,7 +1860,7 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_changed_by TEXT;
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_changed_date TIMESTAMPTZ;
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS jet_ids TEXT[];
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS cities TEXT[];
-ALTER TABLE tasks ADD COLUMN IF NOT EXISTS attachments JSONB DEFAULT \'[]\';
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS attachments JSONB DEFAULT '[]';
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS extra_fields JSONB DEFAULT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_tasks_extra_fields ON tasks USING GIN (extra_fields) WHERE extra_fields IS NOT NULL;
@@ -1927,9 +1927,9 @@ SELECT
   hs.sim_id,
   hs.status AS sim_status
 FROM hardware_positions hp
-LEFT JOIN hardware_ops ho ON hp.component_type = \'ops\' AND hp.hardware_id = ho.id
-LEFT JOIN hardware_displays hd ON hp.component_type = \'display\' AND hp.hardware_id = hd.id
-LEFT JOIN hardware_sim hs ON hp.component_type = \'sim\' AND hp.hardware_id = hs.id
+LEFT JOIN hardware_ops ho ON hp.component_type = 'ops' AND hp.hardware_id = ho.id
+LEFT JOIN hardware_displays hd ON hp.component_type = 'display' AND hp.hardware_id = hd.id
+LEFT JOIN hardware_sim hs ON hp.component_type = 'sim' AND hp.hardware_id = hs.id
 WHERE hp.is_current = TRUE;
 
 -- NocoDB enriched view
@@ -1965,7 +1965,7 @@ LEFT JOIN nocodb_lieferando l ON v.kunden_nr = l.kunden_id;
 CREATE OR REPLACE VIEW stock_overview AS
 SELECT
   hp.component_type,
-  COALESCE(hp.sub_position, \'Hauptlager\') AS warehouse,
+  COALESCE(hp.sub_position, 'Hauptlager') AS warehouse,
   COUNT(*) AS item_count,
   array_agg(hp.hardware_id ORDER BY hp.hardware_id) AS hardware_ids,
   array_agg(hp.serial_number ORDER BY hp.serial_number) FILTER (WHERE hp.serial_number IS NOT NULL) AS serial_numbers,
@@ -1973,8 +1973,8 @@ SELECT
   MAX(hp.created_at) AS newest_entry
 FROM hardware_positions hp
 WHERE hp.is_current = TRUE
-  AND hp.position = \'lager\'
-GROUP BY hp.component_type, COALESCE(hp.sub_position, \'Hauptlager\')
+  AND hp.position = 'lager'
+GROUP BY hp.component_type, COALESCE(hp.sub_position, 'Hauptlager')
 ORDER BY hp.component_type, warehouse;
 
 -- Purchase orders overview
@@ -1989,10 +1989,10 @@ SELECT
   COALESCE(SUM(poi.received_quantity), 0)::INTEGER AS total_received,
   COALESCE(SUM(poi.quantity * poi.unit_price), 0)::NUMERIC(12,2) AS total_value,
   CASE
-    WHEN po.expected_delivery IS NULL THEN \'kein_termin\'
-    WHEN po.expected_delivery < CURRENT_DATE AND po.status NOT IN (\'vollstaendig\', \'storniert\') THEN \'ueberfaellig\'
-    WHEN po.expected_delivery <= CURRENT_DATE + INTERVAL \'3 days\' AND po.status NOT IN (\'vollstaendig\', \'storniert\') THEN \'bald_faellig\'
-    ELSE \'im_plan\'
+    WHEN po.expected_delivery IS NULL THEN 'kein_termin'
+    WHEN po.expected_delivery < CURRENT_DATE AND po.status NOT IN ('vollstaendig', 'storniert') THEN 'ueberfaellig'
+    WHEN po.expected_delivery <= CURRENT_DATE + INTERVAL '3 days' AND po.status NOT IN ('vollstaendig', 'storniert') THEN 'bald_faellig'
+    ELSE 'im_plan'
   END AS delivery_status
 FROM purchase_orders po
 LEFT JOIN purchase_order_items poi ON poi.po_id = po.id
@@ -2025,10 +2025,10 @@ SELECT
   ro.tracking_number, ro.status, ro.inspection_result,
   ro.decision, ro.decided_at, ro.decided_by, ro.created_by, ro.created_at,
   COUNT(roi.id) AS item_count,
-  COUNT(roi.id) FILTER (WHERE roi.condition = \'ok\') AS ok_count,
-  COUNT(roi.id) FILTER (WHERE roi.condition = \'beschaedigt\') AS damaged_count,
-  COUNT(roi.id) FILTER (WHERE roi.condition = \'defekt\') AS defect_count,
-  COUNT(roi.id) FILTER (WHERE roi.condition = \'ungeprueft\') AS unchecked_count
+  COUNT(roi.id) FILTER (WHERE roi.condition = 'ok') AS ok_count,
+  COUNT(roi.id) FILTER (WHERE roi.condition = 'beschaedigt') AS damaged_count,
+  COUNT(roi.id) FILTER (WHERE roi.condition = 'defekt') AS defect_count,
+  COUNT(roi.id) FILTER (WHERE roi.condition = 'ungeprueft') AS unchecked_count
 FROM return_orders ro
 LEFT JOIN return_order_items roi ON roi.return_order_id = ro.id
 GROUP BY ro.id;
