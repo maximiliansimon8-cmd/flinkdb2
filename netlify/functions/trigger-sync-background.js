@@ -364,7 +364,7 @@ const SYNC_CONFIGS = [
 
 async function syncHeartbeats(supabaseUrl, serviceKey) {
   const csvRes = await fetch(SHEET_CSV_URL, {
-    headers: { 'User-Agent': 'JET-Dashboard-Sync/1.0' },
+    headers: { 'User-Agent': 'FlinkDB-Sync/2.0' },
   });
   if (!csvRes.ok) throw new Error(`HTTP ${csvRes.status}`);
   const csvText = await csvRes.text();

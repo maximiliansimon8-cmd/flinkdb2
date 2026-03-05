@@ -8,7 +8,7 @@
  */
 
 const ALLOWED_ORIGINS = [
-  'https://jet-dashboard-v2.netlify.app',
+  'https://startling-pothos-27fc77.netlify.app',
   'https://tools.dimension-outdoor.com',
   'http://localhost:5173',   // Vite dev server
   'http://localhost:4173',   // Vite preview

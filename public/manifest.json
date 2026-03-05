@@ -1,7 +1,7 @@
 {
-  "name": "JET Dashboard",
-  "short_name": "JET",
-  "description": "JET Germany Display Network Control Center",
+  "name": "FlinkDB – Display Network Monitor",
+  "short_name": "FlinkDB",
+  "description": "Dimension Outdoor DOOH Display Network Control Center",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

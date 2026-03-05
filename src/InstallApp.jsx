@@ -241,7 +241,7 @@ function LoginScreen({ onLogin }) {
         </form>
 
         <p className="text-xs text-text-muted text-center mt-6">
-          Gleiche Zugangsdaten wie beim JET Dashboard
+          Gleiche Zugangsdaten wie beim FlinkDB Dashboard
         </p>
       </div>
     </div>

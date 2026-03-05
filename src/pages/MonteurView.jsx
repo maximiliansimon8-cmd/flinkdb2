@@ -1448,7 +1448,7 @@ export default function MonteurView() {
         {/* Footer */}
         <div className="text-center mt-8 pb-8">
           <p className="text-xs" style={{ color: BRAND.textMuted }}>
-            Lieferando Installations-Team — powered by JET Germany
+            Installations-Team — powered by Dimension Outdoor
           </p>
           {isJWT && (
             <p className="text-xs mt-1" style={{ color: BRAND.textMuted }}>

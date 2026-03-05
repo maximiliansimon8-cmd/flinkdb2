@@ -1897,10 +1897,10 @@ function App() {
                 />
               </div>
               <h1 className="text-[24px] font-semibold text-[#1D1D1F] tracking-[-0.5px]">
-                JET Germany
+                Dimension Outdoor
               </h1>
               <p className="text-[15px] text-[#86868B] mt-1.5">
-                Display Network Monitor
+                FlinkDB – Display Network Monitor
               </p>
             </div>
 
@@ -2106,10 +2106,10 @@ function App() {
           {/* Title */}
           <div className="animate-slide-up" style={{ animationDelay: '0.1s', opacity: 0 }}>
             <h1 className="text-[20px] font-semibold text-text-primary tracking-[-0.4px] mb-1">
-              JET Germany
+              Dimension Outdoor
             </h1>
             <p className="text-[13px] text-text-muted">
-              Display Network Monitor
+              FlinkDB – Display Network Monitor
             </p>
           </div>
 

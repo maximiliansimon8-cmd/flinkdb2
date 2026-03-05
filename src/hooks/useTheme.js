@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STORAGE_KEY = 'jet-theme';
+const STORAGE_KEY = 'flinkdb-theme';
+const LEGACY_KEY = 'jet-theme';
 
 function getSystemPreference() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -23,7 +24,7 @@ function applyTheme(theme) {
 
 export function useTheme() {
   const [theme, setThemeState] = useState(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY);
     return stored || 'system';
   });
 

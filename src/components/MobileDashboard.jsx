@@ -336,7 +336,7 @@ export default function MobileDashboard({
                 alt="Logo"
                 className="h-5 w-auto brightness-0 invert opacity-60"
               />
-              <span className="text-xs font-bold text-white/60 tracking-widest uppercase">JET Germany</span>
+              <span className="text-xs font-bold text-white/60 tracking-widest uppercase">Dimension Outdoor</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-glow" />

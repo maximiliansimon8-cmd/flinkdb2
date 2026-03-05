@@ -1,5 +1,5 @@
 /**
- * Auth Service for JET Germany DOOH Dashboard
+ * Auth Service for FlinkDB2 — Dimension Outdoor DOOH Dashboard
  * Powered by Supabase (Auth + PostgreSQL).
  *
  * Architecture:
