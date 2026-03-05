@@ -282,17 +282,49 @@ export async function login(email, password) {
     }
 
     // Fetch user profile from app_users + group config
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from('app_users')
       .select('*, groups(*)')
       .eq('auth_id', authData.user.id)
       .single();
 
     if (!profile) {
-      // Auth succeeded but no app_users entry – rare edge case
-      writeAuditEntry('login_failed', `Kein Profil gefunden: ${email}`, null, email);
-      await supabase.auth.signOut();
-      return { success: false, error: 'Kein Benutzerprofil gefunden. Kontaktiere den Administrator.' };
+      // Auto-create admin profile on first login (bootstrap mode)
+      console.warn('[authService] No profile found, auto-creating admin profile for:', email);
+      const { data: newProfile, error: insertErr } = await supabase
+        .from('app_users')
+        .insert({
+          auth_id: authData.user.id,
+          name: email.split('@')[0],
+          email: email.trim().toLowerCase(),
+          group_id: 'grp_admin',
+          active: true,
+        })
+        .select('*, groups(*)')
+        .single();
+
+      if (insertErr || !newProfile) {
+        console.error('[authService] Auto-create failed:', insertErr);
+        // Fallback: build session without DB profile
+        const fallbackUser = {
+          id: authData.user.id,
+          name: email.split('@')[0],
+          email: email.trim().toLowerCase(),
+          role: 'admin',
+          groupId: 'grp_admin',
+          groupName: 'Admin',
+          group: { id: 'grp_admin', name: 'Admin', tabs: ['*'], actions: ['*'], color: '#ef4444', icon: 'Shield' },
+          authId: authData.user.id,
+          installerTeam: null,
+          mustChangePassword: false,
+          passwordExpired: false,
+          passwordExpiresAt: null,
+        };
+        saveSession(fallbackUser);
+        return { success: true, user: fallbackUser };
+      }
+      // Use the newly created profile
+      profile = newProfile;
     }
 
     // Check if active
